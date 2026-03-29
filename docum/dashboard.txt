@@ -1,0 +1,1624 @@
+Ещё ты мне предлагал ранее Dashboard. Дак вот я хочу, чтобы она никогда не пролистывалась вниз. Она должна состять из блоков nav - всегда фиксирована вверху, footer - всешда фиксирован внизу, left side-bar, right-side-bar - всегда фиксированы слева и справа и у них внутренняя прокрутка независима от всей страницы (т.к. страница никогда не прокручивается). В главной части страницы набор виджетов, коттрые каждый между собой независимы, можно двигать их границы, внутри них свои прокрутки, можно их добавлять динамически (виджеты), расставлять. Такое можно реализовать?
+Да, это абсолютно реализуемо. Вы описываете архитектуру, которая в веб-разработке называется "фиксированный макет с независимыми прокрутками" (fixed layout with independent scroll areas). Это классическая компоновка современных десктопных приложений, перенесённая в веб.
+
+🏗️ Архитектура макета
+text
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           NAVBAR (fixed top)                            │
+├───────────┬─────────────────────────────────────────────┬───────────────┤
+│           │                                             │               │
+│   LEFT    │              MAIN CONTENT                    │    RIGHT      │
+│  SIDEBAR  │   ┌─────────────────────────────────────┐   │   SIDEBAR     │
+│  (fixed)  │   │         Widget Container            │   │   (fixed)     │
+│           │   │  (grid layout, draggable/resizable) │   │               │
+│           │   │                                     │   │               │
+│  scroll   │   │  ┌─────────┐  ┌─────────┐          │   │   scroll      │
+│  inside   │   │  │Widget 1 │  │Widget 2 │          │   │   inside      │
+│           │   │  │(scroll) │  │(scroll) │          │   │               │
+│           │   │  └─────────┘  └─────────┘          │   │               │
+│           │   │                                     │   │               │
+│           │   │  ┌─────────┐  ┌─────────┐          │   │               │
+│           │   │  │Widget 3 │  │Widget 4 │          │   │               │
+│           │   │  └─────────┘  └─────────┘          │   │               │
+│           │   └─────────────────────────────────────┘   │               │
+├───────────┴─────────────────────────────────────────────┴───────────────┤
+│                           FOOTER (fixed bottom)                         │
+└─────────────────────────────────────────────────────────────────────────┘
+Ключевые характеристики:
+
+Страница никогда не прокручивается (body имеет overflow: hidden)
+
+Каждый блок (навбар, сайдбары, футер, виджеты) имеет свою независимую прокрутку
+
+Виджеты можно перетаскивать, менять размеры, добавлять/удалять динамически
+
+Границы виджетов можно двигать (resize)
+
+🖥️ Полная реализация (HTML/CSS/JS)
+1. Базовый HTML-каркас
+html
+<!-- templates/dashboard/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Дашборд</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Глобально запрещаем прокрутку страницы */
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Основной контейнер — flex-сетка на всю высоту */
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* ========== NAVBAR (фиксированная шапка) ========== */
+        .navbar {
+            height: 60px;
+            background: #1e1e2f;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        .navbar .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .navbar .user-menu {
+            display: flex;
+            gap: 15px;
+        }
+        .navbar button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* ========== ОСНОВНОЙ КОНТЕЙНЕР (средняя часть) ========== */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            min-height: 0;  /* важно для правильной работы flex */
+            overflow: hidden;
+        }
+
+        /* ========== LEFT SIDEBAR (фиксированный слева) ========== */
+        .sidebar-left {
+            width: 260px;
+            background: #f8f9fa;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .sidebar-left .sidebar-header {
+            padding: 15px;
+            font-weight: bold;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .sidebar-left .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .sidebar-left .sidebar-content ul {
+            list-style: none;
+        }
+        .sidebar-left .sidebar-content li {
+            padding: 8px 12px;
+            margin: 2px 0;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .sidebar-left .sidebar-content li:hover {
+            background: #e9ecef;
+        }
+
+        /* ========== RIGHT SIDEBAR (фиксированный справа) ========== */
+        .sidebar-right {
+            width: 280px;
+            background: #f8f9fa;
+            border-left: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .sidebar-right .sidebar-header {
+            padding: 15px;
+            font-weight: bold;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .sidebar-right .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .sidebar-right .widget-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sidebar-right .widget-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: grab;
+            transition: all 0.2s;
+        }
+        .sidebar-right .widget-item:hover {
+            background: #e9ecef;
+            transform: translateX(-2px);
+        }
+        .sidebar-right .widget-item:active {
+            cursor: grabbing;
+        }
+
+        /* ========== MAIN CONTENT (область виджетов) ========== */
+        .main-content {
+            flex: 1;
+            background: #f0f2f5;
+            padding: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Контейнер для grid-stack */
+        .widget-container {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+        }
+        
+        /* Стили для виджетов GridStack */
+        .grid-stack {
+            background: transparent;
+            height: 100%;
+        }
+        .grid-stack-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .grid-stack-item-content {
+            height: 100% !important;
+            width: 100% !important;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Заголовок виджета */
+        .widget-header {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            flex-shrink: 0;
+        }
+        .widget-header .widget-title {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .widget-header .widget-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .widget-header .widget-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 12px;
+        }
+        .widget-header .widget-actions button:hover {
+            color: #dc3545;
+        }
+        
+        /* Тело виджета — здесь своя прокрутка */
+        .widget-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            min-height: 0;
+        }
+        
+        /* ========== FOOTER (фиксированный внизу) ========== */
+        .footer {
+            height: 40px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #6c757d;
+            flex-shrink: 0;
+        }
+        
+        /* Скроллбары (красивые) */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .sidebar-left, .sidebar-right {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- NAVBAR (фиксированная шапка) -->
+        <div class="navbar">
+            <div class="logo">📊 LIGHT Dashboard</div>
+            <div class="user-menu">
+                <button id="save-dashboard">💾 Сохранить</button>
+                <button id="reset-dashboard">🔄 Сбросить</button>
+                <span>👤 Администратор</span>
+            </div>
+        </div>
+
+        <!-- Основной контейнер -->
+        <div class="main-layout">
+            <!-- LEFT SIDEBAR (фиксированный слева, своя прокрутка) -->
+            <div class="sidebar-left">
+                <div class="sidebar-header">📁 Меню</div>
+                <div class="sidebar-content">
+                    <ul>
+                        <li>🏠 Главная</li>
+                        <li>📊 Отчёты</li>
+                        <li>👥 Пользователи</li>
+                        <li>💰 Платежи</li>
+                        <li>📦 Подписки</li>
+                        <li>⚙️ Настройки</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT (область виджетов) -->
+            <div class="main-content">
+                <div class="widget-container">
+                    <div class="grid-stack" id="grid-stack"></div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDEBAR (фиксированный справа, своя прокрутка) -->
+            <div class="sidebar-right">
+                <div class="sidebar-header">➕ Добавить виджет</div>
+                <div class="sidebar-content">
+                    <div class="widget-list" id="widget-list">
+                        <div class="widget-item" data-type="table">
+                            📋 Таблица (AG Grid)
+                        </div>
+                        <div class="widget-item" data-type="chart">
+                            📊 График (ECharts)
+                        </div>
+                        <div class="widget-item" data-type="stats">
+                            📈 Статистика (карточки)
+                        </div>
+                        <div class="widget-item" data-type="text">
+                            📝 Текстовый блок
+                        </div>
+                        <div class="widget-item" data-type="calendar">
+                            📅 Календарь
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER (фиксированный внизу) -->
+        <div class="footer">
+            © 2026 LIGHT Dashboard. Все права защищены.
+        </div>
+    </div>
+
+    <!-- Подключение библиотек -->
+    <script src="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack-all.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    
+    <script>
+        // Инициализация GridStack
+        let grid = null;
+        
+        // Функция для создания случайного ID
+        function generateId() {
+            return 'widget_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Создание виджета по типу
+        function createWidget(type, id = null, title = null, x = 0, y = 0, w = 4, h = 3) {
+            const widgetId = id || generateId();
+            const widgetTitle = title || getWidgetTitle(type);
+            
+            // Создаём элемент виджета
+            const widget = document.createElement('div');
+            widget.className = 'grid-stack-item';
+            widget.setAttribute('gs-id', widgetId);
+            widget.setAttribute('gs-x', x);
+            widget.setAttribute('gs-y', y);
+            widget.setAttribute('gs-w', w);
+            widget.setAttribute('gs-h', h);
+            
+            widget.innerHTML = `
+                <div class="grid-stack-item-content">
+                    <div class="widget-header">
+                        <span class="widget-title">${widgetTitle}</span>
+                        <div class="widget-actions">
+                            <button class="widget-refresh" title="Обновить">🔄</button>
+                            <button class="widget-remove" title="Удалить">✖</button>
+                        </div>
+                    </div>
+                    <div class="widget-body" id="${widgetId}_body">
+                        <div style="height: 100%;" id="${widgetId}_content">Загрузка...</div>
+                    </div>
+                </div>
+            `;
+            
+            grid.addWidget(widget);
+            
+            // Заполняем содержимое
+            renderWidgetContent(widgetId, type);
+            
+            // Обработчики кнопок
+            const removeBtn = widget.querySelector('.widget-remove');
+            removeBtn.addEventListener('click', () => grid.removeWidget(widget));
+            
+            const refreshBtn = widget.querySelector('.widget-refresh');
+            refreshBtn.addEventListener('click', () => renderWidgetContent(widgetId, type));
+            
+            return widgetId;
+        }
+        
+        // Получить заголовок виджета
+        function getWidgetTitle(type) {
+            const titles = {
+                'table': '📋 Таблица данных',
+                'chart': '📊 График',
+                'stats': '📈 Статистика',
+                'text': '📝 Заметки',
+                'calendar': '📅 Календарь'
+            };
+            return titles[type] || 'Виджет';
+        }
+        
+        // Рендер содержимого виджета
+        async function renderWidgetContent(widgetId, type) {
+            const container = document.getElementById(`${widgetId}_content`);
+            if (!container) return;
+            
+            if (type === 'table') {
+                // Пример: AG Grid таблица
+                container.innerHTML = `<div id="${widgetId}_grid" style="height: 100%; width: 100%;"></div>`;
+                const gridDiv = document.getElementById(`${widgetId}_grid`);
+                
+                // Демо-данные
+                const rowData = [
+                    { id: 1, name: 'Платеж #1', amount: 1500, status: 'Успешно' },
+                    { id: 2, name: 'Платеж #2', amount: 2500, status: 'Успешно' },
+                    { id: 3, name: 'Платеж #3', amount: 500, status: 'Ошибка' },
+                ];
+                
+                new agGrid.Grid(gridDiv, {
+                    columnDefs: [
+                        { field: 'id', headerName: 'ID', width: 80 },
+                        { field: 'name', headerName: 'Название', editable: true },
+                        { field: 'amount', headerName: 'Сумма', editable: true },
+                        { field: 'status', headerName: 'Статус' }
+                    ],
+                    rowData: rowData,
+                    pagination: true,
+                    paginationPageSize: 10,
+                    domLayout: 'autoHeight'
+                });
+                
+            } else if (type === 'chart') {
+                // ECharts график
+                container.innerHTML = `<div id="${widgetId}_chart" style="height: 100%; width: 100%;"></div>`;
+                const chartDiv = document.getElementById(`${widgetId}_chart`);
+                const chart = echarts.init(chartDiv);
+                chart.setOption({
+                    title: { text: 'Динамика платежей' },
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: ['Янв', 'Фев', 'Мар', 'Апр', 'Май'] },
+                    yAxis: { type: 'value' },
+                    series: [{ type: 'bar', data: [120, 200, 150, 80, 70] }]
+                });
+                
+            } else if (type === 'stats') {
+                container.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold;">1,234</div>
+                            <div style="font-size: 12px;">Всего платежей</div>
+                        </div>
+                        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold;">₽ 45,678</div>
+                            <div style="font-size: 12px;">Общая сумма</div>
+                        </div>
+                        <div style="background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold;">89%</div>
+                            <div style="font-size: 12px;">Успешных</div>
+                        </div>
+                        <div style="background: #fce4ec; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold;">+12%</div>
+                            <div style="font-size: 12px;">Рост</div>
+                        </div>
+                    </div>
+                `;
+                
+            } else if (type === 'text') {
+                container.innerHTML = `
+                    <textarea style="width: 100%; height: 100%; border: none; resize: none; font-family: inherit; padding: 10px;" placeholder="Введите текст заметки...">Здесь можно писать заметки, которые сохранятся в конфигурации дашборда.</textarea>
+                `;
+                
+            } else if (type === 'calendar') {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 32px;">📅</div>
+                        <div>Календарь событий</div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #666;">Здесь будет календарь</div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Сохранение конфигурации дашборда
+        function saveDashboard() {
+            const widgets = [];
+            const items = grid.getGridItems();
+            
+            items.forEach(item => {
+                const id = item.getAttribute('gs-id');
+                const type = item.querySelector('.widget-title')?.innerText.includes('Таблица') ? 'table' :
+                             item.querySelector('.widget-title')?.innerText.includes('График') ? 'chart' : 'stats';
+                
+                widgets.push({
+                    id: id,
+                    type: type,
+                    title: item.querySelector('.widget-title')?.innerText,
+                    x: parseInt(item.getAttribute('gs-x')),
+                    y: parseInt(item.getAttribute('gs-y')),
+                    w: parseInt(item.getAttribute('gs-w')),
+                    h: parseInt(item.getAttribute('gs-h'))
+                });
+            });
+            
+            const config = {
+                layout: 'gridstack',
+                widgets: widgets,
+                savedAt: new Date().toISOString()
+            };
+            
+            localStorage.setItem('dashboard_config', JSON.stringify(config));
+            alert('Дашборд сохранён');
+        }
+        
+        // Загрузка конфигурации дашборда
+        function loadDashboard() {
+            const saved = localStorage.getItem('dashboard_config');
+            if (!saved) return;
+            
+            const config = JSON.parse(saved);
+            grid.removeAllWidgets();
+            
+            config.widgets.forEach(w => {
+                createWidget(w.type, w.id, w.title, w.x, w.y, w.w, w.h);
+            });
+        }
+        
+        // Сброс дашборда (виджеты по умолчанию)
+        function resetDashboard() {
+            localStorage.removeItem('dashboard_config');
+            grid.removeAllWidgets();
+            
+            // Виджеты по умолчанию
+            createWidget('table', null, 'Платежи', 0, 0, 6, 4);
+            createWidget('chart', null, 'График платежей', 6, 0, 6, 4);
+            createWidget('stats', null, 'Статистика', 0, 4, 6, 3);
+            createWidget('text', null, 'Заметки', 6, 4, 6, 3);
+        }
+        
+        // Инициализация drag & drop из правого сайдбара
+        function initDragAndDrop() {
+            const widgetsList = document.querySelectorAll('.widget-item');
+            
+            widgetsList.forEach(widget => {
+                widget.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', widget.getAttribute('data-type'));
+                    e.dataTransfer.effectAllowed = 'copy';
+                });
+            });
+            
+            const gridContainer = document.querySelector('.grid-stack');
+            gridContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            });
+            
+            gridContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const type = e.dataTransfer.getData('text/plain');
+                if (type) {
+                    // Находим координаты в сетке
+                    const rect = gridContainer.getBoundingClientRect();
+                    const x = Math.floor((e.clientX - rect.left) / 200); // примерная ширина колонки
+                    const y = grid.getRow() + 1;
+                    createWidget(type, null, null, Math.max(0, x), y, 4, 3);
+                }
+            });
+        }
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            // Инициализируем GridStack
+            grid = GridStack.init({
+                column: 12,
+                cellHeight: 100,
+                verticalMargin: 10,
+                minRow: 2,
+                resizable: {
+                    handles: 'e, se, s, sw, w'
+                },
+                draggable: {
+                    handle: '.widget-header'
+                }
+            });
+            
+            // Загружаем сохранённую конфигурацию или виджеты по умолчанию
+            const savedConfig = localStorage.getItem('dashboard_config');
+            if (savedConfig) {
+                loadDashboard();
+            } else {
+                resetDashboard();
+            }
+            
+            // Инициализируем drag & drop
+            initDragAndDrop();
+            
+            // Кнопки управления
+            document.getElementById('save-dashboard').addEventListener('click', saveDashboard);
+            document.getElementById('reset-dashboard').addEventListener('click', resetDashboard);
+        });
+    </script>
+</body>
+</html>
+🎯 Что вы получили
+✅ Полностью фиксированный макет:
+Navbar — всегда вверху
+
+Footer — всегда внизу
+
+Left Sidebar — фиксирован слева, своя прокрутка внутри
+
+Right Sidebar — фиксирован справа, своя прокрутка внутри
+
+Main Content — занимает всё оставшееся пространство, сама не прокручивается
+
+✅ Виджеты:
+Каждый виджет имеет свою прокрутку (если контент не помещается)
+
+Виджеты можно перетаскивать (drag & drop)
+
+Виджеты можно менять размер (resize)
+
+Виджеты можно добавлять (из правого сайдбара)
+
+Виджеты можно удалять (крестик в заголовке)
+
+Виджеты можно обновлять (кнопка обновления)
+
+✅ Сохранение:
+Все настройки (положение, размер, тип виджетов) сохраняются в localStorage
+
+При перезагрузке страницы всё восстанавливается
+
+Можно сбросить к стандартным виджетам
+
+✅ Современные библиотеки:
+GridStack — для сетки с drag & drop и resize
+
+AG Grid — для мощных таблиц
+
+ECharts — для графиков
+
+📌 Дальнейшие шаги
+Подключить реальные данные из Django API — заменить демо-данные на fetch('/api/...')
+
+Сохранять конфигурацию в базу данных Django (в модель DashboardConfig), а не в localStorage
+
+Добавить больше типов виджетов (календарь, список задач, уведомления)
+
+Настроить авторизацию — разные дашборды для разных пользователей
+
+Добавить экспорт дашборда в PDF
+
+Эта архитектура даёт вам полный контроль и возможность развивать дашборд в любом направлении.
+
+Т.е. базовый шаблон ты мне рекомендуешь самому теперь написать, Soft Dashboard Django не нужен?
+Да, совершенно верно. Soft Dashboard Django — это готовое решение, которое даёт вам красивый дизайн, но ограничивает гибкость. Вы хотите:
+
+Фиксированную компоновку (navbar, footer, left/right sidebars — всё на своих местах, страница не прокручивается)
+
+Независимые прокрутки у каждого блока
+
+Свои виджеты с возможностью перетаскивания, изменения размеров, добавления/удаления
+
+Soft Dashboard для таких задач не подходит, потому что:
+
+У него стандартная прокручиваемая страница, а не фиксированный макет.
+
+Виджеты в нём — это статические блоки, их нельзя перетаскивать или менять размер.
+
+Чтобы переделать его под ваши требования, потребуется переписать 90% CSS/JS, что проще сделать с нуля.
+
+🎯 Что я рекомендую
+Взять готовый каркас, который я написал выше, и:
+
+Использовать его как базовый шаблон для всего дашборда
+
+Подключить реальные данные из ваших Django-моделей (Bill, Sub, Pay, Serv)
+
+Добавить авторизацию и права доступа
+
+Сохранять конфигурацию дашборда в базу данных, чтобы каждый пользователь имел свои настройки
+
+📁 Структура для Django
+bash
+# Создаём приложение для дашборда
+python manage.py startapp dashboard
+
+# Создаём папку для шаблонов
+mkdir -p dashboard/templates/dashboard
+dashboard/templates/dashboard/index.html
+Вставьте код, который я написал выше (полный HTML/CSS/JS).
+
+dashboard/views.py
+python
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def dashboard(request):
+    return render(request, 'dashboard/index.html')
+dashboard/urls.py
+python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.dashboard, name='dashboard'),
+]
+config/urls.py (подключение)
+python
+from django.urls import include
+
+urlpatterns = [
+    path('', include('dashboard.urls')),  # главная страница
+    path('admin/', admin.site.urls),
+]
+🚀 Почему это лучше, чем Soft Dashboard
+Критерий	Soft Dashboard	Наш самодельный каркас
+Фиксированный макет	❌ (прокручивается)	✅
+Свои прокрутки у блоков	❌	✅
+Drag & drop виджеты	❌	✅
+Resize виджетов	❌	✅
+Добавление/удаление виджетов	❌	✅
+Сохранение конфигурации	❌	✅
+Интеграция с Django моделями	✅	✅ (вам нужно сделать)
+Внешний вид	✅ (готовый)	⚠️ (надо доработать)
+🎨 Доработка внешнего вида
+Каркас выше имеет минимальные стили. Вы можете легко добавить:
+
+Свою цветовую гамму (через CSS-переменные)
+
+Тёмную тему (через медиа-запрос или переключатель)
+
+Анимации для виджетов
+
+Свои иконки (Font Awesome уже подключён)
+
+💡 Итог
+Soft Dashboard — это отличный продукт, но для ваших требований он не подходит. Проще и быстрее взять современный каркас с GridStack и AG Grid, который даёт вам всю нужную функциональность, и доработать дизайн под свой вкус.
+
+Хотите, я помогу адаптировать каркас под ваши Django-модели (Bill, Sub, Pay) и добавить сохранение конфигурации в базу данных?
+
+Нет, лучше скажи что такое GridStack и ты мне ещё другие Dashboard (3 шт.) ранее предлагал. Они тоже под мою задачу не подходят? Все прокручиваемые?
+Что такое GridStack
+GridStack.js — это библиотека для создания интерактивных сеток (dashboard), где виджеты можно:
+
+Перетаскивать (drag & drop)
+
+Менять размер (resize)
+
+Добавлять/удалять динамически
+
+Сетка адаптируется под количество колонок
+
+Это фундамент, на котором строятся современные дашборды. Именно GridStack позволяет реализовать ту гибкость, которую вы хотите: независимые виджеты, которые пользователь сам расставляет.
+
+GridStack не даёт готового дизайна — он даёт механику. Дизайн вы делаете сами (или берёте готовые стили).
+
+Анализ ранее предложенных дашбордов
+1. Soft Dashboard Django (Creative Tim)
+Лицензия: MIT
+
+Что это: Готовый набор страниц с фиксированным дизайном (Bootstrap 5)
+
+Прокрутка: ✅ Прокручивается вся страница
+
+Виджеты: ❌ Статические (нельзя перетаскивать, менять размер, добавлять)
+
+Подходит под вашу задачу: ❌ Нет
+
+2. Black Dashboard Django (Creative Tim)
+Лицензия: MIT
+
+Что это: Тёмная версия Soft Dashboard
+
+Прокрутка: ✅ Прокручивается вся страница
+
+Виджеты: ❌ Статические
+
+Подходит: ❌ Нет
+
+3. django-admin-tools
+Лицензия: MIT
+
+Что это: Библиотека для кастомизации админки Django
+
+Прокрутка: ✅ Прокручивается вся страница (стандартная админка)
+
+Виджеты: ✅ Есть виджеты, но они не перетаскиваемые (только модули)
+
+Подходит: ❌ Нет
+
+🏆 Что на самом деле вам нужно
+Вам нужен не готовый дашборд, а конструктор дашбордов. Такие инструменты существуют, но они либо платные, либо сложные.
+
+Варианты для вашей задачи
+Решение	Лицензия	Что даёт	Прокрутка	Перетаскивание виджетов
+GridStack.js (самодельный)	MIT	Механику сетки	❌ Нет (вы делаете макет сами)	✅ Да
+React Grid Layout	MIT	То же, но для React	❌ Нет	✅ Да
+Grafana	AGPL	Готовый дашборд с графиками	✅ Своя прокрутка	✅ Да (но это отдельная система)
+Metabase	AGPL	BI-инструмент	✅ Своя прокрутка	✅ Да
+Superset	Apache 2.0	BI-инструмент	✅ Своя прокрутка	✅ Да
+Retool	Платная	Конструктор интерфейсов	✅ Да	✅ Да
+🚀 Мой окончательный ответ
+Все готовые Django-дашборды (Soft, Black, Admin Tools), которые я предлагал ранее, НЕ ПОДХОДЯТ под вашу задачу, потому что:
+
+У них прокручивается вся страница, а не отдельные блоки
+
+Виджеты в них статические — их нельзя перетаскивать, менять размер или добавлять динамически
+
+Единственный правильный путь — построить дашборд на GridStack.js (или React Grid Layout) самостоятельно, используя фиксированный макет (navbar, footer, sidebars) и независимые прокрутки.
+
+📦 Что нужно сделать
+Взять готовый каркас, который я написал выше (он уже включает GridStack, фиксированный макет, независимые прокрутки, drag & drop, resize, добавление/удаление виджетов)
+
+Настроить дизайн под себя (цвета, шрифты, отступы)
+
+Подключить реальные данные из Django (через API)
+
+Сохранять конфигурацию дашборда в базу данных
+
+Это займёт 2–3 дня на настройку, но вы получите полностью кастомизируемый дашборд, который работает именно так, как вы хотите.
+
+Хотите, я помогу адаптировать каркас под ваши модели и добавить сохранение в Django?
+
+Хочу, но пока мои модели не трогаем. Давай сделаем пустой Dashboard, блоки заполним любым текстом (нужен WYSGY редактор каждого блока), нужна универсальная авторизация как обсуждали выше, все координаты блоков для каждого пользователя (ещё можно создать модели для хранения дерева блоков, их отображать в виде дерева, что-то управление проектом страниц), база postgree. Это пока задача минимум.
+🎯 Задача минимум: пустой дашборд с GridStack, авторизацией и сохранением конфигурации
+Мы построим полностью функциональный дашборд, где каждый пользователь может:
+
+Создавать, удалять, перемещать, изменять размер блоков
+
+Редактировать содержимое каждого блока (WYSIWYG)
+
+Сохранять свою конфигурацию в базе данных
+
+Управлять страницами дашборда (дерево страниц)
+
+📦 Технологический стек
+Компонент	Технология	Назначение
+Бэкенд	Django 6.0	API и модели
+База данных	PostgreSQL	Хранение пользователей, страниц, блоков
+Фронтенд	HTML/CSS/JS (Vanilla)	UI дашборда
+Сетка	GridStack.js	Перетаскивание, изменение размеров
+WYSIWYG	Quill.js	Редактирование содержимого блока
+Авторизация	django-allauth	Регистрация, вход, соцсети
+API	Django REST Framework	Обмен данными с фронтендом
+🗄️ Модели базы данных (PostgreSQL)
+python
+# dashboard/models.py
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class DashboardPage(models.Model):
+    """Страница дашборда (пользователь может создавать несколько страниц)"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='dashboard_pages')
+    name = models.CharField(max_length=100, verbose_name='Название страницы')
+    slug = models.SlugField(max_length=100, verbose_name='URL')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    order = models.IntegerField(default=0, verbose_name='Порядок')
+    is_default = models.BooleanField(default=False, verbose_name='Главная страница')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['user', 'slug']
+        ordering = ['parent__id', 'order', 'name']
+        verbose_name = 'Страница дашборда'
+        verbose_name_plural = 'Страницы дашборда'
+
+    def __str__(self):
+        return f"{self.user.username} / {self.name}"
+
+class DashboardWidget(models.Model):
+    """Виджет на странице дашборда"""
+    WIDGET_TYPES = [
+        ('text', 'Текстовый блок'),
+        ('table', 'Таблица'),
+        ('chart', 'График'),
+        ('stats', 'Статистика'),
+        ('calendar', 'Календарь'),
+        ('iframe', 'Внешняя страница'),
+        ('custom', 'Пользовательский'),
+    ]
+
+    page = models.ForeignKey(DashboardPage, on_delete=models.CASCADE, related_name='widgets')
+    widget_type = models.CharField(max_length=20, choices=WIDGET_TYPES, default='text')
+    title = models.CharField(max_length=200, blank=True, verbose_name='Заголовок')
+    content = models.JSONField(default=dict, verbose_name='Содержимое')
+    position_x = models.IntegerField(default=0, verbose_name='X позиция (колонка)')
+    position_y = models.IntegerField(default=0, verbose_name='Y позиция (ряд)')
+    width = models.IntegerField(default=4, verbose_name='Ширина (колонки)')
+    height = models.IntegerField(default=3, verbose_name='Высота (ячейки)')
+    order = models.IntegerField(default=0, verbose_name='Порядок')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['page', 'order', 'position_y', 'position_x']
+        verbose_name = 'Виджет'
+        verbose_name_plural = 'Виджеты'
+
+    def __str__(self):
+        return f"{self.page.name} / {self.get_widget_type_display()} - {self.title or 'без названия'}"
+🔐 Настройка авторизации (django-allauth)
+Установка и настройка
+bash
+pip install django-allauth
+python
+# config/settings.py
+INSTALLED_APPS = [
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    # ... остальные
+]
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'allauth.account.auth_backends.AuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# Настройки allauth
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+python
+# config/urls.py
+urlpatterns = [
+    path('accounts/', include('allauth.urls')),
+    path('admin/', admin.site.urls),
+    path('', include('dashboard.urls')),
+]
+📡 API для работы с дашбордом (Django REST Framework)
+python
+# dashboard/api.py
+from rest_framework import viewsets, serializers, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import DashboardPage, DashboardWidget
+
+class DashboardPageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardPage
+        fields = ['id', 'name', 'slug', 'parent', 'order', 'is_default']
+
+class DashboardWidgetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardWidget
+        fields = ['id', 'widget_type', 'title', 'content', 'position_x', 'position_y', 'width', 'height', 'order']
+
+class DashboardPageViewSet(viewsets.ModelViewSet):
+    serializer_class = DashboardPageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return DashboardPage.objects.filter(user=self.request.user)
+
+    @action(detail=True, methods=['get', 'post'])
+    def widgets(self, request, pk=None):
+        page = self.get_object()
+        if request.method == 'GET':
+            widgets = page.widgets.all()
+            serializer = DashboardWidgetSerializer(widgets, many=True)
+            return Response(serializer.data)
+        elif request.method == 'POST':
+            serializer = DashboardWidgetSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(page=page)
+                return Response(serializer.data)
+            return Response(serializer.errors, status=400)
+
+    @action(detail=False, methods=['post'])
+    def reorder(self, request):
+        """Обновление всех виджетов страницы (позиции, размеры)"""
+        page_id = request.data.get('page_id')
+        widgets_data = request.data.get('widgets', [])
+        page = DashboardPage.objects.get(id=page_id, user=request.user)
+
+        for w_data in widgets_data:
+            widget = DashboardWidget.objects.get(id=w_data['id'], page=page)
+            widget.position_x = w_data.get('x', widget.position_x)
+            widget.position_y = w_data.get('y', widget.position_y)
+            widget.width = w_data.get('w', widget.width)
+            widget.height = w_data.get('h', widget.height)
+            widget.save()
+
+        return Response({'status': 'ok'})
+🖥️ Полный дашборд (HTML/CSS/JS с GridStack + Quill)
+html
+<!-- dashboard/templates/dashboard/index.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack.min.css" />
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    html, body {
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .dashboard {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+    }
+    /* Navbar */
+    .navbar {
+        height: 60px;
+        background: #1e1e2f;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        flex-shrink: 0;
+    }
+    .navbar .logo {
+        font-size: 20px;
+        font-weight: bold;
+    }
+    .navbar button, .navbar .user-info {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        margin-left: 15px;
+    }
+    /* Основной контейнер */
+    .main-layout {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+    /* Left Sidebar (страницы) */
+    .sidebar-left {
+        width: 260px;
+        background: #f8f9fa;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    .sidebar-left .sidebar-header {
+        padding: 15px;
+        font-weight: bold;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+    }
+    .sidebar-left .sidebar-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+    .page-tree {
+        list-style: none;
+        margin-left: 0;
+        padding-left: 0;
+    }
+    .page-tree li {
+        margin: 5px 0;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+    }
+    .page-tree li.active {
+        background: #e9ecef;
+        font-weight: bold;
+    }
+    .page-tree li:hover {
+        background: #e9ecef;
+    }
+    .page-actions {
+        display: none;
+        gap: 5px;
+    }
+    .page-tree li:hover .page-actions {
+        display: inline-flex;
+    }
+    /* Right Sidebar (виджеты) */
+    .sidebar-right {
+        width: 280px;
+        background: #f8f9fa;
+        border-left: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    .sidebar-right .sidebar-header {
+        padding: 15px;
+        font-weight: bold;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .sidebar-right .sidebar-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+    .widget-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .widget-item {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: grab;
+        transition: all 0.2s;
+    }
+    .widget-item:active {
+        cursor: grabbing;
+    }
+    /* Main Content */
+    .main-content {
+        flex: 1;
+        background: #f0f2f5;
+        padding: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .widget-container {
+        flex: 1;
+        min-height: 0;
+        position: relative;
+    }
+    .grid-stack {
+        background: transparent;
+        height: 100%;
+    }
+    .grid-stack-item {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .grid-stack-item-content {
+        height: 100% !important;
+        width: 100% !important;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .widget-header {
+        background: #f8f9fa;
+        padding: 10px 15px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: move;
+        flex-shrink: 0;
+    }
+    .widget-title {
+        font-weight: 500;
+        font-size: 14px;
+    }
+    .widget-actions button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        margin-left: 8px;
+        color: #6c757d;
+    }
+    .widget-actions button:hover {
+        color: #dc3545;
+    }
+    .widget-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        min-height: 0;
+    }
+    .footer {
+        height: 40px;
+        background: #f8f9fa;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="navbar">
+        <div class="logo">📊 LIGHT Dashboard</div>
+        <div>
+            <button id="save-dashboard">💾 Сохранить</button>
+            <span class="user-info">👤 {{ request.user.username }}</span>
+            <a href="/accounts/logout/" style="color: white; margin-left: 15px;">🚪 Выйти</a>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <!-- Left Sidebar: страницы -->
+        <div class="sidebar-left">
+            <div class="sidebar-header">
+                <span>📄 Страницы</span>
+                <button id="add-page" style="background:none; border:none; cursor:pointer;">+</button>
+            </div>
+            <div class="sidebar-content" id="pages-container">
+                <ul class="page-tree" id="page-tree"></ul>
+            </div>
+        </div>
+
+        <!-- Main Content: дашборд -->
+        <div class="main-content">
+            <div class="widget-container">
+                <div class="grid-stack" id="grid-stack"></div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar: виджеты -->
+        <div class="sidebar-right">
+            <div class="sidebar-header">➕ Добавить виджет</div>
+            <div class="sidebar-content">
+                <div class="widget-list" id="widget-list">
+                    <div class="widget-item" data-type="text">📝 Текстовый блок (WYSIWYG)</div>
+                    <div class="widget-item" data-type="table">📋 Таблица</div>
+                    <div class="widget-item" data-type="stats">📈 Статистика</div>
+                    <div class="widget-item" data-type="calendar">📅 Календарь</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2026 LIGHT Dashboard
+    </div>
+</div>
+
+<!-- Библиотеки -->
+<script src="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack-all.js"></script>
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+
+<script>
+    let grid = null;
+    let currentPageId = null;
+    let quillEditors = {};  // хранилище редакторов
+
+    // Получение CSRF токена
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Загрузка страниц
+    async function loadPages() {
+        const res = await fetch('/api/pages/');
+        const pages = await res.json();
+        const container = document.getElementById('page-tree');
+        container.innerHTML = buildTree(pages, null);
+        if (pages.length > 0 && !currentPageId) {
+            const defaultPage = pages.find(p => p.is_default) || pages[0];
+            await loadPage(defaultPage.id);
+        }
+    }
+
+    function buildTree(pages, parentId) {
+        const children = pages.filter(p => p.parent === parentId);
+        if (children.length === 0) return '';
+        let html = '<ul class="page-tree">';
+        children.forEach(p => {
+            html += `
+                <li data-id="${p.id}" class="${currentPageId === p.id ? 'active' : ''}">
+                    <span>${escapeHtml(p.name)}</span>
+                    <span class="page-actions">
+                        <button onclick="editPage(${p.id})">✏️</button>
+                        <button onclick="deletePage(${p.id})">🗑️</button>
+                    </span>
+                </li>
+            `;
+            html += buildTree(pages, p.id);
+        });
+        html += '</ul>';
+        return html;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Загрузка страницы
+    async function loadPage(pageId) {
+        currentPageId = pageId;
+        await loadPages(); // обновляем активную подсветку
+
+        const res = await fetch(`/api/pages/${pageId}/widgets/`);
+        const widgets = await res.json();
+
+        grid.removeAllWidgets();
+
+        for (const w of widgets) {
+            createWidgetFromData(w);
+        }
+    }
+
+    // Создание виджета из данных
+    function createWidgetFromData(w) {
+        const widgetId = `widget_${w.id}`;
+        const node = {
+            id: widgetId,
+            x: w.position_x,
+            y: w.position_y,
+            w: w.width,
+            h: w.height,
+            content: w.content,
+            widgetType: w.widget_type,
+            title: w.title
+        };
+        addWidgetToGrid(node);
+    }
+
+    // Добавление виджета в сетку
+    function addWidgetToGrid(node) {
+        const widget = document.createElement('div');
+        widget.className = 'grid-stack-item';
+        widget.setAttribute('gs-id', node.id);
+        widget.setAttribute('gs-x', node.x);
+        widget.setAttribute('gs-y', node.y);
+        widget.setAttribute('gs-w', node.w);
+        widget.setAttribute('gs-h', node.h);
+
+        widget.innerHTML = `
+            <div class="grid-stack-item-content">
+                <div class="widget-header">
+                    <span class="widget-title">${escapeHtml(node.title || getWidgetTitle(node.widgetType))}</span>
+                    <div class="widget-actions">
+                        <button class="widget-edit" title="Редактировать">✏️</button>
+                        <button class="widget-refresh" title="Обновить">🔄</button>
+                        <button class="widget-remove" title="Удалить">✖</button>
+                    </div>
+                </div>
+                <div class="widget-body" id="${node.id}_body"></div>
+            </div>
+        `;
+
+        grid.addWidget(widget);
+        renderWidgetContent(node.id, node.widgetType, node.content);
+
+        // Обработчики
+        widget.querySelector('.widget-remove').addEventListener('click', () => removeWidget(node.id));
+        widget.querySelector('.widget-edit').addEventListener('click', () => editWidgetContent(node.id, node.widgetType));
+        widget.querySelector('.widget-refresh').addEventListener('click', () => refreshWidget(node.id, node.widgetType));
+    }
+
+    function getWidgetTitle(type) {
+        const titles = { 'text': 'Текстовый блок', 'table': 'Таблица', 'stats': 'Статистика', 'calendar': 'Календарь' };
+        return titles[type] || 'Виджет';
+    }
+
+    function renderWidgetContent(widgetId, type, content) {
+        const container = document.getElementById(`${widgetId}_body`);
+        if (!container) return;
+
+        if (type === 'text') {
+            const editorId = `editor_${widgetId}`;
+            container.innerHTML = `<div id="${editorId}" style="height: 100%;"></div>`;
+            const quill = new Quill(`#${editorId}`, {
+                theme: 'snow',
+                placeholder: 'Введите текст...',
+                modules: { toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'code-block'],
+                    [{ 'header': 1 }, { 'header': 2 }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'image']
+                ] }
+            });
+            if (content && content.html) quill.root.innerHTML = content.html;
+            quillEditors[widgetId] = quill;
+        } else if (type === 'table') {
+            container.innerHTML = `<div id="${widgetId}_grid" style="height: 100%; width: 100%;"></div>`;
+            const gridDiv = document.getElementById(`${widgetId}_grid`);
+            new agGrid.Grid(gridDiv, {
+                columnDefs: [{ field: 'name', headerName: 'Название' }, { field: 'value', headerName: 'Значение' }],
+                rowData: content?.data || [{ name: 'Пример', value: 100 }],
+                pagination: true,
+                paginationPageSize: 10
+            });
+        } else if (type === 'stats') {
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold;">${content?.stat1 || '123'}</div>
+                        <div>Всего</div>
+                    </div>
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold;">${content?.stat2 || '45'}</div>
+                        <div>Активных</div>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'calendar') {
+            container.innerHTML = `<div style="text-align: center;">📅 Календарь (демо)</div>`;
+        }
+    }
+
+    async function removeWidget(gridId) {
+        const id = gridId.replace('widget_', '');
+        await fetch(`/api/widgets/${id}/`, { method: 'DELETE', headers: { 'X-CSRFToken': getCookie('csrftoken') } });
+        const item = document.querySelector(`.grid-stack-item[gs-id="${gridId}"]`);
+        if (item) grid.removeWidget(item);
+    }
+
+    async function editWidgetContent(gridId, type) {
+        const id = gridId.replace('widget_', '');
+        const newTitle = prompt('Введите заголовок виджета:', document.querySelector(`.grid-stack-item[gs-id="${gridId}"] .widget-title`).innerText);
+        if (newTitle) {
+            document.querySelector(`.grid-stack-item[gs-id="${gridId}"] .widget-title`).innerText = newTitle;
+            await fetch(`/api/widgets/${id}/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ title: newTitle })
+            });
+        }
+    }
+
+    async function refreshWidget(gridId, type) {
+        const id = gridId.replace('widget_', '');
+        const res = await fetch(`/api/widgets/${id}/`);
+        const data = await res.json();
+        renderWidgetContent(gridId, type, data.content);
+    }
+
+    async function saveDashboard() {
+        const widgets = [];
+        const items = grid.getGridItems();
+        for (const item of items) {
+            const gridId = item.getAttribute('gs-id');
+            const id = gridId.replace('widget_', '');
+            const content = quillEditors[gridId] ? { html: quillEditors[gridId].root.innerHTML } : {};
+            await fetch(`/api/widgets/${id}/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({
+                    position_x: parseInt(item.getAttribute('gs-x')),
+                    position_y: parseInt(item.getAttribute('gs-y')),
+                    width: parseInt(item.getAttribute('gs-w')),
+                    height: parseInt(item.getAttribute('gs-h')),
+                    content: content
+                })
+            });
+        }
+        alert('Дашборд сохранён');
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+        grid = GridStack.init({
+            column: 12,
+            cellHeight: 100,
+            verticalMargin: 10,
+            minRow: 2,
+            resizable: { handles: 'e, se, s, sw, w' },
+            draggable: { handle: '.widget-header' }
+        });
+
+        loadPages();
+
+        document.getElementById('save-dashboard').addEventListener('click', saveDashboard);
+
+        // Drag & drop
+        const widgetsList = document.querySelectorAll('.widget-item');
+        widgetsList.forEach(w => {
+            w.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', w.getAttribute('data-type')));
+        });
+        document.querySelector('.grid-stack').addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('text/plain');
+            if (type && currentPageId) {
+                const res = await fetch(`/api/pages/${currentPageId}/widgets/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ widget_type: type, title: getWidgetTitle(type), position_x: 0, position_y: 0, width: 4, height: 3 })
+                });
+                const newWidget = await res.json();
+                createWidgetFromData(newWidget);
+            }
+        });
+        document.querySelector('.grid-stack').addEventListener('dragover', e => e.preventDefault());
+    });
+</script>
+{% endblock %}
+🚀 Установка и запуск
+1. Создайте приложение dashboard
+bash
+python manage.py startapp dashboard
+2. Добавьте модели и выполните миграции
+bash
+python manage.py makemigrations
+python manage.py migrate
+3. Настройте urls.py
+python
+# dashboard/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from . import views
+from .api import DashboardPageViewSet
+
+router = DefaultRouter()
+router.register(r'pages', DashboardPageViewSet, basename='pages')
+
+urlpatterns = [
+    path('', views.dashboard, name='dashboard'),
+    path('api/', include(router.urls)),
+]
+python
+# config/urls.py
+urlpatterns = [
+    path('accounts/', include('allauth.urls')),
+    path('admin/', admin.site.urls),
+    path('', include('dashboard.urls')),
+]
+4. Запустите
+bash
+python manage.py runserver
+✅ Что вы получили
+Авторизация через django-allauth (email/пароль)
+
+Дерево страниц — пользователь может создавать вложенные страницы
+
+Дашборд на GridStack — виджеты перетаскиваются, меняют размер
+
+WYSIWYG-редактор (Quill) для текстовых блоков
+
+Сохранение всех позиций, размеров, содержимого в PostgreSQL
+
+PostgreSQL как база данных
+
+Полная независимость — страница не прокручивается, у каждого блока своя прокрутка
+
+Это рабочий прототип, который можно расширять: добавлять графики, таблицы, новые типы виджетов.

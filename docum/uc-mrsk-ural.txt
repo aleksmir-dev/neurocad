@@ -1,0 +1,222 @@
+А django-tabbed-admin что дает?
+
+setuptools
+django>=1.10.6,<1.11.0
+pillow==4.0.0
+beautifulsoup4==4.5.3
+html5lib==0.999999999
+psycopg2-binary==2.7.7
+transliterate==1.9
+python3-memcached==1.51
+pytz==2018.9
+qrcode==5.3
+django-mptt>=0.8.7,<0.9.0
+django-debug-toolbar==1.7
+cssmin==0.2.0
+requests==2.13.0
+openpyxl==2.4.5
+django-watson==1.4.0
+pycrypto==2.6.1
+django-tabbed-admin==1.0.2
+bleach>=3.3.0,<3.4.0
+pyinotify
+Прочитано 9 веб-страниц
+django-tabbed-admin (и его форки) — это библиотека, которая позволяет разбить форму редактирования модели в админке на вкладки (табы). Это особенно полезно, когда у модели много полей или несколько встроенных форм (inlines), которые не помещаются на одной странице.
+
+Однако есть важный нюанс: в вашем requirements.txt указана версия django-tabbed-admin==1.0.2, которая была выпущена в 2018 году и не поддерживает Django 6.0. Она совместима только с Python 2.7 и Django 1.10/1.11.
+
+Чтобы использовать эту функциональность с Django 6.0, нужно установить современный форк. Самый свежий вариант — django4-tabbed-admin или django-tabbed-admin-u, которые адаптированы под новые версии.
+
+Как это выглядит и работает
+Вместо одной длинной формы вы получаете интерфейс с вкладками, где можно логически сгруппировать поля и даже разместить inlines в разных вкладках.
+
+Вот пример, как это настраивается (для работы требуется активировать jQuery UI):
+
+python
+from django.contrib import admin
+from tabbed_admin import TabbedModelAdmin
+from .models import Band, Musician, Album
+
+class MusicianInline(admin.StackedInline):
+    model = Musician
+    extra = 1
+
+class AlbumInline(admin.TabularInline):
+    model = Album
+    extra = 1
+
+@admin.register(Band)
+class BandAdmin(TabbedModelAdmin):
+    model = Band
+
+    # Группируем поля и inlines для первой вкладки
+    tab_overview = (
+        (None, {
+            'fields': ('name', 'bio', 'style')   # поля
+        }),
+        MusicianInline,                         # inline форма
+        ('Contact', {                           # ещё одна группа полей
+            'fields': ('agent', 'phone', 'email')
+        })
+    )
+
+    # Вторая вкладка только с inlines
+    tab_album = (
+        AlbumInline,
+    )
+
+    # Создаём сами вкладки с названиями
+    tabs = [
+        ('Основная информация', tab_overview),
+        ('Альбомы', tab_album)
+    ]
+Установка для Django 6.0
+Так как старая версия не подойдёт, установите один из форков:
+
+bash
+pip install django4-tabbed-admin
+или
+
+bash
+pip install django-tabbed-admin-u
+В settings.py добавьте приложение и включите поддержку jQuery UI:
+
+python
+INSTALLED_APPS = [
+    # ...
+    'tabbed_admin',      # после добавления в INSTALLED_APPS
+    # ...
+]
+
+TABBED_ADMIN_USE_JQUERY_UI = True   # активирует встроенные стили
+Альтернатива: встроенные табы в django-admin-interface
+Если вы не хотите подключать дополнительную библиотеку, обратите внимание, что django-admin-interface (который вы использовали раньше) тоже имеет встроенную поддержку табов. Это может быть более простым решением, так как вы уже знакомы с этим пакетом.
+
+Итог
+django-tabbed-admin решает задачу группировки полей формы по вкладкам.
+
+Старая версия несовместима с Django 6.0.
+
+Для Django 6.0 используйте форки (django4-tabbed-admin или django-tabbed-admin-u).
+
+В качестве альтернативы можно использовать встроенные табы в django-admin-interface.
+
+Если вы решите использовать форк, я могу помочь настроить его для вашей модели.
+
+А ещё что из библиотек здесь интересного админки?
+
+setuptools
+django>=1.10.6,<1.11.0
+pillow==4.0.0
+beautifulsoup4==4.5.3
+html5lib==0.999999999
+psycopg2-binary==2.7.7
+transliterate==1.9
+python3-memcached==1.51
+pytz==2018.9
+qrcode==5.3
+django-mptt>=0.8.7,<0.9.0
+django-debug-toolbar==1.7
+cssmin==0.2.0
+requests==2.13.0
+openpyxl==2.4.5
+django-watson==1.4.0
+pycrypto==2.6.1
+django-tabbed-admin==1.0.2
+bleach>=3.3.0,<3.4.0
+pyinotify
+Из вашего списка есть несколько библиотек, связанных с админкой и удобством работы. Вот что интересно:
+
+1. django-mptt (древесные структуры)
+Позволяет создавать иерархические структуры в админке (категории, меню, комментарии). В админке появляется красивое дерево с отступами и возможностью перетаскивания.
+
+python
+# models.py
+from mptt.models import MPTTModel, TreeForeignKey
+
+class Category(MPTTModel):
+    name = models.CharField(max_length=50)
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
+    
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
+# admin.py
+from mptt.admin import MPTTModelAdmin
+
+admin.site.register(Category, MPTTModelAdmin)
+Полезно для: Категории товаров, разделы меню, организационные структуры.
+
+2. django-debug-toolbar (отладка)
+Добавляет панель с отладочной информацией прямо в админку (и на любые страницы). Показывает SQL-запросы, время выполнения, кэш, шаблоны и многое другое.
+
+Полезно для: Оптимизации запросов и поиска узких мест.
+
+3. django-watson (поиск)
+Добавляет полнотекстовый поиск по моделям. Можно искать по любым полям, и результаты будут показываться в админке.
+
+python
+import watson
+watson.register(Product)
+Полезно для: Глобального поиска по всем данным.
+
+4. qrcode (генерация QR-кодов)
+Хотя это не админка напрямую, можно легко добавить генерацию QR-кодов в админке для отображения ссылок, токенов или платёжных данных.
+
+python
+# admin.py
+from django.utils.html import format_html
+import qrcode
+from io import BytesIO
+import base64
+
+def qr_code_preview(self, obj):
+    qr = qrcode.make(obj.token)
+    buffer = BytesIO()
+    qr.save(buffer, format='PNG')
+    img_str = base64.b64encode(buffer.getvalue()).decode()
+    return format_html('<img src="data:image/png;base64,{}" width="100" />', img_str)
+5. django-tabbed-admin (уже обсуждали)
+6. beautifulsoup4 + html5lib (парсинг)
+Может использоваться для очистки и форматирования HTML-контента перед сохранением в админке (например, через bleach для безопасности).
+
+7. pillow (работа с изображениями)
+Позволяет в админке показывать превью изображений, изменять размеры, обрезать и т.д.
+
+python
+# admin.py
+def image_preview(self, obj):
+    if obj.image:
+        return format_html('<img src="{}" width="100" />', obj.image.url)
+    return '-'
+image_preview.short_description = 'Превью'
+8. openpyxl (экспорт в Excel)
+Можно добавить кнопку экспорта данных из админки в Excel.
+
+9. transliterate (транслитерация)
+Полезна для автоматической генерации URL из названий прямо в админке.
+
+10. pyinotify (файловые события)
+Может использоваться для отслеживания изменений в файлах (например, автоматическая обработка загруженных изображений).
+
+📊 Что действительно полезно для админки
+Библиотека	Назначение	Для админки
+django-mptt	Древесные структуры	✅ Очень полезно
+django-debug-toolbar	Отладка	✅ Полезно при разработке
+django-watson	Поиск	✅ Можно добавить
+pillow	Изображения	✅ Превью в админке
+qrcode	QR-коды	✅ Для платёжных данных
+openpyxl	Экспорт	✅ Полезно
+django-tabbed-admin	Табы	✅ Для сложных форм
+⚠️ Устаревшие версии
+Ваш requirements.txt содержит очень старые версии:
+
+django>=1.10.6,<1.11.0 — это Django 2017 года!
+
+django-tabbed-admin==1.0.2 — не работает с Django 6
+
+pillow==4.0.0 — 2017 год
+
+Если вы переходите на Django 6, все эти библиотеки нужно обновить до актуальных версий. Многие из них имеют современные форки.
+
+Хотите, я помогу составить актуальный requirements.txt для Django 6?

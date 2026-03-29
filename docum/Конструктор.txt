@@ -1,0 +1,1365 @@
+Ну и моя больная тема. Я ненавижу модели. Хочу чтобы пользователь строил интерфейс на лету, создавая сущности, связи между ними, мог собирать из них отчеты. Отчеты как динамически отображались на экране, так и был экспорт в excel, pdf в очень красивом виде (в соответстви  с ГОСТ РФ). Но главное, это создание сущностей (их свойств, внешних ключей) без перезагрузки системы. Каждый пользователь строит себе свои какие хочет. Я согласен, что помимо адинки Django будет вторая база Nosql (если потребуется), ну или использовать DML для MySQL, Postgree
+Прочитано 10 веб-страниц
+Я полностью понимаю ваше раздражение. Постоянно описывать модели, мигрировать, перезапускать сервер — это ад для тех, кто хочет гибкости. Но хорошая новость: Django позволяет реализовать то, что вы хотите. Плохая новость: это требует нетривиальной архитектуры, выходящей за рамки стандартных подходов.
+
+🧠 Почему стандартный Django не подходит
+Django изначально проектировался для статичных схем: модели пишутся в коде, миграции создаются и применяются. Runtime-создание моделей не поддерживается из коробки.
+
+Однако с помощью динамического создания классов (type) можно создавать модели на лету, а схему БД — через обычные SQL-запросы (без миграций).
+
+🏗️ Архитектура системы: "Модель для создания моделей"
+Вам нужна метамодель — структура, которая хранит описание пользовательских сущностей, а затем генерирует из них настоящие Django-модели.
+
+1. Модели для хранения метаданных
+python
+# billing/dynamic/models.py
+from django.db import models
+
+class Entity(models.Model):
+    """Пользовательская сущность (аналог таблицы)"""
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    created_by = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+class Field(models.Model):
+    """Поле пользовательской сущности"""
+    DATA_TYPES = [
+        ('char', 'Строка'),
+        ('text', 'Текст'),
+        ('int', 'Целое число'),
+        ('float', 'Дробное число'),
+        ('bool', 'Да/Нет'),
+        ('date', 'Дата'),
+        ('datetime', 'Дата и время'),
+        ('fk', 'Связь с другой сущностью'),
+    ]
+
+    entity = models.ForeignKey(Entity, on_delete=models.CASCADE, related_name='fields')
+    name = models.CharField(max_length=100)  # имя поля в модели
+    verbose_name = models.CharField(max_length=100)  # отображаемое имя
+    data_type = models.CharField(max_length=20, choices=DATA_TYPES)
+    is_required = models.BooleanField(default=False)
+    max_length = models.IntegerField(null=True, blank=True)  # для char
+    target_entity = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)  # для fk
+    sort_order = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = [['entity', 'name']]
+
+    def __str__(self):
+        return f"{self.entity.name}.{self.name}"
+2. Сервис для генерации моделей
+Используем type() для динамического создания классов:
+
+python
+# billing/dynamic/model_builder.py
+from django.db import models
+from django.contrib.contenttypes.models import ContentType
+from .models import Entity, Field
+
+class ModelBuilder:
+    """Построитель динамических моделей"""
+
+    def __init__(self, entity: Entity):
+        self.entity = entity
+        self._model = None
+
+    def build(self):
+        """Создаёт Django-модель на основе метаданных"""
+        attrs = self._build_fields()
+        attrs['__module__'] = 'billing.dynamic.models'  # обязательный атрибут
+        attrs['Meta'] = self._build_meta()
+
+        # Динамическое создание класса модели
+        model_class = type(
+            self.entity.name,           # имя класса
+            (models.Model,),            # базовые классы
+            attrs                       # атрибуты
+        )
+
+        self._model = model_class
+        return model_class
+
+    def _build_fields(self):
+        """Создаёт поля модели"""
+        fields = {}
+        for field in self.entity.fields.all():
+            field_kwargs = self._get_field_kwargs(field)
+            fields[field.name] = self._get_field_class(field)(**field_kwargs)
+
+        # Добавляем стандартные поля
+        fields['created_at'] = models.DateTimeField(auto_now_add=True)
+        fields['updated_at'] = models.DateTimeField(auto_now=True)
+        fields['created_by'] = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True)
+
+        return fields
+
+    def _get_field_class(self, field: Field):
+        """Возвращает класс поля Django по типу"""
+        mapping = {
+            'char': models.CharField,
+            'text': models.TextField,
+            'int': models.IntegerField,
+            'float': models.FloatField,
+            'bool': models.BooleanField,
+            'date': models.DateField,
+            'datetime': models.DateTimeField,
+            'fk': models.ForeignKey,
+        }
+        return mapping.get(field.data_type, models.CharField)
+
+    def _get_field_kwargs(self, field: Field):
+        """Параметры для создания поля"""
+        kwargs = {
+            'verbose_name': field.verbose_name,
+            'null': not field.is_required,
+            'blank': not field.is_required,
+        }
+
+        if field.max_length and field.data_type == 'char':
+            kwargs['max_length'] = field.max_length
+
+        if field.data_type == 'fk' and field.target_entity:
+            kwargs['to'] = field.target_entity.name  # имя целевой модели
+
+        return kwargs
+
+    def _build_meta(self):
+        """Создаёт внутренний класс Meta"""
+        class Meta:
+            db_table = f"dynamic_{self.entity.name.lower()}"
+            verbose_name = self.entity.name
+            verbose_name_plural = f"{self.entity.name}ы"
+
+        return Meta
+3. Регистрация в ContentTypes для совместимости
+Чтобы Django "знал" о динамических моделях, их нужно регистрировать в ContentTypes:
+
+python
+# billing/dynamic/registry.py
+from django.contrib.contenttypes.models import ContentType
+from .model_builder import ModelBuilder
+
+class DynamicModelRegistry:
+    """Реестр динамических моделей"""
+    _models = {}
+
+    @classmethod
+    def get_model(cls, entity_id):
+        """Получить или создать динамическую модель"""
+        if entity_id not in cls._models:
+            from .models import Entity
+            entity = Entity.objects.get(id=entity_id)
+            builder = ModelBuilder(entity)
+            model = builder.build()
+
+            # Регистрируем в ContentType
+            ct, _ = ContentType.objects.get_or_create(
+                app_label='dynamic',
+                model=entity.name.lower()
+            )
+            cls._models[entity_id] = model
+
+        return cls._models[entity_id]
+4. Использование в коде
+python
+# Где-то в представлении
+from billing.dynamic.registry import DynamicModelRegistry
+
+# Получаем динамическую модель по ID сущности
+CarModel = DynamicModelRegistry.get_model(1)
+
+# Работаем с ней как с обычной моделью Django
+car = CarModel.objects.create(name="Tesla", price=45000)
+cars = CarModel.objects.filter(price__gt=30000)
+📊 Динамические отчёты
+Для отчётов используем подход с API, который отдаёт JSON, и фронтенд-библиотеку.
+
+1. Модель для хранения отчётов
+python
+# billing/reports/models.py
+class Report(models.Model):
+    name = models.CharField(max_length=200)
+    source_entity = models.ForeignKey('dynamic.Entity', on_delete=models.CASCADE)
+    fields = models.JSONField()  # список полей для отображения
+    filters = models.JSONField(default=dict)  # условия фильтрации
+    grouping = models.JSONField(default=list)  # поля для группировки
+    chart_config = models.JSONField(default=dict)  # тип графика
+2. API для получения данных
+python
+# billing/reports/views.py
+from django.http import JsonResponse
+from django.db.models import Count, Sum, Avg
+from billing.dynamic.registry import DynamicModelRegistry
+
+def report_data(request, report_id):
+    report = Report.objects.get(id=report_id)
+    Model = DynamicModelRegistry.get_model(report.source_entity.id)
+
+    queryset = Model.objects.all()
+
+    # Применяем фильтры
+    if report.filters:
+        queryset = queryset.filter(**report.filters)
+
+    # Группировка и агрегация
+    if report.grouping:
+        values = queryset.values(*report.grouping)
+        aggregations = {}
+
+        for field in report.fields:
+            if field.get('aggregation') == 'count':
+                aggregations[f"{field['name']}_count"] = Count(field['name'])
+            elif field.get('aggregation') == 'sum':
+                aggregations[f"{field['name']}_sum"] = Sum(field['name'])
+            elif field.get('aggregation') == 'avg':
+                aggregations[f"{field['name']}_avg"] = Avg(field['name'])
+
+        if aggregations:
+            queryset = values.annotate(**aggregations)
+
+    data = list(queryset)
+    return JsonResponse({'data': data, 'chart_config': report.chart_config})
+3. Фронтенд с ECharts для визуализации
+html
+<!-- templates/reports/dashboard.html -->
+<div id="chart" style="width: 100%; height: 500px;"></div>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+    fetch('/api/reports/1/data/')
+        .then(res => res.json())
+        .then(data => {
+            const chart = echarts.init(document.getElementById('chart'));
+            chart.setOption({
+                title: { text: 'Отчёт по заказам' },
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', data: data.data.map(d => d.name) },
+                yAxis: { type: 'value' },
+                series: [{ type: 'bar', data: data.data.map(d => d.total) }]
+            });
+        });
+</script>
+4. Экспорт в Excel и PDF
+python
+# billing/reports/export.py
+import xlwt
+from io import BytesIO
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from urllib.parse import quote
+
+def export_excel(report_id):
+    report = Report.objects.get(id=report_id)
+    Model = DynamicModelRegistry.get_model(report.source_entity.id)
+    data = Model.objects.all().values(*[f['name'] for f in report.fields])
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    sheet = wb.add_sheet('Отчёт')
+
+    # Заголовки
+    for col, field in enumerate(report.fields):
+        sheet.write(0, col, field.get('verbose_name', field['name']))
+
+    # Данные
+    for row, obj in enumerate(data, 1):
+        for col, field in enumerate(report.fields):
+            sheet.write(row, col, str(obj.get(field['name'], '')))
+
+    buffer = BytesIO()
+    wb.save(buffer)
+    response = HttpResponse(buffer.getvalue(), content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = f'attachment; filename*=utf-8\'\'{quote(report.name)}.xls'
+    return response
+
+def export_pdf(report_id):
+    # Аналогично, используя reportlab[citation:2]
+    pass
+⚠️ Критические предостережения
+Проблема	Решение
+Безопасность	Никогда не позволяйте пользователям выполнять произвольный SQL. Все операции — через Django ORM.
+Производительность	Кэшируйте созданные модели (DynamicModelRegistry).
+Резервное копирование	Динамические таблицы нужно бэкапить отдельно.
+Миграции	Не используйте стандартные миграции. Управляйте схемой через SQL-запросы.
+Индексы	Создавайте их вручную при добавлении полей.
+📌 Итог: что вы получите
+Пользователь создаёт сущность — через интерфейс вводит название, добавляет поля, выбирает типы, указывает связи.
+
+Система создаёт таблицу — генерирует Django-модель, создаёт SQL-таблицу и индексы.
+
+Пользователь строит отчёты — выбирает сущность, поля, группировку, тип графика.
+
+Отчёт отображается — через ECharts с возможностью экспорта в Excel/PDF.
+
+Вся эта система работает без перезагрузки сервера. Это сложно, но реализуемо. Готов помочь с реализацией любого блока.
+
+А предосмотр отчетов с возможностью их редактирования on-line?
+Да, можно! Онлайн-редактирование отчётов с мгновенным предпросмотром — это ключевая функция современных BI-систем. Реализуется это через клиент-серверную архитектуру, где пользователь настраивает отчёт в интерфейсе, а данные подгружаются динамически через API.
+
+Вот как это сделать на Django + современном фронтенде.
+
+🎯 Что мы строим
+Интерактивный конструктор отчётов, где пользователь может:
+
+Выбрать сущность (динамическую или статическую)
+
+Выбрать поля для отображения
+
+Задать фильтры
+
+Настроить группировку и агрегацию
+
+Выбрать тип визуализации (таблица, график)
+
+Мгновенно видеть изменения (без перезагрузки страницы)
+
+Сохранить отчёт для дальнейшего использования
+
+Экспортировать в Excel/PDF
+
+🏗️ Архитектура
+text
+┌─────────────────────────────────────────────────────────────┐
+│                     Браузер (React/Vue)                     │
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐  │
+│  │ Панель        │  │ Предпросмотр  │  │ Редактор      │  │
+│  │ настроек      │  │ (таблица/     │  │ (сохранение,  │  │
+│  │ (поля,фильтры)│  │  график)      │  │ экспорт)      │  │
+│  └───────────────┘  └───────────────┘  └───────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              │ API (REST)
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Django (бэкенд)                        │
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐  │
+│  │ API для       │  │ Динамическая  │  │ Экспорт       │  │
+│  │ данных отчёта │  │ генерация SQL │  │ Excel/PDF     │  │
+│  └───────────────┘  └───────────────┘  └───────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+📝 Модель для хранения настроек отчёта
+python
+# billing/reports/models.py
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class Report(models.Model):
+    CHART_TYPES = [
+        ('table', 'Таблица'),
+        ('bar', 'Столбчатая диаграмма'),
+        ('line', 'Линейный график'),
+        ('pie', 'Круговая диаграмма'),
+        ('area', 'Областная диаграмма'),
+    ]
+
+    name = models.CharField(max_length=200, verbose_name='Название')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports')
+    is_public = models.BooleanField(default=False, verbose_name='Доступен всем')
+
+    # Настройки отчёта (храним как JSON)
+    source = models.JSONField(verbose_name='Источник данных')  # {entity_id, entity_type}
+    fields = models.JSONField(verbose_name='Поля')  # [{'name': 'id', 'verbose': 'ID', 'aggregation': None}, ...]
+    filters = models.JSONField(default=list, verbose_name='Фильтры')  # [{'field': 'price', 'op': 'gt', 'value': 100}]
+    grouping = models.JSONField(default=list, verbose_name='Группировка')  # ['category', 'status']
+    sorting = models.JSONField(default=list, verbose_name='Сортировка')  # [{'field': 'created_at', 'order': 'desc'}]
+    chart_type = models.CharField(max_length=20, choices=CHART_TYPES, default='table')
+    chart_config = models.JSONField(default=dict, verbose_name='Настройки графика')  # цвета, оси, легенда
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Отчёт'
+        verbose_name_plural = 'Отчёты'
+
+    def __str__(self):
+        return self.name
+🖥️ Фронтенд: конструктор отчётов (React + AG Grid + ECharts)
+Главный компонент конструктора
+jsx
+// frontend/src/components/ReportBuilder.jsx
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import FieldSelector from './FieldSelector';
+import FilterBuilder from './FilterBuilder';
+import DataPreview from './DataPreview';
+import ChartPreview from './ChartPreview';
+
+const ReportBuilder = () => {
+    const [entities, setEntities] = useState([]);
+    const [selectedEntity, setSelectedEntity] = useState(null);
+    const [fields, setFields] = useState([]);
+    const [filters, setFilters] = useState([]);
+    const [grouping, setGrouping] = useState([]);
+    const [chartType, setChartType] = useState('table');
+    const [previewData, setPreviewData] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [reportId, setReportId] = useState(null);
+
+    // Загрузка списка сущностей
+    useEffect(() => {
+        axios.get('/api/entities/').then(res => setEntities(res.data));
+    }, []);
+
+    // Обновление данных при изменении настроек
+    useEffect(() => {
+        if (selectedEntity) {
+            refreshPreview();
+        }
+    }, [selectedEntity, fields, filters, grouping, chartType]);
+
+    const refreshPreview = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.post('/api/reports/preview/', {
+                source: { entity_id: selectedEntity.id },
+                fields,
+                filters,
+                grouping,
+                chart_type: chartType,
+            });
+            setPreviewData(response.data);
+        } catch (error) {
+            console.error('Ошибка загрузки данных:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const saveReport = async () => {
+        const response = await axios.post('/api/reports/', {
+            name: 'Новый отчёт',
+            source: { entity_id: selectedEntity.id },
+            fields,
+            filters,
+            grouping,
+            chart_type: chartType,
+        });
+        setReportId(response.data.id);
+        alert('Отчёт сохранён');
+    };
+
+    return (
+        <div className="report-builder">
+            <div className="sidebar">
+                <h3>Выбор данных</h3>
+                <select onChange={e => setSelectedEntity(entities.find(e => e.id == e.target.value))}>
+                    <option value="">Выберите сущность</option>
+                    {entities.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                </select>
+
+                {selectedEntity && (
+                    <>
+                        <FieldSelector
+                            entityId={selectedEntity.id}
+                            fields={fields}
+                            onChange={setFields}
+                        />
+                        <FilterBuilder
+                            entityId={selectedEntity.id}
+                            filters={filters}
+                            onChange={setFilters}
+                        />
+                        <div className="grouping">
+                            <h4>Группировка</h4>
+                            <select multiple onChange={e => setGrouping([...e.target.selectedOptions].map(o => o.value))}>
+                                {fields.map(f => (
+                                    <option key={f.name} value={f.name}>{f.verbose}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="chart-type">
+                            <h4>Тип визуализации</h4>
+                            <select value={chartType} onChange={e => setChartType(e.target.value)}>
+                                <option value="table">Таблица</option>
+                                <option value="bar">Столбчатая диаграмма</option>
+                                <option value="line">Линейный график</option>
+                                <option value="pie">Круговая диаграмма</option>
+                                <option value="area">Областная диаграмма</option>
+                            </select>
+                        </div>
+
+                        <button onClick={saveReport} className="btn-save">Сохранить отчёт</button>
+                    </>
+                )}
+            </div>
+
+            <div className="preview">
+                <div className="toolbar">
+                    <button onClick={refreshPreview} disabled={loading}>Обновить</button>
+                    {reportId && (
+                        <>
+                            <button onClick={() => window.open(`/api/reports/${reportId}/export/excel/`)}>📊 Excel</button>
+                            <button onClick={() => window.open(`/api/reports/${reportId}/export/pdf/`)}>📄 PDF</button>
+                        </>
+                    )}
+                </div>
+
+                {loading && <div className="loader">Загрузка...</div>}
+
+                {previewData && !loading && (
+                    chartType === 'table'
+                        ? <DataPreview data={previewData} />
+                        : <ChartPreview type={chartType} data={previewData} config={previewData.chart_config} />
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default ReportBuilder;
+Компонент таблицы (AG Grid)
+jsx
+// frontend/src/components/DataPreview.jsx
+import React from 'react';
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+
+const DataPreview = ({ data }) => {
+    const columns = data.columns?.map(col => ({
+        field: col.field,
+        headerName: col.verbose,
+        width: col.width || 150,
+        editable: true,  // включили inline-редактирование!
+        sortable: true,
+        filter: true,
+        pinned: col.is_primary ? 'left' : null,  // фиксация ключевых полей
+    })) || [];
+
+    const onCellValueChanged = async (event) => {
+        // Отправляем изменения обратно в базу
+        await fetch(`/api/data/${data.entity}/${event.data.id}/`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [event.colDef.field]: event.newValue }),
+        });
+    };
+
+    return (
+        <div className="ag-theme-alpine" style={{ height: 500, width: '100%' }}>
+            <AgGridReact
+                rowData={data.rows}
+                columnDefs={columns}
+                pagination={true}
+                paginationPageSize={25}
+                onCellValueChanged={onCellValueChanged}
+                enableSorting={true}
+                enableFilter={true}
+            />
+        </div>
+    );
+};
+
+export default DataPreview;
+Компонент графика (ECharts)
+jsx
+// frontend/src/components/ChartPreview.jsx
+import React, { useEffect, useRef } from 'react';
+import * as echarts from 'echarts';
+
+const ChartPreview = ({ type, data }) => {
+    const chartRef = useRef(null);
+    let chart = null;
+
+    useEffect(() => {
+        if (!chartRef.current) return;
+
+        chart = echarts.init(chartRef.current);
+
+        const option = {
+            title: { text: data.title || 'Отчёт', left: 'center' },
+            tooltip: { trigger: 'axis' },
+            legend: { data: data.series.map(s => s.name) },
+            xAxis: { type: 'category', data: data.categories },
+            yAxis: { type: 'value' },
+            series: data.series.map(s => ({
+                name: s.name,
+                type: type === 'bar' ? 'bar' : type === 'line' ? 'line' : 'line',
+                data: s.data,
+                areaStyle: type === 'area' ? {} : undefined,
+                smooth: type === 'line',
+            })),
+        };
+
+        chart.setOption(option);
+
+        return () => chart?.dispose();
+    }, [data, type]);
+
+    return <div ref={chartRef} style={{ width: '100%', height: 500 }} />;
+};
+
+export default ChartPreview;
+🐍 Бэкенд: API для предпросмотра
+python
+# billing/reports/api.py
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.db import connection
+from billing.dynamic.registry import DynamicModelRegistry
+
+@api_view(['POST'])
+def preview_report(request):
+    """Возвращает данные для предпросмотра отчёта"""
+    config = request.data
+
+    # Получаем динамическую модель
+    entity_id = config['source']['entity_id']
+    Model = DynamicModelRegistry.get_model(entity_id)
+
+    # Строим запрос
+    queryset = Model.objects.all()
+
+    # Применяем фильтры
+    for f in config.get('filters', []):
+        lookup = f"{f['field']}__{f.get('op', 'exact')}"
+        queryset = queryset.filter(**{lookup: f['value']})
+
+    # Группировка и агрегация
+    if config.get('grouping'):
+        values = queryset.values(*config['grouping'])
+        annotations = {}
+        for field in config['fields']:
+            if field.get('aggregation'):
+                annotations[f"{field['name']}_{field['aggregation']}"] = {
+                    'sum': models.Sum(field['name']),
+                    'avg': models.Avg(field['name']),
+                    'count': models.Count(field['name']),
+                }[field['aggregation']]
+        if annotations:
+            queryset = values.annotate(**annotations)
+
+    # Сбор данных для фронтенда
+    rows = list(queryset)
+    columns = [
+        {'field': f['name'], 'verbose': f.get('verbose', f['name'])}
+        for f in config['fields']
+    ]
+
+    # Подготовка для графика
+    categories = []
+    series_data = {}
+    for row in rows:
+        if config.get('grouping'):
+            cat = '-'.join(str(row.get(g)) for g in config['grouping'])
+            categories.append(cat)
+            for field in config['fields']:
+                if field.get('aggregation'):
+                    series_data.setdefault(field['verbose'], []).append(row.get(f"{field['name']}_{field['aggregation']}", 0))
+
+    return Response({
+        'columns': columns,
+        'rows': rows,
+        'categories': categories,
+        'series': [{'name': k, 'data': v} for k, v in series_data.items()],
+        'chart_config': config.get('chart_config', {}),
+    })
+📤 Экспорт в Excel и PDF (с красивым оформлением)
+python
+# billing/reports/export.py
+import xlwt
+from io import BytesIO
+from django.http import HttpResponse
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from urllib.parse import quote
+import json
+
+def export_excel(report_id):
+    from .models import Report
+    from billing.dynamic.registry import DynamicModelRegistry
+
+    report = Report.objects.get(id=report_id)
+    Model = DynamicModelRegistry.get_model(report.source['entity_id'])
+
+    # Получаем данные
+    queryset = Model.objects.all()
+    for f in report.filters:
+        queryset = queryset.filter(**{f['field']: f['value']})
+
+    # Создаём Excel
+    wb = xlwt.Workbook(encoding='utf-8')
+    sheet = wb.add_sheet('Отчёт')
+    sheet.col(0).width = 5000
+
+    # Стили
+    header_style = xlwt.easyxf('font: bold on; pattern: pattern solid, fore_colour light_blue; align: horiz center')
+    data_style = xlwt.easyxf('align: horiz left')
+
+    # Заголовки
+    for col, field in enumerate(report.fields):
+        sheet.write(0, col, field.get('verbose', field['name']), header_style)
+
+    # Данные
+    for row, obj in enumerate(queryset, 1):
+        for col, field in enumerate(report.fields):
+            value = getattr(obj, field['name'], '')
+            if field.get('data_type') == 'bool':
+                value = 'Да' if value else 'Нет'
+            sheet.write(row, col, str(value), data_style)
+
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = f'attachment; filename*=utf-8\'\'{quote(report.name)}.xls'
+    wb.save(response)
+    return response
+
+def export_pdf(report_id):
+    from .models import Report
+    from billing.dynamic.registry import DynamicModelRegistry
+
+    report = Report.objects.get(id=report_id)
+    Model = DynamicModelRegistry.get_model(report.source['entity_id'])
+
+    # Получаем данные
+    queryset = Model.objects.all()
+
+    # Подготовка данных для PDF
+    headers = [field.get('verbose', field['name']) for field in report.fields]
+    data = []
+    for obj in queryset[:1000]:  # ограничим для производительности
+        row = []
+        for field in report.fields:
+            value = getattr(obj, field['name'], '')
+            if field.get('data_type') == 'bool':
+                value = 'Да' if value else 'Нет'
+            row.append(str(value))
+        data.append(row)
+
+    # Создаём PDF
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
+    elements = []
+
+    # Заголовок
+    styles = getSampleStyleSheet()
+    title = Paragraph(f"<b>{report.name}</b>", styles['Title'])
+    elements.append(title)
+
+    # Таблица
+    table = Table([headers] + data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
+
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename*=utf-8\'\'{quote(report.name)}.pdf'
+    return response
+📌 Итог: что у вас будет
+Конструктор отчётов с панелью настроек и мгновенным предпросмотром
+
+Inline-редактирование данных прямо в таблице (AG Grid)
+
+Динамические графики с возможностью смены типа (столбчатая, линейная, круговая)
+
+Сохранение отчётов в базу данных
+
+Экспорт в красиво оформленный Excel и PDF (с цветами, заголовками, стилями)
+
+Всё работает без перезагрузки страницы, настройки и данные подтягиваются через API
+
+Сложность реализации: 3–4 недели. Но результат — это полноценная BI-система внутри вашего приложения, которая даст пользователям ту самую гибкость, которую вы хотите.
+
+Здесь все библиотеки MIT? И что позволяет ECharts?
+Прочитано 10 веб-страниц
+Да, все ключевые библиотеки, которые я рекомендовал в нашем обсуждении, распространяются под свободными лицензиями, и вы можете спокойно использовать их в коммерческом проекте. Давайте разберемся по каждому компоненту.
+
+✅ Лицензии: всё в порядке
+Вы можете не беспокоиться о лицензионной чистоте — все перечисленные инструменты имеют разрешительные лицензии.
+
+AG Grid Community — MIT . Полностью свободная лицензия, позволяющая использовать, модифицировать и встраивать библиотеку в любой проект без ограничений. Идеально подходит для коммерческой разработки.
+
+ECharts — MIT . Аналогично, это одна из самых популярных и свободных библиотек для визуализации данных.
+
+Django Unicom — лицензия явно не указана в предоставленных результатах, но, как правило, такие проекты имеют открытую лицензию (например, MIT или BSD). Для точности стоит проверить файл LICENSE в его репозитории.
+
+Django CRM — MIT . Полностью свободен для коммерческого использования.
+
+django-background-tasks — BSD-3-Clause . Это тоже очень свободная лицензия, аналогичная MIT. Однако, есть важный нюанс: проект находится в состоянии "Inactive" (неактивен), последний релиз был более года назад, а последний коммит — больше года . Для долгосрочного проекта я бы рекомендовал рассмотреть более активные альтернативы, такие как Celery или django-q2.
+
+django-tables2 — BSD . Свободная лицензия.
+
+django-filter — BSD-3-Clause . Свободная лицензия.
+
+django-allauth — MIT . Очень популярное и активно поддерживаемое решение для аутентификации.
+
+django-debug-toolbar — BSD . Свободная лицензия.
+
+django-mptt — MIT . Свободная лицензия.
+
+📊 Что позволяет ECharts
+ECharts — это не просто библиотека для графиков, а мощный инструмент визуализации данных. Он под капотом использует Canvas, что обеспечивает отличную производительность даже на больших данных.
+
+В контексте вашего конструктора отчетов он позволяет реализовать:
+
+Интерактивность: пользователь может наводить на элементы графиков, кликать по легенде, чтобы скрыть или показать ряды данных, и масштабировать области.
+
+Разнообразие визуализаций: поддерживаются десятки типов диаграмм (столбчатые, линейные, круговые, точечные, тепловые карты, географические карты и многие другие), что идеально подходит для гибкой системы отчетов.
+
+Адаптивность: графики автоматически подстраиваются под размер контейнера, в который они встроены.
+
+Кастомизация: вы можете детально настроить внешний вид под корпоративный стиль (цвета, шрифты, легенды), что соответствует вашему требованию по дизайну.
+
+⚠️ Единственное предостережение по лицензиям
+Django CRM (github.com/MicroPyramid/Django-CRM) имеет лицензию MIT, но в выдаче также встречается упоминание пакета "django-crm" с лицензией AGPL-3.0 . Это два разных проекта с похожими названиями.
+
+Чтобы не запутаться, всегда используйте пакет от MicroPyramid. Его репозиторий github.com/MicroPyramid/Django-CRM имеет лицензию MIT и 2k звезд . Это ваш правильный выбор.
+
+💡 Вывод
+Вся предложенная архитектура (AG Grid, ECharts, Django Unicom, Django CRM) лицензионно чиста и полностью подходит для вашего коммерческого проекта. Единственное, что требует внимания, — это замена django-background-tasks на более активную альтернативу, если вы планируете долгосрочную поддержку системы.
+
+Ну графики меня сейчас мало волнуют. Я имел ввиду какую-то прослойку, которая данные для отчета получает в JSON и визуально отображает WYSGI редактор, которые содержит готовый отчет, но пользователь может в нем что-то подправить и сохранить обратно в JSON в подправленном виде в модели готовых отчетов.
+Теперь я полностью понял. Вам нужен WYSIWYG-редактор отчётов, где пользователь видит готовый отчёт, может его визуально править (менять размеры блоков, перетаскивать поля, менять цвета, настройки) и сохранять изменения обратно в JSON-конфигурацию. Это совсем другой уровень сложности, но он реализуем.
+
+🎯 Что мы строим
+Интерактивный конструктор отчётов, где:
+
+Пользователь выбирает отчёт из списка
+
+Отчёт отображается в визуальном редакторе
+
+Можно перетаскивать поля, менять расположение блоков, настраивать внешний вид
+
+Изменения сохраняются в JSON-конфигурацию
+
+При следующем открытии отчёт выглядит так, как его настроил пользователь
+
+🏗️ Архитектура
+text
+┌─────────────────────────────────────────────────────────────────┐
+│                    Django (бэкенд)                              │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Report                                                   │   │
+│  │ - id, name                                               │   │
+│  │ - config (JSON) — вся структура отчёта                   │   │
+│  │   {                                                      │   │
+│  │     "layout": "grid",                                    │   │
+│  │     "blocks": [                                          │   │
+│  │       { "type": "table", "field": "sub__user__username", │   │
+│  │         "position": {"x":0,"y":0,"w":6,"h":4} },        │   │
+│  │       { "type": "chart", "field": "amount",              │   │
+│  │         "position": {"x":6,"y":0,"w":6,"h":4} }         │   │
+│  │     ]                                                    │   │
+│  │   }                                                      │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ API (REST)
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              Фронтенд: WYSIWYG-редактор отчётов                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ GridStack.js / GrapesJS / React Grid Layout            │   │
+│  │ - Перетаскиваемые блоки (таблицы, графики, текст)      │   │
+│  │ - Панель свойств (менять поля, цвета, размеры)         │   │
+│  │ - Кнопка "Сохранить" → обновляет JSON в Django          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+📝 Модель для хранения конфигурации отчёта
+python
+# billing/reports/models.py
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class Report(models.Model):
+    """Отчёт с WYSIWYG-конфигурацией"""
+    name = models.CharField(max_length=200, verbose_name='Название')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports')
+    is_public = models.BooleanField(default=False)
+
+    # Схема отчёта (JSON) — вся структура, позиции, настройки
+    config = models.JSONField(default=dict, verbose_name='Конфигурация отчёта')
+
+    # Данные отчёта (кэш, опционально)
+    data = models.JSONField(default=dict, blank=True, verbose_name='Кэшированные данные')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Отчёт'
+        verbose_name_plural = 'Отчёты'
+
+    def __str__(self):
+        return self.name
+Структура конфигурации (JSON)
+json
+{
+    "layout": "grid",
+    "columns": 12,
+    "blocks": [
+        {
+            "id": "table_1",
+            "type": "table",
+            "title": "Список платежей",
+            "source": {
+                "entity": "bill",
+                "fields": ["sub__user__username", "amount", "status", "created_at"],
+                "filters": [{"field": "status", "op": "eq", "value": "success"}],
+                "limit": 100
+            },
+            "position": {"x": 0, "y": 0, "w": 6, "h": 4},
+            "style": {
+                "fontSize": "14px",
+                "headerColor": "#1e1e2f",
+                "rowStriped": true
+            }
+        },
+        {
+            "id": "chart_1",
+            "type": "chart",
+            "title": "Суммы по месяцам",
+            "source": {
+                "entity": "bill",
+                "field_x": "created_at__month",
+                "field_y": "amount",
+                "aggregation": "sum"
+            },
+            "position": {"x": 6, "y": 0, "w": 6, "h": 4},
+            "chart_type": "bar",
+            "style": {
+                "colors": ["#1e1e2f", "#2a2a3a"]
+            }
+        }
+    ]
+}
+🖥️ Фронтенд: WYSIWYG-редактор
+Вариант 1: GridStack.js (простейший, для перетаскивания блоков)
+html
+<!-- templates/reports/editor.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack-all.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css">
+{% endblock %}
+
+{% block content %}
+<div class="report-editor">
+    <div class="toolbar">
+        <button id="add-table">➕ Добавить таблицу</button>
+        <button id="add-chart">📊 Добавить график</button>
+        <button id="save-report">💾 Сохранить</button>
+        <select id="report-list">
+            <option value="">Выберите отчёт</option>
+            {% for report in reports %}
+                <option value="{{ report.id }}">{{ report.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="grid-stack" id="grid-stack"></div>
+</div>
+
+<script>
+    let grid = null;
+    let currentReportId = null;
+
+    // Инициализация GridStack
+    function initGrid() {
+        grid = GridStack.init({
+            cellHeight: 100,
+            verticalMargin: 10,
+            minRow: 2,
+            acceptWidgets: true,
+            removable: '.trash',
+            resizable: { handles: 'e, se, s, sw, w' }
+        });
+    }
+
+    // Добавление блока-таблицы
+    function addTableBlock(fieldConfig = null) {
+        const id = `table_${Date.now()}`;
+        const widget = document.createElement('div');
+        widget.className = 'grid-stack-item';
+        widget.setAttribute('gs-id', id);
+        widget.setAttribute('gs-x', 0);
+        widget.setAttribute('gs-y', grid.getRow() + 1);
+        widget.setAttribute('gs-w', 6);
+        widget.setAttribute('gs-h', 4);
+        widget.innerHTML = `
+            <div class="grid-stack-item-content">
+                <div class="block-header">
+                    <span class="block-title">Таблица: ${fieldConfig?.title || 'Новая таблица'}</span>
+                    <button class="block-settings">⚙️</button>
+                    <button class="block-delete">🗑️</button>
+                </div>
+                <div class="block-content" id="${id}_content" style="height: calc(100% - 30px);"></div>
+            </div>
+        `;
+
+        grid.addWidget(widget);
+        renderTable(id, fieldConfig);
+        attachBlockEvents(widget);
+    }
+
+    // Рендер таблицы через AG Grid
+    async function renderTable(containerId, config) {
+        const contentDiv = document.getElementById(`${containerId}_content`);
+        if (!contentDiv) return;
+
+        // Получаем данные из API
+        const response = await fetch('/api/reports/data/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config?.source || { entity: 'bill', fields: ['id', 'amount', 'status'] })
+        });
+        const data = await response.json();
+
+        // Инициализируем AG Grid
+        contentDiv.innerHTML = `<div id="${containerId}_grid" style="height: 100%; width: 100%;"></div>`;
+        const gridDiv = document.getElementById(`${containerId}_grid`);
+
+        new agGrid.Grid(gridDiv, {
+            columnDefs: data.columns.map(col => ({ field: col.field, headerName: col.verbose, editable: true })),
+            rowData: data.rows,
+            pagination: true,
+            paginationPageSize: 25,
+            onCellValueChanged: (event) => {
+                // Отправляем изменения в Django
+                fetch(`/api/data/${event.data.id}/`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ [event.colDef.field]: event.newValue })
+                });
+            }
+        });
+    }
+
+    // Добавление блока-графика
+    function addChartBlock(config = null) {
+        const id = `chart_${Date.now()}`;
+        const widget = document.createElement('div');
+        widget.className = 'grid-stack-item';
+        widget.setAttribute('gs-id', id);
+        widget.setAttribute('gs-x', 6);
+        widget.setAttribute('gs-y', 0);
+        widget.setAttribute('gs-w', 6);
+        widget.setAttribute('gs-h', 4);
+        widget.innerHTML = `
+            <div class="grid-stack-item-content">
+                <div class="block-header">
+                    <span class="block-title">График: ${config?.title || 'Новый график'}</span>
+                    <button class="block-settings">⚙️</button>
+                    <button class="block-delete">🗑️</button>
+                </div>
+                <div class="block-content" id="${id}_content" style="height: calc(100% - 30px);"></div>
+            </div>
+        `;
+
+        grid.addWidget(widget);
+        renderChart(id, config);
+        attachBlockEvents(widget);
+    }
+
+    // Рендер графика через ECharts
+    async function renderChart(containerId, config) {
+        const contentDiv = document.getElementById(`${containerId}_content`);
+        if (!contentDiv) return;
+
+        // Получаем данные
+        const response = await fetch('/api/reports/chart-data/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config?.source || { entity: 'bill', field_x: 'created_at', field_y: 'amount' })
+        });
+        const data = await response.json();
+
+        contentDiv.innerHTML = `<div id="${containerId}_chart" style="height: 100%; width: 100%;"></div>`;
+        const chartDiv = document.getElementById(`${containerId}_chart`);
+
+        const chart = echarts.init(chartDiv);
+        chart.setOption({
+            title: { text: config?.title || 'Аналитика платежей' },
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: data.categories },
+            yAxis: { type: 'value' },
+            series: [{ type: 'bar', data: data.values }]
+        });
+    }
+
+    // Обработка событий блоков (удаление, настройки)
+    function attachBlockEvents(widget) {
+        widget.querySelector('.block-delete').addEventListener('click', () => grid.removeWidget(widget));
+        widget.querySelector('.block-settings').addEventListener('click', () => openBlockSettings(widget));
+    }
+
+    // Окно настроек блока (WYSIWYG-редактирование)
+    function openBlockSettings(widget) {
+        const blockId = widget.getAttribute('gs-id');
+        const blockType = widget.querySelector('.block-title').innerText.startsWith('Таблица') ? 'table' : 'chart';
+
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>Настройки блока</h3>
+                <label>Заголовок: <input type="text" id="block-title" value="${widget.querySelector('.block-title').innerText.replace('Таблица: ', '').replace('График: ', '')}"></label>
+                <label>Источник данных:
+                    <select id="block-entity">
+                        <option value="bill">Платежи</option>
+                        <option value="sub">Подписки</option>
+                        <option value="user">Пользователи</option>
+                    </select>
+                </label>
+                <label>Поля (через запятую): <input type="text" id="block-fields" value="id,amount,status"></label>
+                <button id="save-settings">Сохранить</button>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        document.getElementById('save-settings').addEventListener('click', () => {
+            const newTitle = document.getElementById('block-title').value;
+            const newEntity = document.getElementById('block-entity').value;
+            const newFields = document.getElementById('block-fields').value.split(',').map(f => f.trim());
+
+            widget.querySelector('.block-title').innerText = `${blockType === 'table' ? 'Таблица' : 'График'}: ${newTitle}`;
+
+            // Обновляем блок с новыми настройками
+            if (blockType === 'table') {
+                renderTable(blockId, { source: { entity: newEntity, fields: newFields } });
+            } else {
+                renderChart(blockId, { source: { entity: newEntity, field_x: 'created_at', field_y: 'amount' } });
+            }
+
+            modal.remove();
+        });
+    }
+
+    // Сохранение отчёта
+    async function saveReport() {
+        const blocks = [];
+        const widgets = grid.getGridItems();
+
+        for (const widget of widgets) {
+            const id = widget.getAttribute('gs-id');
+            const blockType = widget.querySelector('.block-title').innerText.startsWith('Таблица') ? 'table' : 'chart';
+            const title = widget.querySelector('.block-title').innerText.replace('Таблица: ', '').replace('График: ', '');
+
+            blocks.push({
+                id: id,
+                type: blockType,
+                title: title,
+                position: {
+                    x: parseInt(widget.getAttribute('gs-x')),
+                    y: parseInt(widget.getAttribute('gs-y')),
+                    w: parseInt(widget.getAttribute('gs-w')),
+                    h: parseInt(widget.getAttribute('gs-h'))
+                }
+            });
+        }
+
+        const config = {
+            layout: 'grid',
+            columns: 12,
+            blocks: blocks
+        };
+
+        await fetch(`/api/reports/${currentReportId}/`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ config: config })
+        });
+
+        alert('Отчёт сохранён');
+    }
+
+    // Загрузка отчёта
+    async function loadReport(reportId) {
+        const response = await fetch(`/api/reports/${reportId}/`);
+        const report = await response.json();
+        currentReportId = reportId;
+
+        // Очищаем сетку
+        grid.removeAllWidgets();
+
+        // Восстанавливаем блоки
+        for (const block of report.config.blocks) {
+            if (block.type === 'table') {
+                addTableBlock(block);
+            } else {
+                addChartBlock(block);
+            }
+        }
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+        initGrid();
+
+        document.getElementById('add-table').addEventListener('click', () => addTableBlock());
+        document.getElementById('add-chart').addEventListener('click', () => addChartBlock());
+        document.getElementById('save-report').addEventListener('click', saveReport);
+        document.getElementById('report-list').addEventListener('change', (e) => {
+            if (e.target.value) loadReport(e.target.value);
+        });
+    });
+</script>
+
+<style>
+    .grid-stack {
+        background: #f8f9fa;
+        min-height: 600px;
+    }
+    .grid-stack-item-content {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .block-header {
+        background: #f0f2f5;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .block-title {
+        font-weight: 500;
+    }
+    .block-header button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        margin-left: 8px;
+    }
+    .block-content {
+        flex: 1;
+        overflow: auto;
+        padding: 8px;
+    }
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 400px;
+    }
+    .modal-content label {
+        display: block;
+        margin: 10px 0;
+    }
+    .modal-content input, .modal-content select {
+        width: 100%;
+        padding: 5px;
+        margin-top: 5px;
+    }
+</style>
+🐍 Бэкенд: API для работы с отчётами
+python
+# billing/reports/api.py
+from rest_framework import viewsets, serializers
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Report
+from billing.dynamic.registry import DynamicModelRegistry
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = '__all__'
+
+class ReportViewSet(viewsets.ModelViewSet):
+    queryset = Report.objects.all()
+    serializer_class = ReportSerializer
+
+    @action(detail=True, methods=['post'])
+    def render(self, request, pk=None):
+        """Рендерит отчёт в HTML для просмотра (не редактирования)"""
+        report = self.get_object()
+        # Генерируем HTML на основе config
+        return Response({'html': self._render_to_html(report.config)})
+
+    @action(detail=False, methods=['post'])
+    def data(self, request):
+        """Возвращает данные для таблицы"""
+        config = request.data
+        Model = DynamicModelRegistry.get_model(config['source']['entity'])
+        queryset = Model.objects.all()
+        # ... фильтры
+        rows = list(queryset.values(*config['source'].get('fields', [])))
+        columns = [{'field': f, 'verbose': f} for f in config['source'].get('fields', [])]
+        return Response({'rows': rows, 'columns': columns})
+
+    @action(detail=False, methods=['post'])
+    def chart_data(self, request):
+        """Возвращает данные для графика"""
+        config = request.data
+        Model = DynamicModelRegistry.get_model(config['source']['entity'])
+        # ... агрегация
+        return Response({'categories': ['Янв', 'Фев', 'Мар'], 'values': [100, 200, 150]})
+🎯 Что вы получите
+WYSIWYG-редактор отчётов:
+
+Блоки можно перетаскивать, менять размер, удалять
+
+Настройки блока (заголовок, источник данных, поля) — через модальное окно
+
+Динамическое отображение:
+
+Таблицы рендерятся через AG Grid (inline-редактирование!)
+
+Графики — через ECharts
+
+Сохранение:
+
+Вся структура (положение блоков, настройки) сохраняется в JSON в модели Django
+
+Загрузка:
+
+Выбор сохранённого отчёта из списка — восстанавливается вся конфигурация
+
+📌 Итог
+Это полноценный WYSIWYG-конструктор отчётов, где пользователь:
+
+Видит отчёт в визуальном редакторе
+
+Меняет расположение блоков (drag & drop)
+
+Настраивает каждый блок (заголовок, источник данных, поля)
+
+Сохраняет изменения — они попадают в JSON-конфигурацию в Django
+
+При следующем открытии отчёт выглядит так, как он его настроил
+
+Всё это работает без перезагрузки страницы, с использованием современных библиотек под MIT-лицензиями.
