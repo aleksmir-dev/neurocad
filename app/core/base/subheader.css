@@ -1,0 +1,28 @@
+/* app/core/base/subheader.css */
+
+/* Строка подзаголовка */
+.core-base-subheader {
+    background-color: #fff;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    flex-shrink: 0;
+    display: none;  
+}
+
+.core-base-subheader h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {   
+    .core-base-subheader {
+        padding: 10px 15px;
+    }
+    
+    .core-base-subheader h1 {
+        font-size: 18px;
+    }
+}

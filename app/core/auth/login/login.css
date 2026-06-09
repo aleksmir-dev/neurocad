@@ -1,0 +1,138 @@
+/* app/core/node/auth/login/login.css */
+
+/* Переопределяем content-wrapper для страницы входа */
+.core-node-base .content-wrapper {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+/* Контейнер формы — полное центрирование */
+.core-node-auth-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    flex: 1;
+}
+
+/* Карточка формы */
+.core-node-auth-login .login-card {
+    width: 360px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    padding: 32px 28px;
+}
+
+/* Заголовок */
+.core-node-auth-login .login-card h2 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: normal;
+    color: #333;
+    margin: 0 0 24px 0;
+}
+
+/* Поля ввода */
+.core-node-auth-login .form-group {
+    margin-bottom: 20px;
+}
+
+.core-node-auth-login .form-group label {
+    display: block;
+    font-size: 18px;
+    font-weight: normal;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+/* Стили для полей ввода — все состояния */
+.core-node-auth-login .form-group input,
+.core-node-auth-login .form-group input:focus,
+.core-node-auth-login .form-group input:active,
+.core-node-auth-login .form-group input:hover,
+.core-node-auth-login .form-group input:-webkit-autofill,
+.core-node-auth-login .form-group input:-webkit-autofill:focus {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 18px !important;
+    font-weight: normal !important;
+    line-height: 1.4;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    -webkit-text-size-adjust: 100%;
+}
+
+.core-node-auth-login .form-group input:focus {
+    outline: none;
+    border-color: rgb(31, 78, 121);
+}
+
+/* Кнопка входа */
+.core-node-auth-login .btn-login {
+    width: 100%;
+    background-color: rgb(31, 78, 121);
+    border: none;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: normal;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+}
+
+.core-node-auth-login .btn-login:hover {
+    background-color: rgb(25, 60, 95);
+}
+
+/* Кнопка показа пароля */
+.core-node-auth-login .password-wrapper {
+    position: relative;
+}
+
+.core-node-auth-login .password-wrapper input {
+    padding-right: 40px;
+}
+
+.core-node-auth-login .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #999;
+    font-size: 27px;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-node-auth-login .toggle-password:hover {
+    color: #666;
+}
+
+/* Сообщение об ошибке */
+.core-node-auth-login .alert {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+}

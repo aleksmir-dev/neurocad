@@ -1,2 +1,42 @@
-django
-django-unfold
+# requirements.txt
+
+## Core
+fastapi
+uvicorn
+python-dotenv
+pydantic-settings
+
+## Database (async PostgreSQL)
+sqlalchemy               # версия 2.0+ обязательна для async
+aiomysql                 # MySQL async driver (заменяет asyncpg)
+aiosqlite
+alembic
+black
+
+## Admin panel
+sqladmin                 # админка для FastAPI
+
+## Auth & security
+passlib[bcrypt]             # хеширование паролей
+python-jose[cryptography]   # JWT токены
+python-multipart            # для форм (регистрация)
+
+
+## Async utilities
+httpx                    # async HTTP клиент
+aiofiles                 # async работа с файлами
+aiologger                # async логирование
+
+## Templates (если будет веб-интерфейс чата)
+jinja2                   # шаблонизатор для HTML страниц
+
+## Parsing & web scraping
+beautifulsoup4           # bs4 - парсинг HTML/XML
+
+## Testing
+requests                 # для тестов из Jupyter Notebooks
+
+## Для формирования Excel
+pandas
+openpyxl
+

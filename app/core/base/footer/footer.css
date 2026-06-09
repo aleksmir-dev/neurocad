@@ -1,0 +1,68 @@
+/* app/core/base/footer/footer.css */
+
+.core-base-footer {
+    background-color: #ccc;
+    color: #666;
+    flex-shrink: 0;
+    padding: 12px 0;
+    font-size: 15px;
+}
+
+.core-base-footer .footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    line-height: 1.3;
+}
+
+.core-base-footer .footer-copyright {
+    font-size: 15px;
+    white-space: nowrap;
+}
+
+.core-base-footer .footer-links {
+    display: flex;
+    gap: 1.5rem;
+    white-space: nowrap;
+}
+
+.core-base-footer .footer-links a {
+    color: #666;
+    text-decoration: none;
+    font-size: 15px;
+    transition: color 0.2s;
+}
+
+.core-base-footer .footer-links a:hover {
+    color: rgb(31, 78, 121);
+    text-decoration: underline;
+}
+
+/* На узких экранах */
+@media (max-width: 768px) {
+    .core-base-footer .footer-links {
+        display: none;
+    }
+    
+    .core-base-footer .footer-content {
+        justify-content: center;
+    }
+    
+    .core-base-footer .main-footer {
+        padding: 10px 0;
+    }
+    
+    .core-base-footer .footer-copyright {
+        font-size: 14px;
+    }
+
+    .core-base-footer .main-footer {
+        background-color: transparent;
+    }
+}
+
+/* Пока скрываем */
+.core-base-footer .footer-links {
+    display: none;
+}

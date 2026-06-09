@@ -1,0 +1,14 @@
+<!-- app/core/node/index/cards/item.html -->
+
+<div class="card {{ node.node_type }}" 
+     data-node-id="{{ node.id }}" 
+     data-node-type="{{ node.node_type }}"
+     {% if node.module_key %}data-module-key="{{ node.module_key }}"{% endif %}
+     {% if node.module_config %}data-module-config='{{ node.module_config | safe }}'{% endif %}>
+    <div class="card-header">
+        <h2>{{ node.name }}</h2>
+    </div>
+    {% if node.description %}
+        <p>{{ node.description }}</p>
+    {% endif %}
+</div>

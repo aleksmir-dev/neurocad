@@ -1,0 +1,119 @@
+/* app/core/node/index/card/card.css */
+
+/* Модальное окно */
+.core-node-index-card {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.core-node-index-card.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.core-node-index-card .modal-container {
+    background: white;
+    border-radius: 16px;
+    width: 600px;
+    max-width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Табы */
+.core-node-index-card .modal-tabs {
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f9f9f9;
+}
+
+.core-node-index-card .modal-tab {
+    flex: 1;
+    padding: 16px 24px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 200;
+    color: #666;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+}
+
+.core-node-index-card .modal-tab.active {
+    color: rgb(31, 78, 121);
+    border-bottom-color: rgb(31, 78, 121);
+    background: white;
+}
+
+.core-node-index-card .modal-tab:hover:not(.active) {
+    color: #333;
+    background: #f0f0f0;
+}
+
+/* Содержимое модального окна */
+.core-node-index-card .modal-content {
+    padding: 28px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.core-node-index-card .tab-content {
+    display: none;
+    min-height: 280px;
+}
+
+.core-node-index-card .tab-content.active {
+    display: block;
+}
+
+/* Кнопки модального окна */
+.core-node-index-card .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    padding: 20px 28px;
+    border-top: 1px solid #e0e0e0;
+    background: #f9f9f9;
+}
+
+.core-node-index-card .modal-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 200;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.core-node-index-card .modal-btn-cancel {
+    background: #f0f0f0;
+    color: #666;
+    font-size: 18px;
+}
+
+.core-node-index-card .modal-btn-cancel:hover {
+    background: #e0e0e0;
+}
+
+.core-node-index-card .modal-btn-create {
+    background: rgb(31, 78, 121);
+    color: white;
+    font-size: 18px;
+}
+
+.core-node-index-card .modal-btn-create:hover {
+    background: rgb(20, 60, 100);
+}
