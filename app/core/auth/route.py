@@ -1,20 +1,20 @@
-# app/core/node/auth/route.py
+# app/core/auth/route.py
 
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from .schema import UserOut
 from .service import AuthService
 from .dependencies import create_access_token, get_current_user
-from ....config import settings
-from ....utils.templates import templates  # единый шаблон
+from ...config import settings
+from ...utils.templates import templates  
 
-router = APIRouter(prefix="/core/node/auth", tags=["core/node/auth"])
+router = APIRouter(prefix="/core/auth", tags=["core/auth"])
 
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, redirect: str = None):
     """Страница входа"""
-    return templates.TemplateResponse("core/node/auth/login/login.html", {
+    return templates.TemplateResponse("core/auth/login/login.html", {
         "request": request,
         "redirect": redirect,
         "error": None
@@ -32,7 +32,7 @@ async def login(request: Request):
     user = await AuthService.login(login, password)
     
     if not user:
-        return templates.TemplateResponse("core/node/auth/login/login.html", {
+        return templates.TemplateResponse("core/auth/login/login.html", {
             "request": request,
             "redirect": redirect_url,
             "error": "Неверный логин или пароль"
@@ -59,6 +59,6 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
 
 @router.get("/logout")
 async def logout():
-    response = RedirectResponse(url="/core/node/auth/login", status_code=302)
+    response = RedirectResponse(url="/core/auth/login", status_code=302)
     response.delete_cookie("access_token")
     return response

@@ -1,0 +1,244 @@
+/* app/core/main/permissions/permissions.css */
+
+/* Модальное окно */
+.core-main-permissions {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-main-permissions .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.core-main-permissions .container {
+    position: relative;
+    width: 550px;
+    max-width: 90%;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    animation: coreNodeIndexPermissionsIn 0.2s ease-out;
+}
+
+@keyframes coreNodeIndexPermissionsIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Заголовок */
+.core-main-permissions .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.core-main-permissions .header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.core-main-permissions .close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+}
+
+.core-main-permissions .close:hover {
+    color: #333;
+}
+
+/* Тело */
+.core-main-permissions .body {
+    padding: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* Информация об узле */
+.core-main-permissions .info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+}
+
+.core-main-permissions .info-row {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.core-main-permissions .info-row:last-child {
+    margin-bottom: 0;
+}
+
+.core-main-permissions .label {
+    width: 80px;
+    font-weight: 500;
+    color: #666;
+}
+
+.core-main-permissions .value {
+    flex: 1;
+    color: #333;
+    font-weight: 500;
+}
+
+/* Поиск */
+.core-main-permissions .search {
+    margin-bottom: 16px;
+}
+
+.core-main-permissions .search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.core-main-permissions .search-input:focus {
+    border-color: rgb(31, 78, 121);
+}
+
+/* Контейнер списка */
+.core-main-permissions .list-container {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Заголовки таблицы */
+.core-main-permissions .list-header {
+    display: flex;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+}
+
+.core-main-permissions .list-header-name {
+    flex: 2;
+}
+
+.core-main-permissions .list-header-read,
+.core-main-permissions .list-header-write {
+    width: 70px;
+    text-align: center;
+}
+
+/* Список */
+.core-main-permissions .list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.core-main-permissions .loading {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+}
+
+/* Элемент списка (строка) */
+.core-main-permissions .item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.core-main-permissions .item:hover {
+    background: #f8f9fa;
+}
+
+.core-main-permissions .item-name {
+    flex: 2;
+    font-size: 14px;
+    color: #333;
+}
+
+.core-main-permissions .item-read,
+.core-main-permissions .item-write {
+    width: 70px;
+    text-align: center;
+}
+
+.core-main-permissions .item-read-checkbox,
+.core-main-permissions .item-write-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Футер */
+.core-main-permissions .footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.core-main-permissions .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.core-main-permissions .btn-cancel {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.core-main-permissions .btn-cancel:hover {
+    background: #e0e0e0;
+}
+
+.core-main-permissions .btn-apply {
+    background: rgb(31, 78, 121);
+    color: white;
+}
+
+.core-main-permissions .btn-apply:hover {
+    background: rgb(20, 60, 100);
+}
+
+.core-main-permissions .btn-apply:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

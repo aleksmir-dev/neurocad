@@ -1,14 +1,14 @@
-<!-- app/core/node/auth/login/login.html -->
+<!-- app/core/auth/login/login.html -->
 
-{% extends "core/node/base/base.html" %}
+{% extends "core/base/base.html" %}
 {% block title %}Вход в систему{% endblock %}
 
 {% block css %}
-    {% include "core/node/auth/login/login.css" %}
+    {% include "core/auth/login/login.css" %}
 {% endblock %}
 
 {% block content %}
-<div class="core-node-auth-login">
+<div class="core-auth-login">
     <div class="login-card">
         <h2>Вход в систему</h2>
         
@@ -18,7 +18,7 @@
         </div>
         {% endif %}
         
-        <form method="post" action="/core/node/auth/login">
+        <form method="post" action="/core/auth/login">
             <input type="hidden" name="redirect" value="{{ redirect or '' }}">
             <div class="form-group">
                 <label for="login">Логин</label>
@@ -40,5 +40,5 @@
 {% endblock %}
 
 {% block js %}
-    {% include "core/node/auth/login/login.js" %}
+    {% include "core/auth/login/login.js" %}
 {% endblock %}

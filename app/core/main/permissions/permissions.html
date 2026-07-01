@@ -1,0 +1,44 @@
+<!-- app/core/main/permissions/permissions.html -->
+
+<div class="core-main-permissions" style="display: none;">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="header">
+            <h3>Права доступа</h3>
+            <button class="close">&times;</button>
+        </div>
+        
+        <div class="body">
+            <div class="info">
+                <div class="info-row">
+                    <span class="label">Узел:</span>
+                    <span class="value" data-field="nodeName">—</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Тип:</span>
+                    <span class="value" data-field="nodeType">—</span>
+                </div>
+            </div>
+            
+            <div class="search">
+                <input type="text" data-field="userSearch" placeholder="Поиск по ФИО..." class="search-input">
+            </div>
+            
+            <div class="list-container">
+                <div class="list-header">
+                    <span class="list-header-name">ФИО сотрудника</span>
+                    <span class="list-header-read">Чтение</span>
+                    <span class="list-header-write">Запись</span>
+                </div>
+                <div class="list" data-field="usersList">
+                    <div class="loading">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <button class="btn btn-cancel" data-action="cancel">Отмена</button>
+            <button class="btn btn-apply" data-action="apply">Применить</button>
+        </div>
+    </div>
+</div>

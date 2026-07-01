@@ -1,11 +1,11 @@
-# app/core/node/auth/dependencies.py
+# app/core/auth/dependencies.py
 
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
-from ....config import settings
+from ...config import settings
 from .service import AuthService
 
 security = HTTPBearer(auto_error=False)
@@ -41,7 +41,7 @@ async def get_current_user(
     
     if not token:
         redirect_url = str(request.url)
-        login_url = f"/core/node/auth/login?{urlencode({'redirect': redirect_url})}"  # ← исправлено
+        login_url = f"/core/auth/login?{urlencode({'redirect': redirect_url})}"  # ← исправлено
         raise HTTPException(
             status_code=status.HTTP_307_TEMPORARY_REDIRECT,
             detail="Not authenticated",
@@ -53,7 +53,7 @@ async def get_current_user(
         user_id: int = payload.get("sub")
         if user_id is None:
             redirect_url = str(request.url)
-            login_url = f"/core/node/auth/login?{urlencode({'redirect': redirect_url})}"  # ← исправлено
+            login_url = f"/core/auth/login?{urlencode({'redirect': redirect_url})}"  # ← исправлено
             raise HTTPException(
                 status_code=status.HTTP_307_TEMPORARY_REDIRECT,
                 detail="Invalid token",
@@ -61,7 +61,7 @@ async def get_current_user(
             )
     except JWTError:
         redirect_url = str(request.url)
-        login_url = f"/core/node/auth/login?{urlencode({'redirect': redirect_url})}"  # ← исправлено
+        login_url = f"/core/auth/login?{urlencode({'redirect': redirect_url})}"  # ← исправлено
         raise HTTPException(
             status_code=status.HTTP_307_TEMPORARY_REDIRECT,
             detail="Invalid token",
@@ -71,7 +71,7 @@ async def get_current_user(
     user = await AuthService.get_user_by_id(int(user_id))
     if user is None:
         redirect_url = str(request.url)
-        login_url = f"/core/node/auth/login?{urlencode({'redirect': redirect_url})}"  # ← исправлено
+        login_url = f"/core/auth/login?{urlencode({'redirect': redirect_url})}"  # ← исправлено
         raise HTTPException(
             status_code=status.HTTP_307_TEMPORARY_REDIRECT,
             detail="User not found",

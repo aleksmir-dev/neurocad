@@ -1,4 +1,4 @@
-# app/core/node/auth/schema.py
+# app/core/auth/schema.py
 
 from pydantic import BaseModel
 from typing import Optional

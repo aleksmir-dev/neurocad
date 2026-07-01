@@ -1,9 +1,9 @@
-# app/core/node/auth/service.py
+# app/core/auth/service.py
 
 from sqlalchemy import text
-from ....utils.mysql import get_db
-from ....utils.sqlite import get_db_sqlite
-from ....utils.hash import get_hash_string
+from ...utils.mysql import get_db
+from ...utils.sqlite import get_db_sqlite
+from ...utils.hash import get_hash_string
 from ..models import User
 from datetime import datetime
 import logging
