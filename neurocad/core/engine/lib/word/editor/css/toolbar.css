@@ -1,0 +1,127 @@
+/* app/core/engine/lib/word/editor/css/toolbar.css */
+
+/**
+ * Toolbar — верхняя панель над холстом.
+ *
+ * Структура:
+ *   .core-engine-lib-word-editor-toolbar
+ *     ├─ .core-engine-lib-word-editor-btn            (обычная кнопка)
+ *     ├─ .core-engine-lib-word-editor-btn-device     (переключатель устройств)
+ *     └─ .core-engine-lib-word-editor-separator      (разделитель)
+ *
+ * Все кнопки — минималистичные, в светло-серой палитре Base.
+ * Никаких акцентных цветов (зелёный, красный, синий).
+ * Только серая подложка при hover, тёмная иконка при active.
+ *
+ * Размеры:
+ *   обычная кнопка  — 32×32
+ *   device кнопка   — 28×28
+ */
+
+/* ============================================
+   КОНТЕЙНЕР TOOLBAR
+   ============================================ */
+
+.core-engine-lib-word-editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 10px;
+    min-height: 42px;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+    flex-shrink: 0;
+}
+
+/* ============================================
+   БАЗОВАЯ КНОПКА (только иконка)
+   ============================================ */
+
+.core-engine-lib-word-editor-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted, #64748b);
+    font-size: 15px;
+    line-height: 1;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.core-engine-lib-word-editor-btn:hover {
+    background: rgba(15, 23, 42, 0.06);
+    color: var(--text-main, #1e293b);
+}
+
+.core-engine-lib-word-editor-btn:active {
+    background: rgba(15, 23, 42, 0.1);
+}
+
+.core-engine-lib-word-editor-btn:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 1px;
+}
+
+.core-engine-lib-word-editor-btn-icon {
+    font-size: 15px;
+    line-height: 1;
+    display: inline-block;
+}
+
+/* ============================================
+   ПЕРЕКЛЮЧАТЕЛЬ УСТРОЙСТВ
+   ============================================ */
+
+.core-engine-lib-word-editor-devices {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 6px;
+    background: rgba(15, 23, 42, 0.04);
+    margin: 0 4px;
+}
+
+.core-engine-lib-word-editor-btn-device {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted, #64748b);
+}
+
+.core-engine-lib-word-editor-btn-device:hover {
+    background: rgba(15, 23, 42, 0.06);
+    color: var(--text-main, #1e293b);
+}
+
+.core-engine-lib-word-editor-btn-device.active {
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.core-engine-lib-word-editor-btn-device.active:hover {
+    background: #ffffff;
+}
+
+/* ============================================
+   РАЗДЕЛИТЕЛЬ
+   ============================================ */
+
+.core-engine-lib-word-editor-separator {
+    width: 1px;
+    height: 20px;
+    background: var(--border-light, #e2e8f0);
+    margin: 0 6px;
+    flex-shrink: 0;
+}

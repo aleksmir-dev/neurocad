@@ -1,0 +1,31 @@
+<!-- app/core/engine/engine.html -->
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ассистент</title>
+    <link rel="icon" type="image/x-icon" href="{{ 'core/base/images/favicon.ico'|static }}">
+</head>
+<body data-module="{{ module_name }}" 
+      data-auth-required="{{ auth_required|lower }}" 
+      data-auth-redirect="{{ auth_redirect or '' }}">
+
+    <div id="engine-root"></div>
+    <script src="{{ 'core/engine/engine.js'|static }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const moduleName = document.body.dataset.module || 'assistent';
+            const authRequired = document.body.dataset.authRequired === 'true';
+            const authRedirect = document.body.dataset.authRedirect || null;
+            
+            const engine = new CoreEngine(moduleName);
+            engine.static_version = '{{ static_version }}';
+            engine.authRequired = authRequired;
+            engine.authRedirect = authRedirect;
+            window.coreEngine = engine;
+        });
+    </script>
+</body>
+</html>

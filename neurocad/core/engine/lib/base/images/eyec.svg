@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Верхняя половина глаза -->
+    <path d="M2 12c0 0 3-4 10-4s10 4 10 4"/>
+    <!-- Нижняя половина глаза -->
+    <path d="M2 12c0 0 3 4 10 4s10-4 10-4"/>
+    <!-- Ресницы снизу (три вертикальные черточки) -->
+    <line x1="8" y1="14" x2="8" y2="17"/>
+    <line x1="12" y1="15" x2="12" y2="18"/>
+    <line x1="16" y1="14" x2="16" y2="17"/>
+</svg>

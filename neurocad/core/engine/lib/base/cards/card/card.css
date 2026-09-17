@@ -1,0 +1,346 @@
+/* neurocad/core/engine/lib/base/cards/card/card.css */
+
+/* ============================================ */
+/* КАРТОЧКА */
+/* ============================================ */
+
+.core-engine-lib-base-cards-card {
+    background: var(--color-white, #ffffff);
+    border: 2px solid var(--color-border, #e2e8f0);
+    border-radius: var(--radius, 10px);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    /* ✅ ДЕФОЛТНЫЕ РАЗМЕРЫ: квадратная карточка */
+    width: 180px;
+    height: 180px;
+    min-height: 120px;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+
+    /* ✅ Запрет выделения текста (важно для долгого нажатия) */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+
+    /* ✅ iOS: запрет системного меню при долгом нажатии */
+    -webkit-touch-callout: none;
+
+    /* ✅ Android: убираем серую подсветку тапа */
+    -webkit-tap-highlight-color: transparent;
+
+    /* ✅ Убираем задержку клика на тач (300ms) */
+    touch-action: manipulation;
+
+    /* ✅ Запрет drag-and-drop карточки как картинки */
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+}
+
+.core-engine-lib-base-cards-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #94a3b8;
+}
+
+.core-engine-lib-base-cards-card:active {
+    transform: scale(0.97);
+}
+
+/* ============================================ */
+/* ВЫДЕЛЕНИЕ */
+/* ============================================ */
+
+.core-engine-lib-base-cards-card.selected {
+    outline: 3px solid #3b82f6;
+    outline-offset: 2px;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: scale(0.97);
+}
+
+.core-engine-lib-base-cards-card.selected::before {
+    content: '✓';
+    position: absolute;
+    bottom: -4px;
+    left: -4px;
+    width: 22px;
+    height: 22px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    animation: select-pop 0.2s ease;
+}
+
+@keyframes select-pop {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ============================================ */
+/* СТАТУСЫ КАРТОЧЕК */
+/* ============================================ */
+
+.core-engine-lib-base-cards-card.status-white {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.core-engine-lib-base-cards-card.status-working {
+    border-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.core-engine-lib-base-cards-card.status-done {
+    border-color: #22c55e;
+    background: #f0fdf4;
+    opacity: 0.85;
+}
+
+/* ============================================ */
+/* СОДЕРЖИМОЕ КАРТОЧКИ */
+/* ============================================ */
+
+.core-engine-lib-base-cards-card .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.core-engine-lib-base-cards-card .card-field {
+    font-size: 13px;
+    color: var(--color-text, #1e293b);
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.core-engine-lib-base-cards-card .card-field-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text, #1e293b);
+    margin-bottom: 4px;
+}
+
+.core-engine-lib-base-cards-card .card-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 10px;
+    border-radius: 20px;
+    background: var(--color-border, #e2e8f0);
+    color: var(--color-text, #1e293b);
+    align-self: flex-start;
+    margin-top: 4px;
+}
+
+/* ============================================ */
+/* КАСТОМНЫЙ РЕНДЕР КАРТОЧКИ (Nav) */
+/* ============================================ */
+
+.core-engine-lib-base-cards-card .card-content-custom {
+    display: block;
+    width: 100%;
+}
+
+/* Nav: Папка */
+.core-engine-lib-base-cards-card.card-nav .nav-folder {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.core-engine-lib-base-cards-card.card-nav .nav-folder-icon {
+    font-size: 32px;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.core-engine-lib-base-cards-card.card-nav .nav-folder-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text, #1e293b);
+    word-break: break-word;
+}
+
+.core-engine-lib-base-cards-card.card-nav .nav-folder-desc {
+    font-size: 12px;
+    color: var(--color-text-light, #64748b);
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+/* Nav: Модуль */
+.core-engine-lib-base-cards-card.card-nav .nav-module {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.core-engine-lib-base-cards-card.card-nav .nav-module-icon {
+    font-size: 32px;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.core-engine-lib-base-cards-card.card-nav .nav-module-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text, #1e293b);
+    word-break: break-word;
+}
+
+/* ============================================ */
+/* АДАПТИВ КАРТОЧКИ */
+/* ============================================ */
+
+@media (max-width: 1024px) {
+    .core-engine-lib-base-cards-card {
+        width: 160px;
+        height: 160px;
+        min-height: 100px;
+        padding: 10px 12px;
+    }
+
+    .core-engine-lib-base-cards-card .card-field-title {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .core-engine-lib-base-cards-card {
+        width: 140px;
+        height: 140px;
+        min-height: 90px;
+        padding: 8px 10px;
+        border-width: 2px;
+        border-radius: 8px;
+    }
+
+    .core-engine-lib-base-cards-card .card-field-title {
+        font-size: 14px;
+    }
+
+    .core-engine-lib-base-cards-card .card-field {
+        font-size: 12px;
+    }
+
+    .core-engine-lib-base-cards-card .card-status-badge {
+        font-size: 11px;
+        padding: 1px 8px;
+    }
+
+    .core-engine-lib-base-cards-card.selected::before {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        bottom: -3px;
+        left: -3px;
+    }
+
+    /* Nav: адаптив */
+    .core-engine-lib-base-cards-card.card-nav .nav-folder-icon,
+    .core-engine-lib-base-cards-card.card-nav .nav-module-icon {
+        font-size: 28px;
+    }
+
+    .core-engine-lib-base-cards-card.card-nav .nav-folder-name,
+    .core-engine-lib-base-cards-card.card-nav .nav-module-name {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-cards-card {
+        width: 120px;
+        height: 120px;
+        min-height: 80px;
+        padding: 6px 8px;
+        border-radius: 6px;
+    }
+
+    .core-engine-lib-base-cards-card .card-field-title {
+        font-size: 13px;
+    }
+
+    .core-engine-lib-base-cards-card .card-field {
+        font-size: 11px;
+    }
+
+    .core-engine-lib-base-cards-card .card-status-badge {
+        font-size: 10px;
+        padding: 1px 6px;
+    }
+
+    .core-engine-lib-base-cards-card.selected::before {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
+        bottom: -2px;
+        left: -2px;
+    }
+
+    /* Nav: адаптив */
+    .core-engine-lib-base-cards-card.card-nav .nav-folder-icon,
+    .core-engine-lib-base-cards-card.card-nav .nav-module-icon {
+        font-size: 24px;
+    }
+
+    .core-engine-lib-base-cards-card.card-nav .nav-folder-name,
+    .core-engine-lib-base-cards-card.card-nav .nav-module-name {
+        font-size: 13px;
+    }
+}
+
+/* ============================================ */
+/* ПЕЧАТЬ КАРТОЧКИ */
+/* ============================================ */
+
+@media print {
+    .core-engine-lib-base-cards-card {
+        border-color: #999;
+        box-shadow: none !important;
+        transform: none !important;
+        min-height: 60px;
+        break-inside: avoid;
+        background: white !important;
+        border-width: 1px;
+    }
+
+    .core-engine-lib-base-cards-card.selected {
+        outline: 2px solid #000;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    .core-engine-lib-base-cards-card.selected::before {
+        display: none;
+    }
+
+    .core-engine-lib-base-cards-card .card-field-title {
+        font-size: 12px;
+    }
+
+    .core-engine-lib-base-cards-card .card-field {
+        font-size: 10px;
+    }
+}

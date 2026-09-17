@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    app/core/engine/lib/word/editor/placeholder.svg
+
+    Картинка-заглушка для блоков редактора.
+    Показывается там, где пользователь ещё не выбрал изображение
+    через медиатеку: "Изображение", "Фото слева / текст справа",
+    "Галерея 3 фото" и т.д.
+
+    После sync_static() доступна по URL:
+      /static/core/engine/lib/word/editor/placeholder.svg
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 600 400"
+     preserveAspectRatio="xMidYMid meet"
+     role="img"
+     aria-label="Изображение">
+
+    <!-- Фон -->
+    <rect width="600" height="400" fill="#e2e8f0"/>
+
+    <!-- Пунктирная рамка внутри -->
+    <rect x="12" y="12" width="576" height="376"
+          fill="none"
+          stroke="#cbd5e1"
+          stroke-width="2"
+          stroke-dasharray="10 8"
+          rx="6" ry="6"/>
+
+    <!-- Иконка фотоаппарата -->
+    <g transform="translate(300 170)"
+       fill="none"
+       stroke="#94a3b8"
+       stroke-width="6"
+       stroke-linejoin="round"
+       stroke-linecap="round">
+
+        <!-- Корпус -->
+        <path d="M-70 -25 h-18 l-10 14 h-22
+                 a14 14 0 0 0 -14 14 v68
+                 a14 14 0 0 0 14 14 h140
+                 a14 14 0 0 0 14 -14 v-68
+                 a14 14 0 0 0 -14 -14 h-22
+                 l-10 -14 h-18 z"/>
+
+        <!-- Объектив -->
+        <circle cx="0" cy="30" r="24"/>
+    </g>
+
+    <!-- Подпись -->
+    <text x="300" y="290"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          font-size="22"
+          font-weight="500"
+          fill="#64748b"
+          text-anchor="middle">
+        Изображение
+    </text>
+
+    <!-- Мелкая подсказка -->
+    <text x="300" y="320"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          font-size="14"
+          font-weight="400"
+          fill="#94a3b8"
+          text-anchor="middle">
+        выберите из медиатеки
+    </text>
+
+</svg>

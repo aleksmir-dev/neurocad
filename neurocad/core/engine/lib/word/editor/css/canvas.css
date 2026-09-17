@@ -1,0 +1,108 @@
+/* app/core/engine/lib/word/editor/css/canvas.css */
+
+/**
+ * Canvas — стили, которые подключаются ВНУТРЬ iframe GrapesJS.
+ *
+ * Зачем отдельный файл:
+ *   Блоки (кнопки, карточки, сетки) рендерятся внутри iframe canvas,
+ *   а не в основном документе. Стили из основного документа туда
+ *   не попадают. Поэтому GrapesJS подключает этот файл прямо в <head>
+ *   iframe — через config.canvas.styles в grapes.js.
+ *
+ * Что здесь:
+ *   Только классы, которые используются в content блоков:
+ *     .core-btn, .core-btn--primary/secondary/ghost
+ *     .core-card
+ *   Ничего лишнего: никаких .gjs-*, .core-engine-lib-word-editor-*.
+ *   Это файл для пользователя, а не для интерфейса редактора.
+ */
+
+/* ============================================
+   КНОПКИ — .core-btn
+   ============================================ */
+
+.core-btn {
+    display: inline-block;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: none;
+    text-align: center;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.core-btn:active {
+    transform: translateY(1px);
+}
+
+/* --- Основная (акцентная) --- */
+
+.core-btn--primary {
+    background: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+.core-btn--primary:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+/* --- Вторичная (контурная) --- */
+
+.core-btn--secondary {
+    background: #ffffff;
+    color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.core-btn--secondary:hover {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+/* --- Прозрачная (ghost) --- */
+
+.core-btn--ghost {
+    background: transparent;
+    color: #64748b;
+    border-color: #cbd5e1;
+}
+
+.core-btn--ghost:hover {
+    background: rgba(15, 23, 42, 0.05);
+    color: #1e293b;
+    border-color: #94a3b8;
+}
+
+/* ============================================
+   КАРТОЧКИ — .core-card
+   ============================================ */
+
+.core-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+/* ============================================
+   БАЗОВЫЕ СТИЛИ ДЛЯ СТРАНИЦЫ В CANVAS
+   Чтобы содержимое блока не «прилипало» к краям iframe.
+   ============================================ */
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #1e293b;
+    background: #ffffff;
+    line-height: 1.6;
+}

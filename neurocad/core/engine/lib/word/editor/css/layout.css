@@ -1,0 +1,101 @@
+/* app/core/engine/lib/word/editor/css/layout.css */
+
+/**
+ * Layout — базовая раскладка редактора.
+ *
+ * Три области Base:
+ *   .core-engine-lib-base-area-left    → блоки (BlockManager)
+ *   .core-engine-lib-base-area-center  → холст (Canvas) + toolbar
+ *   .core-engine-lib-base-area-right   → стили (StyleManager)
+ *
+ * Внутри каждой области — стандартный виджет Base:
+ *   .core-engine-lib-base-widget
+ *     ├─ .core-engine-lib-base-widget-toolbar   (только у canvas)
+ *     └─ .core-engine-lib-base-widget-content
+ *
+ * Здесь только раскладка: flex, min-height, overflow.
+ * Никаких цветов и кнопок — это в toolbar.css / blocks.css / styles.css.
+ */
+
+/* ============================================
+   ЛЕВАЯ ОБЛАСТЬ — блоки
+   ============================================ */
+
+.core-engine-lib-word-editor-blocks {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+}
+
+.core-engine-lib-word-editor-blocks-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0;
+    overflow-y: auto;
+    height: 100%;
+    background: var(--bg-surface, #f0f4fa);
+}
+
+/* ============================================
+   ЦЕНТРАЛЬНАЯ ОБЛАСТЬ — canvas + toolbar
+   ============================================ */
+
+.core-engine-lib-word-editor-canvas {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+}
+
+.core-engine-lib-word-editor-canvas-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+    position: relative;
+    background: var(--bg-surface, #f0f4fa);
+}
+
+/* ============================================
+   ПРАВАЯ ОБЛАСТЬ — стили
+   ============================================ */
+
+.core-engine-lib-word-editor-styles {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+}
+
+.core-engine-lib-word-editor-styles-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0;
+    overflow-y: auto;
+    height: 100%;
+    background: var(--bg-surface, #f0f4fa);
+}
+
+/* ============================================
+   GRAPESJS CANVAS
+   ============================================ */
+
+/* Холст должен занимать всю площадь -canvas-content */
+.core-engine-lib-word-editor-canvas-content .gjs-cv-canvas {
+    background: var(--bg-surface, #f0f4fa);
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
+}
+
+/* Белая «страница» внутри холста */
+.core-engine-lib-word-editor-canvas-content .gjs-cv-canvas .gjs-frame-wrapper {
+    background: #ffffff;
+}

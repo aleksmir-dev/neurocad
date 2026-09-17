@@ -1,0 +1,101 @@
+/* app/core/engine/lib/word/editor/css/resizer.css */
+
+/**
+ * Resizer — ручки для перетаскивания границ между областями.
+ *
+ * Вставляются через Resizer.build() между:
+ *   .area-left   ↔ .area-center
+ *   .area-center ↔ .area-right
+ *
+ * Сама ручка — 4px ширины, прозрачная.
+ * При hover / активном drag — подсвечивается синим.
+ * Расширенная зона клика (10px) — через ::before, чтобы удобнее было
+ * попасть мышкой (сама полоска слишком тонкая).
+ *
+ * На мобильных и узких экранах ручки скрываются (см. responsive).
+ */
+
+/* ============================================
+   БАЗОВАЯ РУЧКА
+   ============================================ */
+
+.core-engine-lib-word-editor-resizer {
+    flex: 0 0 4px;
+    width: 4px;
+    align-self: stretch;
+    background: transparent;
+    cursor: col-resize;
+    position: relative;
+    z-index: 5;
+    transition: background 0.15s ease;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ============================================
+   РАСШИРЕННАЯ ЗОНА КЛИКА
+   Сама полоска 4px — попасть сложно.
+   ::before расширяет кликабельную зону до ~10px,
+   оставаясь прозрачным и не мешая layout.
+   ============================================ */
+
+.core-engine-lib-word-editor-resizer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -3px;
+    right: -3px;
+    cursor: col-resize;
+    background: transparent;
+    z-index: 1;
+}
+
+/* ============================================
+   HOVER — мягкая синяя подсветка
+   ============================================ */
+
+.core-engine-lib-word-editor-resizer:hover {
+    background: rgba(59, 130, 246, 0.25);
+}
+
+/* ============================================
+   АКТИВНЫЙ DRAG — насыщеннее
+   ============================================ */
+
+.core-engine-lib-word-editor-resizer.active {
+    background: rgba(59, 130, 246, 0.55);
+}
+
+/* ============================================
+   ТОНКАЯ ЛИНИЯ ПО ЦЕНТРУ — визуальный маркер
+   (невидима, пока не наведёшь)
+   ============================================ */
+
+.core-engine-lib-word-editor-resizer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: transparent;
+    transform: translateX(-0.5px);
+    transition: background 0.15s ease;
+}
+
+.core-engine-lib-word-editor-resizer:hover::after,
+.core-engine-lib-word-editor-resizer.active::after {
+    background: #3b82f6;
+}
+
+/* ============================================
+   НА МОБИЛЬНЫХ — ручки не нужны
+   (там и области уже, и тач не так точно попадает)
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-editor-resizer {
+        display: none;
+    }
+}

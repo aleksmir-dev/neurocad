@@ -1,0 +1,103 @@
+/* app/core/engine/lib/base/auth/captcha.css */
+
+.core-engine-lib-base-auth-captcha {
+    width: 100%;
+}
+
+.core-engine-lib-base-auth-captcha .captcha-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.core-engine-lib-base-auth-captcha .captcha-question {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--bg-surface, #f1f5f9);
+    border-radius: var(--radius-md, 8px);
+    border: 2px solid var(--border-color, #e2e8f0);
+    font-size: 18px;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    color: var(--text-main, #1e293b);
+}
+
+.core-engine-lib-base-auth-captcha .captcha-text {
+    flex: 1;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.core-engine-lib-base-auth-captcha .captcha-refresh {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+}
+
+.core-engine-lib-base-auth-captcha .captcha-refresh:hover {
+    background: #e2e8f0;
+    transform: rotate(45deg);
+}
+
+.core-engine-lib-base-auth-captcha .captcha-refresh:active {
+    transform: rotate(90deg);
+}
+
+.core-engine-lib-base-auth-captcha .captcha-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    font-size: 16px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    box-sizing: border-box;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.core-engine-lib-base-auth-captcha .captcha-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-base-auth-captcha .captcha-input.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.core-engine-lib-base-auth-captcha .captcha-error {
+    padding: 6px 10px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: var(--radius-md, 6px);
+    font-size: 13px;
+    border: 1px solid #fca5a5;
+}
+
+/* Адаптив */
+@media (max-width: 480px) {
+    .core-engine-lib-base-auth-captcha .captcha-question {
+        font-size: 16px;
+        padding: 8px 10px;
+    }
+
+    .core-engine-lib-base-auth-captcha .captcha-input {
+        font-size: 14px;
+        padding: 8px 10px;
+    }
+}

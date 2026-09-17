@@ -1,0 +1,24 @@
+/* app/core/engine/lib/base/css/04_blocks.css */
+
+.core-engine-lib-base-titlebar,
+.core-engine-lib-base-toolbar,
+.core-engine-lib-base-statusbar {
+    flex: 0 0 auto;
+    padding: var(--gap-sm) var(--gap-md);
+    background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
+    border-bottom: 1px solid var(--border-light);
+    min-height: 1.75rem;
+    color: var(--text-main);
+}
+
+.core-engine-lib-base-statusbar {
+    border-bottom: none;
+    border-top: 1px solid var(--border-light);
+}
+
+.core-engine-lib-base-content {
+    flex: 1 1 0;
+    overflow-y: auto;
+    padding: var(--gap-md);
+    min-height: 0;
+}

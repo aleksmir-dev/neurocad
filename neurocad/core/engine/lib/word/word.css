@@ -1,0 +1,525 @@
+/* app/core/engine/lib/word/word.css */
+
+/* ============================================
+   КОМПОНЕНТ WORD — отображение контента страницы
+   ============================================ */
+
+.core-engine-lib-word {
+    /* Растягиваемся на всю площадь .area-center */
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    box-sizing: border-box;
+
+    /* Внутренние отступы */
+    padding: 32px 24px 48px;
+
+    /* Оформление */
+    color: var(--text-main, #1e293b);
+    font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    font-size: 16px;
+    line-height: 1.7;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+}
+
+/* ============================================
+   СОСТОЯНИЕ ОШИБКИ
+   ============================================ */
+
+.core-engine-lib-word-error {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 48px 32px;
+    text-align: center;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+    border: 1px solid #fee2e2;
+}
+
+.core-engine-lib-word-error-icon {
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.core-engine-lib-word-error-title {
+    margin: 0 0 12px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #dc2626;
+    letter-spacing: -0.01em;
+}
+
+.core-engine-lib-word-error-text {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #64748b;
+}
+
+/* ============================================
+   ЗАГОЛОВОК СТРАНИЦЫ
+   ============================================ */
+
+.core-engine-lib-word-header {
+    flex: 0 0 auto;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+}
+
+.core-engine-lib-word-title {
+    margin: 0 0 12px;
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+
+    background: linear-gradient(135deg, #0f172a 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.core-engine-lib-word-date {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================
+   КОНТЕНТ СТРАНИЦЫ
+   ============================================ */
+
+.core-engine-lib-word-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+
+    font-size: 16px;
+    line-height: 1.75;
+    color: #334155;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Пустое состояние */
+.core-engine-lib-word-empty {
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+    padding: 40px 20px;
+}
+
+/* --- Заголовки внутри контента --- */
+
+.core-engine-lib-word-content h1 {
+    margin: 32px 0 16px;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+}
+
+.core-engine-lib-word-content h2 {
+    margin: 28px 0 14px;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #1e293b;
+}
+
+.core-engine-lib-word-content h3 {
+    margin: 24px 0 12px;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #1e293b;
+}
+
+.core-engine-lib-word-content h4 {
+    margin: 20px 0 10px;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #334155;
+}
+
+.core-engine-lib-word-content h5,
+.core-engine-lib-word-content h6 {
+    margin: 16px 0 8px;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #475569;
+}
+
+/* --- Параграфы --- */
+
+.core-engine-lib-word-content p {
+    margin: 0 0 16px;
+}
+
+/* --- Ссылки --- */
+
+.core-engine-lib-word-content a {
+    color: #2563eb;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(37, 99, 235, 0.3);
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.core-engine-lib-word-content a:hover {
+    color: #1d4ed8;
+    border-bottom-color: #1d4ed8;
+}
+
+/* --- Списки --- */
+
+.core-engine-lib-word-content ul,
+.core-engine-lib-word-content ol {
+    margin: 0 0 16px;
+    padding-left: 28px;
+}
+
+.core-engine-lib-word-content ul li,
+.core-engine-lib-word-content ol li {
+    margin-bottom: 6px;
+    padding-left: 4px;
+}
+
+.core-engine-lib-word-content ul li::marker {
+    color: #3b82f6;
+}
+
+.core-engine-lib-word-content ol li::marker {
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+/* --- Цитаты --- */
+
+.core-engine-lib-word-content blockquote {
+    margin: 24px 0;
+    padding: 16px 20px;
+    border-left: 4px solid #3b82f6;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(139, 92, 246, 0.04) 100%);
+    border-radius: 0 8px 8px 0;
+    color: #334155;
+    font-style: italic;
+}
+
+.core-engine-lib-word-content blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* --- Код --- */
+
+.core-engine-lib-word-content code {
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #f1f5f9;
+    color: #db2777;
+    font-family: 'SF Mono', Monaco, Consolas, 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.core-engine-lib-word-content pre {
+    margin: 20px 0;
+    padding: 16px 20px;
+    border-radius: 10px;
+    background: #0f172a;
+    color: #e2e8f0;
+    overflow-x: auto;
+    font-size: 14px;
+    line-height: 1.6;
+    border: 1px solid #1e293b;
+}
+
+.core-engine-lib-word-content pre code {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
+}
+
+/* --- Изображения --- */
+
+.core-engine-lib-word-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin: 16px 0;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+}
+
+/* --- Таблицы --- */
+
+.core-engine-lib-word-content table {
+    width: 100%;
+    margin: 20px 0;
+    border-collapse: collapse;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    font-size: 15px;
+}
+
+.core-engine-lib-word-content thead {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.core-engine-lib-word-content th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.core-engine-lib-word-content td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.core-engine-lib-word-content tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.core-engine-lib-word-content tbody tr:hover {
+    background: rgba(59, 130, 246, 0.03);
+}
+
+/* --- Горизонтальная линия --- */
+
+.core-engine-lib-word-content hr {
+    margin: 32px 0;
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e2e8f0 20%, #e2e8f0 80%, transparent);
+}
+
+/* --- Выделение --- */
+
+.core-engine-lib-word-content strong,
+.core-engine-lib-word-content b {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.core-engine-lib-word-content em,
+.core-engine-lib-word-content i {
+    font-style: italic;
+    color: #475569;
+}
+
+.core-engine-lib-word-content mark {
+    padding: 1px 4px;
+    background: linear-gradient(180deg, transparent 50%, #fef08a 50%);
+    color: inherit;
+}
+
+/* ============================================
+   КНОПКА "РЕДАКТИРОВАТЬ"
+   ============================================ */
+
+.core-engine-lib-word-actions {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-light, #e2e8f0);
+}
+
+.core-engine-lib-word-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.core-engine-lib-word-btn-icon {
+    font-size: 15px;
+    line-height: 1;
+}
+
+.core-engine-lib-word-btn-edit {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.core-engine-lib-word-btn-edit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.core-engine-lib-word-btn-edit:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* ============================================
+   РЕЖИМ РЕДАКТИРОВАНИЯ
+   (когда внутри .core-engine-lib-word находится Editor)
+   ============================================ */
+
+.core-engine-lib-word:has(.core-engine-lib-word-editor-canvas) {
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: var(--bg-surface, #f1f5f9);
+}
+
+/* ============================================
+   АДАПТИВ
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word {
+        padding: 20px 16px 32px;
+        border-radius: 8px;
+    }
+
+    .core-engine-lib-word-title {
+        font-size: 26px;
+    }
+
+    .core-engine-lib-word-content {
+        font-size: 15px;
+    }
+
+    .core-engine-lib-word-content h1 { font-size: 24px; }
+    .core-engine-lib-word-content h2 { font-size: 20px; }
+    .core-engine-lib-word-content h3 { font-size: 17px; }
+
+    .core-engine-lib-word-content pre {
+        font-size: 13px;
+        padding: 12px 16px;
+    }
+
+    .core-engine-lib-word-content th,
+    .core-engine-lib-word-content td {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .core-engine-lib-word-error {
+        margin: 32px auto;
+        padding: 32px 20px;
+    }
+
+    .core-engine-lib-word-error-icon {
+        font-size: 44px;
+    }
+
+    .core-engine-lib-word-error-title {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-word {
+        padding: 16px 12px 24px;
+    }
+
+    .core-engine-lib-word-title {
+        font-size: 22px;
+    }
+
+    .core-engine-lib-word-content {
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .core-engine-lib-word-actions {
+        justify-content: stretch;
+    }
+
+    .core-engine-lib-word-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .core-engine-lib-word-error {
+        margin: 24px auto;
+        padding: 24px 16px;
+        border-radius: 12px;
+    }
+
+    .core-engine-lib-word-error-icon {
+        font-size: 36px;
+    }
+
+    .core-engine-lib-word-error-title {
+        font-size: 16px;
+    }
+
+    .core-engine-lib-word-error-text {
+        font-size: 14px;
+    }
+}
+
+/* ============================================
+   ПЕЧАТЬ
+   ============================================ */
+
+@media print {
+    .core-engine-lib-word {
+        max-width: 100%;
+        padding: 0;
+        border-radius: 0;
+        box-shadow: none;
+        display: block;
+        height: auto;
+    }
+
+    .core-engine-lib-word-title {
+        background: none;
+        -webkit-text-fill-color: #0f172a;
+        color: #0f172a;
+    }
+
+    .core-engine-lib-word-actions {
+        display: none;
+    }
+
+    .core-engine-lib-word-content a {
+        color: #0f172a;
+        border-bottom: none;
+    }
+
+    .core-engine-lib-word-content pre {
+        background: #f8fafc;
+        color: #0f172a;
+        border: 1px solid #e2e8f0;
+    }
+}

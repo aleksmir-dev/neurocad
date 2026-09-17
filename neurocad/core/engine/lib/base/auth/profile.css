@@ -1,0 +1,140 @@
+/* app/core/engine/lib/base/auth/profile.css */
+
+.core-engine-lib-base-auth-profile {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.core-engine-lib-base-auth-profile .auth-modal-body {
+    width: 100%;
+    max-width: 400px;
+}
+
+.core-engine-lib-base-auth-profile .auth-error {
+    padding: 10px 14px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    border: 1px solid #fca5a5;
+    margin-bottom: 16px;
+}
+
+.core-engine-lib-base-auth-profile .auth-success {
+    padding: 10px 14px;
+    background: #dcfce7;
+    color: #16a34a;
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    border: 1px solid #86efac;
+    margin-bottom: 16px;
+}
+
+.core-engine-lib-base-auth-profile .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.core-engine-lib-base-auth-profile .auth-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.core-engine-lib-base-auth-profile .auth-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main, #1e293b);
+}
+
+.core-engine-lib-base-auth-profile .auth-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    box-sizing: border-box;
+}
+
+.core-engine-lib-base-auth-profile .auth-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-base-auth-profile .auth-input:disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.core-engine-lib-base-auth-profile .auth-input.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.core-engine-lib-base-auth-profile .auth-submit {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #3b82f6;
+    color: white;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.core-engine-lib-base-auth-profile .auth-submit:hover:not(:disabled) {
+    background: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.core-engine-lib-base-auth-profile .auth-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.core-engine-lib-base-auth-profile .auth-links {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.core-engine-lib-base-auth-profile .auth-links a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.core-engine-lib-base-auth-profile .auth-links a:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.core-engine-lib-base-auth-profile .auth-info {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+    padding: 8px 0;
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-auth-profile {
+        padding: 12px;
+    }
+}

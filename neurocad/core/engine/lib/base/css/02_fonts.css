@@ -1,0 +1,81 @@
+/* app/core/engine/lib/base/css/02_fonts.css */
+
+@import url('/static/fonts/fontawesome/css/all.min.css');
+
+/* Inter */
+@font-face {
+    font-family: 'Inter';
+    src: url('/static/fonts/inter/inter-latin.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Golos Text */
+@font-face {
+    font-family: 'Golos Text';
+    src: url('/static/fonts/golos/GolosText-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Golos Text';
+    src: url('/static/fonts/golos/GolosText-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Golos Text';
+    src: url('/static/fonts/golos/GolosText-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Golos Text';
+    src: url('/static/fonts/golos/GolosText-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Golos Text';
+    src: url('/static/fonts/golos/GolosText-ExtraBold.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Golos Text';
+    src: url('/static/fonts/golos/GolosText-Black.woff2') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* PFDin (корпоративный) */
+@font-face {
+    font-family: 'PFDin';
+    src: url('/static/fonts/PFDin/PFDinDisplay/PFDinDisplay.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PFDin';
+    src: url('/static/fonts/PFDin/PFDinMedium/PFDinMedium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Lobster (декоративный) */
+@font-face {
+    font-family: 'Lobster';
+    src: url('/static/fonts/lobster/lobster-v32-cyrillic_latin-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}

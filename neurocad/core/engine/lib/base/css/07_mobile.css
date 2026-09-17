@@ -1,0 +1,223 @@
+/* app/core/engine/lib/base/css/07_mobile.css */
+
+/* ============================================
+   БУРГЕР-МЕНЮ
+   ============================================ */
+
+.core-engine-lib-base-mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.core-engine-lib-base-mobile-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.core-engine-lib-base-mobile-menu {
+    position: fixed;
+    top: 0;
+    right: -280px;
+    bottom: 0;
+    width: 280px;
+    background: linear-gradient(180deg, #f0f4fa 0%, #e3e9f2 100%);
+    border-left: 1px solid rgba(255, 255, 255, 0.5);
+    z-index: 1000;
+    padding: 1.5rem;
+    box-shadow: -10px 0 30px rgba(44, 62, 80, 0.2);
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-xs);
+}
+
+.core-engine-lib-base-mobile-menu.open {
+    right: 0;
+}
+
+.core-engine-lib-base-mobile-menu .core-engine-lib-base-mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(180, 195, 215, 0.5);
+}
+
+.core-engine-lib-base-mobile-menu .core-engine-lib-base-mobile-title {
+    font-weight: 700;
+    font-size: var(--font-size-lg);
+    color: var(--text-main);
+}
+
+.core-engine-lib-base-mobile-menu .core-engine-lib-base-mobile-close {
+    background: none;
+    border: none;
+    font-size: var(--font-size-xl);
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0.25rem;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.core-engine-lib-base-mobile-menu .core-engine-lib-base-mobile-close:hover {
+    color: var(--text-main);
+}
+
+.core-engine-lib-base-mobile-menu a {
+    padding: 0.75rem 0;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--text-main);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(180, 195, 215, 0.3);
+    transition: color 0.2s;
+}
+
+.core-engine-lib-base-mobile-menu a:hover {
+    color: var(--brand-blue);
+}
+
+.core-engine-lib-base-mobile-menu .core-engine-lib-base-mobile-user {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(180, 195, 215, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.core-engine-lib-base-mobile-menu .core-engine-lib-base-mobile-user span {
+    padding: 0.75rem 0;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.core-engine-lib-base-mobile-menu .core-engine-lib-base-mobile-user .core-engine-lib-base-mobile-auth {
+    color: var(--text-muted);
+    cursor: pointer;
+    border-top: 1px solid rgba(180, 195, 215, 0.3);
+    transition: color 0.2s;
+}
+
+.core-engine-lib-base-mobile-menu .core-engine-lib-base-mobile-user .core-engine-lib-base-mobile-auth:hover {
+    color: var(--brand-blue);
+}
+
+/* ============================================
+   АДАПТИВНОСТЬ
+   ============================================ */
+
+@media (max-width: 1024px) {
+    .core-engine-lib-base-area-left,
+    .core-engine-lib-base-area-right {
+        display: none !important;
+    }
+
+    .core-engine-lib-base-title {
+        font-size: var(--font-size-sm);
+    }
+}
+
+@media (max-width: 768px) {
+    .core-engine-lib-base-header {
+        height: 2.75rem;
+        padding: 0 var(--gap-sm);
+    }
+
+    .core-engine-lib-base-logo {
+        font-size: var(--font-size-base);
+    }
+
+    .core-engine-lib-base-title {
+        font-size: 0.75rem;
+    }
+
+    .core-engine-lib-base-username,
+    .core-engine-lib-base-action-icon {
+        display: none;
+    }
+
+    .core-engine-lib-base-page,
+    .core-engine-lib-base-find {
+        padding: var(--gap-sm);
+    }
+
+    .core-engine-lib-base-titlebar,
+    .core-engine-lib-base-toolbar,
+    .core-engine-lib-base-statusbar {
+        padding: var(--gap-xs) var(--gap-sm);
+        font-size: 0.75rem;
+        min-height: 1.5rem;
+    }
+
+    .core-engine-lib-base-content {
+        padding: var(--gap-sm);
+        font-size: var(--font-size-sm);
+    }
+
+    .core-engine-lib-base-footer {
+        font-size: 0.75rem;
+        padding: var(--gap-xs) var(--gap-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-header {
+        height: 2.5rem;
+    }
+
+    .core-engine-lib-base-logo {
+        font-size: var(--font-size-sm);
+    }
+
+    .core-engine-lib-base-title {
+        font-size: 0.625rem;
+    }
+
+    .core-engine-lib-base-actions {
+        gap: var(--gap-xs);
+    }
+
+    .core-engine-lib-base-burger {
+        font-size: 1.25rem;
+    }
+
+    .core-engine-lib-base-page,
+    .core-engine-lib-base-find {
+        padding: var(--gap-xs);
+    }
+
+    .core-engine-lib-base-titlebar,
+    .core-engine-lib-base-toolbar,
+    .core-engine-lib-base-statusbar {
+        padding: 0.0625rem var(--gap-xs);
+        font-size: 0.625rem;
+        min-height: 1.25rem;
+    }
+
+    .core-engine-lib-base-content {
+        padding: var(--gap-xs);
+        font-size: 0.75rem;
+    }
+
+    .core-engine-lib-base-footer {
+        font-size: 0.625rem;
+        padding: 0.0625rem var(--gap-xs);
+    }
+
+    .core-engine-lib-base-area-left,
+    .core-engine-lib-base-area-right {
+        display: none !important;
+    }
+}

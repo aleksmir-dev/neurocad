@@ -1,0 +1,164 @@
+/* app/core/engine/lib/base/auth/register.css */
+
+.core-engine-lib-base-auth-register {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.core-engine-lib-base-auth-register .auth-modal-body {
+    width: 100%;
+    max-width: 400px;
+}
+
+.core-engine-lib-base-auth-register .auth-error {
+    padding: 10px 14px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    border: 1px solid #fca5a5;
+    margin-bottom: 16px;
+}
+
+.core-engine-lib-base-auth-register .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.core-engine-lib-base-auth-register .auth-form::-webkit-scrollbar {
+    width: 4px;
+}
+
+.core-engine-lib-base-auth-register .auth-form::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.core-engine-lib-base-auth-register .auth-form::-webkit-scrollbar-thumb {
+    background: var(--border-color, #cbd5e1);
+    border-radius: 4px;
+}
+
+.core-engine-lib-base-auth-register .auth-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.core-engine-lib-base-auth-register .auth-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main, #1e293b);
+}
+
+.core-engine-lib-base-auth-register .auth-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    box-sizing: border-box;
+}
+
+.core-engine-lib-base-auth-register .auth-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-base-auth-register .auth-input.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.core-engine-lib-base-auth-register .auth-password-wrapper {
+    position: relative;
+}
+
+.core-engine-lib-base-auth-register .auth-password-wrapper .auth-input {
+    padding-right: 44px;
+}
+
+.core-engine-lib-base-auth-register .auth-toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 4px;
+    color: #94a3b8;
+}
+
+.core-engine-lib-base-auth-register .auth-toggle-password:hover {
+    color: #64748b;
+}
+
+.core-engine-lib-base-auth-register .auth-submit {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #3b82f6;
+    color: white;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.core-engine-lib-base-auth-register .auth-submit:hover:not(:disabled) {
+    background: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.core-engine-lib-base-auth-register .auth-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.core-engine-lib-base-auth-register .auth-links {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.core-engine-lib-base-auth-register .auth-links a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.core-engine-lib-base-auth-register .auth-links a:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-auth-register {
+        padding: 12px;
+    }
+
+    .core-engine-lib-base-auth-register .auth-links {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+}

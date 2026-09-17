@@ -1,0 +1,86 @@
+/* app/core/engine/lib/base/css/06_buttons.css */
+
+.core-engine-lib-base-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap-sm);
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.core-engine-lib-base-btn:active {
+    transform: scale(0.97);
+}
+
+.core-engine-lib-base-btn:focus-visible {
+    outline: 2px solid #4a8bc2;
+    outline-offset: 2px;
+}
+
+.core-engine-lib-base-btn-primary {
+    background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.core-engine-lib-base-btn-primary:hover {
+    background: linear-gradient(180deg, #f5f8fd 0%, #e8edf5 100%);
+    box-shadow: var(--shadow-md);
+}
+
+.core-engine-lib-base-btn-white {
+    background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.core-engine-lib-base-btn-white:hover {
+    background: linear-gradient(180deg, #f5f8fd 0%, #e8edf5 100%);
+    box-shadow: var(--shadow-md);
+}
+
+.core-engine-lib-base-btn-secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+}
+
+.core-engine-lib-base-btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.core-engine-lib-base-btn-danger {
+    background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    box-shadow: var(--shadow-sm);
+}
+
+.core-engine-lib-base-btn-danger:hover {
+    background: linear-gradient(180deg, #fef2f2 0%, #fecaca 100%);
+    border-color: #f87171;
+}
+
+.core-engine-lib-base-btn-sm {
+    padding: 0.25rem 0.75rem;
+    font-size: var(--font-size-sm);
+    border-radius: calc(var(--radius-sm) - 1px);
+}
+
+.core-engine-lib-base-btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: var(--font-size-base);
+    border-radius: var(--radius-lg);
+}

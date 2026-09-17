@@ -1,0 +1,171 @@
+/* app/core/engine/lib/word/editor/css/responsive.css */
+
+/**
+ * Responsive — адаптив редактора.
+ *
+ * Три порога:
+ *   - max-width: 1200px — планшет-ландшафт, немного уменьшаем
+ *   - max-width: 1024px — планшет, кнопки toolbar без подписей
+ *   - max-width: 768px  — мобильный, тулбар в две строки, блоки в одну колонку
+ *
+ * Все правила — только для наших префиксов, чужие стили не трогаем.
+ */
+
+/* ============================================
+   <= 1200px — чуть плотнее
+   ============================================ */
+
+@media (max-width: 1200px) {
+
+    /* Секции StyleManager — меньше отступы */
+    .core-engine-lib-word-editor-styles-content .gjs-sm-properties {
+        padding: 6px 10px;
+    }
+
+    .core-engine-lib-word-editor-styles-content .gjs-sm-property {
+        margin-bottom: 6px;
+    }
+
+    /* Блоки — оставляем 2 колонки, но чуть плотнее */
+    .core-engine-lib-word-editor-blocks-content .gjs-blocks-c {
+        gap: 6px;
+    }
+
+    .core-engine-lib-word-editor-blocks-content .gjs-block {
+        min-height: 64px;
+        padding: 10px 6px;
+    }
+
+    /* Медиатека — плитки чуть меньше */
+    .gjs-am-assets-cont .gjs-am-assets {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+}
+
+/* ============================================
+   <= 1024px — планшет, убираем подписи у кнопок
+   ============================================ */
+
+@media (max-width: 1024px) {
+
+    /* Toolbar — компактнее */
+    .core-engine-lib-word-editor-toolbar {
+        padding: 4px 6px;
+        min-height: 38px;
+    }
+
+    .core-engine-lib-word-editor-btn {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+
+    /* Скрываем текстовые подписи, оставляем только иконки */
+    .core-engine-lib-word-editor-btn span:not(.core-engine-lib-word-editor-btn-icon) {
+        display: none;
+    }
+
+    /* Блоки в одну колонку — узкая панель */
+    .core-engine-lib-word-editor-blocks-content .gjs-blocks-c {
+        grid-template-columns: 1fr;
+    }
+
+    /* Медиатека — 2-3 плитки в ряд */
+    .gjs-am-assets-cont .gjs-am-assets {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    }
+
+    .gjs-am-assets-cont .gjs-am-asset img {
+        height: 80px;
+    }
+}
+
+/* ============================================
+   <= 768px — мобильный, тулбар в две строки
+   ============================================ */
+
+@media (max-width: 768px) {
+
+    /* Toolbar — обёртка, разделители скрыты */
+    .core-engine-lib-word-editor-toolbar {
+        flex-wrap: wrap;
+        gap: 2px;
+        padding: 4px 6px;
+    }
+
+    .core-engine-lib-word-editor-separator {
+        display: none;
+    }
+
+    /* Кнопки — только иконки, чуть крупнее */
+    .core-engine-lib-word-editor-btn-icon {
+        font-size: 16px;
+    }
+
+    /* Переключатель устройств — на всю ширину */
+    .core-engine-lib-word-editor-devices {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* StyleManager — компактнее */
+    .core-engine-lib-word-editor-styles-content .gjs-sm-sector-title {
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+
+    .core-engine-lib-word-editor-styles-content .gjs-sm-label {
+        font-size: 10px;
+    }
+
+    /* Медиатека — по 2 плитки */
+    .gjs-am-assets-cont .gjs-am-assets {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Зона drag&drop — меньше паддинг */
+    .gjs-am-file-uploader {
+        padding: 16px;
+        font-size: 12px;
+    }
+}
+
+/* ============================================
+   <= 480px — очень узкие экраны
+   ============================================ */
+
+@media (max-width: 480px) {
+
+    .core-engine-lib-word-editor-toolbar {
+        padding: 3px 4px;
+    }
+
+    .core-engine-lib-word-editor-btn {
+        padding: 4px 6px;
+    }
+
+    .core-engine-lib-word-editor-btn-icon {
+        font-size: 15px;
+    }
+
+    /* Блоки — по одной плитке на всю ширину */
+    .core-engine-lib-word-editor-blocks-content .gjs-blocks-c {
+        padding: 0 4px 6px;
+        gap: 4px;
+    }
+
+    /* Медиатека — одна плитка в ряд */
+    .gjs-am-assets-cont .gjs-am-assets {
+        grid-template-columns: 1fr;
+    }
+
+    .gjs-am-assets-cont .gjs-am-asset img {
+        height: 120px;
+    }
+
+    /* Кнопки в модалке медиатеки — компактнее */
+    .gjs-am-assets-header .gjs-btn-prim,
+    .gjs-am-assets-header .gjs-btn-sec {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+}

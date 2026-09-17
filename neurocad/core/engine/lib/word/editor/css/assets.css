@@ -1,0 +1,260 @@
+/* app/core/engine/lib/word/editor/css/assets.css */
+
+/**
+ * Assets — медиатека (GrapesJS AssetManager).
+ *
+ * Что здесь:
+ *   - Модальное окно медиатеки и его контейнеры
+ *   - Зона drag&drop для загрузки файлов
+ *   - Список картинок (плитки)
+ *   - Кнопки Cancel / Add / Upload
+ *   - Скроллбар
+ *
+ * Медиатека открывается поверх всего (это модалка GrapesJS),
+ * поэтому стилизуем в светлой теме, чтобы не выбивалась из Base.
+ * Все классы — стандартные .gjs-am-* от GrapesJS.
+ */
+
+/* ============================================
+   ОБЩИЙ КОНТЕЙНЕР МЕДИАТЕКИ
+   ============================================ */
+
+.gjs-am-assets-cont {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 12px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* ============================================
+   ЗОНА ЗАГРУЗКИ (drag & drop)
+   ============================================ */
+
+.gjs-am-file-uploader {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 12px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.gjs-am-file-uploader:hover {
+    border-color: #3b82f6;
+    background: #f0f9ff;
+    color: #1e293b;
+}
+
+.gjs-am-file-uploader > form {
+    margin: 0;
+}
+
+.gjs-am-file-uploader input[type="file"] {
+    color: #475569;
+    font-family: inherit;
+    font-size: 12px;
+}
+
+/* Кнопка «Загрузить» внутри зоны */
+.gjs-am-file-uploader button {
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    margin-top: 8px;
+}
+
+.gjs-am-file-uploader button:hover {
+    background: #2563eb;
+}
+
+/* ============================================
+   ПЛИТКИ АССЕТОВ
+   ============================================ */
+
+.gjs-am-assets-cont .gjs-am-assets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.gjs-am-assets-cont .gjs-am-asset {
+    background: #f8fafc;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+    position: relative;
+}
+
+.gjs-am-assets-cont .gjs-am-asset:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    transform: translateY(-1px);
+}
+
+.gjs-am-assets-cont .gjs-am-asset.gjs-am-asset-image {
+    background: #ffffff;
+}
+
+.gjs-am-assets-cont .gjs-am-asset img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Кнопка «выбрать» — как встроено в GrapesJS */
+.gjs-am-assets-cont .gjs-am-asset .gjs-am-asset-check {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--border-light, #e2e8f0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.gjs-am-assets-cont .gjs-am-asset:hover .gjs-am-asset-check,
+.gjs-am-assets-cont .gjs-am-asset.gjs-am-asset-selected .gjs-am-asset-check {
+    opacity: 1;
+}
+
+.gjs-am-assets-cont .gjs-am-asset.gjs-am-asset-selected {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* ============================================
+   КНОПКА «ДОБАВИТЬ ПО ССЫЛКЕ»
+   ============================================ */
+
+.gjs-am-add-asset {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-light, #e2e8f0);
+}
+
+.gjs-am-add-asset .gjs-am-add-field {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #1e293b;
+}
+
+.gjs-am-add-asset .gjs-am-add-field:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+.gjs-am-add-asset .gjs-am-add-btn {
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.gjs-am-add-asset .gjs-am-add-btn:hover {
+    background: #2563eb;
+}
+
+/* ============================================
+   ВЕРХНЯЯ ПАНЕЛЬ МОДАЛКИ (заголовок + действия)
+   ============================================ */
+
+.gjs-am-assets-header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.gjs-am-assets-header h6 {
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Кнопки «Отмена» / «Выбрать» */
+.gjs-am-assets-header .gjs-btn-prim,
+.gjs-am-assets-header .gjs-btn-sec {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.gjs-am-assets-header .gjs-btn-prim {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.gjs-am-assets-header .gjs-btn-prim:hover {
+    background: #2563eb;
+}
+
+.gjs-am-assets-header .gjs-btn-sec {
+    background: transparent;
+    color: #64748b;
+    border: 1px solid var(--border-light, #e2e8f0);
+}
+
+.gjs-am-assets-header .gjs-btn-sec:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+/* ============================================
+   СКРОЛЛБАР
+   ============================================ */
+
+.gjs-am-assets-cont::-webkit-scrollbar {
+    width: 8px;
+}
+
+.gjs-am-assets-cont::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.gjs-am-assets-cont::-webkit-scrollbar-thumb {
+    background: rgba(44, 62, 80, 0.15);
+    border-radius: 4px;
+}
+
+.gjs-am-assets-cont::-webkit-scrollbar-thumb:hover {
+    background: rgba(44, 62, 80, 0.25);
+}

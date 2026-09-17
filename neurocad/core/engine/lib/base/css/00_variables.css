@@ -1,0 +1,45 @@
+/* app/core/engine/lib/base/css/00_variables.css */
+
+:root {
+    /* Цвета */
+    --bg-main: #f8fafc;
+    --bg-surface: #f0f4fa;
+    --bg-gradient-surface: linear-gradient(180deg, #f0f4fa 0%, #e3e9f2 100%);
+    --bg-hover: #f1f5f9;
+    --bg-subtle: #f8fafc;
+    
+    --text-main: #2c3e50;
+    --text-muted: #7f8fa6;
+    --text-light: #94a3b8;
+
+    --brand-blue: #1e3a8a;
+    --brand-navy: #0f172a;
+    --border-color: #d5dee9;
+    --border-light: rgba(180, 195, 215, 0.5);
+
+    /* Тени */
+    --shadow-sm: 0 2px 8px rgba(44, 62, 80, 0.08);
+    --shadow-md: 0 8px 20px rgba(44, 62, 80, 0.12);
+    --shadow-lg: 0 20px 60px rgba(44, 62, 80, 0.25);
+    --shadow-modal: 0 20px 60px rgba(44, 62, 80, 0.25), 0 8px 20px rgba(0, 0, 0, 0.08);
+
+    /* Шрифты */
+    --font-family: 'Inter', 'Golos Text', sans-serif;
+    --font-size-base: 1rem;
+    --font-size-sm: 0.875rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+
+    /* Радиусы */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+
+    /* Отступы */
+    --gap-xs: 0.125rem;
+    --gap-sm: 0.25rem;
+    --gap-md: 0.5rem;
+    --gap-lg: 0.75rem;
+    --gap-xl: 1rem;
+}

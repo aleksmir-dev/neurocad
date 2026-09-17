@@ -1,0 +1,203 @@
+/* app/core/engine/lib/base/cards/toolbar.css */
+
+/* ============================================ */
+/* ТУЛБАР */
+/* ============================================ */
+
+.core-engine-lib-base-cards-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 4px 8px;
+    background: var(--bg-gradient-surface);
+    border-bottom: 1px solid var(--border-light);
+    min-height: 1.75rem;
+    color: var(--text-main);
+}
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
+}
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
+}
+
+/* ============================================ */
+/* КНОПКИ ТУЛБАРА */
+/* ============================================ */
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text, #1e293b);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-btn:hover:not(:disabled) {
+    background: var(--bg-hover);
+}
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-btn img.icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+    object-fit: contain;
+}
+
+/* ============================================ */
+/* СЧЁТЧИК ВЫДЕЛЕННЫХ */
+/* ============================================ */
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-selected {
+    font-size: 13px;
+    font-weight: 500;
+    color: #3b82f6;
+    padding: 0 8px;
+    display: none;
+}
+
+/* ============================================ */
+/* ПОИСК */
+/* ============================================ */
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-search {
+    padding: 4px 10px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s ease;
+    background: var(--color-white, #ffffff);
+    color: var(--color-text, #1e293b);
+    height: 32px;
+    width: 160px;
+}
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-search:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-search::placeholder {
+    color: var(--color-text-light, #94a3b8);
+}
+
+/* ============================================ */
+/* ФИЛЬТР СТАТУСОВ */
+/* ============================================ */
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-status-filter {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    background: var(--color-white, #ffffff);
+    color: var(--color-text, #1e293b);
+    height: 32px;
+    cursor: pointer;
+}
+
+.core-engine-lib-base-cards-toolbar .cards-toolbar-status-filter:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ============================================ */
+/* АДАПТИВ ТУЛБАРА */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-base-cards-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        padding: 6px 10px;
+        min-height: auto;
+    }
+
+    .core-engine-lib-base-cards-toolbar .cards-toolbar-left,
+    .core-engine-lib-base-cards-toolbar .cards-toolbar-right {
+        justify-content: center;
+    }
+
+    .core-engine-lib-base-cards-toolbar .cards-toolbar-search {
+        width: 100%;
+    }
+
+    .core-engine-lib-base-cards-toolbar .cards-toolbar-status-filter {
+        flex: 1;
+        min-width: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-cards-toolbar {
+        padding: 4px 6px;
+        gap: 2px;
+    }
+
+    .core-engine-lib-base-cards-toolbar .cards-toolbar-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .core-engine-lib-base-cards-toolbar .cards-toolbar-btn img.icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .core-engine-lib-base-cards-toolbar .cards-toolbar-search {
+        height: 28px;
+        font-size: 12px;
+        padding: 2px 8px;
+    }
+
+    .core-engine-lib-base-cards-toolbar .cards-toolbar-status-filter {
+        height: 28px;
+        font-size: 12px;
+        padding: 2px 6px;
+    }
+
+    .core-engine-lib-base-cards-toolbar .cards-toolbar-selected {
+        font-size: 12px;
+    }
+}
+
+/* ============================================ */
+/* ПЕЧАТЬ ТУЛБАРА */
+/* ============================================ */
+
+@media print {
+    .core-engine-lib-base-cards-toolbar {
+        display: none !important;
+    }
+}

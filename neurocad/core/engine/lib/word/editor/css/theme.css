@@ -1,0 +1,216 @@
+/* app/core/engine/lib/word/editor/css/theme.css */
+
+/**
+ * GrapesTheme — перекрытие встроенной тёмной темы GrapesJS.
+ *
+ * GrapesJS навешивает на свои контейнеры классы:
+ *   .gjs-one-bg     — фон панелей
+ *   .gjs-two-color  — основной текст
+ *   .gjs-three-bg   — активные элементы (кнопки, выбранное)
+ *   .gjs-four-color — акценты и hover
+ *
+ * По умолчанию это ТЁМНАЯ палитра (коричнево-фиолетовая),
+ * которая не сочетается со светлым дизайном Base.
+ *
+ * Здесь мы перекрываем её на цвета Base.
+ * Все селекторы — глобальные .gjs-*, но применяются только
+ * внутри контейнера редактора, чтобы не задеть другие места.
+ */
+
+/* ============================================
+   1. ФОН ПАНЕЛЕЙ
+   ============================================ */
+
+.core-engine-lib-word-editor-blocks-content .gjs-one-bg,
+.core-engine-lib-word-editor-styles-content .gjs-one-bg,
+.core-engine-lib-word-editor-canvas-content .gjs-one-bg {
+    background-color: var(--bg-surface, #f0f4fa);
+}
+
+/* Модалка медиатеки — тоже светлая */
+.gjs-am-assets-cont.gjs-one-bg,
+.gjs-am-assets-cont .gjs-one-bg,
+.gjs-am-assets-header.gjs-one-bg {
+    background-color: #ffffff;
+}
+
+/* ============================================
+   2. ОСНОВНОЙ ТЕКСТ
+   ============================================ */
+
+.core-engine-lib-word-editor-blocks-content .gjs-two-color,
+.core-engine-lib-word-editor-styles-content .gjs-two-color,
+.core-engine-lib-word-editor-canvas-content .gjs-two-color {
+    color: var(--text-main, #2c3e50);
+}
+
+.gjs-am-assets-cont.gjs-two-color,
+.gjs-am-assets-cont .gjs-two-color,
+.gjs-am-assets-header.gjs-two-color {
+    color: #2c3e50;
+}
+
+/* ============================================
+   3. АКТИВНЫЕ ЭЛЕМЕНТЫ (кнопки, выбранные)
+   ============================================ */
+
+.core-engine-lib-word-editor-blocks-content .gjs-three-bg,
+.core-engine-lib-word-editor-styles-content .gjs-three-bg,
+.core-engine-lib-word-editor-canvas-content .gjs-three-bg {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+/* ============================================
+   4. АКЦЕНТЫ И HOVER
+   ============================================ */
+
+.core-engine-lib-word-editor-blocks-content .gjs-four-color,
+.core-engine-lib-word-editor-blocks-content .gjs-four-color-h:hover,
+.core-engine-lib-word-editor-styles-content .gjs-four-color,
+.core-engine-lib-word-editor-styles-content .gjs-four-color-h:hover,
+.core-engine-lib-word-editor-canvas-content .gjs-four-color,
+.core-engine-lib-word-editor-canvas-content .gjs-four-color-h:hover {
+    color: #3b82f6;
+}
+
+/* ============================================
+   5. ЭЛЕМЕНТЫ, КОТОРЫЕ GRAPESJS КРАСИТ НАПРЯМУЮ
+   ============================================ */
+
+/* --- Поля ввода --- */
+
+.core-engine-lib-word-editor-styles-content .gjs-field input,
+.core-engine-lib-word-editor-styles-content .gjs-field select,
+.core-engine-lib-word-editor-styles-content .gjs-field textarea {
+    color: #1e293b;
+}
+
+/* --- Заголовки секций и категорий --- */
+
+.core-engine-lib-word-editor-styles-content .gjs-sm-sector-title,
+.core-engine-lib-word-editor-blocks-content .gjs-block-category .gjs-title {
+    background: transparent;
+    color: #1e293b;
+}
+
+/* --- Плейсхолдеры --- */
+
+.core-engine-lib-word-editor-styles-content .gjs-field input::placeholder,
+.core-engine-lib-word-editor-styles-content .gjs-field textarea::placeholder {
+    color: #94a3b8;
+}
+
+/* --- Кнопки GrapesJS (в модалках) --- */
+
+.gjs-btn-prim {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+.gjs-btn-prim:hover {
+    background-color: #2563eb !important;
+}
+
+.gjs-btn-sec {
+    background-color: transparent !important;
+    color: #64748b !important;
+    border: 1px solid var(--border-light, #e2e8f0) !important;
+}
+
+.gjs-btn-sec:hover {
+    background-color: #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+/* ============================================
+   6. ВЫДЕЛЕНИЕ ЭЛЕМЕНТОВ НА ХОЛСТЕ
+   ============================================ */
+
+/* Рамка выбранного компонента */
+.core-engine-lib-word-editor-canvas-content .gjs-selected {
+    outline-color: #3b82f6 !important;
+}
+
+/* Рамка при наведении */
+.core-engine-lib-word-editor-canvas-content .gjs-hovered {
+    outline-color: rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Подсветка контейнеров (синие полоски) */
+.core-engine-lib-word-editor-canvas-content .gjs-placeholder-int,
+.core-engine-lib-word-editor-canvas-content .gjs-placeholder {
+    background-color: #3b82f6 !important;
+}
+
+/* Toolbar над выделенным компонентом (иконки move/copy/delete) */
+.core-engine-lib-word-editor-canvas-content .gjs-toolbar {
+    background-color: #1e293b !important;
+}
+
+.core-engine-lib-word-editor-canvas-content .gjs-toolbar-item:hover {
+    background-color: #3b82f6 !important;
+}
+
+/* ============================================
+   7. ПАНЕЛЬ КОМПОНЕНТОВ (всплывающая)
+   ============================================ */
+
+.gjs-block-category .gjs-title {
+    color: #1e293b;
+}
+
+.gjs-block-category .gjs-caret-icon {
+    color: #64748b;
+}
+
+/* ============================================
+   8. УБИРАЕМ ЛИШНЮЮ ОБВОДКУ У ВСТРОЕННЫХ ПАНЕЛЕЙ
+   ============================================ */
+
+.core-engine-lib-word-editor-blocks-content .gjs-blocks-c,
+.core-engine-lib-word-editor-styles-content .gjs-sm-properties {
+    border-color: var(--border-light, #e2e8f0);
+}
+
+/* ============================================
+   9. ПОДСВЕТКА ВЫБРАННОГО БЛОКА В ЛЕВОЙ ПАНЕЛИ
+   ============================================ */
+
+.core-engine-lib-word-editor-blocks-content .gjs-block.gjs-block-selected,
+.core-engine-lib-word-editor-blocks-content .gjs-block.gjs-selected {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+/* ============================================
+   10. СЛОИ (LayerManager), ЕСЛИ ПОНАДОБИТСЯ
+   ============================================ */
+
+.core-engine-lib-word-editor-blocks-content .gjs-layer {
+    color: #1e293b;
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+}
+
+.core-engine-lib-word-editor-blocks-content .gjs-layer.gjs-hovered {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.core-engine-lib-word-editor-blocks-content .gjs-layer.gjs-selected {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+/* ============================================
+   11. ПРАВАЯ ПАНЕЛЬ — СЛОИ (встроенный LayerManager)
+   ============================================ */
+
+.core-engine-lib-word-editor-styles-content .gjs-layer {
+    color: #1e293b;
+}
+
+.core-engine-lib-word-editor-styles-content .gjs-layer.gjs-selected {
+    background: #3b82f6;
+    color: #ffffff;
+}

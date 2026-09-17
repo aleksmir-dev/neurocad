@@ -1,0 +1,72 @@
+/* app/core/engine/lib/base/css/03_layout.css */
+
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+    background: var(--bg-gradient-surface);
+    color: var(--text-main);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: var(--shadow-modal);
+    border-radius: var(--radius-xl);
+    margin: 0.5rem;
+}
+
+.core-engine-lib-base-header {
+    flex-shrink: 0;
+}
+
+.core-engine-lib-base-main {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.core-engine-lib-base-main-inner {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.core-engine-lib-base-area-left,
+.core-engine-lib-base-area-right {
+    flex-shrink: 0;
+    width: 12.5rem;
+    background: var(--bg-gradient-surface);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding: var(--gap-md);
+}
+
+.core-engine-lib-base-area-right {
+    border-right: none;
+    border-left: 1px solid var(--border-color);
+}
+
+.core-engine-lib-base-area-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--bg-surface);
+}
+
+.core-engine-lib-base-footer {
+    flex-shrink: 0;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    padding: var(--gap-md) var(--gap-xl);
+    text-align: center;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}

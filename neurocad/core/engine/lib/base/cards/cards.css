@@ -1,0 +1,479 @@
+/* app/core/engine/lib/base/cards/cards.css */
+
+/* ============================================ */
+/* КОРНЕВОЙ КОНТЕЙНЕР */
+/* ============================================ */
+
+.core-engine-lib-base-cards,
+.core-engine-lib-base-widget {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 400px;
+    background: var(--color-bg, #f1f5f9);
+    border-radius: var(--radius, 12px);
+    overflow: hidden;
+    font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+
+/* ============================================ */
+/* ЗАГОЛОВОК */
+/* ============================================ */
+
+.core-engine-lib-base-cards .cards-header,
+.core-engine-lib-base-widget-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--color-white, #ffffff);
+    border-bottom: 1px solid var(--color-border, #e2e8f0);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.core-engine-lib-base-cards .cards-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text, #1e293b);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.core-engine-lib-base-cards .cards-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* ============================================ */
+/* КНОПКИ */
+/* ============================================ */
+
+.core-engine-lib-base-cards .cards-btn,
+.cards-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-light, #64748b);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.core-engine-lib-base-cards .cards-btn:hover:not(:disabled),
+.cards-toolbar-btn:hover:not(:disabled) {
+    background: var(--color-hover, #f1f5f9);
+    color: var(--color-text, #1e293b);
+}
+
+.core-engine-lib-base-cards .cards-btn:active:not(:disabled),
+.cards-toolbar-btn:active:not(:disabled) {
+    transform: scale(0.92);
+}
+
+.core-engine-lib-base-cards .cards-btn:disabled,
+.cards-toolbar-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.core-engine-lib-base-cards .cards-btn-add,
+.cards-toolbar-btn-add {
+    color: #22c55e;
+}
+
+.core-engine-lib-base-cards .cards-btn-add:hover:not(:disabled),
+.cards-toolbar-btn-add:hover:not(:disabled) {
+    background: #dcfce7;
+}
+
+.core-engine-lib-base-cards .cards-btn-delete,
+.cards-toolbar-btn-delete {
+    color: #ef4444;
+}
+
+.core-engine-lib-base-cards .cards-btn-delete:hover:not(:disabled),
+.cards-toolbar-btn-delete:hover:not(:disabled) {
+    background: #fee2e2;
+}
+
+.core-engine-lib-base-cards .cards-btn-restore,
+.cards-toolbar-btn-restore {
+    color: #3b82f6;
+}
+
+.core-engine-lib-base-cards .cards-btn-restore:hover:not(:disabled),
+.cards-toolbar-btn-restore:hover:not(:disabled) {
+    background: #dbeafe;
+}
+
+.core-engine-lib-base-cards .cards-btn-deleted {
+    color: #f59e0b;
+}
+
+.core-engine-lib-base-cards .cards-btn-deleted:hover {
+    background: #fef3c7;
+}
+
+.core-engine-lib-base-cards .cards-btn-deleted.active {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+/* ============================================ */
+/* ПОИСК */
+/* ============================================ */
+
+.core-engine-lib-base-cards .cards-search,
+.cards-toolbar-search {
+    padding: 4px 10px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s ease;
+    background: var(--color-white, #ffffff);
+    color: var(--color-text, #1e293b);
+    width: 160px;
+    height: 32px;
+}
+
+.core-engine-lib-base-cards .cards-search:focus,
+.cards-toolbar-search:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-base-cards .cards-search::placeholder,
+.cards-toolbar-search::placeholder {
+    color: var(--color-text-light, #94a3b8);
+}
+
+/* ============================================ */
+/* СЕТКА — главное исправление */
+/* ============================================ */
+
+.core-engine-lib-base-cards .cards-grid,
+.core-engine-lib-base-cards-grid {
+    flex: 1;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 180px));
+    gap: 14px;
+    align-content: start;
+    overflow-y: auto;
+    background: var(--color-bg, #f1f5f9);
+    min-height: 200px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.core-engine-lib-base-cards .cards-grid::-webkit-scrollbar,
+.core-engine-lib-base-cards-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.core-engine-lib-base-cards .cards-grid::-webkit-scrollbar-track,
+.core-engine-lib-base-cards-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.core-engine-lib-base-cards .cards-grid::-webkit-scrollbar-thumb,
+.core-engine-lib-base-cards-grid::-webkit-scrollbar-thumb {
+    background: var(--color-border, #cbd5e1);
+    border-radius: 3px;
+}
+
+.core-engine-lib-base-cards .cards-grid::-webkit-scrollbar-thumb:hover,
+.core-engine-lib-base-cards-grid::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ============================================ */
+/* ПУСТОЕ СОСТОЯНИЕ */
+/* ============================================ */
+
+.core-engine-lib-base-cards .cards-empty,
+.core-engine-lib-base-cards-empty {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--color-text-light, #94a3b8);
+    background: var(--color-white, #ffffff);
+    border-radius: var(--radius, 10px);
+    border: 2px dashed var(--color-border, #e2e8f0);
+    min-height: 200px;
+}
+
+.core-engine-lib-base-cards .cards-empty-icon,
+.core-engine-lib-base-cards-empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.core-engine-lib-base-cards .cards-empty-text,
+.core-engine-lib-base-cards-empty-text {
+    font-size: 19px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--color-text, #1e293b);
+}
+
+.core-engine-lib-base-cards .cards-empty-hint,
+.core-engine-lib-base-cards-empty-hint {
+    font-size: 16px;
+    opacity: 0.7;
+}
+
+/* ============================================ */
+/* ПОДВАЛ */
+/* ============================================ */
+
+.core-engine-lib-base-cards .cards-footer,
+.core-engine-lib-base-widget-statusbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: var(--color-white, #ffffff);
+    border-top: 1px solid var(--color-border, #e2e8f0);
+    font-size: 13px;
+    color: var(--color-text-light, #64748b);
+    flex-shrink: 0;
+    min-height: 40px;
+    gap: 8px;
+}
+
+.core-engine-lib-base-cards .cards-selected,
+.core-engine-lib-base-cards-selected {
+    font-weight: 500;
+    color: #3b82f6;
+}
+
+.core-engine-lib-base-cards .cards-selected:not(:empty),
+.core-engine-lib-base-cards-selected:not(:empty) {
+    display: inline;
+}
+
+/* ============================================ */
+/* АДАПТИВ */
+/* ============================================ */
+
+@media (max-width: 1024px) {
+    .core-engine-lib-base-cards .cards-grid,
+    .core-engine-lib-base-cards-grid {
+        padding: 12px;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 160px));
+    }
+}
+
+@media (max-width: 768px) {
+    .core-engine-lib-base-cards .cards-header,
+    .core-engine-lib-base-widget-titlebar {
+        padding: 10px 12px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+
+    .core-engine-lib-base-cards .cards-title {
+        font-size: 16px;
+        justify-content: center;
+    }
+
+    .core-engine-lib-base-cards .cards-actions {
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .core-engine-lib-base-cards .cards-btn,
+    .cards-toolbar-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+
+    .core-engine-lib-base-cards .cards-search,
+    .cards-toolbar-search {
+        width: 100%;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .core-engine-lib-base-cards .cards-grid,
+    .core-engine-lib-base-cards-grid {
+        padding: 10px;
+        gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 140px));
+    }
+
+    .core-engine-lib-base-cards .cards-footer,
+    .core-engine-lib-base-widget-statusbar {
+        font-size: 12px;
+        padding: 6px 12px;
+        min-height: 32px;
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: center;
+    }
+
+    .core-engine-lib-base-cards .cards-empty,
+    .core-engine-lib-base-cards-empty {
+        padding: 40px 16px;
+        min-height: 150px;
+    }
+
+    .core-engine-lib-base-cards .cards-empty-icon,
+    .core-engine-lib-base-cards-empty-icon {
+        font-size: 36px;
+        margin-bottom: 12px;
+    }
+
+    .core-engine-lib-base-cards .cards-empty-text,
+    .core-engine-lib-base-cards-empty-text {
+        font-size: 17px;
+    }
+
+    .core-engine-lib-base-cards .cards-empty-hint,
+    .core-engine-lib-base-cards-empty-hint {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-cards .cards-header,
+    .core-engine-lib-base-widget-titlebar {
+        padding: 6px 8px;
+    }
+
+    .core-engine-lib-base-cards .cards-title {
+        font-size: 14px;
+    }
+
+    .core-engine-lib-base-cards .cards-btn,
+    .cards-toolbar-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+
+    .core-engine-lib-base-cards .cards-search,
+    .cards-toolbar-search {
+        height: 24px;
+        font-size: 11px;
+        padding: 2px 8px;
+    }
+
+    .core-engine-lib-base-cards .cards-grid,
+    .core-engine-lib-base-cards-grid {
+        padding: 8px;
+        gap: 8px;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 120px));
+    }
+
+    .core-engine-lib-base-cards .cards-empty,
+    .core-engine-lib-base-cards-empty {
+        padding: 30px 12px;
+        min-height: 120px;
+    }
+
+    .core-engine-lib-base-cards .cards-empty-icon,
+    .core-engine-lib-base-cards-empty-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .core-engine-lib-base-cards .cards-empty-text,
+    .core-engine-lib-base-cards-empty-text {
+        font-size: 16px;
+    }
+
+    .core-engine-lib-base-cards .cards-empty-hint,
+    .core-engine-lib-base-cards-empty-hint {
+        font-size: 13px;
+    }
+
+    .core-engine-lib-base-cards .cards-footer,
+    .core-engine-lib-base-widget-statusbar {
+        font-size: 11px;
+        padding: 4px 8px;
+        min-height: 28px;
+    }
+}
+
+/* ============================================ */
+/* ПЕЧАТЬ */
+/* ============================================ */
+
+@media print {
+    .core-engine-lib-base-cards,
+    .core-engine-lib-base-widget {
+        background: white;
+        min-height: auto;
+        border-radius: 0;
+    }
+
+    .core-engine-lib-base-cards .cards-header,
+    .core-engine-lib-base-widget-titlebar {
+        border-bottom: 1px solid #ccc;
+        background: white;
+    }
+
+    .core-engine-lib-base-cards .cards-actions {
+        display: none !important;
+    }
+
+    .core-engine-lib-base-cards .cards-grid,
+    .core-engine-lib-base-cards-grid {
+        padding: 8px;
+        gap: 6px;
+        background: white;
+        overflow: visible;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 150px));
+    }
+
+    .core-engine-lib-base-cards .cards-footer,
+    .core-engine-lib-base-widget-statusbar {
+        border-top: 1px solid #ccc;
+        background: white;
+        font-size: 10px;
+    }
+
+    .core-engine-lib-base-cards .cards-empty,
+    .core-engine-lib-base-cards-empty {
+        border: 2px dashed #999;
+        background: white;
+        padding: 20px;
+        min-height: 80px;
+    }
+
+    .core-engine-lib-base-cards .cards-empty-icon,
+    .core-engine-lib-base-cards-empty-icon {
+        font-size: 24px;
+    }
+
+    .core-engine-lib-base-cards .cards-empty-text,
+    .core-engine-lib-base-cards-empty-text {
+        font-size: 14px;
+    }
+
+    .core-engine-lib-base-cards .cards-empty-hint,
+    .core-engine-lib-base-cards-empty-hint {
+        font-size: 11px;
+    }
+}
