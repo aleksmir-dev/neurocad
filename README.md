@@ -4,6 +4,7 @@
 
 [![PyPI version](https://badge.fury.io/py/neurocad.svg)](https://pypi.org/project/neurocad/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python versions](https://img.shields.io/pypi/pyversions/neurocad.svg)](https://pypi.org/project/neurocad/)
 
 ---
 
@@ -151,7 +152,6 @@ MIT. See [LICENSE](LICENSE).
 
 - PyPI: <https://pypi.org/project/neurocad/>
 - GitHub: <https://github.com/aleksmir-dev/neurocad>
-- Issues: <https://github.com/aleksmir-dev/neurocad/issues>
 
 <a name="русский"></a>
 
@@ -300,4 +300,3 @@ MIT. См. [LICENSE](LICENSE).
 
 - PyPI: <https://pypi.org/project/neurocad/>
 - GitHub: <https://github.com/aleksmir-dev/neurocad>
-- Issues: <https://github.com/aleksmir-dev/neurocad/issues>
