@@ -1,4 +1,4 @@
-/* app/core/engine/lib/word/word.css */
+/* neurocad/core/engine/lib/word/word.css */
 
 /* ============================================
    КОМПОНЕНТ WORD — отображение контента страницы
@@ -26,6 +26,55 @@
     background: #ffffff;
     border-radius: 12px;
     box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+}
+
+/* ============================================
+   ТУЛБАР ВИДЖЕТА (кнопки: карандаш, молния)
+   ============================================ */
+
+.core-engine-lib-word-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;                     /* отступ между кнопками */
+    margin-bottom: 20px;          /* отступ от тулбара до заголовка */
+    flex-wrap: wrap;
+}
+
+/* Кнопка тулбара — только иконка, без фона и рамки */
+.core-engine-lib-word-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;                 /* убрали рамку */
+    background: transparent;      /* убрали фон */
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    flex-shrink: 0;
+}
+
+.core-engine-lib-word-toolbar-btn:hover {
+    background: #f1f5f9;          /* мягкий фон только при hover */
+}
+
+.core-engine-lib-word-toolbar-btn:active {
+    transform: scale(0.94);
+}
+
+.core-engine-lib-word-toolbar-btn-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    object-fit: contain;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+}
+
+.core-engine-lib-word-toolbar-btn:hover .core-engine-lib-word-toolbar-btn-icon {
+    opacity: 1;
 }
 
 /* ============================================
@@ -338,7 +387,7 @@
 }
 
 /* ============================================
-   КНОПКА "РЕДАКТИРОВАТЬ"
+   КНОПКА "РЕДАКТИРОВАТЬ" (старый стиль, если где-то используется)
    ============================================ */
 
 .core-engine-lib-word-actions {
@@ -508,7 +557,8 @@
         color: #0f172a;
     }
 
-    .core-engine-lib-word-actions {
+    .core-engine-lib-word-actions,
+    .core-engine-lib-word-toolbar {
         display: none;
     }
 

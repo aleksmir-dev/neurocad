@@ -1,0 +1,9 @@
+{
+  "component": "page",
+  "extend": "base",
+  "title": "Главная",
+  "content": "{{ pages }}",
+  "components": [
+    { "component": "pages" }
+  ]
+}

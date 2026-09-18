@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     # ПРИЛОЖЕНИЕ
     # ============================================
     APP_HOST: str = "127.0.0.1"
-    APP_PORT: int = 9051
+    APP_PORT: int = 8000
     APP_PROT: str = "http"
     APP_DOMAIN: str = "127.0.0.1"
     APP_THEME: str = "default"
@@ -55,11 +55,22 @@ class Settings(BaseSettings):
     PLUGINS_PATH: Path = Path("plugins")
 
     # ============================================
-    # ДОПОЛНИТЕЛЬНО
+    # LLM
     # ============================================
-    DEEPSEEK_API_KEY: Optional[str] = None
+    # Активный провайдер: 'deepseek' | 'yandex' | 'gigachat' | 'gemini'
+    LLM_PROVIDER: str = "deepseek"
 
+    # --- DeepSeek ---
+    DEEPSEEK_API_KEY: Optional[str] = None
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
+    DEEPSEEK_MODEL: str = "deepseek-flash"
+    DEEPSEEK_MAX_OUTPUT_TOKENS: int = 12000
+    DEEPSEEK_TEMPERATURE: float = 0.3
+    DEEPSEEK_TIMEOUT: int = 150    
+
+    # ============================================
     # Яндекс.Вебмастер
+    # ============================================
     RSS_YANDEX_CLIENT_ID: Optional[str] = None
     RSS_YANDEX_CLIENT_SECRET: Optional[str] = None
     RSS_YANDEX_ENABLED: bool = False

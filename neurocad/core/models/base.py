@@ -1,4 +1,4 @@
-# app/core/models/base.py
+# neurocad/core/models/base.py
 
 from sqlalchemy.orm import DeclarativeBase
 
@@ -13,3 +13,6 @@ from .page import Page
 from .nav import Nav
 from .module import Module
 from .setting import Setting
+from .page_pres import PagePres
+from .page_hist import PageHist
+from .page_chat import PageChat

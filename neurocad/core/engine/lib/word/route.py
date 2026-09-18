@@ -1,4 +1,4 @@
-# app/core/engine/lib/word/route.py
+# neurocad/core/engine/lib/word/route.py
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from fastapi.responses import JSONResponse
@@ -13,7 +13,14 @@ from .schema import (
     CoreEngineLibWordUploadResponse,
 )
 
+# LLM-роутер (пресеты, чат, история)
+from .llm.route import router as llm_router
+
+
 router = APIRouter(prefix="/word", tags=["core/engine/lib/word"])
+
+# Подключаем LLM-роутер (все эндпоинты /llm/*)
+router.include_router(llm_router)
 
 
 # ============================================

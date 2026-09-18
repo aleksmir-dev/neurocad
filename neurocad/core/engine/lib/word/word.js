@@ -1,4 +1,4 @@
-// app/core/engine/lib/word/word.js
+// neurocad/core/engine/lib/word/word.js
 
 /**
  * Word — компонент отображения контента страницы.
@@ -10,11 +10,13 @@
  *      - или загрузить по параметрам из window.coreEngine.paramsList.
  *   2. Отрендерить виджет:
  *        .core-engine-lib-base-widget.core-engine-lib-word-widget
- *          ├─ .core-engine-lib-base-widget-toolbar   ← кнопка «Редактировать»
+ *          ├─ .core-engine-lib-base-widget-toolbar
+ *          │    ├─ кнопка «Редактировать» (карандаш, GrapesJS)
+ *          │    └─ кнопка «LLM-редактор» (молния ⚡)
  *          └─ .core-engine-lib-base-widget-content   ← article с контентом
- *   3. По кнопке — создать Editor (./editor/index.js),
- *      передать ему контейнер word-widget-content.
- *   4. Сохранить результат через API lib/word.
+ *   3. По кнопке-карандашу — Editor (./editor/index.js) — GrapesJS.
+ *   4. По кнопке-молнии — LLMEditor (./llm/index.js) — редактор с пресетами и чатом.
+ *   5. Сохранить результат через API lib/word.
  *
  * API (все — lib/word, независимо от lib/pages):
  *   GET  /core/engine/lib/word/bydatetime/{date}/{time}
@@ -35,7 +37,8 @@ export class Word {
         this.pageData = props.page_data || null;
 
         // Состояние
-        this.editorInstance = null;
+        this.editorInstance = null;      // GrapesJS-редактор
+        this.llmInstance = null;         // LLM-редактор
         this.isEditing = false;
         this._initialized = false;
         this._initPromise = null;
@@ -56,6 +59,7 @@ export class Word {
     _loadCSS() {
         if (window.coreEngine?.loadCSS) {
             window.coreEngine.loadCSS('core/engine/lib/word/word.css');
+            window.coreEngine.loadCSS('core/engine/lib/word/llm/llm.css');
         }
     }
 
@@ -178,24 +182,43 @@ export class Word {
         this.toolbarEl = toolbar;
         widget.appendChild(toolbar);
 
-        // Кнопка «Редактировать» — только для админа, слева
+        // Кнопки тулбара — только для админа
         if (this._isAdmin()) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'core-engine-lib-word-toolbar-btn';
-            btn.setAttribute('data-action', 'word-edit');
-            btn.setAttribute('title', 'Редактировать');
-            btn.setAttribute('aria-label', 'Редактировать');
+            // ===== Кнопка «Редактировать» (GrapesJS) =====
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'core-engine-lib-word-toolbar-btn';
+            editBtn.setAttribute('data-action', 'word-edit');
+            editBtn.setAttribute('title', 'Редактировать (визуальный редактор)');
+            editBtn.setAttribute('aria-label', 'Редактировать');
 
-            const icon = document.createElement('img');
-            icon.className = 'core-engine-lib-word-toolbar-btn-icon';
-            icon.src = `${this._iconsBase}/edit.svg`;
-            icon.alt = '';
-            icon.setAttribute('aria-hidden', 'true');
-            btn.appendChild(icon);
+            const editIcon = document.createElement('img');
+            editIcon.className = 'core-engine-lib-word-toolbar-btn-icon';
+            editIcon.src = `${this._iconsBase}/edit.svg`;
+            editIcon.alt = '';
+            editIcon.setAttribute('aria-hidden', 'true');
+            editBtn.appendChild(editIcon);
 
-            btn.addEventListener('click', () => this._openEditor());
-            toolbar.appendChild(btn);
+            editBtn.addEventListener('click', () => this._openEditor());
+            toolbar.appendChild(editBtn);
+
+            // ===== Кнопка «LLM-редактор» (⚡) =====
+            const llmBtn = document.createElement('button');
+            llmBtn.type = 'button';
+            llmBtn.className = 'core-engine-lib-word-toolbar-btn';
+            llmBtn.setAttribute('data-action', 'word-llm');
+            llmBtn.setAttribute('title', 'LLM-редактор (пресеты + чат)');
+            llmBtn.setAttribute('aria-label', 'LLM-редактор');
+
+            const llmIcon = document.createElement('img');
+            llmIcon.className = 'core-engine-lib-word-toolbar-btn-icon';
+            llmIcon.src = `${this._iconsBase}/zap.svg`;
+            llmIcon.alt = '';
+            llmIcon.setAttribute('aria-hidden', 'true');
+            llmBtn.appendChild(llmIcon);
+
+            llmBtn.addEventListener('click', () => this._openLLMEditor());
+            toolbar.appendChild(llmBtn);
         }
 
         // ===== Content виджета =====
@@ -215,7 +238,7 @@ export class Word {
 
     /**
      * Собрать article с заголовком и контентом.
-     * Используется и в _render(), и в _closeEditor().
+     * Используется и в _render(), и в _closeEditor(), и в _closeLLMEditor().
      */
     _buildArticle() {
         // content = HTML + <style>…</style> (склеено при сохранении)
@@ -282,12 +305,29 @@ export class Word {
     }
 
     // ============================================
-    // РЕДАКТОР
+    // РУЧКИ РЕСАЙЗА — ОЧИСТКА ПРИ ПЕРЕКЛЮЧЕНИИ РЕЖИМОВ
+    // ============================================
+
+    /**
+     * Убирает ВСЕ ручки ресайза (и от GrapesJS, и от LLM).
+     * Используется при переключении режимов, чтобы не было конфликта
+     * (две пары ручек на одном месте).
+     */
+    _clearAllResizers() {
+        document.querySelectorAll('.core-engine-lib-word-editor-resizer').forEach(h => h.remove());
+        document.querySelectorAll('.core-engine-lib-word-llm-resizer').forEach(h => h.remove());
+    }
+
+    // ============================================
+    // РЕДАКТОР GRAPESJS
     // ============================================
 
     async _openEditor() {
-        console.log('[Word] Открытие редактора');
+        console.log('[Word] Открытие редактора GrapesJS');
         this.isEditing = true;
+
+        // Убираем все ручки от предыдущих режимов
+        this._clearAllResizers();
 
         // Очищаем содержимое виджета (оставляем toolbar и сам widget)
         if (this.widgetContentEl) {
@@ -370,13 +410,16 @@ export class Word {
     }
 
     _closeEditor() {
-        console.log('[Word] Закрытие редактора');
+        console.log('[Word] Закрытие редактора GrapesJS');
 
         if (this.editorInstance?.destroy) {
             this.editorInstance.destroy();
         }
         this.editorInstance = null;
         this.isEditing = false;
+
+        // Убираем возможные оставшиеся ручки
+        this._clearAllResizers();
 
         // Очищаем содержимое виджета и возвращаем туда article
         if (this.widgetContentEl) {
@@ -386,6 +429,102 @@ export class Word {
             this.widgetContentEl.appendChild(this._buildArticle());
         } else {
             // fallback — перерисовать целиком
+            this._render();
+        }
+    }
+
+    // ============================================
+    // LLM-РЕДАКТОР
+    // ============================================
+
+    async _openLLMEditor() {
+        console.log('[Word] Открытие LLM-редактора');
+        this.isEditing = true;
+
+        // Убираем все ручки от предыдущих режимов
+        this._clearAllResizers();
+
+        // Очищаем содержимое виджета
+        if (this.widgetContentEl) {
+            while (this.widgetContentEl.firstChild) {
+                this.widgetContentEl.removeChild(this.widgetContentEl.firstChild);
+            }
+        } else {
+            console.warn('[Word] widgetContentEl не найден — создаю заново');
+            this._render();
+        }
+
+        const version = window.coreEngine?.static_version || Date.now();
+        const { LLMEditor } = await import(`./llm/index.js?v=${version}`);
+
+        this.llmInstance = new LLMEditor(this.widgetContentEl, {
+            pageId: this.pageId,
+            pageData: this.pageData,
+
+            onSave: async (data) => {
+                await this._saveLLMContent(data);
+            },
+
+            onCancel: () => {
+                this._closeLLMEditor();
+            },
+        });
+
+        await this.llmInstance.waitForInit();
+    }
+
+    async _saveLLMContent(data) {
+        console.log('[Word] Сохранение контента из LLM-редактора для id:', this.pageId);
+
+        if (!this.pageId) {
+            throw new Error('Неизвестен id страницы');
+        }
+
+        const url = `/core/engine/lib/word/${this.pageId}`;
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                content: data.html,
+                content_json: data.content_json || null,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || 'Ошибка сохранения');
+        }
+
+        this.pageData.content = data.html;
+        if (data.content_json) {
+            this.pageData.content_json = data.content_json;
+        }
+
+        console.log('[Word] Контент из LLM-редактора сохранён');
+    }
+
+    _closeLLMEditor() {
+        console.log('[Word] Закрытие LLM-редактора');
+
+        if (this.llmInstance?.destroy) {
+            this.llmInstance.destroy();
+        }
+        this.llmInstance = null;
+        this.isEditing = false;
+
+        // Убираем возможные оставшиеся ручки
+        this._clearAllResizers();
+
+        if (this.widgetContentEl) {
+            while (this.widgetContentEl.firstChild) {
+                this.widgetContentEl.removeChild(this.widgetContentEl.firstChild);
+            }
+            this.widgetContentEl.appendChild(this._buildArticle());
+        } else {
             this._render();
         }
     }
@@ -449,6 +588,15 @@ export class Word {
             this.editorInstance.destroy();
         }
         this.editorInstance = null;
+
+        if (this.llmInstance?.destroy) {
+            this.llmInstance.destroy();
+        }
+        this.llmInstance = null;
+
+        // Убираем все ручки
+        this._clearAllResizers();
+
         this._initialized = false;
         this._initPromise = null;
     }

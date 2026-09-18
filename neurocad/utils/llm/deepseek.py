@@ -1,24 +1,26 @@
-# app/utils/llm/deepseek.py
+# neurocad/utils/llm/deepseek.py
+
+"""
+DeepSeek — клиент для работы с API DeepSeek (OpenAI-совместимый).
+
+Все параметры берутся из settings (config.py).
+Поддерживает потоковый и не-потоковый режимы.
+"""
 
 import json
 import logging
 import httpx
 import tiktoken
 from typing import AsyncGenerator
+
 from neurocad.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Все параметры DeepSeek
-DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
-DEEPSEEK_MODEL = "deepseek-chat"
+
+# ===== Константы (могут переопределяться через settings) =====
+
 MAX_CONTEXT_TOKENS = 1_000_000
-MAX_OUTPUT_TOKENS = 12000  # увеличил с 8000 до 12000 для более длинных статей
-DEFAULT_TEMPERATURE = 0.3   # уменьшил с 0.4 до 0.3 для более точных и логичных ответов
-WEB_SEARCH_ENABLED = True
-SEARCH_MAX_RESULTS = 8       # увеличил с 5 до 8 для большего количества источников
-SEARCH_FRESHNESS = "week"
-SEARCH_LANGUAGE = "ru,en"
 
 
 # ===== Токенизатор =====
@@ -59,7 +61,7 @@ def truncate_to_context_limit(
         content = msg.get('content', '')
         msg_tokens = count_tokens(content) + 4
 
-        if total_tokens + msg_tokens > max_tokens - MAX_OUTPUT_TOKENS:
+        if total_tokens + msg_tokens > max_tokens - settings.DEEPSEEK_MAX_OUTPUT_TOKENS:
             break
 
         truncated.insert(0, msg)
@@ -75,17 +77,33 @@ def truncate_to_context_limit(
 
 # ===== API-клиент =====
 
-async def get_response_with_web_search(
+def _build_api_url() -> str:
+    """Собрать полный URL для chat/completions из base_url."""
+    base = settings.DEEPSEEK_BASE_URL.rstrip('/')
+    return f"{base}/chat/completions"
+
+
+async def get_response(
     messages_list: list,
-    temperature: float = DEFAULT_TEMPERATURE,
-    max_tokens: int = MAX_OUTPUT_TOKENS,
+    temperature: float = None,
+    max_tokens: int = None,
     stream: bool = False
 ) -> AsyncGenerator[str, None]:
-    """Асинхронный запрос к DeepSeek API с веб-поиском"""
+    """
+    Асинхронный запрос к DeepSeek API.
+
+    stream=False — отдаёт один chunk (весь ответ).
+    stream=True  — отдаёт chunks по мере поступления.
+    """
     api_key = settings.DEEPSEEK_API_KEY
     if not api_key:
         yield "Ошибка: DeepSeek API ключ не настроен. Добавьте DEEPSEEK_API_KEY в .env"
         return
+
+    if temperature is None:
+        temperature = settings.DEEPSEEK_TEMPERATURE
+    if max_tokens is None:
+        max_tokens = settings.DEEPSEEK_MAX_OUTPUT_TOKENS
 
     logger.info(f"Отправляем {len(messages_list)} сообщений в DeepSeek API")
 
@@ -95,36 +113,25 @@ async def get_response_with_web_search(
     }
 
     payload = {
-        "model": DEEPSEEK_MODEL,
+        "model": settings.DEEPSEEK_MODEL,
         "messages": messages_list,
         "temperature": temperature,
         "max_tokens": max_tokens,
         "stream": stream,
     }
 
-    if WEB_SEARCH_ENABLED:
-        payload["enable_web_search"] = True
-        payload["search_options"] = {
-            "max_results": SEARCH_MAX_RESULTS,
-            "freshness": SEARCH_FRESHNESS,
-            "language": SEARCH_LANGUAGE
-        }
+    url = _build_api_url()
 
-    async with httpx.AsyncClient(timeout=150) as client:  # увеличил таймаут до 150 сек
+    async with httpx.AsyncClient(timeout=settings.DEEPSEEK_TIMEOUT) as client:
         try:
-            async with client.stream(
-                "POST",
-                DEEPSEEK_API_URL,
-                headers=headers,
-                json=payload
-            ) as response:
-                if response.status_code != 200:
-                    error_text = await response.aread()
-                    logger.error(f"Ошибка API DeepSeek: {response.status_code} - {error_text}")
-                    yield f"\n⚠️ Ошибка: API вернул статус {response.status_code}\n"
-                    return
+            if stream:
+                async with client.stream("POST", url, headers=headers, json=payload) as response:
+                    if response.status_code != 200:
+                        error_text = await response.aread()
+                        logger.error(f"Ошибка API DeepSeek: {response.status_code} - {error_text}")
+                        yield f"\n⚠️ Ошибка: API вернул статус {response.status_code}\n"
+                        return
 
-                if stream:
                     async for line in response.aiter_lines():
                         if line.startswith('data: '):
                             data = line[6:]
@@ -139,12 +146,18 @@ async def get_response_with_web_search(
                                         yield content
                             except json.JSONDecodeError:
                                 continue
-                else:
-                    data = await response.aread()
-                    result = json.loads(data)
-                    if 'choices' in result and len(result['choices']) > 0:
-                        content = result['choices'][0].get('message', {}).get('content', '')
-                        yield content
+            else:
+                response = await client.post(url, headers=headers, json=payload)
+                if response.status_code != 200:
+                    error_text = response.text
+                    logger.error(f"Ошибка API DeepSeek: {response.status_code} - {error_text}")
+                    yield f"\n⚠️ Ошибка: API вернул статус {response.status_code}\n"
+                    return
+
+                result = response.json()
+                if 'choices' in result and len(result['choices']) > 0:
+                    content = result['choices'][0].get('message', {}).get('content', '')
+                    yield content
 
         except httpx.TimeoutException:
             logger.error("Таймаут при обращении к DeepSeek API")
@@ -156,16 +169,16 @@ async def get_response_with_web_search(
 
 async def generate_completion(
     messages_list: list,
-    temperature: float = DEFAULT_TEMPERATURE,
-    max_tokens: int = MAX_OUTPUT_TOKENS
+    temperature: float = None,
+    max_tokens: int = None
 ) -> str:
     """Генерирует полный ответ (не потоковый)"""
     full_response = ""
-    async for chunk in get_response_with_web_search(
+    async for chunk in get_response(
         messages_list,
         temperature=temperature,
         max_tokens=max_tokens,
-        stream=True
+        stream=False
     ):
         full_response += chunk
     return full_response
