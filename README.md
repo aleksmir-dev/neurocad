@@ -7,8 +7,9 @@
 
 ---
 
-**NeuroCad** — лёгкая платформа для создания сайтов и веб-приложений на FastAPI.
-Включает визуальный редактор, LLM-редактор, модульную систему и готовую авторизацию.
+**NeuroCad** is a lightweight platform for building websites and web apps
+on FastAPI. It includes a visual editor, an LLM editor, a modular system,
+and ready-to-use authentication.
 
 ## Features
 
