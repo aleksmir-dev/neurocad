@@ -27,8 +27,6 @@ and ready-to-use authentication.
 pip install neurocad
 
 mkdir my_project && cd my_project
-neurocad init
-neurocad upgrade
 neurocad run
 ```
 
@@ -47,8 +45,6 @@ pip install neurocad
 ### CLI
 
 ```bash
-neurocad init       # create a new project in the current folder
-neurocad upgrade    # apply Alembic migrations
 neurocad run        # start the server (uvicorn)
 ```
 
@@ -58,11 +54,11 @@ neurocad run        # start the server (uvicorn)
 my_project/
 ├── app/            # modules (JSON page configs)
 ├── base/           # SQLite database
+├── core/           # Core
 ├── log/            # logs
 ├── media/          # uploaded files
 ├── static/         # static files
-├── alembic/        # migrations
-├── alembic.ini
+├── mig/        # migrations
 ├── .env
 └── main.py
 ```
@@ -175,8 +171,6 @@ MIT. See [LICENSE](LICENSE).
 pip install neurocad
 
 mkdir my_project && cd my_project
-neurocad init
-neurocad upgrade
 neurocad run
 ```
 
@@ -195,8 +189,6 @@ pip install neurocad
 ### CLI
 
 ```bash
-neurocad init       # создать рабочий проект в текущей папке
-neurocad upgrade    # применить миграции Alembic
 neurocad run        # запустить сервер (uvicorn)
 ```
 
@@ -206,11 +198,11 @@ neurocad run        # запустить сервер (uvicorn)
 my_project/
 ├── app/            # модули (JSON-конфиги страниц)
 ├── base/           # SQLite БД
+├── core/           # для переопределения core
 ├── log/            # логи
 ├── media/          # загруженные файлы
 ├── static/         # статика
-├── alembic/        # миграции
-├── alembic.ini
+├── mig/        # миграции
 ├── .env
 └── main.py
 ```
