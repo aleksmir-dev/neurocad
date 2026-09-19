@@ -1,0 +1,54 @@
+/* neurocad/core/engine/lib/pages/public/public.css */
+
+/**
+ * Public pages — wrapper layout only.
+ *
+ * Content CSS comes from GrapesJS (embedded in Page.content as <style>).
+ * This file must NOT style content elements (h1, p, a, img, ...) —
+ * it would conflict with user's GrapesJS styles.
+ */
+
+/* ============================================ */
+/* BODY — full viewport                        */
+/* ============================================ */
+
+.core-engine-lib-pages-public-body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    background: #ffffff;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #1e293b;
+}
+
+/* ============================================ */
+/* PAGE WRAPPER — full width/height            */
+/* ============================================ */
+
+.core-engine-lib-pages-public-page {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* ============================================ */
+/* HEADER — hidden for testing                 */
+/* ============================================ */
+
+.core-engine-lib-pages-public-header {
+    display: none;
+}
+
+/* ============================================ */
+/* CONTENT — full width/height                 */
+/* ============================================ */
+
+.core-engine-lib-pages-public-content {
+    width: 100%;
+    min-height: 100vh;
+    /* Content is styled by GrapesJS — do not add typography rules here */
+}

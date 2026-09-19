@@ -12,11 +12,13 @@
  *        .core-engine-lib-base-widget.core-engine-lib-word-widget
  *          ├─ .core-engine-lib-base-widget-toolbar
  *          │    ├─ "Edit" button (pencil, GrapesJS)
- *          │    └─ "LLM editor" button (⚡)
+ *          │    ├─ "LLM editor" button (⚡)
+ *          │    └─ "Open public" button (link) — opens /page/<date>/<time> in new tab
  *          └─ .core-engine-lib-base-widget-content   ← article with content
  *   3. Pencil button — Editor (./editor/index.js) — GrapesJS.
  *   4. Lightning button — LLMEditor (./llm/index.js) — editor with presets and chat.
- *   5. Save via lib/word API.
+ *   5. Link button — opens public version of the page in a new tab.
+ *   6. Save via lib/word API.
  *
  * API (all — lib/word, independent of lib/pages):
  *   GET  /core/engine/lib/word/bydatetime/{date}/{time}?module=<name>
@@ -230,6 +232,24 @@ export class Word {
 
             llmBtn.addEventListener('click', () => this._openLLMEditor());
             toolbar.appendChild(llmBtn);
+
+            // ===== "Open public" button (link) =====
+            const publicBtn = document.createElement('button');
+            publicBtn.type = 'button';
+            publicBtn.className = 'core-engine-lib-word-toolbar-btn';
+            publicBtn.setAttribute('data-action', 'word-public');
+            publicBtn.setAttribute('title', 'Открыть публичную версию');
+            publicBtn.setAttribute('aria-label', 'Открыть публичную версию');
+
+            const publicIcon = document.createElement('img');
+            publicIcon.className = 'core-engine-lib-word-toolbar-btn-icon';
+            publicIcon.src = `${this._iconsBase}/link.svg`;
+            publicIcon.alt = '';
+            publicIcon.setAttribute('aria-hidden', 'true');
+            publicBtn.appendChild(publicIcon);
+
+            publicBtn.addEventListener('click', () => this._openPublicPage());
+            toolbar.appendChild(publicBtn);
         }
 
         // ===== Widget content =====
@@ -541,6 +561,39 @@ export class Word {
     }
 
     // ============================================
+    // PUBLIC PAGE
+    // ============================================
+
+    /**
+     * Open public version of the page in a new tab.
+     *
+     * Builds URL: /page/<YYYYMMDD>/<HHMMSS>
+     * Uses pageData.datetime.
+     */
+    _openPublicPage() {
+        console.log('[Word] Opening public page');
+
+        const datetime = this.pageData?.datetime;
+        if (!datetime) {
+            console.warn('[Word] No datetime — cannot open public page');
+            return;
+        }
+
+        const date = this._formatDateShort(datetime);
+        const time = this._formatTimeShort(datetime);
+
+        if (!date || !time) {
+            console.warn('[Word] Failed to format date/time');
+            return;
+        }
+
+        const url = `/page/${date}/${time}`;
+        console.log('[Word] Public URL:', url);
+
+        window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    // ============================================
     // UTILITIES
     // ============================================
 
@@ -567,6 +620,38 @@ export class Word {
             });
         } catch (e) {
             return isoString;
+        }
+    }
+
+    /**
+     * Format ISO datetime to YYYYMMDD.
+     */
+    _formatDateShort(isoString) {
+        try {
+            const d = new Date(isoString);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}${mm}${dd}`;
+        } catch (e) {
+            console.warn('[Word] Date format error:', e);
+            return '';
+        }
+    }
+
+    /**
+     * Format ISO datetime to HHMMSS.
+     */
+    _formatTimeShort(isoString) {
+        try {
+            const d = new Date(isoString);
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mi = String(d.getMinutes()).padStart(2, '0');
+            const ss = String(d.getSeconds()).padStart(2, '0');
+            return `${hh}${mi}${ss}`;
+        } catch (e) {
+            console.warn('[Word] Time format error:', e);
+            return '';
         }
     }
 

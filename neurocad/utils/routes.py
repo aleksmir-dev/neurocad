@@ -4,28 +4,29 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
 from neurocad.core.route import router as core_router
+from neurocad.core.engine.lib.pages.public.route import router as pages_public_router
 from neurocad.config import settings
 
 
 def setup_routes(app: FastAPI) -> None:
-    """Подключение всех роутеров приложения."""
+    """Register all application routes."""
 
-    # Роутеры ядра
+    # Core routes — /core/*
     app.include_router(core_router)
 
-    # Корневой маршрут
+    # Public pages — /pages/*
+    app.include_router(pages_public_router)
+
+    # Root — redirect to APP_MAIN_PAGE
     @app.get("/")
     async def root():
         """
-        Редирект на главную страницу.
+        Root — redirect to APP_MAIN_PAGE.
 
-        По умолчанию — /core/engine/app.
-        Если в настройках задан APP_MAIN_PAGE — используется он.
+        Default: /core/engine/default (admin).
+        Set APP_MAIN_PAGE in .env to change.
         """
         main_url = settings.APP_MAIN_PAGE
-
-        # Если не задано или корень — берём дефолт
         if not main_url or main_url == "/":
             main_url = "/core/engine/default"
-
         return RedirectResponse(url=main_url)

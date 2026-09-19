@@ -1,38 +1,44 @@
 /* app/core/engine/lib/word/editor/css/styles.css */
 
 /**
- * Styles — правая панель (StyleManager).
+ * Styles — right panel (StyleManager + TraitManager).
  *
- * Что здесь:
- *   - Секции: заголовки, стрелки раскрытия, hover.
- *   - Свойства: подписи, поля ввода, композитные поля (padding, margin, border).
- *   - Радио-кнопки (text-align), крестик сброса, цветовые пикеры.
- *   - Class Manager (теги классов).
- *   - Trait Manager (атрибуты элемента).
+ * Applies to BOTH panels via common marker class:
+ *   .core-engine-lib-word-editor-panel-content
  *
- * Все классы — стандартные .gjs-sm-* / .gjs-field / .gjs-clm-* / .gjs-trt-*.
- * Стилизуем их в светлой теме Base.
+ * Specific containers (for reference):
+ *   .core-engine-lib-word-editor-traits-content  (Свойства)
+ *   .core-engine-lib-word-editor-styles-content  (Стили)
  *
- * Подписи — тёмные (#1e293b), чтобы читались на светлом фоне.
- * Светло-серые остаются только у второстепенных элементов
- * (стрелки, плейсхолдеры, крестик сброса, единицы измерения).
+ * Contains:
+ *   - Sections: headers, carets, hover.
+ *   - Properties: labels, inputs, composite fields (padding, margin, border).
+ *   - Radio buttons (text-align), clear icon, color pickers.
+ *   - Class Manager (class tags).
+ *   - Trait Manager (element attributes).
+ *
+ * All classes — standard .gjs-sm-* / .gjs-field / .gjs-clm-* / .gjs-trt-*.
+ * Styled for light Base theme.
+ *
+ * Labels — dark (#1e293b) for readability on light background.
+ * Light gray only for secondary elements (carets, placeholders, clear icon, units).
  */
 
 /* ============================================
-   СЕКЦИИ
+   SECTIONS
    ============================================ */
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-sector {
+.core-engine-lib-word-editor-panel-content .gjs-sm-sector {
     border: none;
     border-bottom: 1px solid var(--border-light, #e2e8f0);
     background: transparent;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-sector:last-child {
+.core-engine-lib-word-editor-panel-content .gjs-sm-sector:last-child {
     border-bottom: none;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-sector-title {
+.core-engine-lib-word-editor-panel-content .gjs-sm-sector-title {
     background: transparent;
     color: #1e293b;
     font-weight: 700;
@@ -42,33 +48,33 @@
     border: none;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-sector-title:hover {
+.core-engine-lib-word-editor-panel-content .gjs-sm-sector-title:hover {
     background: rgba(59, 130, 246, 0.05);
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-sector-caret svg {
+.core-engine-lib-word-editor-panel-content .gjs-sm-sector-caret svg {
     fill: #475569;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-sector-label {
+.core-engine-lib-word-editor-panel-content .gjs-sm-sector-label {
     color: inherit;
 }
 
 /* ============================================
-   СВОЙСТВА
+   PROPERTIES
    ============================================ */
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-properties {
+.core-engine-lib-word-editor-panel-content .gjs-sm-properties {
     padding: 8px 12px;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-property {
+.core-engine-lib-word-editor-panel-content .gjs-sm-property {
     margin-bottom: 8px;
 }
 
-/* --- Подписи свойств (Width, Padding, Font size...) --- */
+/* --- Property labels (Width, Padding, Font size...) --- */
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-label {
+.core-engine-lib-word-editor-panel-content .gjs-sm-label {
     color: #1e293b;
     font-size: 11px;
     font-weight: 600;
@@ -77,26 +83,26 @@
     margin-bottom: 4px;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-label .gjs-sm-icon {
+.core-engine-lib-word-editor-panel-content .gjs-sm-label .gjs-sm-icon {
     color: inherit;
 }
 
-/* Вложенные подписи в composite-свойствах (padding-top, border-width...) */
-.core-engine-lib-word-editor-styles-content .gjs-sm-properties .gjs-sm-label {
+/* Nested labels in composite properties (padding-top, border-width...) */
+.core-engine-lib-word-editor-panel-content .gjs-sm-properties .gjs-sm-label {
     color: #334155;
     font-weight: 500;
 }
 
-/* Композитные свойства (padding, margin, border-radius) — вложенные подписи */
-.core-engine-lib-word-editor-styles-content .gjs-sm-properties .gjs-sm-properties {
+/* Composite properties (padding, margin, border-radius) — nested labels */
+.core-engine-lib-word-editor-panel-content .gjs-sm-properties .gjs-sm-properties {
     padding: 4px 0;
 }
 
 /* ============================================
-   ПОЛЯ ВВОДА
+   INPUT FIELDS
    ============================================ */
 
-.core-engine-lib-word-editor-styles-content .gjs-field {
+.core-engine-lib-word-editor-panel-content .gjs-field {
     background: #ffffff;
     border: 1px solid var(--border-light, #e2e8f0);
     border-radius: 6px;
@@ -105,107 +111,107 @@
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-field:focus-within {
+.core-engine-lib-word-editor-panel-content .gjs-field:focus-within {
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-field input,
-.core-engine-lib-word-editor-styles-content .gjs-field select,
-.core-engine-lib-word-editor-styles-content .gjs-field textarea {
+.core-engine-lib-word-editor-panel-content .gjs-field input,
+.core-engine-lib-word-editor-panel-content .gjs-field select,
+.core-engine-lib-word-editor-panel-content .gjs-field textarea {
     color: #1e293b;
     background: transparent;
     font-family: inherit;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-field input::placeholder,
-.core-engine-lib-word-editor-styles-content .gjs-field textarea::placeholder {
+.core-engine-lib-word-editor-panel-content .gjs-field input::placeholder,
+.core-engine-lib-word-editor-panel-content .gjs-field textarea::placeholder {
     color: #94a3b8;
 }
 
-/* Стрелки в number-полях */
-.core-engine-lib-word-editor-styles-content .gjs-field-arrow-u,
-.core-engine-lib-word-editor-styles-content .gjs-field-arrow-d {
+/* Arrows in number fields */
+.core-engine-lib-word-editor-panel-content .gjs-field-arrow-u,
+.core-engine-lib-word-editor-panel-content .gjs-field-arrow-d {
     border-bottom-color: #94a3b8;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-field-arrow-u:hover,
-.core-engine-lib-word-editor-styles-content .gjs-field-arrow-d:hover {
+.core-engine-lib-word-editor-panel-content .gjs-field-arrow-u:hover,
+.core-engine-lib-word-editor-panel-content .gjs-field-arrow-d:hover {
     border-bottom-color: #3b82f6;
 }
 
-/* Единицы измерения (px, %, em) */
-.core-engine-lib-word-editor-styles-content .gjs-field-units select {
+/* Units (px, %, em) */
+.core-engine-lib-word-editor-panel-content .gjs-field-units select {
     color: #64748b;
     font-size: 11px;
 }
 
 /* --- Color picker --- */
 
-.core-engine-lib-word-editor-styles-content .gjs-field-color {
+.core-engine-lib-word-editor-panel-content .gjs-field-color {
     background: #ffffff;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-field-colorp-c {
+.core-engine-lib-word-editor-panel-content .gjs-field-colorp-c {
     border-color: var(--border-light, #e2e8f0);
 }
 
 /* --- Radio (text-align) --- */
 
-.core-engine-lib-word-editor-styles-content .gjs-radio-item-label {
+.core-engine-lib-word-editor-panel-content .gjs-radio-item-label {
     color: #1e293b;
     font-size: 11px;
     font-weight: 500;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-radio-item input:checked + .gjs-radio-item-label {
+.core-engine-lib-word-editor-panel-content .gjs-radio-item input:checked + .gjs-radio-item-label {
     color: #2563eb;
     font-weight: 700;
 }
 
 /* --- Select --- */
 
-.core-engine-lib-word-editor-styles-content .gjs-field.gjs-select {
+.core-engine-lib-word-editor-panel-content .gjs-field.gjs-select {
     background: #ffffff;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-field.gjs-select select {
+.core-engine-lib-word-editor-panel-content .gjs-field.gjs-select select {
     color: #1e293b;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-sel-arrow .gjs-d-s-arrow {
+.core-engine-lib-word-editor-panel-content .gjs-sel-arrow .gjs-d-s-arrow {
     border-top-color: #64748b;
 }
 
 /* ============================================
-   КРЕСТИК СБРОСА ЗНАЧЕНИЯ
+   CLEAR VALUE ICON
    ============================================ */
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-clear {
+.core-engine-lib-word-editor-panel-content .gjs-sm-clear {
     color: #94a3b8;
     cursor: pointer;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-clear:hover {
+.core-engine-lib-word-editor-panel-content .gjs-sm-clear:hover {
     color: #dc2626;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-sm-clear svg {
+.core-engine-lib-word-editor-panel-content .gjs-sm-clear svg {
     fill: currentColor;
 }
 
 /* ============================================
-   CLASS MANAGER (теги классов)
+   CLASS MANAGER (class tags)
    ============================================ */
 
-.core-engine-lib-word-editor-styles-content .gjs-clm-tags {
+.core-engine-lib-word-editor-panel-content .gjs-clm-tags {
     background: transparent;
     color: #1e293b;
     padding: 8px 12px;
     border-bottom: 1px solid var(--border-light, #e2e8f0);
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-clm-tags .gjs-clm-tag {
+.core-engine-lib-word-editor-panel-content .gjs-clm-tags .gjs-clm-tag {
     background: #e0e7ff;
     color: #1e3a8a;
     border-radius: 4px;
@@ -213,15 +219,15 @@
     padding: 2px 6px;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-clm-tags .gjs-clm-tag-close {
+.core-engine-lib-word-editor-panel-content .gjs-clm-tags .gjs-clm-tag-close {
     color: #1e3a8a;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-clm-tags .gjs-clm-tag-close:hover {
+.core-engine-lib-word-editor-panel-content .gjs-clm-tags .gjs-clm-tag-close:hover {
     color: #dc2626;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-clm-sel {
+.core-engine-lib-word-editor-panel-content .gjs-clm-sel {
     background: #ffffff;
     border: 1px solid var(--border-light, #e2e8f0);
     border-radius: 6px;
@@ -229,23 +235,23 @@
 }
 
 /* ============================================
-   TRAIT MANAGER (атрибуты элемента)
+   TRAIT MANAGER (element attributes)
    ============================================ */
 
-.core-engine-lib-word-editor-styles-content .gjs-trt-traits {
+.core-engine-lib-word-editor-panel-content .gjs-trt-traits {
     padding: 8px 12px;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-trt-trait {
+.core-engine-lib-word-editor-panel-content .gjs-trt-trait {
     margin-bottom: 10px;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-trt-trait__wrp {
+.core-engine-lib-word-editor-panel-content .gjs-trt-trait__wrp {
     background: transparent;
     border: none;
 }
 
-.core-engine-lib-word-editor-styles-content .gjs-trt-trait .gjs-label-wrp {
+.core-engine-lib-word-editor-panel-content .gjs-trt-trait .gjs-label-wrp {
     color: #1e293b;
     font-size: 11px;
     font-weight: 600;
@@ -254,22 +260,22 @@
 }
 
 /* ============================================
-   СКРОЛЛБАР
+   SCROLLBAR
    ============================================ */
 
-.core-engine-lib-word-editor-styles-content::-webkit-scrollbar {
+.core-engine-lib-word-editor-panel-content::-webkit-scrollbar {
     width: 8px;
 }
 
-.core-engine-lib-word-editor-styles-content::-webkit-scrollbar-track {
+.core-engine-lib-word-editor-panel-content::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.core-engine-lib-word-editor-styles-content::-webkit-scrollbar-thumb {
+.core-engine-lib-word-editor-panel-content::-webkit-scrollbar-thumb {
     background: rgba(44, 62, 80, 0.15);
     border-radius: 4px;
 }
 
-.core-engine-lib-word-editor-styles-content::-webkit-scrollbar-thumb:hover {
+.core-engine-lib-word-editor-panel-content::-webkit-scrollbar-thumb:hover {
     background: rgba(44, 62, 80, 0.25);
 }

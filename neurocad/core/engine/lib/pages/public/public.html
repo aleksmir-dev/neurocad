@@ -1,0 +1,54 @@
+<!-- neurocad/core/engine/lib/pages/public/public.html -->
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {# Page title and meta #}
+    <title>{{ title }}</title>
+    {% if description %}
+    <meta name="description" content="{{ description }}">
+    {% endif %}
+
+    {# Favicon — module-specific, fallback to default #}
+    <link rel="icon" type="image/x-icon"
+          href="/media/{{ module_name }}/favicon.ico"
+          onerror="this.href='/static/core/engine/lib/base/images/favicon.ico'">
+
+    {# Public page CSS — wrapper layout only (content CSS comes from DB) #}
+    <link rel="stylesheet" href="{{ 'core/engine/lib/pages/public/public.css'|static }}">
+</head>
+<body class="core-engine-lib-pages-public-body">
+
+    <article class="core-engine-lib-pages-public-page">
+
+        {# Header — title + date (optional) #}
+        {% if title %}
+        <header class="core-engine-lib-pages-public-header">
+
+            {% if logo %}
+            <img class="core-engine-lib-pages-public-logo"
+                 src="{{ logo }}"
+                 alt="{{ title }}">
+            {% endif %}
+
+            <h1 class="core-engine-lib-pages-public-title">{{ title }}</h1>
+
+            {% if datetime %}
+            <time class="core-engine-lib-pages-public-date">{{ datetime }}</time>
+            {% endif %}
+
+        </header>
+        {% endif %}
+
+        {# Content — HTML + inline CSS from GrapesJS, rendered as-is #}
+        <div class="core-engine-lib-pages-public-content">
+            {{ content|safe }}
+        </div>
+
+    </article>
+
+</body>
+</html>
