@@ -58,7 +58,7 @@ my_project/
 ├── log/            # logs
 ├── media/          # uploaded files
 ├── static/         # static files
-├── mig/        # migrations
+├── mig/            # migrations
 ├── .env
 └── main.py
 ```
@@ -202,7 +202,7 @@ my_project/
 ├── log/            # логи
 ├── media/          # загруженные файлы
 ├── static/         # статика
-├── mig/        # миграции
+├── mig/            # миграции
 ├── .env
 └── main.py
 ```
