@@ -8,15 +8,15 @@
  *      - from props.page_data (if provided);
  *      - or load by props.page_id;
  *      - or load by params from window.coreEngine.paramsList.
- *   2. Render widget:
+ *   2. Set page title into app header (.core-engine-lib-base-title).
+ *   3. Render widget:
  *        .core-engine-lib-base-widget.core-engine-lib-word-widget
  *          ├─ .core-engine-lib-base-widget-toolbar
  *          │    ├─ "Edit" button (pencil, GrapesJS)
- *          │    ├─ "LLM editor" button (⚡)
- *          │    └─ "Open public" button (link) — opens /page/<date>/<time> in new tab
+ *          │    ├─ "Open public" button (link) — opens /page/<date>/<time> in new tab
+ *          │    └─ date (right, pushed by margin-left: auto)
  *          └─ .core-engine-lib-base-widget-content   ← article with content
- *   3. Pencil button — Editor (./editor/index.js) — GrapesJS.
- *   4. Lightning button — LLMEditor (./llm/index.js) — editor with presets and chat.
+ *   4. Pencil button — Editor (./editor/index.js) — GrapesJS with LLM chat + presets.
  *   5. Link button — opens public version of the page in a new tab.
  *   6. Save via lib/word API.
  *
@@ -51,7 +51,6 @@ export class Word {
 
         // State
         this.editorInstance = null;      // GrapesJS editor
-        this.llmInstance = null;         // LLM editor
         this.isEditing = false;
         this._initialized = false;
         this._initPromise = null;
@@ -60,6 +59,9 @@ export class Word {
         this.widgetEl = null;
         this.toolbarEl = null;
         this.widgetContentEl = null;
+
+        // Original header title (restored on destroy)
+        this._originalHeaderTitle = null;
 
         // Path to Base icons
         this._iconsBase = '/static/core/engine/lib/base/images';
@@ -89,6 +91,9 @@ export class Word {
                     }
                 }
             }
+
+            // ===== Write page title into app header =====
+            this._setHeaderTitle();
 
             this._render();
 
@@ -172,6 +177,38 @@ export class Word {
     }
 
     // ============================================
+    // APP HEADER TITLE
+    // ============================================
+
+    /**
+     * Write page title into the app header (.core-engine-lib-base-title).
+     *
+     * Header markup is rendered by Base (header.js) before Word is mounted,
+     * so we just find the element and replace its text.
+     *
+     * Uses a short retry loop in case header isn't in DOM yet.
+     */
+    _setHeaderTitle(retries = 5) {
+        const el = document.querySelector('.core-engine-lib-base-title');
+
+        if (!el) {
+            if (retries > 0) {
+                setTimeout(() => this._setHeaderTitle(retries - 1), 50);
+            } else {
+                console.warn('[Word] .core-engine-lib-base-title not found in header');
+            }
+            return;
+        }
+
+        // Remember original once
+        if (this._originalHeaderTitle === null) {
+            this._originalHeaderTitle = el.textContent;
+        }
+
+        el.textContent = this.pageData?.title || '';
+    }
+
+    // ============================================
     // RENDER
     // ============================================
 
@@ -215,24 +252,6 @@ export class Word {
             editBtn.addEventListener('click', () => this._openEditor());
             toolbar.appendChild(editBtn);
 
-            // ===== "LLM editor" button (⚡) =====
-            const llmBtn = document.createElement('button');
-            llmBtn.type = 'button';
-            llmBtn.className = 'core-engine-lib-word-toolbar-btn';
-            llmBtn.setAttribute('data-action', 'word-llm');
-            llmBtn.setAttribute('title', 'LLM-редактор (пресеты + чат)');
-            llmBtn.setAttribute('aria-label', 'LLM-редактор');
-
-            const llmIcon = document.createElement('img');
-            llmIcon.className = 'core-engine-lib-word-toolbar-btn-icon';
-            llmIcon.src = `${this._iconsBase}/zap.svg`;
-            llmIcon.alt = '';
-            llmIcon.setAttribute('aria-hidden', 'true');
-            llmBtn.appendChild(llmIcon);
-
-            llmBtn.addEventListener('click', () => this._openLLMEditor());
-            toolbar.appendChild(llmBtn);
-
             // ===== "Open public" button (link) =====
             const publicBtn = document.createElement('button');
             publicBtn.type = 'button';
@@ -252,6 +271,14 @@ export class Word {
             toolbar.appendChild(publicBtn);
         }
 
+        // ===== Date — right side of toolbar =====
+        if (this.pageData?.datetime) {
+            const dateEl = document.createElement('time');
+            dateEl.className = 'core-engine-lib-word-toolbar-date';
+            dateEl.textContent = this._formatDate(this.pageData.datetime);
+            toolbar.appendChild(dateEl);
+        }
+
         // ===== Widget content =====
         const widgetContent = document.createElement('div');
         widgetContent.className = 'core-engine-lib-base-widget-content core-engine-lib-word-widget-content';
@@ -268,8 +295,12 @@ export class Word {
     }
 
     /**
-     * Build article with title and content.
-     * Used in _render(), _closeEditor(), _closeLLMEditor().
+     * Build article with content only.
+     *
+     * Title lives in the app header (set via _setHeaderTitle()).
+     * Date lives in the toolbar. Neither appears here.
+     *
+     * Used in _render(), _closeEditor().
      */
     _buildArticle() {
         // content = HTML + <style>…</style> (merged on save)
@@ -279,25 +310,7 @@ export class Word {
         const article = document.createElement('article');
         article.className = 'core-engine-lib-word';
 
-        // Header
-        const header = document.createElement('header');
-        header.className = 'core-engine-lib-word-header';
-
-        const h1 = document.createElement('h1');
-        h1.className = 'core-engine-lib-word-title';
-        h1.textContent = this.pageData?.title || 'Без названия';
-        header.appendChild(h1);
-
-        if (this.pageData?.datetime) {
-            const time = document.createElement('time');
-            time.className = 'core-engine-lib-word-date';
-            time.textContent = this._formatDate(this.pageData.datetime);
-            header.appendChild(time);
-        }
-
-        article.appendChild(header);
-
-        // Content
+        // ===== Content =====
         const contentEl = document.createElement('div');
         contentEl.className = 'core-engine-lib-word-content';
         contentEl.setAttribute('data-js', 'word-content');
@@ -340,13 +353,10 @@ export class Word {
     // ============================================
 
     /**
-     * Remove ALL resizer handles (both GrapesJS and LLM).
-     * Used when switching modes, to avoid conflict
-     * (two pairs of handles in one place).
+     * Remove all resizer handles (GrapesJS).
      */
     _clearAllResizers() {
         document.querySelectorAll('.core-engine-lib-word-editor-resizer').forEach(h => h.remove());
-        document.querySelectorAll('.core-engine-lib-word-llm-resizer').forEach(h => h.remove());
     }
 
     // ============================================
@@ -355,8 +365,9 @@ export class Word {
 
     async _openEditor() {
         console.log('[Word] Opening GrapesJS editor');
-        this.isEditing = true;
 
+        this.isEditing = true;
+        this.toolbarEl?.classList.add('core-engine-lib-word-toolbar-hidden');
         // Remove all handles from previous modes
         this._clearAllResizers();
 
@@ -380,6 +391,10 @@ export class Word {
             project: this.pageData?.content_json
                 ? this._safeJsonParse(this.pageData.content_json)
                 : null,
+
+            // Page context for LLM chat and presets
+            pageId: this.pageId,
+            pageData: this.pageData,
 
             onSave: async (data) => {
                 await this._saveContent(data);
@@ -442,6 +457,7 @@ export class Word {
 
     _closeEditor() {
         console.log('[Word] Closing GrapesJS editor');
+        this.toolbarEl?.classList.remove('core-engine-lib-word-toolbar-hidden');
 
         if (this.editorInstance?.destroy) {
             this.editorInstance.destroy();
@@ -460,102 +476,6 @@ export class Word {
             this.widgetContentEl.appendChild(this._buildArticle());
         } else {
             // fallback — full re-render
-            this._render();
-        }
-    }
-
-    // ============================================
-    // LLM EDITOR
-    // ============================================
-
-    async _openLLMEditor() {
-        console.log('[Word] Opening LLM editor');
-        this.isEditing = true;
-
-        // Remove all handles from previous modes
-        this._clearAllResizers();
-
-        // Clear widget content
-        if (this.widgetContentEl) {
-            while (this.widgetContentEl.firstChild) {
-                this.widgetContentEl.removeChild(this.widgetContentEl.firstChild);
-            }
-        } else {
-            console.warn('[Word] widgetContentEl not found — re-creating');
-            this._render();
-        }
-
-        const version = window.coreEngine?.static_version || Date.now();
-        const { LLMEditor } = await import(`./llm/index.js?v=${version}`);
-
-        this.llmInstance = new LLMEditor(this.widgetContentEl, {
-            pageId: this.pageId,
-            pageData: this.pageData,
-
-            onSave: async (data) => {
-                await this._saveLLMContent(data);
-            },
-
-            onCancel: () => {
-                this._closeLLMEditor();
-            },
-        });
-
-        await this.llmInstance.waitForInit();
-    }
-
-    async _saveLLMContent(data) {
-        console.log('[Word] Saving content from LLM editor for id:', this.pageId);
-
-        if (!this.pageId) {
-            throw new Error('Unknown page id');
-        }
-
-        const url = `/core/engine/lib/word/${this.pageId}${this._qs}`;
-        const response = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                content: data.html,
-                content_json: data.content_json || null,
-            }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Save error');
-        }
-
-        this.pageData.content = data.html;
-        if (data.content_json) {
-            this.pageData.content_json = data.content_json;
-        }
-
-        console.log('[Word] Content from LLM editor saved');
-    }
-
-    _closeLLMEditor() {
-        console.log('[Word] Closing LLM editor');
-
-        if (this.llmInstance?.destroy) {
-            this.llmInstance.destroy();
-        }
-        this.llmInstance = null;
-        this.isEditing = false;
-
-        // Remove any remaining handles
-        this._clearAllResizers();
-
-        if (this.widgetContentEl) {
-            while (this.widgetContentEl.firstChild) {
-                this.widgetContentEl.removeChild(this.widgetContentEl.firstChild);
-            }
-            this.widgetContentEl.appendChild(this._buildArticle());
-        } else {
             this._render();
         }
     }
@@ -680,15 +600,17 @@ export class Word {
     destroy() {
         console.log('[Word] destroy()');
 
+        // Restore original header title
+        if (this._originalHeaderTitle !== null) {
+            const el = document.querySelector('.core-engine-lib-base-title');
+            if (el) el.textContent = this._originalHeaderTitle;
+            this._originalHeaderTitle = null;
+        }
+
         if (this.editorInstance?.destroy) {
             this.editorInstance.destroy();
         }
         this.editorInstance = null;
-
-        if (this.llmInstance?.destroy) {
-            this.llmInstance.destroy();
-        }
-        this.llmInstance = null;
 
         // Remove all handles
         this._clearAllResizers();

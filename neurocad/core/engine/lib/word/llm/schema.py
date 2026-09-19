@@ -1,9 +1,9 @@
 # neurocad/core/engine/lib/word/llm/schema.py
 
 """
-Pydantic-схемы для LLM-редактора (пресеты, чат, история).
+Pydantic schemas for LLM editor (presets, chat, history).
 
-На этом этапе — только пресеты.
+At this stage — presets and chat.
 """
 
 from pydantic import BaseModel, Field
@@ -12,34 +12,37 @@ from datetime import datetime as dt
 
 
 # ============================================
-# ПРЕСЕТЫ (page_pres)
+# PRESETS (page_pres)
 # ============================================
 
 class LLMPresetBase(BaseModel):
-    """Базовые поля пресета"""
+    """Base preset fields"""
     name: str = Field(..., min_length=1, max_length=255, description="Название")
     description: Optional[str] = Field(None, description="Описание")
     html: Optional[str] = Field(None, description="HTML пресета")
+    css: Optional[str] = Field(None, description="CSS пресета")
 
 
 class LLMPresetCreate(LLMPresetBase):
-    """Создание пресета"""
+    """Create preset"""
     pass
 
 
 class LLMPresetUpdate(BaseModel):
-    """Обновление пресета — все поля опциональны"""
+    """Update preset — all fields optional"""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
     html: Optional[str] = None
+    css: Optional[str] = None
 
 
 class LLMPresetItem(BaseModel):
-    """Пресет для ответа"""
+    """Preset for response"""
     id: int
     name: str
     description: Optional[str] = None
     html: Optional[str] = None
+    css: Optional[str] = None
     thumbnail_path: Optional[str] = None
     is_delete: int
     created_at: Optional[dt] = None
@@ -50,38 +53,39 @@ class LLMPresetItem(BaseModel):
 
 
 class LLMPresetListResponse(BaseModel):
-    """Ответ со списком пресетов"""
+    """Response with preset list"""
     success: bool = True
     data: List[LLMPresetItem]
     total: int = 0
 
 
 class LLMPresetItemResponse(BaseModel):
-    """Ответ с одним пресетом"""
+    """Response with a single preset"""
     success: bool = True
     data: LLMPresetItem
 
 
 # ============================================
-# ЗАГРУЗКА МИНИАТЮРЫ
+# THUMBNAIL UPLOAD
 # ============================================
 
 class LLMPresetThumbnailResponse(BaseModel):
-    """Ответ на загрузку миниатюры"""
+    """Response for thumbnail upload"""
     success: bool = True
     data: dict  # {"thumbnail_path": "presets/1.png"}
 
+
 # ============================================
-# ЧАТ
+# CHAT
 # ============================================
 
 class LLMChatMessageCreate(BaseModel):
-    """Запрос на отправку сообщения в чат"""
+    """Request to send a chat message"""
     message: str = Field(..., min_length=1, description="Текст сообщения пользователя")
 
 
 class LLMChatMessage(BaseModel):
-    """Одно сообщение чата"""
+    """Single chat message"""
     id: Optional[int] = None
     role: str = Field(..., description="'user' | 'assistant' | 'system'")
     content: str
@@ -95,12 +99,12 @@ class LLMChatMessage(BaseModel):
 
 
 class LLMChatHistoryResponse(BaseModel):
-    """Ответ с историей чата"""
+    """Response with chat history"""
     success: bool = True
     data: List[LLMChatMessage]
 
 
 class LLMChatSendResponse(BaseModel):
-    """Ответ на отправку сообщения"""
+    """Response to send message"""
     success: bool = True
-    data: dict   # { user_message, assistant_message, html }    
+    data: dict   # { user_message, assistant_message, html, css }

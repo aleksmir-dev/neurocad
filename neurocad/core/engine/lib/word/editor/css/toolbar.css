@@ -1,48 +1,59 @@
 /* app/core/engine/lib/word/editor/css/toolbar.css */
 
 /**
- * Toolbar — верхняя панель над холстом.
+ * Toolbar — upper panel above the canvas.
  *
- * Структура:
+ * Structure:
  *   .core-engine-lib-word-editor-toolbar
- *     ├─ .core-engine-lib-word-editor-btn            (обычная кнопка)
- *     ├─ .core-engine-lib-word-editor-btn-device     (переключатель устройств)
- *     └─ .core-engine-lib-word-editor-separator      (разделитель)
+ *     ├─ .core-engine-lib-word-editor-btn            (regular button)
+ *     ├─ .core-engine-lib-word-editor-btn-device     (device switcher)
+ *     ├─ .core-engine-lib-word-editor-separator      (separator)
+ *     └─ .core-engine-lib-word-editor-toolbar-spacer (pushes right buttons)
  *
- * Все кнопки — минималистичные, в светло-серой палитре Base.
- * Никаких акцентных цветов (зелёный, красный, синий).
- * Только серая подложка при hover, тёмная иконка при active.
+ * All buttons — minimal, light-gray Base palette.
+ * No accent colors (green, red, blue).
+ * Only gray background on hover, dark icon on active.
  *
- * Размеры:
- *   обычная кнопка  — 32×32
- *   device кнопка   — 28×28
+ * Sizes:
+ *   toolbar height  — 1.75rem (28px) — same as chat-toolbar
+ *   regular button  — 32×32
+ *   device button   — 28×28
  */
 
 /* ============================================
-   КОНТЕЙНЕР TOOLBAR
+   TOOLBAR CONTAINER
    ============================================ */
 
 .core-engine-lib-word-editor-toolbar {
     display: flex;
     align-items: center;
     gap: 2px;
-    padding: 6px 10px;
-    min-height: 42px;
+    height: 2.25rem;
+    padding: 0 12px;
+    box-sizing: border-box;
     background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
     border-bottom: 1px solid var(--border-light, #e2e8f0);
     flex-shrink: 0;
 }
 
 /* ============================================
-   БАЗОВАЯ КНОПКА (только иконка)
+   SPACER — pushes following buttons to the right
+   ============================================ */
+
+.core-engine-lib-word-editor-toolbar-spacer {
+    flex: 1 1 auto;
+}
+
+/* ============================================
+   BASE BUTTON (icon only)
    ============================================ */
 
 .core-engine-lib-word-editor-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     padding: 0;
     border: none;
     border-radius: 6px;
@@ -54,6 +65,7 @@
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .core-engine-lib-word-editor-btn:hover {
@@ -70,20 +82,46 @@
     outline-offset: 1px;
 }
 
+/* ============================================
+   ICONS — two kinds: <span> (emoji/text) and <img> (SVG)
+   ============================================ */
+
+/* span — emoji/text symbols: ↶ ↷ { } ✕ */
 .core-engine-lib-word-editor-btn-icon {
-    font-size: 15px;
+    font-size: 18px;
     line-height: 1;
     display: inline-block;
 }
 
+/* img — SVG icons: save / desktop / tablet / mobile
+   Light-gray strokes via opacity; on hover — fully visible. */
+img.core-engine-lib-word-editor-btn-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    opacity: 0.75;
+    transition: opacity 0.15s ease;
+}
+
+.core-engine-lib-word-editor-btn:hover img.core-engine-lib-word-editor-btn-icon {
+    opacity: 1;
+}
+
+/* Device-switcher icons — slightly smaller */
+.core-engine-lib-word-editor-btn-device img.core-engine-lib-word-editor-btn-icon {
+    width: 18px;
+    height: 18px;
+}
+
 /* ============================================
-   ПЕРЕКЛЮЧАТЕЛЬ УСТРОЙСТВ
+   DEVICE SWITCHER
    ============================================ */
 
 .core-engine-lib-word-editor-devices {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
     padding: 2px;
     border-radius: 6px;
     background: rgba(15, 23, 42, 0.04);
@@ -91,8 +129,8 @@
 }
 
 .core-engine-lib-word-editor-btn-device {
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
     padding: 0;
     border-radius: 4px;
     background: transparent;
@@ -115,13 +153,13 @@
 }
 
 /* ============================================
-   РАЗДЕЛИТЕЛЬ
+   SEPARATOR
    ============================================ */
 
 .core-engine-lib-word-editor-separator {
     width: 1px;
-    height: 20px;
+    height: 16px;
     background: var(--border-light, #e2e8f0);
-    margin: 0 6px;
+    margin: 0 4px;
     flex-shrink: 0;
 }

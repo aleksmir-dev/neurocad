@@ -4,24 +4,21 @@
  * Layout — base editor layout.
  *
  * Three Base areas:
- *   .core-engine-lib-base-area-left    → blocks (BlockManager)
+ *   .core-engine-lib-base-area-left    → 4 tabs [Styles|Traits|Blocks|Presets]
  *   .core-engine-lib-base-area-center  → canvas (Canvas) + toolbar
- *   .core-engine-lib-base-area-right   → traits (TraitManager) + styles (StyleManager)
- *
- * Inside each area — standard Base widget:
- *   .core-engine-lib-base-widget
- *     ├─ .core-engine-lib-base-widget-toolbar   (only for canvas / traits / styles)
- *     └─ .core-engine-lib-base-widget-content
+ *   .core-engine-lib-base-area-right   → LLM Chat (full height)
  *
  * This file is layout only: flex, min-height, overflow.
- * No colors or buttons — those live in toolbar.css / blocks.css / styles.css.
+ *
+ * NOTE: base class .core-engine-lib-base-widget-content has padding:
+ * var(--gap-md). We override it to 0 for all tab contents and chat.
  */
 
 /* ============================================
-   LEFT AREA — blocks
+   LEFT AREA — 4 tabs
    ============================================ */
 
-.core-engine-lib-word-editor-blocks {
+.core-engine-lib-word-editor-left-top {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
@@ -29,12 +26,105 @@
     height: 100%;
 }
 
+.core-engine-lib-word-editor-tabs {
+    display: flex;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    background: var(--bg-surface, #f0f4fa);
+}
+
+.core-engine-lib-word-editor-tab {
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.25rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.core-engine-lib-word-editor-tab:hover {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.core-engine-lib-word-editor-tab.active {
+    background: #ffffff;
+    border-bottom-color: #3b82f6;
+}
+
+.core-engine-lib-word-editor-tab-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    opacity: 0.65;
+    transition: opacity 0.15s ease;
+}
+
+.core-engine-lib-word-editor-tab:hover .core-engine-lib-word-editor-tab-icon {
+    opacity: 1;
+}
+
+.core-engine-lib-word-editor-tab.active .core-engine-lib-word-editor-tab-icon {
+    opacity: 1;
+}
+
+.core-engine-lib-word-editor-tab-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0 !important;
+    overflow-y: auto;
+    background: var(--bg-surface, #f0f4fa);
+}
+
+.core-engine-lib-word-editor-tab-panel[hidden] {
+    display: none;
+}
+
+.core-engine-lib-word-editor-styles-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0 !important;
+    overflow-y: auto;
+    background: var(--bg-surface, #f0f4fa);
+}
+
+.core-engine-lib-word-editor-traits-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 8px 12px !important;
+    overflow-y: auto;
+    background: var(--bg-surface, #f0f4fa);
+}
+
 .core-engine-lib-word-editor-blocks-content {
     flex: 1 1 auto;
     min-height: 0;
-    padding: 0;
+    padding: 0 !important;
     overflow-y: auto;
-    height: 100%;
+    background: var(--bg-surface, #f0f4fa);
+}
+
+.core-engine-lib-word-editor-presets-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    background: var(--bg-surface, #f0f4fa);
+    flex-shrink: 0;
+}
+
+.core-engine-lib-word-editor-presets-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0 !important;
+    overflow-y: auto;
     background: var(--bg-surface, #f0f4fa);
 }
 
@@ -53,7 +143,7 @@
 .core-engine-lib-word-editor-canvas-content {
     flex: 1 1 auto;
     min-height: 0;
-    padding: 0;
+    padding: 0 !important;
     overflow: hidden;
     height: 100%;
     position: relative;
@@ -61,62 +151,39 @@
 }
 
 /* ============================================
-   RIGHT AREA — traits (top) + styles (bottom)
+   RIGHT AREA — LLM Chat (full height)
    ============================================ */
 
-/* Traits — takes at most 40% of right area height */
-.core-engine-lib-word-editor-traits {
+.core-engine-lib-word-llm-chat {
     display: flex;
     flex-direction: column;
-    flex: 0 0 auto;
-    max-height: 40%;
-    min-height: 100px;
-    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
 }
 
-.core-engine-lib-word-editor-traits-toolbar {
+.core-engine-lib-word-llm-chat-toolbar {
     flex-shrink: 0;
-    padding: 8px 12px;
+    height: 2.25rem;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: var(--text-muted, #64748b);
     border-bottom: 1px solid var(--border-color, #e2e8f0);
+    box-sizing: border-box;
 }
 
-.core-engine-lib-word-editor-traits-content {
+.core-engine-lib-word-llm-chat-content {
     flex: 1 1 auto;
     min-height: 0;
-    overflow-y: auto;
-    padding: 8px 12px;
-    background: var(--bg-surface, #f0f4fa);
-}
-
-/* Styles — takes the rest of right area height */
-.core-engine-lib-word-editor-styles {
+    padding: 0 !important;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-}
-
-.core-engine-lib-word-editor-styles-toolbar {
-    flex-shrink: 0;
-    padding: 8px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--text-muted, #64748b);
-    border-bottom: 1px solid var(--border-color, #e2e8f0);
-}
-
-.core-engine-lib-word-editor-styles-content {
-    flex: 1 1 auto;
-    min-height: 0;
-    padding: 0;
-    overflow-y: auto;
     background: var(--bg-surface, #f0f4fa);
 }
 
@@ -124,7 +191,6 @@
    GRAPESJS CANVAS
    ============================================ */
 
-/* Canvas must fill the whole canvas-content */
 .core-engine-lib-word-editor-canvas-content .gjs-cv-canvas {
     background: var(--bg-surface, #f0f4fa);
     width: 100%;
@@ -134,7 +200,17 @@
     position: absolute;
 }
 
-/* White "page" inside canvas */
 .core-engine-lib-word-editor-canvas-content .gjs-cv-canvas .gjs-frame-wrapper {
     background: #ffffff;
+}
+
+/* ============================================
+   EDITOR OVERRIDES — remove Base area padding
+   ============================================ */
+
+/* Base areas have padding: var(--gap-sm) — remove it for the editor.
+   Layout must be edge-to-edge: tabs, canvas, chat. */
+.core-engine-lib-base-area-left,
+.core-engine-lib-base-area-right {
+    padding: 0;
 }

@@ -5,13 +5,15 @@
  *
  * Orchestrator class. Does nothing itself, assembles submodules:
  *
- *   widgets.js   -> builds DOM of three areas (left / center / right) + toolbar
- *   styles.js    -> provides StyleManager sections
- *   grapes.js    -> loads GrapesJS CSS/JS and calls grapesjs.init()
- *   assets.js    -> works with media library (GET /assets, POST /assets/upload)
- *   blocks/      -> registers block library
- *   resizer.js   -> handles for dragging borders between areas
- *   base/modal   -> Base modals (incl. textarea for custom CSS)
+ *   widgets.js    -> builds DOM of three areas (left / center / right) + toolbar
+ *   styles.js     -> provides StyleManager sections
+ *   grapes.js     -> loads GrapesJS CSS/JS and calls grapesjs.init()
+ *   assets.js     -> works with media library (GET /assets, POST /assets/upload)
+ *   blocks/       -> registers block library
+ *   resizer.js    -> handles for dragging borders between areas
+ *   base/modal    -> Base modals (incl. textarea for custom CSS)
+ *   ../llm/chat.js    -> LLM chat panel (right)
+ *   ../llm/presets.js -> Presets list (left tab)
  *
  * All internal modules are loaded dynamically, with version from coreEngine,
  * to avoid browser cache on updates.
@@ -53,14 +55,24 @@ export class Editor {
         this._blocks = null;
         this._resizer = null;
         this._createModal = null;
+        this._chat = null;      // LLM chat
+        this._presets = null;   // LLM presets
 
         // DOM elements (filled by widgets.build())
         this.leftArea = null;
         this.rightArea = null;
         this.blocksEl = null;
+        this.presetsEl = null;
         this.canvasEl = null;
         this.toolbarEl = null;
         this.stylesEl = null;
+        this.traitsEl = null;
+        this.chatEl = null;
+        this.tabsEl = null;
+
+        // Page data for LLM chat / presets
+        this.pageId = props.pageId || null;
+        this.pageData = props.pageData || null;
 
         // Media library API — with module_name for multi-site support.
         // module_name is passed via ?module= (see route.py / _module_name()).
@@ -95,6 +107,8 @@ export class Editor {
                 { BlocksRegistry },
                 { Resizer },
                 { createModal },
+                { LLMChat },
+                { LLMPresets },
             ] = await Promise.all([
                 import(`./grapes.js?v=${version}`),
                 import(`./widgets.js?v=${version}`),
@@ -103,6 +117,8 @@ export class Editor {
                 import(`./blocks/index.js?v=${version}`),
                 import(`./resizer.js?v=${version}`),
                 import(`../../base/modal/index.js?v=${version}`),
+                import(`../llm/chat.js?v=${version}`),
+                import(`../llm/presets.js?v=${version}`),
             ]);
 
             this._createModal = createModal;
@@ -111,7 +127,10 @@ export class Editor {
             this._widgets = new WidgetsBuilder(this);
             this._widgets.build();
 
-            // 2.5. Resizer handles — BEFORE grapesjs.init(),
+            // 2.5. Bind tabs [Styles|Traits|Blocks|Presets]
+            this._bindTabs();
+
+            // 2.6. Resizer handles — BEFORE grapesjs.init(),
             // so panel widths from localStorage are applied,
             // and GrapesJS calculates canvas at the right size.
             this._resizer = new Resizer(this);
@@ -135,10 +154,18 @@ export class Editor {
             this._assets = new AssetsManager(this);
             await this._assets.load();
 
-            // 7. Initial data
+            // 7. LLM Chat (right)
+            this._chat = new LLMChat(this);
+            await this._chat.init();
+
+            // 8. LLM Presets (left tab)
+            this._presets = new LLMPresets(this);
+            await this._presets.init();
+
+            // 9. Initial data
             this._loadData();
 
-            // 8. Toolbar + hotkeys
+            // 10. Toolbar + hotkeys
             this._buildToolbar();
 
             this._initialized = true;
@@ -148,6 +175,41 @@ export class Editor {
             this._initialized = false;
             throw error;
         }
+    }
+
+    // ============================================
+    // TABS (Styles | Traits | Blocks | Presets)
+    // ============================================
+
+    _bindTabs() {
+        if (!this.tabsEl) return;
+
+        this.tabsEl.addEventListener('click', (e) => {
+            const tab = e.target.closest('.core-engine-lib-word-editor-tab');
+            if (!tab) return;
+
+            const tabName = tab.dataset.tab;
+            this._setTab(tabName);
+        });
+    }
+
+    _setTab(name) {
+        if (!this.tabsEl) return;
+
+        // Buttons
+        this.tabsEl
+            .querySelectorAll('.core-engine-lib-word-editor-tab')
+            .forEach((btn) => {
+                btn.classList.toggle('active', btn.dataset.tab === name);
+            });
+
+        // Panels
+        const leftTop = this.leftArea?.querySelector('.core-engine-lib-word-editor-left-top');
+        if (!leftTop) return;
+
+        leftTop.querySelectorAll('[data-tab-panel]').forEach((panel) => {
+            panel.hidden = panel.dataset.tabPanel !== name;
+        });
     }
 
     // ============================================
@@ -178,9 +240,13 @@ export class Editor {
 
         if (!this.toolbarEl) return;
 
+        const iconsBase = '/static/core/engine/lib/base/images';
+
         this.toolbarEl.innerHTML = `
             <button type="button" data-action="save" title="Сохранить (Ctrl+S)" class="core-engine-lib-word-editor-btn">
-                <span class="core-engine-lib-word-editor-btn-icon">💾</span>
+                <img class="core-engine-lib-word-editor-btn-icon"
+                     src="${iconsBase}/save.svg"
+                     alt="" aria-hidden="true">
             </button>
             <div class="core-engine-lib-word-editor-separator"></div>
             <button type="button" data-action="undo" title="Отменить (Ctrl+Z)" class="core-engine-lib-word-editor-btn">
@@ -192,20 +258,28 @@ export class Editor {
             <div class="core-engine-lib-word-editor-separator"></div>
             <div class="core-engine-lib-word-editor-devices">
                 <button type="button" data-action="desktop" title="Десктоп" class="core-engine-lib-word-editor-btn core-engine-lib-word-editor-btn-device active">
-                    <span class="core-engine-lib-word-editor-btn-icon">🖥️</span>
+                    <img class="core-engine-lib-word-editor-btn-icon"
+                         src="${iconsBase}/desktop.svg"
+                         alt="" aria-hidden="true">
                 </button>
                 <button type="button" data-action="tablet" title="Планшет" class="core-engine-lib-word-editor-btn core-engine-lib-word-editor-btn-device">
-                    <span class="core-engine-lib-word-editor-btn-icon">📱</span>
+                    <img class="core-engine-lib-word-editor-btn-icon"
+                         src="${iconsBase}/tablet.svg"
+                         alt="" aria-hidden="true">
                 </button>
                 <button type="button" data-action="mobile" title="Мобильный" class="core-engine-lib-word-editor-btn core-engine-lib-word-editor-btn-device">
-                    <span class="core-engine-lib-word-editor-btn-icon">📲</span>
+                    <img class="core-engine-lib-word-editor-btn-icon"
+                         src="${iconsBase}/mobile.svg"
+                         alt="" aria-hidden="true">
                 </button>
             </div>
             <div class="core-engine-lib-word-editor-separator"></div>
             <button type="button" data-action="css" title="Кастомный CSS" class="core-engine-lib-word-editor-btn">
                 <span class="core-engine-lib-word-editor-btn-icon">{ }</span>
             </button>
-            <div class="core-engine-lib-word-editor-separator"></div>
+
+            <div class="core-engine-lib-word-editor-toolbar-spacer"></div>
+
             <button type="button" data-action="cancel" title="Выход без сохранения" class="core-engine-lib-word-editor-btn">
                 <span class="core-engine-lib-word-editor-btn-icon">✕</span>
             </button>
@@ -278,7 +352,7 @@ export class Editor {
      * Open custom CSS modal.
      * Uses BaseModalTextarea from base/modal.
      */
-    _openCssModal() {
+    async _openCssModal() {
         if (!this._createModal) {
             console.warn('[Editor] createModal not loaded');
             return;
@@ -288,7 +362,7 @@ export class Editor {
 
         if (!comp) {
             // Nothing selected — nothing to open
-            const modal = this._createModal('message');
+            const modal = await this._createModal('message');
             modal.open(
                 'Сначала выберите элемент на холсте.',
                 'Кастомный CSS',
@@ -310,7 +384,7 @@ export class Editor {
             .map(([k, v]) => `${k}: ${v};`)
             .join('\n');
 
-        const modal = this._createModal('textarea');
+        const modal = await this._createModal('textarea');
 
         modal.open(
             targetLabel,
@@ -430,6 +504,16 @@ export class Editor {
         if (this._onKeyDown) {
             document.removeEventListener('keydown', this._onKeyDown);
             this._onKeyDown = null;
+        }
+
+        // Destroy LLM submodules
+        if (this._chat) {
+            try { this._chat.destroy(); } catch (e) { console.warn(e); }
+            this._chat = null;
+        }
+        if (this._presets) {
+            try { this._presets.destroy(); } catch (e) { console.warn(e); }
+            this._presets = null;
         }
 
         // Remove resizer handles and listeners

@@ -10,7 +10,6 @@ export class Base {
         this.container = container;
         this.props = props;
 
-        this.demo = props.demo || false;
         this.showChat = props.showChat === true;
         this.authRequired = props.authRequired || false;
         this.authRedirect = props.authRedirect || null;
@@ -31,7 +30,6 @@ export class Base {
         this.centerEl = null;
         this.auth = null;
         this.chat = null;
-        this.demoInstance = null;
         this.savedContent = null;
         this.redirectUrl = null;
         this.childComponents = [];
@@ -80,6 +78,11 @@ export class Base {
     async _init() {
         console.log('[Base] _init() START');
         try {
+            // Set page title from props (if provided)
+            if (this.props.title) {
+                document.title = this.props.title;
+            }
+
             await this._loadModules();
             this._initialized = true;
             console.log('[Base] _init() COMPLETE');
@@ -98,22 +101,19 @@ export class Base {
             const [
                 { Header },
                 { BaseAuth },
-                { BaseDemo },
                 { createModal }
             ] = await Promise.all([
                 import(`./header.js?v=${version}`),
                 import(`./auth/auth.js?v=${version}`),
-                import(`./demo.js?v=${version}`),
                 import(`./modal/index.js?v=${version}`)
             ]);
 
             this.modules.Header = Header;
             this.modules.BaseAuth = BaseAuth;
-            this.modules.BaseDemo = BaseDemo;
             this.modules.createModal = createModal;
 
             this.header = new Header({
-                logoText: this.props.logoText || '⚡ Ассистент',
+                logoText: this.props.logoText || '⚡ Нейрокад',
                 title: this.props.title || null,
                 menu: this.props.menu || null,
                 auth: null
@@ -130,7 +130,7 @@ export class Base {
 
     async _initAuth() {
         console.log('[Base] _initAuth()');
-        const { BaseAuth, BaseDemo } = this.modules;
+        const { BaseAuth } = this.modules;
 
         if (this.showChat) {
             await this._initChat();
@@ -193,10 +193,6 @@ export class Base {
             }
         } else {
             this.renderContent();
-        }
-
-        if (this.demo) {
-            this.demoInstance = new BaseDemo(this);
         }
 
         if (this.header && typeof this.header.bindEvents === 'function') {
@@ -511,7 +507,7 @@ export class Base {
         }
     }
 
-    openModal(type, title, message, options = {}) {
+    async openModal(type, title, message, options = {}) {
         const modal = this.modules.createModal(type);
         if (!modal) {
             console.warn(`[Base] Неизвестный тип модалки: ${type}`);
@@ -620,12 +616,6 @@ export class Base {
         if (this._chatMediaQuery) {
             this._chatMediaQuery.removeEventListener('change', this._updateChatMode);
             this._chatMediaQuery = null;
-        }
-        if (this.demoInstance) {
-            if (typeof this.demoInstance.destroy === 'function') {
-                this.demoInstance.destroy();
-            }
-            this.demoInstance = null;
         }
         this._initialized = false;
         this._initPromise = null;

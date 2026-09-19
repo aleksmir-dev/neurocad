@@ -1,49 +1,49 @@
 // neurocad/core/engine/lib/word/llm/presets.js
 
 /**
- * LLMPresets — левая панель LLM-редактора: список пресетов.
+ * LLMPresets — presets list (left panel, "Presets" tab).
  *
- * Задачи:
- *   - загрузить список пресетов с бэкенда (GET /presets);
- *   - отрисовать список с миниатюрами;
- *   - при клике — отдать HTML пресета в preview;
- *   - создать новый пресет (POST /presets);
- *   - удалить пресет (DELETE /presets/{id});
- *   - загрузить PNG-миниатюру (POST /presets/{id}/thumbnail).
+ * Tasks:
+ *   - load presets from backend (GET /presets);
+ *   - render list with thumbnails;
+ *   - on click — apply preset HTML+CSS to GrapesJS canvas;
+ *   - create new preset from current canvas (POST /presets);
+ *   - delete preset (DELETE /presets/{id});
+ *   - upload PNG thumbnail (POST /presets/{id}/thumbnail).
  *
- * Контейнеры:
- *   editor.presetsEl   — .core-engine-lib-word-llm-presets-content
- *   тулбар с кнопкой «+» уже построен в widgets.js
+ * Container:
+ *   editor.presetsEl — [data-js="editor-presets"]
+ *   Toolbar with "+" button is built by editor/widgets.js
  */
 export class LLMPresets {
     constructor(editor) {
-        console.log('[LLMPresets] Конструктор');
+        console.log('[LLMPresets] Constructor');
         this.editor = editor;
 
         // DOM
-        this.rootEl = editor.presetsEl;      // .core-engine-lib-word-llm-presets-content
+        this.rootEl = editor.presetsEl;      // [data-js="editor-presets"]
         this.listEl = null;
 
         // API
         this._apiBase = '/core/engine/lib/word/llm/presets';
 
-        // Данные
-        this.presets = [];           // список с бэкенда
-        this.currentId = null;       // id выбранного пресета
+        // Data
+        this.presets = [];           // list from backend
+        this.currentId = null;       // selected preset id
     }
 
     async init() {
         console.log('[LLMPresets] init() START');
 
         if (!this.rootEl) {
-            console.error('[LLMPresets] presetsEl не найден');
+            console.error('[LLMPresets] presetsEl not found');
             return;
         }
 
         this._buildDOM();
         this._bindToolbarEvents();
 
-        // Загружаем список с бэкенда
+        // Load list from backend
         await this._loadPresets();
 
         console.log('[LLMPresets] init() COMPLETE');
@@ -54,12 +54,12 @@ export class LLMPresets {
     // ============================================
 
     _buildDOM() {
-        // Очищаем контейнер
+        // Clear container
         while (this.rootEl.firstChild) {
             this.rootEl.removeChild(this.rootEl.firstChild);
         }
 
-        // Список пресетов
+        // Presets list
         const list = document.createElement('div');
         list.className = 'core-engine-lib-word-llm-presets-list';
         list.setAttribute('data-js', 'llm-presets-list');
@@ -68,8 +68,8 @@ export class LLMPresets {
     }
 
     _bindToolbarEvents() {
-        // Кнопка «+» в тулбаре пресетов
-        const toolbar = this.editor.leftArea?.querySelector('.core-engine-lib-word-llm-presets-toolbar');
+        // "+" button in presets toolbar
+        const toolbar = this.editor.leftArea?.querySelector('[data-js="editor-presets-toolbar"]');
         if (!toolbar) return;
 
         toolbar.addEventListener('click', (e) => {
@@ -82,7 +82,7 @@ export class LLMPresets {
     _renderList() {
         if (!this.listEl) return;
 
-        // Очищаем список
+        // Clear list
         while (this.listEl.firstChild) {
             this.listEl.removeChild(this.listEl.firstChild);
         }
@@ -110,7 +110,7 @@ export class LLMPresets {
             item.classList.add('active');
         }
 
-        // ===== Миниатюра =====
+        // ===== Thumbnail =====
         const thumb = document.createElement('div');
         thumb.className = 'core-engine-lib-word-llm-presets-thumb';
 
@@ -121,18 +121,18 @@ export class LLMPresets {
             img.loading = 'lazy';
             thumb.appendChild(img);
         } else {
-            // Заглушка, если миниатюры нет
+            // Placeholder if no thumbnail
             thumb.textContent = '🖼️';
         }
         item.appendChild(thumb);
 
-        // ===== Название =====
+        // ===== Name =====
         const name = document.createElement('div');
         name.className = 'core-engine-lib-word-llm-presets-name';
         name.textContent = preset.name || 'Без названия';
         item.appendChild(name);
 
-        // ===== Кнопка удаления (появляется при hover) =====
+        // ===== Delete button (appears on hover) =====
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
         delBtn.className = 'core-engine-lib-word-llm-presets-del';
@@ -145,7 +145,7 @@ export class LLMPresets {
         });
         item.appendChild(delBtn);
 
-        // ===== Клик по элементу =====
+        // ===== Click on item =====
         item.addEventListener('click', () => this._onSelect(preset.id));
 
         return item;
@@ -165,27 +165,27 @@ export class LLMPresets {
             });
 
             if (!response.ok) {
-                throw new Error(`Ошибка загрузки: ${response.status}`);
+                throw new Error(`Load error: ${response.status}`);
             }
 
             const result = await response.json();
 
             if (result.success) {
                 this.presets = result.data || [];
-                console.log(`[LLMPresets] Загружено пресетов: ${this.presets.length}`);
+                console.log(`[LLMPresets] Loaded presets: ${this.presets.length}`);
             } else {
-                console.warn('[LLMPresets] Ответ без success:', result);
+                console.warn('[LLMPresets] Response without success:', result);
                 this.presets = [];
             }
         } catch (error) {
-            console.error('[LLMPresets] Ошибка загрузки списка:', error);
+            console.error('[LLMPresets] List load error:', error);
             this.presets = [];
         }
 
         this._renderList();
     }
 
-    async _createPreset(name, description = '', html = '') {
+    async _createPreset(name, description = '', html = '', css = '') {
         const response = await fetch(this._apiBase, {
             method: 'POST',
             headers: {
@@ -193,12 +193,12 @@ export class LLMPresets {
                 'Accept': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ name, description, html }),
+            body: JSON.stringify({ name, description, html, css }),
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Ошибка создания пресета');
+            throw new Error(errorData.detail || 'Preset create error');
         }
 
         const result = await response.json();
@@ -214,7 +214,7 @@ export class LLMPresets {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Ошибка удаления пресета');
+            throw new Error(errorData.detail || 'Preset delete error');
         }
     }
 
@@ -231,7 +231,7 @@ export class LLMPresets {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Ошибка обновления пресета');
+            throw new Error(errorData.detail || 'Preset update error');
         }
 
         const result = await response.json();
@@ -250,7 +250,7 @@ export class LLMPresets {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Ошибка загрузки миниатюры');
+            throw new Error(errorData.detail || 'Thumbnail upload error');
         }
 
         const result = await response.json();
@@ -258,7 +258,7 @@ export class LLMPresets {
     }
 
     // ============================================
-    // ДЕЙСТВИЯ
+    // ACTIONS
     // ============================================
 
     async _onSelect(id) {
@@ -266,38 +266,46 @@ export class LLMPresets {
 
         const preset = this.presets.find(p => p.id === id);
         if (!preset) {
-            console.warn('[LLMPresets] Пресет не найден:', id);
+            console.warn('[LLMPresets] Preset not found:', id);
             return;
         }
 
         this.currentId = id;
 
-        // Подсветка активного
+        // Highlight active
         this._renderList();
 
-        // Отдать HTML в preview
-        if (this.editor._preview) {
-            this.editor._preview.setHtml(preset.html || '');
+        // Apply preset to GrapesJS canvas
+        if (this.editor.editor) {
+            console.log('[LLMPresets] Applying preset to canvas:', id);
+            this.editor.editor.setComponents(preset.html || '');
+            if (preset.css) {
+                this.editor.editor.setStyle(preset.css);
+            }
         }
     }
 
     async _onCreate() {
         console.log('[LLMPresets] _onCreate()');
 
-        // Простая форма через prompt (потом заменим на модалку)
+        // Simple prompt form (later replace with modal)
         const name = prompt('Название пресета:', 'Новый пресет');
         if (!name || !name.trim()) return;
 
-        try {
-            const preset = await this._createPreset(name.trim(), '', '<div style="padding:40px;text-align:center;"><p>Новый пресет</p></div>');
+        // Take current canvas HTML + CSS
+        const html = this.editor.editor?.getHtml() || '';
+        const css = this.editor.editor?.getCss() || '';
 
-            // Добавляем в локальный список
+        try {
+            const preset = await this._createPreset(name.trim(), '', html, css);
+
+            // Add to local list
             this.presets.push(preset);
             this._renderList();
 
-            console.log('[LLMPresets] Пресет создан:', preset.id);
+            console.log('[LLMPresets] Preset created:', preset.id);
         } catch (error) {
-            console.error('[LLMPresets] Ошибка создания:', error);
+            console.error('[LLMPresets] Create error:', error);
             alert(`Ошибка: ${error.message}`);
         }
     }
@@ -313,7 +321,7 @@ export class LLMPresets {
         try {
             await this._deletePreset(id);
 
-            // Удаляем из локального списка
+            // Remove from local list
             this.presets = this.presets.filter(p => p.id !== id);
 
             if (this.currentId === id) {
@@ -322,35 +330,39 @@ export class LLMPresets {
 
             this._renderList();
 
-            console.log('[LLMPresets] Пресет удалён:', id);
+            console.log('[LLMPresets] Preset deleted:', id);
         } catch (error) {
-            console.error('[LLMPresets] Ошибка удаления:', error);
+            console.error('[LLMPresets] Delete error:', error);
             alert(`Ошибка: ${error.message}`);
         }
     }
 
     /**
-     * Сохранить текущий HTML превью в выбранный пресет.
-     * Вызывается из toolbar (Save) или из chat.
+     * Save current canvas HTML + CSS to the selected preset.
+     * Called from toolbar (Save) or from chat.
      */
     async saveCurrentHtml() {
         if (!this.currentId) {
-            console.log('[LLMPresets] Нет выбранного пресета — пропускаем сохранение');
+            console.log('[LLMPresets] No preset selected — skip saving');
             return;
         }
 
-        const html = this.editor._preview?.getHtml() || '';
+        const html = this.editor.editor?.getHtml() || '';
+        const css = this.editor.editor?.getCss() || '';
 
         try {
-            await this._updatePreset(this.currentId, { html });
+            await this._updatePreset(this.currentId, { html, css });
 
-            // Обновляем локально
+            // Update locally
             const preset = this.presets.find(p => p.id === this.currentId);
-            if (preset) preset.html = html;
+            if (preset) {
+                preset.html = html;
+                preset.css = css;
+            }
 
-            console.log('[LLMPresets] HTML сохранён в пресет:', this.currentId);
+            console.log('[LLMPresets] HTML+CSS saved to preset:', this.currentId);
         } catch (error) {
-            console.error('[LLMPresets] Ошибка сохранения HTML:', error);
+            console.error('[LLMPresets] Save HTML+CSS error:', error);
         }
     }
 

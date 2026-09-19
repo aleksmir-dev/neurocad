@@ -34,40 +34,46 @@ THUMBNAIL_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.webp'}
 # SYSTEM PROMPT FOR HTML EDITOR
 # ============================================
 
-HTML_EDITOR_SYSTEM_PROMPT = """Ты — редактор HTML-кода.
+HTML_EDITOR_SYSTEM_PROMPT = """Ты — редактор HTML + CSS.
 
-Пользователь даёт тебе HTML-фрагмент (может быть пустым) и запрос на русском.
-Ты возвращаешь JSON-объект с двумя полями:
+Пользователь даёт тебе HTML-фрагмент и CSS (могут быть пустыми) и запрос на русском.
+Ты возвращаешь JSON-объект с тремя полями:
   - "message": короткое сообщение пользователю (1 предложение).
   - "html": изменённый HTML-фрагмент.
+  - "css": изменённый CSS (без <style>).
 
 СТРОГИЕ ПРАВИЛА:
 1. Ответ — ТОЛЬКО валидный JSON. Начинается с `{`, заканчивается `}`.
 2. НЕ оборачивай в markdown (без ```json, без ```).
 3. НЕ добавляй пояснения до или после JSON.
 4. Поле "message" — короткое, нейтральное: «Готово», «Изменения применены». НЕ пересказывай HTML.
-5. Поле "html" — ТОЛЬКО HTML. Начинается с `<`, заканчивается `>`. Без <!DOCTYPE html>, <html>, <head>, <body>.
-6. Если HTML пустой — создай новый фрагмент по запросу.
-7. Если HTML непустой — измени его, сохранив всё, что не касается запроса.
-8. Если не понял запрос — верни исходный HTML и message: «Не понял запрос, попробуйте переформулировать».
+5. Поле "html" — ТОЛЬКО HTML. Начинается с `<`, заканчивается `>`. Без <!DOCTYPE html>, <html>, <head>, <body>. Без <style> — стили идут в поле "css".
+6. Поле "css" — ТОЛЬКО CSS-правила. Без <style>, без HTML. Пример: `.my-class { color: red; }`
+7. Если HTML и CSS пустые — создай новые по запросу.
+8. Если HTML непустой — измени его, сохранив всё, что не касается запроса.
+9. Если не понял запрос — верни исходные HTML и CSS, message: «Не понял запрос, попробуйте переформулировать».
 
-ПРИМЕР 1 (есть HTML):
+ПРИМЕР 1 (есть HTML + CSS):
 Вход:
 HTML:
-<h1>Заголовок</h1>
+<h1 class="title">Заголовок</h1>
+CSS:
+.title { color: black; }
 Запрос: Сделай заголовок красным
 
 Выход:
-{"message": "Заголовок стал красным.", "html": "<h1 style=\\"color: red;\\">Заголовок</h1>"}
+{"message": "Заголовок стал красным.", "html": "<h1 class=\\"title\\">Заголовок</h1>", "css": ".title { color: red; }"}
 
-ПРИМЕР 2 (пустой HTML):
+ПРИМЕР 2 (пусто):
 Вход:
 HTML:
+(пусто)
+CSS:
 (пусто)
 Запрос: Создай страницу с заголовком «Привет» и списком из 3 пунктов
 
 Выход:
-{"message": "Страница создана.", "html": "<h1>Привет</h1><ul><li>Первый</li><li>Второй</li><li>Третий</li></ul>"}
+{"message": "Страница создана.", "html": "<h1>Привет</h1><ul><li>Первый</li><li>Второй</li><li>Третий</li></ul>", "css": ""}
 """
 
 
@@ -106,6 +112,7 @@ class LLMService:
                     "name": preset.name,
                     "description": preset.description,
                     "html": preset.html,
+                    "css": preset.css,
                     "thumbnail_path": preset.thumbnail_path,
                     "is_delete": preset.is_delete,
                     "created_at": preset.created_at.isoformat() if preset.created_at else None,
@@ -142,6 +149,7 @@ class LLMService:
                 "name": preset.name,
                 "description": preset.description,
                 "html": preset.html,
+                "css": preset.css,
                 "thumbnail_path": preset.thumbnail_path,
                 "is_delete": preset.is_delete,
                 "created_at": preset.created_at.isoformat() if preset.created_at else None,
@@ -159,6 +167,7 @@ class LLMService:
         name: str,
         description: Optional[str] = None,
         html: Optional[str] = None,
+        css: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """Create a new preset."""
         async for session in get_db_sqlite():
@@ -166,6 +175,7 @@ class LLMService:
                 name=name.strip(),
                 description=description,
                 html=html,
+                css=css,
                 is_delete=0,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
@@ -179,6 +189,7 @@ class LLMService:
                 "name": new_preset.name,
                 "description": new_preset.description,
                 "html": new_preset.html,
+                "css": new_preset.css,
                 "thumbnail_path": new_preset.thumbnail_path,
                 "is_delete": new_preset.is_delete,
                 "created_at": new_preset.created_at.isoformat() if new_preset.created_at else None,
@@ -197,6 +208,7 @@ class LLMService:
         name: Optional[str] = None,
         description: Optional[str] = None,
         html: Optional[str] = None,
+        css: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """Update preset. Only provided fields are updated."""
         async for session in get_db_sqlite():
@@ -216,6 +228,8 @@ class LLMService:
                 preset.description = description
             if html is not None:
                 preset.html = html
+            if css is not None:
+                preset.css = css
 
             preset.updated_at = datetime.now()
             await session.commit()
@@ -226,6 +240,7 @@ class LLMService:
                 "name": preset.name,
                 "description": preset.description,
                 "html": preset.html,
+                "css": preset.css,
                 "thumbnail_path": preset.thumbnail_path,
                 "is_delete": preset.is_delete,
                 "created_at": preset.created_at.isoformat() if preset.created_at else None,
@@ -460,13 +475,13 @@ class LLMService:
     ) -> Optional[Dict[str, Any]]:
         """
         Handle one user message:
-          1. Load current page HTML.
+          1. Load current page HTML + CSS.
           2. Save user message to page_chat.
-          3. Send to LLM (system + HTML + request).
-          4. Parse LLM response into {message, html}.
+          3. Send to LLM (system + HTML + CSS + request).
+          4. Parse LLM response into {message, html, css}.
           5. Save assistant message to page_chat (with short message).
-          6. Update page HTML.
-          7. Return { user_message, assistant_message, html }.
+          6. Update page HTML + content_json.
+          7. Return { user_message, assistant_message, html, css }.
         """
 
         # ===== 1. Load page =====
@@ -481,7 +496,9 @@ class LLMService:
             if not page:
                 return None
 
-            current_html = page.content or ''
+            # Extract current HTML and CSS from page.content
+            # content may contain <style>...</style> prefix
+            current_html, current_css = LLMService._split_html_css(page.content or '')
 
             # ===== 2. Save user message =====
             user_msg = PageChat(
@@ -502,10 +519,11 @@ class LLMService:
 
             # ===== 3. Build messages for LLM =====
             html_part = current_html.strip() if current_html and current_html.strip() else "(empty)"
+            css_part = current_css.strip() if current_css and current_css.strip() else "(empty)"
 
             messages = [
                 {"role": "system", "content": HTML_EDITOR_SYSTEM_PROMPT},
-                {"role": "user", "content": f"HTML:\n{html_part}\n\nRequest: {user_message}"},
+                {"role": "user", "content": f"HTML:\n{html_part}\n\nCSS:\n{css_part}\n\nRequest: {user_message}"},
             ]
 
             # ===== 4. Request to DeepSeek =====
@@ -515,11 +533,13 @@ class LLMService:
                 raw_response = json.dumps({
                     "message": f"LLM error: {e}",
                     "html": "",
+                    "css": "",
                 }, ensure_ascii=False)
 
             # ===== 5. Parse LLM response =====
             parsed = LLMService._parse_llm_response(raw_response)
             new_html = parsed["html"]
+            new_css = parsed["css"]
             chat_message = parsed["message"]
 
             # ===== 6. Save assistant message =====
@@ -540,9 +560,9 @@ class LLMService:
                 "created_at": assistant_msg.created_at.isoformat() if assistant_msg.created_at else None,
             }
 
-            # ===== 7. Update page HTML =====
-            if new_html:
-                page.content = new_html
+            # ===== 7. Update page HTML + CSS =====
+            if new_html or new_css:
+                page.content = LLMService._merge_html_css(new_html, new_css)
                 page.updated_at = datetime.now()
                 await session.commit()
 
@@ -550,6 +570,7 @@ class LLMService:
                 "user_message": user_msg_dict,
                 "assistant_message": assistant_msg_dict,
                 "html": new_html,
+                "css": new_css,
             }
 
         return None
@@ -559,17 +580,51 @@ class LLMService:
     # ========================================
 
     @staticmethod
+    def _split_html_css(content: str) -> tuple[str, str]:
+        """
+        Split page.content into (html, css).
+
+        If content contains `<style>...</style>` prefix — extract CSS.
+        Otherwise — return content as HTML, empty CSS.
+        """
+        if not content:
+            return "", ""
+
+        s = content.strip()
+
+        # Match leading <style>...</style>
+        match = re.match(r'^\s*<style>(.*?)</style>(.*)$', s, re.DOTALL)
+        if match:
+            return match.group(2).strip(), match.group(1).strip()
+
+        return s, ""
+
+    @staticmethod
+    def _merge_html_css(html: str, css: str) -> str:
+        """
+        Merge HTML + CSS into single content string.
+        If CSS is not empty — prepend `<style>...</style>`.
+        """
+        html = (html or '').strip()
+        css = (css or '').strip()
+
+        if css:
+            return f"<style>{css}</style>{html}"
+        return html
+
+    @staticmethod
     def _parse_llm_response(text: str) -> Dict[str, str]:
         """
-        Parse LLM response into {message, html}.
+        Parse LLM response into {message, html, css}.
 
-        Expect JSON: {"message": "...", "html": "..."}.
+        Expect JSON: {"message": "...", "html": "...", "css": "..."}.
         If JSON invalid — fallback (no crash):
           - message = neutral
           - html = cleaned text as HTML
+          - css = empty
         """
         if not text:
-            return {"message": "Empty LLM response.", "html": ""}
+            return {"message": "Empty LLM response.", "html": "", "css": ""}
 
         s = text.strip()
 
@@ -590,9 +645,7 @@ class LLMService:
             try:
                 data = json.loads(candidate)
                 if isinstance(data, dict):
-                    message = str(data.get("message", "")).strip() or "Done."
-                    html = str(data.get("html", "")).strip()
-                    return {"message": message, "html": html}
+                    return LLMService._extract_fields(data)
             except json.JSONDecodeError:
                 pass
 
@@ -600,9 +653,7 @@ class LLMService:
         try:
             data = json.loads(s)
             if isinstance(data, dict):
-                message = str(data.get("message", "")).strip() or "Done."
-                html = str(data.get("html", "")).strip()
-                return {"message": message, "html": html}
+                return LLMService._extract_fields(data)
         except json.JSONDecodeError:
             pass
 
@@ -612,7 +663,16 @@ class LLMService:
         return {
             "message": "Done. Changes applied.",
             "html": cleaned,
+            "css": "",
         }
+
+    @staticmethod
+    def _extract_fields(data: dict) -> Dict[str, str]:
+        """Extract message/html/css from parsed JSON dict."""
+        message = str(data.get("message", "")).strip() or "Done."
+        html = str(data.get("html", "")).strip()
+        css = str(data.get("css", "")).strip()
+        return {"message": message, "html": html, "css": css}
 
     @staticmethod
     def _clean_html_response(text: str) -> str:

@@ -1,20 +1,20 @@
 // neurocad/core/engine/lib/word/llm/chat.js
 
 /**
- * LLMChat — правая панель LLM-редактора: чат с LLM.
+ * LLMChat — chat with LLM (bottom section of right panel).
  *
- * Задачи:
- *   - показать историю чата по текущей странице;
- *   - отправить запрос пользователя (запрос → LLM → новый HTML);
- *   - применить полученный HTML к preview;
- *   - сохранить сообщения в БД (page_chat).
+ * Tasks:
+ *   - show chat history for the current page;
+ *   - send user request (request -> LLM -> new HTML + CSS);
+ *   - apply received HTML+CSS to GrapesJS canvas;
+ *   - save messages to DB (page_chat).
  *
- * Контейнеры:
+ * Container:
  *   editor.chatEl — .core-engine-lib-word-llm-chat-content
  */
 export class LLMChat {
     constructor(editor) {
-        console.log('[LLMChat] Конструктор');
+        console.log('[LLMChat] Constructor');
         this.editor = editor;
 
         // DOM
@@ -24,13 +24,13 @@ export class LLMChat {
         this.sendBtn = null;
         this.formEl = null;
 
-        // Данные
+        // Data
         this.messages = [];                   // [{role, content, created_at}]
 
         // API
         this._apiBase = '/core/engine/lib/word/llm';
 
-        // Состояние
+        // State
         this._sending = false;
     }
 
@@ -38,17 +38,17 @@ export class LLMChat {
         console.log('[LLMChat] init() START');
 
         if (!this.rootEl) {
-            console.error('[LLMChat] chatEl не найден');
+            console.error('[LLMChat] chatEl not found');
             return;
         }
 
         this._buildDOM();
         this._bindEvents();
 
-        // Загружаем историю чата с бэкенда
+        // Load chat history from backend
         await this._loadHistory();
 
-        // Если истории нет — приветствие
+        // If no history — greeting
         if (this.messages.length === 0) {
             this._addMessage({
                 role: 'assistant',
@@ -65,19 +65,19 @@ export class LLMChat {
     // ============================================
 
     _buildDOM() {
-        // Очищаем
+        // Clear
         while (this.rootEl.firstChild) {
             this.rootEl.removeChild(this.rootEl.firstChild);
         }
 
-        // ===== Список сообщений =====
+        // ===== Messages list =====
         const messages = document.createElement('div');
         messages.className = 'core-engine-lib-word-llm-chat-messages';
         messages.setAttribute('data-js', 'llm-chat-messages');
         this.messagesEl = messages;
         this.rootEl.appendChild(messages);
 
-        // ===== Форма ввода =====
+        // ===== Input form =====
         const form = document.createElement('form');
         form.className = 'core-engine-lib-word-llm-chat-form';
 
@@ -103,7 +103,7 @@ export class LLMChat {
     }
 
     _bindEvents() {
-        // Отправка формы
+        // Submit form
         if (this.formEl) {
             this.formEl.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -111,7 +111,7 @@ export class LLMChat {
             });
         }
 
-        // Enter без Shift — отправить. Shift+Enter — новая строка.
+        // Enter without Shift — send. Shift+Enter — new line.
         if (this.inputEl) {
             this.inputEl.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -123,7 +123,7 @@ export class LLMChat {
     }
 
     // ============================================
-    // СООБЩЕНИЯ
+    // MESSAGES
     // ============================================
 
     _addMessage(msg) {
@@ -153,13 +153,13 @@ export class LLMChat {
     }
 
     // ============================================
-    // ИСТОРИЯ
+    // HISTORY
     // ============================================
 
     async _loadHistory() {
         const pageId = this.editor.pageId;
         if (!pageId) {
-            console.warn('[LLMChat] Нет pageId — история не загружена');
+            console.warn('[LLMChat] No pageId — history not loaded');
             return;
         }
 
@@ -170,7 +170,7 @@ export class LLMChat {
             });
 
             if (!response.ok) {
-                console.warn('[LLMChat] История не загружена:', response.status);
+                console.warn('[LLMChat] History not loaded:', response.status);
                 return;
             }
 
@@ -178,10 +178,10 @@ export class LLMChat {
             if (result.success && Array.isArray(result.data)) {
                 this.messages = result.data;
                 this._renderAllMessages();
-                console.log(`[LLMChat] Загружено сообщений: ${this.messages.length}`);
+                console.log(`[LLMChat] Loaded messages: ${this.messages.length}`);
             }
         } catch (error) {
-            console.error('[LLMChat] Ошибка загрузки истории:', error);
+            console.error('[LLMChat] History load error:', error);
         }
     }
 
@@ -198,7 +198,7 @@ export class LLMChat {
     }
 
     // ============================================
-    // ОТПРАВКА
+    // SEND
     // ============================================
 
     async _onSend() {
@@ -209,7 +209,7 @@ export class LLMChat {
 
         const pageId = this.editor.pageId;
         if (!pageId) {
-            console.error('[LLMChat] pageId не задан');
+            console.error('[LLMChat] pageId not set');
             return;
         }
 
@@ -218,19 +218,19 @@ export class LLMChat {
         this._sending = true;
         this._setSendingState(true);
 
-        // Добавляем сообщение пользователя локально (сразу, для отзывчивости)
+        // Add user message locally (immediate feedback)
         this._addMessage({
             role: 'user',
             content: text,
             created_at: new Date().toISOString(),
         });
 
-        // Очищаем поле
+        // Clear input
         if (this.inputEl) {
             this.inputEl.value = '';
         }
 
-        // Показываем «печатает...»
+        // Show "typing..."
         this._showTyping();
 
         try {
@@ -246,46 +246,45 @@ export class LLMChat {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `Ошибка ${response.status}`);
+                throw new Error(errorData.detail || `Error ${response.status}`);
             }
 
             const result = await response.json();
 
             if (!result.success) {
-                throw new Error(result.message || 'Ошибка LLM');
+                throw new Error(result.message || 'LLM error');
             }
 
             const data = result.data;
             const newHtml = data.html || '';
+            const newCss = data.css || '';
 
-            // Прячем «печатает...»
+            // Hide "typing..."
             this._hideTyping();
 
-            // ===== Заменяем сообщение пользователя на серверную версию =====
-            // (у неё есть id, created_at из БД)
+            // ===== Replace user message with server version =====
+            // (it has id, created_at from DB)
             const lastUserIdx = this.messages.length - 1;
             if (lastUserIdx >= 0 && this.messages[lastUserIdx].role === 'user') {
                 this.messages[lastUserIdx] = data.user_message;
             }
 
-            // ===== Добавляем ответ ассистента =====
+            // ===== Add assistant message =====
             this._addMessage(data.assistant_message);
 
-            // ===== Применяем HTML к preview =====
-            if (newHtml && this.editor._preview) {
-                console.log('[LLMChat] Применяем новый HTML к preview, длина:', newHtml.length);
-                this.editor._preview.setHtml(newHtml);
+            // ===== Apply HTML + CSS to GrapesJS canvas =====
+            if (this.editor.editor && (newHtml || newCss)) {
+                console.log('[LLMChat] Applying new HTML+CSS to canvas:', newHtml.length, '+', newCss.length);
+                this.editor.editor.setComponents(newHtml);
+                if (newCss) {
+                    this.editor.editor.setStyle(newCss);
+                }
             }
 
-            // ===== Записываем в history (undo/redo) =====
-            if (this.editor._history && newHtml) {
-                this.editor._history.push(newHtml, 'ai_edit', text);
-            }
-
-            console.log('[LLMChat] Ответ получен и применён');
+            console.log('[LLMChat] Response received and applied');
 
         } catch (error) {
-            console.error('[LLMChat] Ошибка отправки:', error);
+            console.error('[LLMChat] Send error:', error);
             this._hideTyping();
             this._addMessage({
                 role: 'assistant',
@@ -308,7 +307,7 @@ export class LLMChat {
     }
 
     // ============================================
-    // ИНДИКАТОР «ПЕЧАТАЕТ»
+    // TYPING INDICATOR
     // ============================================
 
     _showTyping() {
@@ -338,7 +337,7 @@ export class LLMChat {
     }
 
     // ============================================
-    // ПУБЛИЧНЫЕ МЕТОДЫ
+    // PUBLIC METHODS
     // ============================================
 
     getMessages() {

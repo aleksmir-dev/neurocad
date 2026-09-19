@@ -1,13 +1,17 @@
 /* neurocad/core/engine/lib/word/llm/llm.css */
 
-/* ============================================ */
-/* ТРИ ОБЛАСТИ LLM-РЕДАКТОРА                    */
-/* ============================================ */
-/* Все три области — стандартные base-widget.   */
-/* Здесь только донастройка под LLM.            */
+/**
+ * LLM styles — presets list + chat panel.
+ *
+ * Presets — tab in left panel (editor).
+ * Chat — full right panel (editor).
+ *
+ * Preview / toolbar / canvas / resizer styles removed —
+ * they are now part of GrapesJS editor.
+ */
 
 /* ============================================ */
-/* LEFT: ПРЕСЕТЫ                                */
+/* PRESETS (tab in left panel)                  */
 /* ============================================ */
 
 .core-engine-lib-word-llm-presets {
@@ -154,104 +158,7 @@
 }
 
 /* ============================================ */
-/* CENTER: ПРЕВЬЮ                               */
-/* ============================================ */
-
-.core-engine-lib-word-llm-preview {
-    height: 100%;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-/* ============================================ */
-/* TOOLBAR (внутри center)                      */
-/* ============================================ */
-
-.core-engine-lib-word-llm-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: nowrap;
-}
-
-.core-engine-lib-word-llm-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border: none;
-    border-radius: 6px;
-    background: transparent;
-    cursor: pointer;
-    transition: background 0.15s ease, transform 0.1s ease;
-    flex-shrink: 0;
-}
-
-.core-engine-lib-word-llm-btn:hover:not(:disabled) {
-    background: var(--bg-hover, #f1f5f9);
-}
-
-.core-engine-lib-word-llm-btn:active:not(:disabled) {
-    transform: scale(0.94);
-}
-
-.core-engine-lib-word-llm-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-}
-
-.core-engine-lib-word-llm-btn-icon {
-    width: 18px;
-    height: 18px;
-    display: block;
-    object-fit: contain;
-    opacity: 0.75;
-    transition: opacity 0.15s ease;
-}
-
-.core-engine-lib-word-llm-btn:hover:not(:disabled) .core-engine-lib-word-llm-btn-icon {
-    opacity: 1;
-}
-
-.core-engine-lib-word-llm-toolbar-separator {
-    width: 1px;
-    height: 18px;
-    background: var(--border-light, #e2e8f0);
-    margin: 0 4px;
-    flex-shrink: 0;
-}
-
-.core-engine-lib-word-llm-toolbar-spacer {
-    flex: 1;
-}
-
-/* ============================================ */
-/* CANVAS (iframe)                              */
-/* ============================================ */
-
-.core-engine-lib-word-llm-preview-content {
-    padding: 0 !important;
-    overflow: hidden !important;
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 0;
-    min-height: 0;
-}
-
-.core-engine-lib-word-llm-preview-iframe {
-    flex: 1 1 0;
-    width: 100%;
-    border: none;
-    background: #ffffff;
-    display: block;
-    min-height: 0;
-}
-
-/* ============================================ */
-/* RIGHT: ЧАТ                                   */
+/* CHAT (full right panel)                      */
 /* ============================================ */
 
 .core-engine-lib-word-llm-chat {
@@ -265,6 +172,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    height: 2.25rem;
 }
 
 .core-engine-lib-word-llm-chat-title {
@@ -285,13 +193,13 @@
 }
 
 /* ============================================ */
-/* СООБЩЕНИЯ                                    */
+/* MESSAGES                                     */
 /* ============================================ */
 
 .core-engine-lib-word-llm-chat-messages {
     flex: 1 1 0;
     overflow-y: auto;
-    padding: 12px;
+    padding: 0 12px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -348,7 +256,7 @@
 }
 
 /* ============================================ */
-/* ФОРМА ВВОДА                                  */
+/* INPUT FORM                                   */
 /* ============================================ */
 
 .core-engine-lib-word-llm-chat-form {
@@ -413,44 +321,7 @@
 }
 
 /* ============================================ */
-/* РУЧКИ РЕСАЙЗА                                */
-/* ============================================ */
-
-.core-engine-lib-word-llm-resizer {
-    flex-shrink: 0;
-    width: 6px;
-    cursor: col-resize;
-    background: transparent;
-    position: relative;
-    z-index: 10;
-    transition: background 0.15s ease;
-}
-
-.core-engine-lib-word-llm-resizer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 1px;
-    background: var(--border-color, #d5dee9);
-    transition: background 0.15s ease, width 0.15s ease;
-}
-
-.core-engine-lib-word-llm-resizer:hover::before,
-.core-engine-lib-word-llm-resizer.active::before {
-    background: #3b82f6;
-    width: 2px;
-}
-
-.core-engine-lib-word-llm-resizer:hover,
-.core-engine-lib-word-llm-resizer.active {
-    background: rgba(59, 130, 246, 0.08);
-}
-
-/* ============================================ */
-/* АДАПТИВ                                      */
+/* RESPONSIVE                                   */
 /* ============================================ */
 
 @media (max-width: 1024px) {

@@ -1,29 +1,35 @@
 // app/core/engine/lib/base/modal/index.js
 
-export { BaseModalMessage } from './message.js';
-export { BaseModalConfirm } from './confirm.js';
-export { BaseModalInput } from './input.js';
-export { BaseModalTextarea } from './textarea.js';
-export { BaseModalDate } from './date.js';
-export { BaseModalInterval } from './interval.js';
-
 /**
- * Фабрика для создания модалок по типу
+ * Фабрика для создания модалок по типу.
+ * Асинхронная: классы подгружаются динамическим import().
  */
-export function createModal(type, props = {}) {
+export async function createModal(type, props = {}) {
     switch (type) {
-        case 'message':
+        case 'message': {
+            const { BaseModalMessage } = await import('./message.js');
             return new BaseModalMessage(props);
-        case 'confirm':
+        }
+        case 'confirm': {
+            const { BaseModalConfirm } = await import('./confirm.js');
             return new BaseModalConfirm(props);
-        case 'input':
+        }
+        case 'input': {
+            const { BaseModalInput } = await import('./input.js');
             return new BaseModalInput(props);
-        case 'textarea':
+        }
+        case 'textarea': {
+            const { BaseModalTextarea } = await import('./textarea.js');
             return new BaseModalTextarea(props);
-        case 'date':
+        }
+        case 'date': {
+            const { BaseModalDate } = await import('./date.js');
             return new BaseModalDate(props);
-        case 'interval':
+        }
+        case 'interval': {
+            const { BaseModalInterval } = await import('./interval.js');
             return new BaseModalInterval(props);
+        }
         default:
             console.warn(`[Modal] Неизвестный тип: ${type}`);
             return null;

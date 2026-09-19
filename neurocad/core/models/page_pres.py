@@ -9,10 +9,10 @@ from .base import Base
 
 class PagePres(Base):
     """
-    Глобальный пресет (шаблон страницы).
+    Global preset (page template).
 
-    Используется в LLM-редакторе (левая панель) — библиотека готовых
-    шаблонов. Не привязан к конкретной странице.
+    Used in LLM editor (left panel) — a library of ready-made templates.
+    Not tied to a specific page.
     """
     __tablename__ = "page_pres"
 
@@ -20,11 +20,14 @@ class PagePres(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text)
 
-    # HTML пресета (текущее состояние)
+    # HTML of preset (current state)
     html: Mapped[Optional[str]] = mapped_column(Text)
 
-    # Путь к PNG-превью относительно media/
-    # например: "presets/1.png"
+    # CSS of preset (current state)
+    css: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Path to PNG preview relative to media/
+    # e.g. "presets/1.png"
     thumbnail_path: Mapped[Optional[str]] = mapped_column(String(500))
 
     is_delete: Mapped[int] = mapped_column(Integer, default=0)
