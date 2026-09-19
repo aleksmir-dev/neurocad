@@ -1,9 +1,0 @@
-{
-  "component": "base",
-  "logoText": "⚡ NeuroCad",
-  "title": "NeuroCad",
-  "menu": [
-    { "text": "Главная", "href": "/" },
-    { "text": "Навигация", "href": "/nav" }
-  ]
-}

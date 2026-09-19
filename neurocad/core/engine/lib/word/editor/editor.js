@@ -1,51 +1,51 @@
 // app/core/engine/lib/word/editor/editor.js
 
 /**
- * Editor — визуальный редактор GrapesJS (часть компонента Word).
+ * Editor — GrapesJS visual editor (part of the Word component).
  *
- * Класс-оркестратор. Сам ничего не делает, а собирает подмодули:
+ * Orchestrator class. Does nothing itself, assembles submodules:
  *
- *   widgets.js   → строит DOM трёх областей (left / center / right) и toolbar
- *   styles.js    → отдаёт секции StyleManager
- *   grapes.js    → грузит CSS/JS GrapesJS и вызывает grapesjs.init()
- *   assets.js    → работает с медиатекой (GET /assets, POST /assets/upload)
- *   blocks/      → регистрирует библиотеку блоков
- *   resizer.js   → ручки для перетаскивания границ между областями
- *   base/modal   → модалки Base (в т.ч. textarea для кастомного CSS)
+ *   widgets.js   -> builds DOM of three areas (left / center / right) + toolbar
+ *   styles.js    -> provides StyleManager sections
+ *   grapes.js    -> loads GrapesJS CSS/JS and calls grapesjs.init()
+ *   assets.js    -> works with media library (GET /assets, POST /assets/upload)
+ *   blocks/      -> registers block library
+ *   resizer.js   -> handles for dragging borders between areas
+ *   base/modal   -> Base modals (incl. textarea for custom CSS)
  *
- * Все внутренние модули подгружаются динамически, с версией из coreEngine,
- * чтобы кэш браузера не мешал при обновлениях.
+ * All internal modules are loaded dynamically, with version from coreEngine,
+ * to avoid browser cache on updates.
  *
- * Наружу (в Word) отдаёт:
- *   - waitForInit()   — дождаться готовности
- *   - isInitialized() — проверить готовность
- *   - destroy()       — уничтожить редактор
- *   - editor          — сам инстанс GrapesJS (если нужно извне)
+ * Exposes (to Word):
+ *   - waitForInit()   — wait for readiness
+ *   - isInitialized() — check readiness
+ *   - destroy()       — destroy editor
+ *   - editor          — GrapesJS instance (if needed externally)
  *
- * Сохранение и отмена — через колбэки onSave / onCancel из props.
+ * Save / cancel — via onSave / onCancel callbacks from props.
  */
 export class Editor {
     constructor(container, props = {}) {
-        console.log('[Editor] Конструктор', { container, props });
+        console.log('[Editor] Constructor', { container, props });
 
         this.container = container;
         this.props = props;
 
-        // Данные для загрузки
+        // Data to load
         this.initialHtml = props.html || '';
         this.initialProject = props.project || null;
 
-        // Колбэки
+        // Callbacks
         this.onSave = props.onSave || null;
         this.onCancel = props.onCancel || null;
 
-        // Состояние
+        // State
         this.editor = null;
         this._initialized = false;
         this._initPromise = null;
         this._onKeyDown = null;
 
-        // Подмодули (создаются в _init)
+        // Submodules (created in _init)
         this._widgets = null;
         this._stylesConfig = null;
         this._grapes = null;
@@ -54,7 +54,7 @@ export class Editor {
         this._resizer = null;
         this._createModal = null;
 
-        // DOM-элементы (заполняются widgets.build())
+        // DOM elements (filled by widgets.build())
         this.leftArea = null;
         this.rightArea = null;
         this.blocksEl = null;
@@ -62,15 +62,23 @@ export class Editor {
         this.toolbarEl = null;
         this.stylesEl = null;
 
-        // API медиатеки
-        this._assetsApi = '/core/engine/lib/word/assets';
-        this._assetsUploadApi = '/core/engine/lib/word/assets/upload';
+        // Media library API — with module_name for multi-site support.
+        // module_name is passed via ?module= (see route.py / _module_name()).
+        const moduleName = window.coreEngine?.moduleName
+            || document.body.dataset.module
+            || '';
+        const qs = moduleName
+            ? `?module=${encodeURIComponent(moduleName)}`
+            : '';
+
+        this._assetsApi = `/core/engine/lib/word/assets${qs}`;
+        this._assetsUploadApi = `/core/engine/lib/word/assets/upload${qs}`;
 
         this._initPromise = this._init();
     }
 
     // ============================================
-    // ИНИЦИАЛИЗАЦИЯ
+    // INITIALIZATION
     // ============================================
 
     async _init() {
@@ -78,7 +86,7 @@ export class Editor {
         try {
             const version = window.coreEngine?.static_version || Date.now();
 
-            // 1. Параллельно грузим все подмодули
+            // 1. Load all submodules in parallel
             const [
                 { GrapesLoader },
                 { WidgetsBuilder },
@@ -99,70 +107,70 @@ export class Editor {
 
             this._createModal = createModal;
 
-            // 2. Строим DOM трёх областей (left / center / right) + toolbar
+            // 2. Build DOM of three areas (left / center / right) + toolbar
             this._widgets = new WidgetsBuilder(this);
             this._widgets.build();
 
-            // 2.5. Ручки ресайза — ДО grapesjs.init(),
-            // чтобы ширина панелей из localStorage уже применилась,
-            // и GrapesJS сразу посчитал canvas под правильный размер.
+            // 2.5. Resizer handles — BEFORE grapesjs.init(),
+            // so panel widths from localStorage are applied,
+            // and GrapesJS calculates canvas at the right size.
             this._resizer = new Resizer(this);
             this._resizer.build();
 
-            // 3. Конфиг StyleManager
+            // 3. StyleManager config
             this._stylesConfig = new StylesConfig(this);
 
-            // 4. Инициализация GrapesJS
+            // 4. GrapesJS init
             this._grapes = new GrapesLoader(this, {
                 styleManagerSectors: this._stylesConfig.sectors(),
             });
             await this._grapes.load();
             this.editor = this._grapes.init();
 
-            // 5. Библиотека блоков
+            // 5. Block library
             this._blocks = new BlocksRegistry(this.editor);
             await this._blocks.register();
 
-            // 6. Медиатека (подгрузка существующих ассетов)
+            // 6. Media library (load existing assets)
             this._assets = new AssetsManager(this);
             await this._assets.load();
 
-            // 7. Начальные данные
+            // 7. Initial data
             this._loadData();
 
-            // 8. Toolbar + горячие клавиши
+            // 8. Toolbar + hotkeys
             this._buildToolbar();
 
             this._initialized = true;
             console.log('[Editor] _init() COMPLETE');
         } catch (error) {
-            console.error('[Editor] Ошибка инициализации:', error);
+            console.error('[Editor] Init error:', error);
             this._initialized = false;
             throw error;
         }
     }
 
     // ============================================
-    // ЗАГРУЗКА ДАННЫХ
+    // DATA LOADING
     // ============================================
 
     _loadData() {
-        console.log('[Editor] Загрузка данных');
+        console.log('[Editor] Loading data');
 
         if (this.initialProject && this.initialProject.components) {
             this.editor.loadProjectData(this.initialProject);
-            console.log('[Editor] Загружен JSON-проект');
+            console.log('[Editor] JSON project loaded');
         } else if (this.initialHtml) {
             this.editor.setComponents(this.initialHtml);
-            console.log('[Editor] Загружен HTML');
+            console.log('[Editor] HTML loaded');
         } else {
-            console.log('[Editor] Нет данных — ставим пустой параграф');
+            console.log('[Editor] No data — setting empty paragraph');
             this.editor.setComponents('<p></p>');
         }
     }
 
     // ============================================
-    // TOOLBAR + ГОРЯЧИЕ КЛАВИШИ
+    // TOOLBAR + HOTKEYS
     // ============================================
 
     _buildToolbar() {
@@ -203,14 +211,14 @@ export class Editor {
             </button>
         `;
 
-        // Делегированный обработчик клика по кнопкам toolbar
+        // Delegated click handler for toolbar buttons
         this.toolbarEl.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-action]');
             if (!btn) return;
             this._handleToolbarAction(btn.dataset.action);
         });
 
-        // Горячие клавиши
+        // Hotkeys
         this._onKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
@@ -263,23 +271,23 @@ export class Editor {
     }
 
     // ============================================
-    // МОДАЛКА КАСТОМНОГО CSS (через Base Modal)
+    // CUSTOM CSS MODAL (via Base Modal)
     // ============================================
 
     /**
-     * Открыть модалку кастомного CSS.
-     * Использует BaseModalTextarea из base/modal.
+     * Open custom CSS modal.
+     * Uses BaseModalTextarea from base/modal.
      */
     _openCssModal() {
         if (!this._createModal) {
-            console.warn('[Editor] createModal не загружен');
+            console.warn('[Editor] createModal not loaded');
             return;
         }
 
         const comp = this.editor.getSelected();
 
         if (!comp) {
-            // Ничего не выбрано — открывать нечего
+            // Nothing selected — nothing to open
             const modal = this._createModal('message');
             modal.open(
                 'Сначала выберите элемент на холсте.',
@@ -296,7 +304,7 @@ export class Editor {
             ? `<${tag} class="${classes}">`
             : `<${tag}>`;
 
-        // Текущие inline-стили
+        // Current inline styles
         const style = comp.getStyle() || {};
         const initialCss = Object.entries(style)
             .map(([k, v]) => `${k}: ${v};`)
@@ -322,7 +330,7 @@ export class Editor {
     }
 
     /**
-     * Применить CSS из строки к выбранному компоненту.
+     * Apply CSS from string to the selected component.
      */
     _applyCustomCss(cssText) {
         const comp = this.editor.getSelected();
@@ -331,25 +339,25 @@ export class Editor {
         const styleObj = this._parseCssText(cssText || '');
 
         if (Object.keys(styleObj).length === 0) {
-            console.warn('[Editor] Кастомный CSS пуст или не распознан');
+            console.warn('[Editor] Custom CSS is empty or unrecognized');
             return;
         }
 
         comp.addStyle(styleObj);
-        console.log('[Editor] Применён кастомный CSS:', styleObj);
+        console.log('[Editor] Custom CSS applied:', styleObj);
     }
 
     /**
-     * Простой парсер CSS-текста в объект {property: value}.
-     * Понимает многострочный и однострочный формат, игнорирует комментарии.
+     * Simple CSS text parser into {property: value} object.
+     * Understands multi-line and single-line format, ignores comments.
      */
     _parseCssText(text) {
         const result = {};
 
-        // Убираем комментарии /* ... */
+        // Remove /* ... */ comments
         const cleaned = text.replace(/\/\*[\s\S]*?\*\//g, '');
 
-        // Разбиваем по ';' или переносам строк
+        // Split by ';' or newlines
         const declarations = cleaned.split(/;|\n/);
 
         for (let decl of declarations) {
@@ -371,16 +379,16 @@ export class Editor {
     }
 
     // ============================================
-    // СОХРАНЕНИЕ
+    // SAVING
     // ============================================
 
     async _handleSave() {
         if (!this.onSave) {
-            console.warn('[Editor] onSave не привязан');
+            console.warn('[Editor] onSave not bound');
             return;
         }
 
-        console.log('[Editor] Сохранение...');
+        console.log('[Editor] Saving...');
 
         const data = {
             html: this.editor.getHtml(),
@@ -390,21 +398,21 @@ export class Editor {
 
         try {
             await this.onSave(data);
-            console.log('[Editor] Сохранено');
+            console.log('[Editor] Saved');
         } catch (error) {
-            console.error('[Editor] Ошибка сохранения:', error);
+            console.error('[Editor] Save error:', error);
         }
     }
 
     _handleCancel() {
-        console.log('[Editor] Отмена');
+        console.log('[Editor] Cancel');
         if (this.onCancel) {
             this.onCancel();
         }
     }
 
     // ============================================
-    // ПУБЛИЧНЫЕ МЕТОДЫ
+    // PUBLIC METHODS
     // ============================================
 
     isInitialized() {
@@ -424,12 +432,12 @@ export class Editor {
             this._onKeyDown = null;
         }
 
-        // Убираем ручки ресайза и снимаем слушатели
+        // Remove resizer handles and listeners
         if (this._resizer) {
             try {
                 this._resizer.destroy();
             } catch (e) {
-                console.warn('[Editor] Ошибка при resizer.destroy():', e);
+                console.warn('[Editor] resizer.destroy() error:', e);
             }
             this._resizer = null;
         }
@@ -438,17 +446,17 @@ export class Editor {
             try {
                 this.editor.destroy();
             } catch (e) {
-                console.warn('[Editor] Ошибка при editor.destroy():', e);
+                console.warn('[Editor] editor.destroy() error:', e);
             }
             this.editor = null;
         }
 
-        // Очищаем DOM-области (на случай, если GrapesJS не успел за собой убрать)
+        // Clear DOM areas (in case GrapesJS didn't clean up)
         if (this.leftArea) this.leftArea.innerHTML = '';
         if (this.rightArea) this.rightArea.innerHTML = '';
         if (this.container) this.container.innerHTML = '';
 
-        // Сбрасываем подмодули
+        // Reset submodules
         this._widgets = null;
         this._stylesConfig = null;
         this._grapes = null;

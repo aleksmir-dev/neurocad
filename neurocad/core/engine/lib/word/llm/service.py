@@ -1,8 +1,6 @@
 # neurocad/core/engine/lib/word/llm/service.py
 
-"""
-LLM-сервис: работа с пресетами (CRUD + миниатюры) и чатом (page_chat).
-"""
+"""LLM service: presets (CRUD + thumbnails) and chat (page_chat)."""
 
 import os
 import re
@@ -21,11 +19,10 @@ from ......utils.llm.deepseek import generate_completion
 
 
 # ============================================
-# ПУТИ
+# PATHS
 # ============================================
 
-APP_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent.parent
-
+# Media is relative to cwd: <project>/media/
 MEDIA_ROOT = Path("media")
 PRESETS_DIR = MEDIA_ROOT / "presets"
 MEDIA_URL = "/media"
@@ -34,7 +31,7 @@ THUMBNAIL_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.webp'}
 
 
 # ============================================
-# СИСТЕМНЫЙ ПРОМПТ ДЛЯ HTML-РЕДАКТОРА
+# SYSTEM PROMPT FOR HTML EDITOR
 # ============================================
 
 HTML_EDITOR_SYSTEM_PROMPT = """Ты — редактор HTML-кода.
@@ -75,10 +72,10 @@ HTML:
 
 
 class LLMService:
-    """Сервис LLM-редактора: пресеты и чат."""
+    """LLM editor service: presets and chat."""
 
     # ========================================
-    # СПИСОК ПРЕСЕТОВ
+    # LIST PRESETS
     # ========================================
 
     @staticmethod
@@ -86,10 +83,10 @@ class LLMService:
         include_deleted: bool = False,
     ) -> Dict[str, Any]:
         """
-        Получить список пресетов.
+        Get presets list.
 
-        include_deleted = False → только активные (is_delete = 0)
-        include_deleted = True  → все
+        include_deleted = False → only active (is_delete = 0)
+        include_deleted = True  → all
         """
         async for session in get_db_sqlite():
             stmt = select(PagePres)
@@ -123,12 +120,12 @@ class LLMService:
         return {"items": [], "total": 0}
 
     # ========================================
-    # ОДИН ПРЕСЕТ
+    # GET PRESET
     # ========================================
 
     @staticmethod
     async def get_preset(preset_id: int) -> Optional[Dict[str, Any]]:
-        """Получить один пресет по ID."""
+        """Get one preset by ID."""
         async for session in get_db_sqlite():
             stmt = select(PagePres).where(
                 PagePres.id == preset_id,
@@ -154,7 +151,7 @@ class LLMService:
         return None
 
     # ========================================
-    # СОЗДАНИЕ
+    # CREATE PRESET
     # ========================================
 
     @staticmethod
@@ -163,7 +160,7 @@ class LLMService:
         description: Optional[str] = None,
         html: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
-        """Создать новый пресет."""
+        """Create a new preset."""
         async for session in get_db_sqlite():
             new_preset = PagePres(
                 name=name.strip(),
@@ -191,7 +188,7 @@ class LLMService:
         return None
 
     # ========================================
-    # ОБНОВЛЕНИЕ
+    # UPDATE PRESET
     # ========================================
 
     @staticmethod
@@ -201,7 +198,7 @@ class LLMService:
         description: Optional[str] = None,
         html: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
-        """Обновить пресет. Обновляются только переданные поля."""
+        """Update preset. Only provided fields are updated."""
         async for session in get_db_sqlite():
             stmt = select(PagePres).where(
                 PagePres.id == preset_id,
@@ -238,12 +235,12 @@ class LLMService:
         return None
 
     # ========================================
-    # МЯГКОЕ УДАЛЕНИЕ
+    # SOFT DELETE
     # ========================================
 
     @staticmethod
     async def delete_preset(preset_id: int) -> bool:
-        """Мягко удалить пресет (is_delete = 1)."""
+        """Soft delete preset (is_delete = 1)."""
         async for session in get_db_sqlite():
             stmt = select(PagePres).where(
                 PagePres.id == preset_id,
@@ -263,12 +260,12 @@ class LLMService:
         return False
 
     # ========================================
-    # ВОССТАНОВЛЕНИЕ
+    # RESTORE
     # ========================================
 
     @staticmethod
     async def restore_preset(preset_id: int) -> bool:
-        """Восстановить удалённый пресет (is_delete = 0)."""
+        """Restore deleted preset (is_delete = 0)."""
         async for session in get_db_sqlite():
             stmt = select(PagePres).where(
                 PagePres.id == preset_id,
@@ -288,7 +285,7 @@ class LLMService:
         return False
 
     # ========================================
-    # МИНИАТЮРА
+    # UPLOAD THUMBNAIL
     # ========================================
 
     @staticmethod
@@ -296,9 +293,7 @@ class LLMService:
         preset_id: int,
         file: UploadFile,
     ) -> Optional[Dict[str, Any]]:
-        """
-        Загрузить PNG-миниатюру для пресета.
-        """
+        """Upload PNG thumbnail for preset."""
         async for session in get_db_sqlite():
             stmt = select(PagePres).where(
                 PagePres.id == preset_id,
@@ -313,23 +308,22 @@ class LLMService:
             original_name = file.filename or "thumbnail.png"
             ext = Path(original_name).suffix.lower()
             if ext not in THUMBNAIL_EXTENSIONS:
-                raise ValueError(f"Недопустимое расширение: {ext}. Разрешены: {', '.join(THUMBNAIL_EXTENSIONS)}")
+                raise ValueError(f"Invalid extension: {ext}. Allowed: {', '.join(THUMBNAIL_EXTENSIONS)}")
 
             PRESETS_DIR.mkdir(parents=True, exist_ok=True)
 
             final_name = f"{preset_id}{ext}"
             save_path = PRESETS_DIR / final_name
 
-            # Удаляем старую миниатюру
+            # Remove old thumbnail
             for old_ext in THUMBNAIL_EXTENSIONS:
                 old_file = PRESETS_DIR / f"{preset_id}{old_ext}"
                 if old_file.exists() and old_file != save_path:
                     try:
                         old_file.unlink()
                     except Exception as e:
-                        print(f"[LLM] Не удалось удалить старую миниатюру {old_file}: {e}")
+                        print(f"[LLM] Failed to remove old thumbnail {old_file}: {e}")
 
-            # Сохраняем файл
             with open(save_path, "wb") as buffer:
                 while True:
                     chunk = await file.read(1024 * 64)
@@ -352,12 +346,12 @@ class LLMService:
         return None
 
     # ========================================
-    # УДАЛЕНИЕ МИНИАТЮРЫ
+    # DELETE THUMBNAIL
     # ========================================
 
     @staticmethod
     async def delete_thumbnail(preset_id: int) -> bool:
-        """Удалить миниатюру пресета (файл + запись в БД)."""
+        """Delete preset thumbnail (file + DB record)."""
         async for session in get_db_sqlite():
             stmt = select(PagePres).where(
                 PagePres.id == preset_id,
@@ -375,7 +369,7 @@ class LLMService:
                     try:
                         file_path.unlink()
                     except Exception as e:
-                        print(f"[LLM] Не удалось удалить файл {file_path}: {e}")
+                        print(f"[LLM] Failed to remove file {file_path}: {e}")
 
             preset.thumbnail_path = None
             preset.updated_at = datetime.now()
@@ -385,12 +379,12 @@ class LLMService:
         return False
 
     # ========================================
-    # ЧАТ — ИСТОРИЯ
+    # CHAT — HISTORY
     # ========================================
 
     @staticmethod
     async def load_chat_history(page_id: int) -> List[Dict[str, Any]]:
-        """Загрузить всю историю чата по странице, от старых к новым."""
+        """Load full chat history by page, from old to new."""
         async for session in get_db_sqlite():
             stmt = (
                 select(PageChat)
@@ -416,7 +410,7 @@ class LLMService:
         return []
 
     # ========================================
-    # ЧАТ — СОХРАНЕНИЕ СООБЩЕНИЯ
+    # CHAT — SAVE MESSAGE
     # ========================================
 
     @staticmethod
@@ -428,7 +422,7 @@ class LLMService:
         prompt_tokens: Optional[int] = None,
         completion_tokens: Optional[int] = None,
     ) -> Optional[Dict[str, Any]]:
-        """Сохранить одно сообщение чата."""
+        """Save one chat message."""
         async for session in get_db_sqlite():
             msg = PageChat(
                 page_id=page_id,
@@ -456,7 +450,7 @@ class LLMService:
         return None
 
     # ========================================
-    # ЧАТ — ОТПРАВКА СООБЩЕНИЯ В LLM
+    # CHAT — SEND MESSAGE TO LLM
     # ========================================
 
     @staticmethod
@@ -465,17 +459,17 @@ class LLMService:
         user_message: str,
     ) -> Optional[Dict[str, Any]]:
         """
-        Обработать одно сообщение пользователя:
-          1. Загрузить текущий HTML страницы.
-          2. Сохранить сообщение пользователя в page_chat.
-          3. Отправить в LLM (system + HTML + запрос).
-          4. Распарсить ответ LLM в {message, html}.
-          5. Сохранить ответ ассистента в page_chat (там — message).
-          6. Обновить HTML страницы.
-          7. Вернуть { user_message, assistant_message, html }.
+        Handle one user message:
+          1. Load current page HTML.
+          2. Save user message to page_chat.
+          3. Send to LLM (system + HTML + request).
+          4. Parse LLM response into {message, html}.
+          5. Save assistant message to page_chat (with short message).
+          6. Update page HTML.
+          7. Return { user_message, assistant_message, html }.
         """
 
-        # ===== 1. Загружаем страницу =====
+        # ===== 1. Load page =====
         async for session in get_db_sqlite():
             page_stmt = select(Page).where(
                 Page.id == page_id,
@@ -489,7 +483,7 @@ class LLMService:
 
             current_html = page.content or ''
 
-            # ===== 2. Сохраняем сообщение пользователя =====
+            # ===== 2. Save user message =====
             user_msg = PageChat(
                 page_id=page_id,
                 role='user',
@@ -506,34 +500,33 @@ class LLMService:
                 "created_at": user_msg.created_at.isoformat() if user_msg.created_at else None,
             }
 
-            # ===== 3. Собираем messages для LLM =====
-            html_part = current_html.strip() if current_html and current_html.strip() else "(пусто)"
+            # ===== 3. Build messages for LLM =====
+            html_part = current_html.strip() if current_html and current_html.strip() else "(empty)"
 
             messages = [
                 {"role": "system", "content": HTML_EDITOR_SYSTEM_PROMPT},
-                {"role": "user", "content": f"HTML:\n{html_part}\n\nЗапрос: {user_message}"},
+                {"role": "user", "content": f"HTML:\n{html_part}\n\nRequest: {user_message}"},
             ]
 
-            # ===== 4. Запрос к DeepSeek =====
+            # ===== 4. Request to DeepSeek =====
             try:
                 raw_response = await generate_completion(messages)
             except Exception as e:
-                # Fallback на случай сетевой ошибки
                 raw_response = json.dumps({
-                    "message": f"Ошибка LLM: {e}",
+                    "message": f"LLM error: {e}",
                     "html": "",
                 }, ensure_ascii=False)
 
-            # ===== 5. Парсим ответ LLM =====
+            # ===== 5. Parse LLM response =====
             parsed = LLMService._parse_llm_response(raw_response)
             new_html = parsed["html"]
             chat_message = parsed["message"]
 
-            # ===== 6. Сохраняем ответ ассистента =====
+            # ===== 6. Save assistant message =====
             assistant_msg = PageChat(
                 page_id=page_id,
                 role='assistant',
-                content=chat_message,   # в чат — короткое сообщение
+                content=chat_message,
                 model=None,
                 created_at=datetime.now(),
             )
@@ -547,7 +540,7 @@ class LLMService:
                 "created_at": assistant_msg.created_at.isoformat() if assistant_msg.created_at else None,
             }
 
-            # ===== 7. Обновляем HTML страницы =====
+            # ===== 7. Update page HTML =====
             if new_html:
                 page.content = new_html
                 page.updated_at = datetime.now()
@@ -562,25 +555,25 @@ class LLMService:
         return None
 
     # ========================================
-    # УТИЛИТЫ
+    # UTILS
     # ========================================
 
     @staticmethod
     def _parse_llm_response(text: str) -> Dict[str, str]:
         """
-        Разобрать ответ LLM в {message, html}.
+        Parse LLM response into {message, html}.
 
-        Ожидаем JSON: {"message": "...", "html": "..."}.
-        Если JSON невалидный — fallback (не падаем):
-          - message = нейтральное
-          - html = очищенный текст как HTML
+        Expect JSON: {"message": "...", "html": "..."}.
+        If JSON invalid — fallback (no crash):
+          - message = neutral
+          - html = cleaned text as HTML
         """
         if not text:
-            return {"message": "Пустой ответ LLM.", "html": ""}
+            return {"message": "Empty LLM response.", "html": ""}
 
         s = text.strip()
 
-        # 1. Убираем markdown-обёртку ```json ... ```
+        # 1. Remove markdown wrapper ```json ... ```
         if s.startswith('```'):
             first_nl = s.find('\n')
             if first_nl != -1:
@@ -589,8 +582,7 @@ class LLMService:
                 s = s[:-3]
             s = s.strip()
 
-        # 2. Ищем JSON в тексте (если модель добавила что-то до/после)
-        #    Первый `{` и последний `}`.
+        # 2. Find JSON in text (if model added something before/after)
         start = s.find('{')
         end = s.rfind('}')
         if start != -1 and end != -1 and end > start:
@@ -598,41 +590,38 @@ class LLMService:
             try:
                 data = json.loads(candidate)
                 if isinstance(data, dict):
-                    message = str(data.get("message", "")).strip() or "Готово."
+                    message = str(data.get("message", "")).strip() or "Done."
                     html = str(data.get("html", "")).strip()
                     return {"message": message, "html": html}
             except json.JSONDecodeError:
                 pass
 
-        # 3. Прямая попытка — вдруг уже валидный JSON
+        # 3. Direct attempt — maybe already valid JSON
         try:
             data = json.loads(s)
             if isinstance(data, dict):
-                message = str(data.get("message", "")).strip() or "Готово."
+                message = str(data.get("message", "")).strip() or "Done."
                 html = str(data.get("html", "")).strip()
                 return {"message": message, "html": html}
         except json.JSONDecodeError:
             pass
 
-        # 4. Fallback: не JSON — считаем, что это HTML
+        # 4. Fallback: not JSON — treat as HTML
         cleaned = LLMService._clean_html_response(s)
 
         return {
-            "message": "Готово. Изменения применены.",
+            "message": "Done. Changes applied.",
             "html": cleaned,
         }
 
     @staticmethod
     def _clean_html_response(text: str) -> str:
-        """
-        Убрать markdown-обёртки (```html ... ```), если LLM их добавил.
-        """
+        """Remove markdown wrappers (```html ... ```) if LLM added them."""
         if not text:
             return text
 
         s = text.strip()
 
-        # ```html\n...\n```
         if s.startswith('```'):
             first_nl = s.find('\n')
             if first_nl != -1:

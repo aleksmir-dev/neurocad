@@ -1,9 +1,0 @@
-{
-  "component": "page",
-  "extend": "base",
-  "title": "Навигация",
-  "content": "{{ nav }}",
-  "components": [
-    { "component": "nav" }
-  ]
-}

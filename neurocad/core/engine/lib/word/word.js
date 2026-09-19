@@ -1,54 +1,65 @@
-// neurocad/core/engine/lib/word/word.js
+// app/core/engine/lib/word/word.js
 
 /**
- * Word — компонент отображения контента страницы.
+ * Word — page content display component.
  *
- * Задачи:
- *   1. Получить данные страницы:
- *      - из props.page_data (если передан);
- *      - или загрузить по props.page_id;
- *      - или загрузить по параметрам из window.coreEngine.paramsList.
- *   2. Отрендерить виджет:
+ * Tasks:
+ *   1. Get page data:
+ *      - from props.page_data (if provided);
+ *      - or load by props.page_id;
+ *      - or load by params from window.coreEngine.paramsList.
+ *   2. Render widget:
  *        .core-engine-lib-base-widget.core-engine-lib-word-widget
  *          ├─ .core-engine-lib-base-widget-toolbar
- *          │    ├─ кнопка «Редактировать» (карандаш, GrapesJS)
- *          │    └─ кнопка «LLM-редактор» (молния ⚡)
- *          └─ .core-engine-lib-base-widget-content   ← article с контентом
- *   3. По кнопке-карандашу — Editor (./editor/index.js) — GrapesJS.
- *   4. По кнопке-молнии — LLMEditor (./llm/index.js) — редактор с пресетами и чатом.
- *   5. Сохранить результат через API lib/word.
+ *          │    ├─ "Edit" button (pencil, GrapesJS)
+ *          │    └─ "LLM editor" button (⚡)
+ *          └─ .core-engine-lib-base-widget-content   ← article with content
+ *   3. Pencil button — Editor (./editor/index.js) — GrapesJS.
+ *   4. Lightning button — LLMEditor (./llm/index.js) — editor with presets and chat.
+ *   5. Save via lib/word API.
  *
- * API (все — lib/word, независимо от lib/pages):
- *   GET  /core/engine/lib/word/bydatetime/{date}/{time}
- *   GET  /core/engine/lib/word/item/{id}
- *   PUT  /core/engine/lib/word/{id}
- *   GET  /core/engine/lib/word/assets
- *   POST /core/engine/lib/word/assets/upload
+ * API (all — lib/word, independent of lib/pages):
+ *   GET  /core/engine/lib/word/bydatetime/{date}/{time}?module=<name>
+ *   GET  /core/engine/lib/word/item/{id}?module=<name>
+ *   PUT  /core/engine/lib/word/{id}?module=<name>
+ *   GET  /core/engine/lib/word/assets?module=<name>
+ *   POST /core/engine/lib/word/assets/upload?module=<name>
+ *
+ * module query param — for multi-site support. Resolved by route.py
+ * via _module_name() (query -> Referer fallback).
  */
 export class Word {
     constructor(container, props = {}) {
-        console.log('[Word] Конструктор', { container, props });
+        console.log('[Word] Constructor', { container, props });
 
-        this.container = container;      // .core-engine-component--word (от Renderer)
+        this.container = container;      // .core-engine-component--word (from Renderer)
         this.props = props;
 
-        // Данные страницы
+        // Page data
         this.pageId = props.page_id || null;
         this.pageData = props.page_data || null;
 
-        // Состояние
-        this.editorInstance = null;      // GrapesJS-редактор
-        this.llmInstance = null;         // LLM-редактор
+        // Module name for multi-site support (query param in URLs)
+        this.moduleName = window.coreEngine?.moduleName
+            || document.body.dataset.module
+            || '';
+        this._qs = this.moduleName
+            ? `?module=${encodeURIComponent(this.moduleName)}`
+            : '';
+
+        // State
+        this.editorInstance = null;      // GrapesJS editor
+        this.llmInstance = null;         // LLM editor
         this.isEditing = false;
         this._initialized = false;
         this._initPromise = null;
 
-        // DOM-ссылки на части виджета
+        // DOM refs to widget parts
         this.widgetEl = null;
         this.toolbarEl = null;
         this.widgetContentEl = null;
 
-        // Путь к иконкам Base
+        // Path to Base icons
         this._iconsBase = '/static/core/engine/lib/base/images';
 
         this._loadCSS();
@@ -72,7 +83,7 @@ export class Word {
                 } else {
                     const loaded = await this._loadByParams();
                     if (!loaded) {
-                        throw new Error('Нет данных для загрузки: нет page_data, page_id и параметров в URL');
+                        throw new Error('No data to load: no page_data, page_id, or URL params');
                     }
                 }
             }
@@ -82,7 +93,7 @@ export class Word {
             this._initialized = true;
             console.log('[Word] _init() COMPLETE');
         } catch (error) {
-            console.error('[Word] Ошибка инициализации:', error);
+            console.error('[Word] Init error:', error);
             this._renderError(error.message);
             this._initialized = false;
             throw error;
@@ -90,7 +101,7 @@ export class Word {
     }
 
     // ============================================
-    // ЗАГРУЗКА ДАННЫХ
+    // DATA LOADING
     // ============================================
 
     async _loadByParams() {
@@ -101,90 +112,90 @@ export class Word {
         const time = params[1] || null;
 
         if (!date || !time) {
-            console.log('[Word] Параметры в URL отсутствуют');
+            console.log('[Word] URL params missing');
             return false;
         }
 
-        console.log(`[Word] Загрузка по дате/времени: ${date} ${time}`);
+        console.log(`[Word] Loading by date/time: ${date} ${time}`);
 
-        const url = `/core/engine/lib/word/bydatetime/${date}/${time}`;
+        const url = `/core/engine/lib/word/bydatetime/${date}/${time}${this._qs}`;
         const response = await fetch(url, {
             credentials: 'include',
             headers: { 'Accept': 'application/json' },
         });
 
         if (response.status === 404) {
-            throw new Error('Страница не найдена');
+            throw new Error('Page not found');
         }
 
         if (!response.ok) {
-            throw new Error(`Ошибка загрузки: ${response.status}`);
+            throw new Error(`Load error: ${response.status}`);
         }
 
         const result = await response.json();
         if (!result.success) {
-            throw new Error(result.message || 'Ошибка загрузки страницы');
+            throw new Error(result.message || 'Page load error');
         }
 
         this.pageData = result.data;
         this.pageId = result.data.id;
-        console.log('[Word] Страница загружена:', this.pageData.title);
+        console.log('[Word] Page loaded:', this.pageData.title);
         return true;
     }
 
     async _loadById() {
-        console.log(`[Word] Загрузка по id: ${this.pageId}`);
+        console.log(`[Word] Loading by id: ${this.pageId}`);
 
-        const url = `/core/engine/lib/word/item/${this.pageId}`;
+        const url = `/core/engine/lib/word/item/${this.pageId}${this._qs}`;
         const response = await fetch(url, {
             credentials: 'include',
             headers: { 'Accept': 'application/json' },
         });
 
         if (response.status === 404) {
-            throw new Error('Страница не найдена');
+            throw new Error('Page not found');
         }
 
         if (!response.ok) {
-            throw new Error(`Ошибка загрузки: ${response.status}`);
+            throw new Error(`Load error: ${response.status}`);
         }
 
         const result = await response.json();
         if (!result.success) {
-            throw new Error(result.message || 'Ошибка загрузки страницы');
+            throw new Error(result.message || 'Page load error');
         }
 
         this.pageData = result.data;
-        console.log('[Word] Страница загружена:', this.pageData.title);
+        console.log('[Word] Page loaded:', this.pageData.title);
     }
 
     // ============================================
-    // РЕНДЕР
+    // RENDER
     // ============================================
 
     _render() {
         console.log('[Word] _render()');
 
-        // Очищаем контейнер
+        // Clear container
         while (this.container.firstChild) {
             this.container.removeChild(this.container.firstChild);
         }
 
-        // ===== Корневой widget =====
+        // ===== Root widget =====
         const widget = document.createElement('div');
         widget.className = 'core-engine-lib-base-widget core-engine-lib-word-widget';
         this.widgetEl = widget;
 
-        // ===== Toolbar виджета =====
+        // ===== Widget toolbar =====
         const toolbar = document.createElement('div');
         toolbar.className = 'core-engine-lib-base-widget-toolbar core-engine-lib-word-toolbar';
         toolbar.setAttribute('data-js', 'word-toolbar');
         this.toolbarEl = toolbar;
         widget.appendChild(toolbar);
 
-        // Кнопки тулбара — только для админа
+        // Toolbar buttons — admin only
         if (this._isAdmin()) {
-            // ===== Кнопка «Редактировать» (GrapesJS) =====
+            // ===== "Edit" button (GrapesJS) =====
             const editBtn = document.createElement('button');
             editBtn.type = 'button';
             editBtn.className = 'core-engine-lib-word-toolbar-btn';
@@ -202,7 +213,7 @@ export class Word {
             editBtn.addEventListener('click', () => this._openEditor());
             toolbar.appendChild(editBtn);
 
-            // ===== Кнопка «LLM-редактор» (⚡) =====
+            // ===== "LLM editor" button (⚡) =====
             const llmBtn = document.createElement('button');
             llmBtn.type = 'button';
             llmBtn.className = 'core-engine-lib-word-toolbar-btn';
@@ -221,27 +232,27 @@ export class Word {
             toolbar.appendChild(llmBtn);
         }
 
-        // ===== Content виджета =====
+        // ===== Widget content =====
         const widgetContent = document.createElement('div');
         widgetContent.className = 'core-engine-lib-base-widget-content core-engine-lib-word-widget-content';
         widgetContent.setAttribute('data-js', 'word-widget-content');
         this.widgetContentEl = widgetContent;
         widget.appendChild(widgetContent);
 
-        // ===== Article внутри content =====
+        // ===== Article inside content =====
         const article = this._buildArticle();
         widgetContent.appendChild(article);
 
-        // Вставляем виджет в container
+        // Insert widget into container
         this.container.appendChild(widget);
     }
 
     /**
-     * Собрать article с заголовком и контентом.
-     * Используется и в _render(), и в _closeEditor(), и в _closeLLMEditor().
+     * Build article with title and content.
+     * Used in _render(), _closeEditor(), _closeLLMEditor().
      */
     _buildArticle() {
-        // content = HTML + <style>…</style> (склеено при сохранении)
+        // content = HTML + <style>…</style> (merged on save)
         const html = this.pageData?.content
             || '<p class="core-engine-lib-word-empty">Контент пуст</p>';
 
@@ -305,13 +316,13 @@ export class Word {
     }
 
     // ============================================
-    // РУЧКИ РЕСАЙЗА — ОЧИСТКА ПРИ ПЕРЕКЛЮЧЕНИИ РЕЖИМОВ
+    // RESIZER HANDLES — CLEANUP ON MODE SWITCH
     // ============================================
 
     /**
-     * Убирает ВСЕ ручки ресайза (и от GrapesJS, и от LLM).
-     * Используется при переключении режимов, чтобы не было конфликта
-     * (две пары ручек на одном месте).
+     * Remove ALL resizer handles (both GrapesJS and LLM).
+     * Used when switching modes, to avoid conflict
+     * (two pairs of handles in one place).
      */
     _clearAllResizers() {
         document.querySelectorAll('.core-engine-lib-word-editor-resizer').forEach(h => h.remove());
@@ -319,27 +330,27 @@ export class Word {
     }
 
     // ============================================
-    // РЕДАКТОР GRAPESJS
+    // GRAPESJS EDITOR
     // ============================================
 
     async _openEditor() {
-        console.log('[Word] Открытие редактора GrapesJS');
+        console.log('[Word] Opening GrapesJS editor');
         this.isEditing = true;
 
-        // Убираем все ручки от предыдущих режимов
+        // Remove all handles from previous modes
         this._clearAllResizers();
 
-        // Очищаем содержимое виджета (оставляем toolbar и сам widget)
+        // Clear widget content (keep toolbar and widget itself)
         if (this.widgetContentEl) {
             while (this.widgetContentEl.firstChild) {
                 this.widgetContentEl.removeChild(this.widgetContentEl.firstChild);
             }
         } else {
-            console.warn('[Word] widgetContentEl не найден — создаю заново');
+            console.warn('[Word] widgetContentEl not found — re-creating');
             this._render();
         }
 
-        // Editor строится в word-widget-content — там есть место под toolbar+canvas
+        // Editor is built in word-widget-content — there's room for toolbar+canvas
         const version = window.coreEngine?.static_version || Date.now();
         const { Editor } = await import(`./editor/index.js?v=${version}`);
 
@@ -363,16 +374,16 @@ export class Word {
     }
 
     async _saveContent(data) {
-        console.log('[Word] Сохранение контента для id:', this.pageId);
+        console.log('[Word] Saving content for id:', this.pageId);
 
         if (!this.pageId) {
-            throw new Error('Неизвестен id страницы');
+            throw new Error('Unknown page id');
         }
 
-        // ===== Склеиваем HTML + CSS =====
-        // GrapesJS генерирует CSS через StyleManager. Если сохранить только
-        // getHtml(), все flex/grid/выравнивания потеряются при рендере.
-        // Поэтому кладём CSS в <style> прямо перед HTML.
+        // ===== Merge HTML + CSS =====
+        // GrapesJS generates CSS via StyleManager. If we save only
+        // getHtml(), all flex/grid/alignments are lost on render.
+        // So we put CSS in <style> right before HTML.
         const css = (data.css || '').trim();
         const html = data.html || '';
 
@@ -380,7 +391,7 @@ export class Word {
             ? `<style>${css}</style>${html}`
             : html;
 
-        const url = `/core/engine/lib/word/${this.pageId}`;
+        const url = `/core/engine/lib/word/${this.pageId}${this._qs}`;
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -396,21 +407,21 @@ export class Word {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Ошибка сохранения');
+            throw new Error(errorData.detail || 'Save error');
         }
 
-        // Обновляем локальные данные — чтобы сразу после закрытия редактора
-        // отрендерился контент со стилями (без перезагрузки страницы).
+        // Update local data — so that after closing the editor,
+        // content with styles renders immediately (no page reload).
         this.pageData.content = contentWithCss;
         this.pageData.content_json = JSON.stringify(data.project);
 
-        console.log('[Word] Контент сохранён (HTML + CSS)');
+        console.log('[Word] Content saved (HTML + CSS)');
 
         this._closeEditor();
     }
 
     _closeEditor() {
-        console.log('[Word] Закрытие редактора GrapesJS');
+        console.log('[Word] Closing GrapesJS editor');
 
         if (this.editorInstance?.destroy) {
             this.editorInstance.destroy();
@@ -418,39 +429,39 @@ export class Word {
         this.editorInstance = null;
         this.isEditing = false;
 
-        // Убираем возможные оставшиеся ручки
+        // Remove any remaining handles
         this._clearAllResizers();
 
-        // Очищаем содержимое виджета и возвращаем туда article
+        // Clear widget content and put article back
         if (this.widgetContentEl) {
             while (this.widgetContentEl.firstChild) {
                 this.widgetContentEl.removeChild(this.widgetContentEl.firstChild);
             }
             this.widgetContentEl.appendChild(this._buildArticle());
         } else {
-            // fallback — перерисовать целиком
+            // fallback — full re-render
             this._render();
         }
     }
 
     // ============================================
-    // LLM-РЕДАКТОР
+    // LLM EDITOR
     // ============================================
 
     async _openLLMEditor() {
-        console.log('[Word] Открытие LLM-редактора');
+        console.log('[Word] Opening LLM editor');
         this.isEditing = true;
 
-        // Убираем все ручки от предыдущих режимов
+        // Remove all handles from previous modes
         this._clearAllResizers();
 
-        // Очищаем содержимое виджета
+        // Clear widget content
         if (this.widgetContentEl) {
             while (this.widgetContentEl.firstChild) {
                 this.widgetContentEl.removeChild(this.widgetContentEl.firstChild);
             }
         } else {
-            console.warn('[Word] widgetContentEl не найден — создаю заново');
+            console.warn('[Word] widgetContentEl not found — re-creating');
             this._render();
         }
 
@@ -474,13 +485,13 @@ export class Word {
     }
 
     async _saveLLMContent(data) {
-        console.log('[Word] Сохранение контента из LLM-редактора для id:', this.pageId);
+        console.log('[Word] Saving content from LLM editor for id:', this.pageId);
 
         if (!this.pageId) {
-            throw new Error('Неизвестен id страницы');
+            throw new Error('Unknown page id');
         }
 
-        const url = `/core/engine/lib/word/${this.pageId}`;
+        const url = `/core/engine/lib/word/${this.pageId}${this._qs}`;
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -496,7 +507,7 @@ export class Word {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Ошибка сохранения');
+            throw new Error(errorData.detail || 'Save error');
         }
 
         this.pageData.content = data.html;
@@ -504,11 +515,11 @@ export class Word {
             this.pageData.content_json = data.content_json;
         }
 
-        console.log('[Word] Контент из LLM-редактора сохранён');
+        console.log('[Word] Content from LLM editor saved');
     }
 
     _closeLLMEditor() {
-        console.log('[Word] Закрытие LLM-редактора');
+        console.log('[Word] Closing LLM editor');
 
         if (this.llmInstance?.destroy) {
             this.llmInstance.destroy();
@@ -516,7 +527,7 @@ export class Word {
         this.llmInstance = null;
         this.isEditing = false;
 
-        // Убираем возможные оставшиеся ручки
+        // Remove any remaining handles
         this._clearAllResizers();
 
         if (this.widgetContentEl) {
@@ -530,7 +541,7 @@ export class Word {
     }
 
     // ============================================
-    // УТИЛИТЫ
+    // UTILITIES
     // ============================================
 
     _isAdmin() {
@@ -563,13 +574,13 @@ export class Word {
         try {
             return JSON.parse(str);
         } catch (e) {
-            console.warn('[Word] Не удалось распарсить JSON:', e);
+            console.warn('[Word] Failed to parse JSON:', e);
             return null;
         }
     }
 
     // ============================================
-    // ПУБЛИЧНЫЕ МЕТОДЫ
+    // PUBLIC METHODS
     // ============================================
 
     isInitialized() {
@@ -594,7 +605,7 @@ export class Word {
         }
         this.llmInstance = null;
 
-        // Убираем все ручки
+        // Remove all handles
         this._clearAllResizers();
 
         this._initialized = false;

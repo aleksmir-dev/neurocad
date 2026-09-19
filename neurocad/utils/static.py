@@ -7,22 +7,26 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
-from ..config import settings
+
+from .paths import (
+    package_engine_dir,
+    package_static_dir,
+    user_engine_dir,
+    user_static_dir,
+)
 
 
 # ============================================
-# MIME-ТИПЫ (фикс для Windows)
+# MIME TYPES (Windows fix)
 # ============================================
-# Windows: mimetypes.guess_type(".js") возвращает ("text/plain", None),
-# из-за чего браузер отказывается выполнять ES-модули
-# (strict MIME type checking для <script type="module">).
-# Регистрируем явно — ДО создания StaticFiles, потому что Starlette
-# кеширует MIME-типы на момент инициализации.
+# Windows: mimetypes.guess_type(".js") returns ("text/plain", None),
+# so browsers refuse to execute ES modules
+# (strict MIME type checking for <script type="module">).
+# Register explicitly BEFORE creating StaticFiles, because Starlette
+# caches MIME types at init time.
 
-# Инициализируем стандартные типы ОС (на случай, если не подгружены)
 mimetypes.init()
 
-# Перебиваем / дополняем критичные типы
 mimetypes.add_type("application/javascript", ".js")
 mimetypes.add_type("application/javascript", ".mjs")
 mimetypes.add_type("text/css", ".css")
@@ -36,38 +40,47 @@ mimetypes.add_type("image/vnd.microsoft.icon", ".ico")
 
 STATIC_VERSION = str(int(time.time()))
 
-APP_DIR = Path(__file__).parent.parent
-CORE_DIR = APP_DIR / "core"
-STATIC_DIR = APP_DIR / "static"
-MEDIA_DIR = APP_DIR.parent / "media"
+# Static extensions to sync.
+STATIC_EXTENSIONS = {
+    '.css', '.js', '.mjs',
+    '.woff2', '.woff', '.ttf',
+    '.svg', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.map',
+}
 
 
 def get_static_version() -> str:
     return STATIC_VERSION
 
 
-def sync_static():
+def _sync_dir(src_dir: Path, dst_root: Path, dst_subdir: Path) -> tuple[int, int]:
     """
-    Синхронизация статики из core/ в static/.
-    Копирует только изменённые файлы (по mtime).
-    """
-    extensions = {'.css', '.js', '.woff2', '.woff', '.ttf', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.map'}
+    Copy static files from src_dir to dst_root / dst_subdir.
 
-    if not CORE_DIR.exists():
+    Copies only changed files (by mtime).
+
+    Args:
+        src_dir:    source directory (e.g. neurocad/core/engine/)
+        dst_root:   destination root (e.g. project1/static/)
+        dst_subdir: subpath inside dst_root (e.g. core/engine/)
+
+    Returns:
+        (copied, skipped)
+    """
+    if not src_dir.exists():
         return 0, 0
 
     copied = 0
     skipped = 0
 
-    for filepath in CORE_DIR.rglob('*'):
+    for filepath in src_dir.rglob('*'):
         if not filepath.is_file():
             continue
 
-        if filepath.suffix not in extensions:
+        if filepath.suffix not in STATIC_EXTENSIONS:
             continue
 
-        rel_path = filepath.relative_to(APP_DIR)
-        dest_path = STATIC_DIR / rel_path
+        rel_path = filepath.relative_to(src_dir)
+        dest_path = dst_root / dst_subdir / rel_path
 
         if dest_path.exists() and filepath.stat().st_mtime <= dest_path.stat().st_mtime:
             skipped += 1
@@ -80,17 +93,55 @@ def sync_static():
     return copied, skipped
 
 
+def sync_static() -> tuple[int, int]:
+    """
+    Sync static files to USER static dir (project1/static/).
+
+    Order (later overwrites earlier, by mtime):
+      1. Package libs/ + fonts/ -> project1/static/
+      2. Package engine         -> project1/static/core/engine/
+      3. User engine overrides  -> project1/static/core/engine/
+
+    Returns total (copied, skipped).
+    """
+    static_root = user_static_dir()
+    engine_subdir = Path("core") / "engine"
+
+    copied_total = 0
+    skipped_total = 0
+
+    # 1. Package libs/ + fonts/ -> project1/static/
+    c, s = _sync_dir(package_static_dir(), static_root, Path("."))
+    copied_total += c
+    skipped_total += s
+
+    # 2. Package engine -> project1/static/core/engine/
+    c, s = _sync_dir(package_engine_dir(), static_root, engine_subdir)
+    copied_total += c
+    skipped_total += s
+
+    # 3. User engine -> project1/static/core/engine/ (overrides)
+    c, s = _sync_dir(user_engine_dir(), static_root, engine_subdir)
+    copied_total += c
+    skipped_total += s
+
+    return copied_total, skipped_total
+
+
 def setup_static(app: FastAPI, log=None) -> None:
     """
-    Монтирует /static и /media.
+    Mount /static and /media.
 
-    log — опциональный логгер с методом log_info_sync(target, message).
-    Если не передан — печатает в stdout.
+    log — optional logger with log_info_sync(target, message).
+    If not provided — prints to stdout.
     """
-    STATIC_DIR.mkdir(parents=True, exist_ok=True)
-    MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+    static_root = user_static_dir()
+    static_root.mkdir(parents=True, exist_ok=True)
 
-    # Всегда синхронизируем — копируются только изменённые файлы
+    # Media dir is relative to cwd: <project>/media/
+    media_root = Path("media")
+    media_root.mkdir(parents=True, exist_ok=True)
+
     copied, skipped = sync_static()
 
     if log:
@@ -101,9 +152,9 @@ def setup_static(app: FastAPI, log=None) -> None:
     else:
         print(f"[Static] Sync: copied={copied}, skipped={skipped}")
 
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-    app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
+    app.mount("/static", StaticFiles(directory=str(static_root)), name="static")
+    app.mount("/media", StaticFiles(directory=str(media_root)), name="media")
 
     @app.get("/favicon.ico", include_in_schema=False)
     async def favicon_redirect():
-        return RedirectResponse(url="/static/core/base/images/favicon.ico")
+        return RedirectResponse(url="/static/core/engine/lib/base/images/favicon.ico")

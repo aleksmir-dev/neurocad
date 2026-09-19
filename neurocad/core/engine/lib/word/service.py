@@ -1,4 +1,4 @@
-# app/core/engine/lib/word/service.py
+# neurocad/core/engine/lib/word/service.py
 
 import os
 import re
@@ -11,55 +11,54 @@ from fastapi import UploadFile
 from sqlalchemy import select
 
 from ....models.base import Page
+from ....models.module import Module
 from .....utils.sqlite import get_db_sqlite
 
 
 # ============================================
-# ПУТИ
+# URLS
 # ============================================
 
-# service.py лежит в: app/core/engine/lib/word/service.py
-# .parent        -> app/core/engine/lib/word/
-# .parent.parent -> app/core/engine/lib/
-# .parent x3     -> app/core/engine/
-# .parent x4     -> app/core/
-# .parent x5     -> app/
-APP_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
-
-# Медиа лежит рядом с app/, т.е. в корне проекта: <root>/media/
-MEDIA_ROOT = APP_DIR.parent / "media"
-UPLOAD_DIR = MEDIA_ROOT / "uploads"
 MEDIA_URL = "/media"
+
+# Special filenames — kept as-is (no random suffix).
+# Used for site root files: favicon.ico, robots.txt, sitemap.xml.
+SPECIAL_NAMES = {"favicon.ico", "robots.txt", "sitemap.xml"}
 
 
 class CoreEngineLibWordService:
-    """Сервис для работы с контентом и ассетами страницы"""
+    """Service for page content and assets."""
 
     # ========================================
-    # ОДНА СТРАНИЦА ПО ДАТЕ/ВРЕМЕНИ
+    # PAGE BY DATETIME
     # ========================================
 
     @staticmethod
-    async def get_by_datetime(date: str, time: str) -> Optional[Dict[str, Any]]:
+    async def get_by_datetime(
+        date: str,
+        time: str,
+        mod_id: int,
+    ) -> Optional[Dict[str, Any]]:
         """
-        Найти страницу по дате и времени.
+        Find page by date and time within a module.
 
         date = "20260914" (YYYYMMDD)
         time = "153910"   (HHMMSS)
 
-        В БД datetime хранится с микросекундами (15:39:10.666406),
-        поэтому ищем в диапазоне [dt_start, dt_start + 1 сек).
+        datetime in DB has microseconds (15:39:10.666406),
+        so we search in range [dt_start, dt_start + 1 sec).
         """
         try:
             dt_start = datetime.strptime(f"{date}{time}", "%Y%m%d%H%M%S")
         except ValueError as e:
-            print(f"[Word] Некорректная дата/время: {date} {time} — {e}")
+            print(f"[Word] Invalid date/time: {date} {time} — {e}")
             return None
 
         dt_end = dt_start + timedelta(seconds=1)
 
         async for session in get_db_sqlite():
             stmt = select(Page).where(
+                Page.mod_id == mod_id,
                 Page.datetime >= dt_start,
                 Page.datetime < dt_end,
                 Page.is_delete == 0,
@@ -70,33 +69,24 @@ class CoreEngineLibWordService:
             if not page:
                 return None
 
-            return {
-                "id": page.id,
-                "datetime": page.datetime.isoformat() if page.datetime else None,
-                "title": page.title,
-                "description": page.description,
-                "logo": page.logo,
-                "content": page.content,
-                "content_json": page.content_json,
-                "is_active": page.is_active,
-                "is_delete": page.is_delete,
-                "created_at": page.created_at.isoformat() if page.created_at else None,
-                "updated_at": page.updated_at.isoformat() if page.updated_at else None,
-                "rss_yandex_id": page.rss_yandex_id,
-            }
+            return _page_to_dict(page)
 
         return None
 
     # ========================================
-    # ОДНА СТРАНИЦА ПО ID
+    # PAGE BY ID
     # ========================================
 
     @staticmethod
-    async def get_by_id(page_id: int) -> Optional[Dict[str, Any]]:
-        """Найти страницу по ID (с content и content_json)"""
+    async def get_by_id(
+        page_id: int,
+        mod_id: int,
+    ) -> Optional[Dict[str, Any]]:
+        """Find page by ID within a module."""
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == page_id,
+                Page.mod_id == mod_id,
                 Page.is_delete == 0,
             )
             result = await session.execute(stmt)
@@ -105,42 +95,31 @@ class CoreEngineLibWordService:
             if not page:
                 return None
 
-            return {
-                "id": page.id,
-                "datetime": page.datetime.isoformat() if page.datetime else None,
-                "title": page.title,
-                "description": page.description,
-                "logo": page.logo,
-                "content": page.content,
-                "content_json": page.content_json,
-                "is_active": page.is_active,
-                "is_delete": page.is_delete,
-                "created_at": page.created_at.isoformat() if page.created_at else None,
-                "updated_at": page.updated_at.isoformat() if page.updated_at else None,
-                "rss_yandex_id": page.rss_yandex_id,
-            }
+            return _page_to_dict(page)
 
         return None
 
     # ========================================
-    # СОХРАНЕНИЕ КОНТЕНТА
+    # SAVE CONTENT
     # ========================================
 
     @staticmethod
     async def save_content(
         page_id: int,
+        mod_id: int,
         content: Optional[str],
         content_json: Optional[str],
     ) -> Optional[Dict[str, Any]]:
         """
-        Сохранить контент страницы.
+        Save page content.
 
-        Обновляет поля content и content_json в модели Page.
-        Возвращает обновлённые данные или None, если страница не найдена.
+        Updates content and content_json in Page model.
+        Returns updated data or None if page not found.
         """
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == page_id,
+                Page.mod_id == mod_id,
                 Page.is_delete == 0,
             )
             result = await session.execute(stmt)
@@ -149,7 +128,6 @@ class CoreEngineLibWordService:
             if not page:
                 return None
 
-            # Обновляем только то, что передано
             if content is not None:
                 page.content = content
             if content_json is not None:
@@ -168,23 +146,26 @@ class CoreEngineLibWordService:
         return None
 
     # ========================================
-    # СПИСОК АССЕТОВ
+    # LIST ASSETS — media/<module_name>/
     # ========================================
 
     @staticmethod
-    async def list_assets() -> List[Dict[str, str]]:
+    async def list_assets(mod_id: int) -> List[Dict[str, str]]:
         """
-        Получить список всех изображений из папки media/uploads.
+        Get list of all images from media/<module_name>/.
 
-        Возвращает список словарей: { src, name, type }.
+        Returns list of dicts: { src, name, type }.
         """
-        assets = []
+        module_name = await _get_module_name(mod_id)
+        if not module_name:
+            return []
 
-        # Создаём папку, если её нет
-        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        media_dir = Path("media") / module_name
+        media_dir.mkdir(parents=True, exist_ok=True)
 
-        # Сканируем папку
-        for filepath in sorted(UPLOAD_DIR.iterdir()):
+        assets: List[Dict[str, str]] = []
+
+        for filepath in sorted(media_dir.rglob('*')):
             if not filepath.is_file():
                 continue
 
@@ -192,8 +173,10 @@ class CoreEngineLibWordService:
             if ext not in ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']:
                 continue
 
+            rel = filepath.relative_to(media_dir).as_posix()
+
             assets.append({
-                "src": f"{MEDIA_URL}/uploads/{filepath.name}",
+                "src": f"{MEDIA_URL}/{module_name}/{rel}",
                 "name": filepath.name,
                 "type": "image",
             })
@@ -201,33 +184,44 @@ class CoreEngineLibWordService:
         return assets
 
     # ========================================
-    # ЗАГРУЗКА АССЕТОВ
+    # UPLOAD ASSETS — media/<module_name>/
     # ========================================
 
     @staticmethod
-    async def upload_assets(files: List[UploadFile]) -> List[str]:
+    async def upload_assets(
+        files: List[UploadFile],
+        mod_id: int,
+    ) -> List[str]:
         """
-        Сохранить загруженные файлы в папку media/uploads.
+        Save uploaded files to media/<module_name>/.
 
-        Возвращает список URL загруженных файлов.
+        Special names (favicon.ico, robots.txt, sitemap.xml) — kept as-is.
+        Other files — get a random 8-hex suffix.
+
+        Returns list of URLs of uploaded files.
         """
-        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        module_name = await _get_module_name(mod_id)
+        if not module_name:
+            raise ValueError(f"Module {mod_id} not found")
 
-        uploaded_urls = []
+        media_dir = Path("media") / module_name
+        media_dir.mkdir(parents=True, exist_ok=True)
+
+        uploaded_urls: List[str] = []
 
         for uploaded_file in files:
-            # Очищаем имя файла
             original_name = uploaded_file.filename or "file"
             clean_name = re.sub(r'[^a-zA-Z0-9_.\-]', '_', original_name)
 
-            # Добавляем короткий UUID для уникальности
-            name, ext = os.path.splitext(clean_name)
-            suffix = uuid.uuid4().hex[:8]
-            final_name = f"{name}_{suffix}{ext}"
+            if clean_name in SPECIAL_NAMES:
+                final_name = clean_name
+            else:
+                name, ext = os.path.splitext(clean_name)
+                suffix = uuid.uuid4().hex[:8]
+                final_name = f"{name}_{suffix}{ext}"
 
-            save_path = UPLOAD_DIR / final_name
+            save_path = media_dir / final_name
 
-            # Сохраняем файл
             with open(save_path, "wb") as buffer:
                 while True:
                     chunk = await uploaded_file.read(1024 * 64)
@@ -235,10 +229,41 @@ class CoreEngineLibWordService:
                         break
                     buffer.write(chunk)
 
-            # Закрываем файл
             await uploaded_file.close()
 
-            url = f"{MEDIA_URL}/uploads/{final_name}"
-            uploaded_urls.append(url)
+            uploaded_urls.append(f"{MEDIA_URL}/{module_name}/{final_name}")
 
         return uploaded_urls
+
+
+# ============================================
+# HELPERS
+# ============================================
+
+def _page_to_dict(page) -> Dict[str, Any]:
+    """Serialize Page model to dict."""
+    return {
+        "id": page.id,
+        "mod_id": page.mod_id,
+        "datetime": page.datetime.isoformat() if page.datetime else None,
+        "title": page.title,
+        "description": page.description,
+        "logo": page.logo,
+        "content": page.content,
+        "content_json": page.content_json,
+        "is_active": page.is_active,
+        "is_delete": page.is_delete,
+        "created_at": page.created_at.isoformat() if page.created_at else None,
+        "updated_at": page.updated_at.isoformat() if page.updated_at else None,
+        "rss_yandex_id": page.rss_yandex_id,
+    }
+
+
+async def _get_module_name(mod_id: int) -> Optional[str]:
+    """Resolve module_name by mod_id."""
+    async for session in get_db_sqlite():
+        stmt = select(Module).where(Module.id == mod_id)
+        result = await session.execute(stmt)
+        module = result.scalar_one_or_none()
+        return module.name if module else None
+    return None

@@ -6,54 +6,58 @@ from contextlib import asynccontextmanager
 from ..utils.log import Log
 from ..utils.mysql import init_mysql, close_mysql
 from ..utils.sqlite import init_sqlite, close_sqlite
+from ..utils.paths import ensure_workdirs
 from ..config import settings
 
 
 def get_lifespan():
-    """Возвращает lifespan контекстный менеджер."""
+    """Return lifespan context manager."""
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        """Управление жизненным циклом приложения."""
+        """Application lifecycle manager."""
 
-        # Логгер
+        # Ensure working directories and files exist
+        ensure_workdirs()
+
+        # Logger
         app.state.log = Log()
 
-        # Лог запуска
+        # Startup log
         await app.state.log.log_info(
             target="startup",
-            message=f"Запуск приложения на порту {settings.APP_PORT}",
+            message=f"Starting application on port {settings.APP_PORT}",
         )
 
-        # MySQL — только если задан DATABASE_URL
+        # MySQL — only if DATABASE_URL is set
         if settings.DATABASE_URL:
             await init_mysql(app.state.log)
         else:
             await app.state.log.log_info(
                 target="startup",
-                message="MySQL отключён (DATABASE_URL пуст)",
+                message="MySQL disabled (DATABASE_URL is empty)",
             )
 
-        # SQLite — всегда
+        # SQLite — always.
+        # Includes: migrations, superadmin, modules registration.
         await init_sqlite(app.state.log)
 
-        # Контекст приложения
         yield
 
-        # Shutdown MySQL — только если был подключён
+        # Shutdown MySQL — only if connected
         if settings.DATABASE_URL:
             await close_mysql()
 
         # Shutdown SQLite
         await close_sqlite()
 
-        # Лог остановки
+        # Shutdown log
         await app.state.log.log_info(
             target="shutdown",
-            message="Остановка приложения",
+            message="Stopping application",
         )
 
-        # Shutdown логгера
+        # Shutdown logger
         await app.state.log.shutdown()
 
     return lifespan

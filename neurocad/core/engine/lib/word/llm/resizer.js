@@ -1,56 +1,57 @@
 // neurocad/core/engine/lib/word/llm/resizer.js
 
 /**
- * LLMResizer — перетаскивание границ между тремя областями LLM-редактора.
+ * LLMResizer — drag handles between the three areas of the LLM editor.
  *
- * Что делает:
- *   1. Вставляет две «ручки» (col-resize) между:
+ * What it does:
+ *   1. Inserts two "handles" (col-resize) between:
  *        .area-left   ↔ .area-center
  *        .area-center ↔ .area-right
- *   2. По mousedown / mousemove / mouseup меняет ширину левой и правой
- *      панелей, ограничивая её min/max.
- *   3. Сохраняет ширины в localStorage (свои ключи — не конфликтуют с GrapesJS).
- *   4. При следующем открытии редактора — восстанавливает.
+ *   2. On mousedown / mousemove / mouseup changes the width of the
+ *      left and right panels, clamped to min/max.
+ *   3. Saves widths to localStorage (own keys — do not clash with GrapesJS).
+ *   4. On next editor open — restores them.
  *
- * Отличается от editor/resizer.js:
- *   - свои ключи localStorage (llm:*);
- *   - свой CSS-класс (llm-resizer) — стили в llm.css;
- *   - НЕ вызывает editor.refresh() (нет GrapesJS).
+ * Differences from editor/resizer.js:
+ *   - own localStorage keys (llm:*);
+ *   - own CSS class (llm-resizer) — styles in llm.css;
+ *   - does NOT call editor.refresh() (no GrapesJS).
  */
 export class LLMResizer {
     constructor(editor) {
         this.editor = editor;
 
-        // DOM-элементы
+        // DOM elements
         this.leftEl = null;
         this.centerEl = null;
         this.rightEl = null;
         this.mainInnerEl = null;
 
-        // Ручки
+        // Handles
         this.leftHandle = null;
         this.rightHandle = null;
 
-        // Состояние drag
+        // Drag state
         this._dragging = null;   // 'left' | 'right' | null
         this._startX = 0;
         this._startWidth = 0;
 
-        // Слушатели
+        // Listeners
         this._onMouseMove = null;
         this._onMouseUp = null;
 
-        // Хранилище (свои ключи, не конфликтуют с GrapesJS)
+        // Storage (own keys, do not clash with GrapesJS)
         this._storageKeyLeft = 'llm:word-editor:left-width';
         this._storageKeyRight = 'llm:word-editor:right-width';
 
-        // Ограничения ширины
-        this._minWidth = 180;    // px
-        this._maxWidth = 480;    // px
+        // Width limits
+        this._minWidth = 180;       // px — minimum for a single panel
+        this._minCenterWidth = 400; // px — minimum space reserved for center
+        this._absoluteMaxWidth = 800; // px — hard cap for a single panel
     }
 
     // ============================================
-    // ПОСТРОЕНИЕ
+    // BUILD
     // ============================================
 
     build() {
@@ -62,26 +63,26 @@ export class LLMResizer {
         this.mainInnerEl = document.querySelector('.core-engine-lib-base-main-inner');
 
         if (!this.leftEl || !this.centerEl || !this.rightEl || !this.mainInnerEl) {
-            console.warn('[LLMResizer] Не найдены области для ресайза');
+            console.warn('[LLMResizer] Areas for resize not found');
             return;
         }
 
-        // Восстанавливаем ширины до вставки ручек
+        // Restore widths before inserting handles
         this.restore();
 
-        // Левая ручка — между .area-left и .area-center
+        // Left handle — between .area-left and .area-center
         this.leftHandle = this._createHandle('left');
         this.mainInnerEl.insertBefore(this.leftHandle, this.centerEl);
 
-        // Правая ручка — между .area-center и .area-right
+        // Right handle — between .area-center and .area-right
         this.rightHandle = this._createHandle('right');
         this.mainInnerEl.insertBefore(this.rightHandle, this.rightEl);
 
-        // Привязываем mousedown
+        // Bind mousedown
         this.leftHandle.addEventListener('mousedown', (e) => this._onHandleMouseDown(e, 'left'));
         this.rightHandle.addEventListener('mousedown', (e) => this._onHandleMouseDown(e, 'right'));
 
-        console.log('[LLMResizer] Ручки вставлены');
+        console.log('[LLMResizer] Handles inserted');
     }
 
     _createHandle(side) {
@@ -128,14 +129,15 @@ export class LLMResizer {
         if (!this._dragging) return;
 
         const delta = e.clientX - this._startX;
+        const maxWidth = this._getMaxWidth();
 
         if (this._dragging === 'left') {
             let newWidth = this._startWidth + delta;
-            newWidth = this._clamp(newWidth, this._minWidth, this._maxWidth);
+            newWidth = this._clamp(newWidth, this._minWidth, maxWidth);
             this.leftEl.style.width = newWidth + 'px';
         } else {
             let newWidth = this._startWidth - delta;
-            newWidth = this._clamp(newWidth, this._minWidth, this._maxWidth);
+            newWidth = this._clamp(newWidth, this._minWidth, maxWidth);
             this.rightEl.style.width = newWidth + 'px';
         }
     }
@@ -149,7 +151,7 @@ export class LLMResizer {
             try {
                 localStorage.setItem(this._storageKeyLeft, String(w));
             } catch (e) {
-                console.warn('[LLMResizer] Не удалось сохранить ширину левой панели:', e);
+                console.warn('[LLMResizer] Failed to save left panel width:', e);
             }
         } else {
             this.rightHandle.classList.remove('active');
@@ -157,7 +159,7 @@ export class LLMResizer {
             try {
                 localStorage.setItem(this._storageKeyRight, String(w));
             } catch (e) {
-                console.warn('[LLMResizer] Не удалось сохранить ширину правой панели:', e);
+                console.warn('[LLMResizer] Failed to save right panel width:', e);
             }
         }
 
@@ -173,32 +175,65 @@ export class LLMResizer {
     }
 
     // ============================================
-    // ВОССТАНОВЛЕНИЕ ШИРИН
+    // RESTORE WIDTHS
     // ============================================
 
     restore() {
+        const maxWidth = this._getMaxWidth();
+
         try {
             const leftW = parseInt(localStorage.getItem(this._storageKeyLeft) || '', 10);
             if (Number.isFinite(leftW)) {
-                const w = this._clamp(leftW, this._minWidth, this._maxWidth);
+                const w = this._clamp(leftW, this._minWidth, maxWidth);
                 this.leftEl.style.width = w + 'px';
-                console.log(`[LLMResizer] Левая панель: ${w}px из localStorage`);
+                console.log(`[LLMResizer] Left panel: ${w}px from localStorage`);
             }
 
             const rightW = parseInt(localStorage.getItem(this._storageKeyRight) || '', 10);
             if (Number.isFinite(rightW)) {
-                const w = this._clamp(rightW, this._minWidth, this._maxWidth);
+                const w = this._clamp(rightW, this._minWidth, maxWidth);
                 this.rightEl.style.width = w + 'px';
-                console.log(`[LLMResizer] Правая панель: ${w}px из localStorage`);
+                console.log(`[LLMResizer] Right panel: ${w}px from localStorage`);
             }
         } catch (e) {
-            console.warn('[LLMResizer] Не удалось прочитать ширины из localStorage:', e);
+            console.warn('[LLMResizer] Failed to read widths from localStorage:', e);
         }
     }
 
     // ============================================
-    // УТИЛИТЫ
+    // UTILITIES
     // ============================================
+
+    /**
+     * Dynamic max width for a single panel.
+     *
+     * Reserves at least _minCenterWidth for the center area,
+     * minus the width of the *other* panel (if present),
+     * and never exceeds _absoluteMaxWidth.
+     */
+    _getMaxWidth() {
+        const total = this.mainInnerEl
+            ? this.mainInnerEl.getBoundingClientRect().width
+            : window.innerWidth;
+
+        // Width of the opposite panel (if any) — to respect both sides
+        let oppositeWidth = 0;
+        if (this._dragging === 'left') {
+            oppositeWidth = this.rightEl
+                ? this.rightEl.getBoundingClientRect().width
+                : 0;
+        } else if (this._dragging === 'right') {
+            oppositeWidth = this.leftEl
+                ? this.leftEl.getBoundingClientRect().width
+                : 0;
+        }
+
+        const available = total - oppositeWidth - this._minCenterWidth;
+        return Math.max(
+            this._minWidth,
+            Math.min(this._absoluteMaxWidth, available)
+        );
+    }
 
     _clamp(value, min, max) {
         if (value < min) return min;
@@ -207,7 +242,7 @@ export class LLMResizer {
     }
 
     // ============================================
-    // УНИЧТОЖЕНИЕ
+    // DESTROY
     // ============================================
 
     destroy() {

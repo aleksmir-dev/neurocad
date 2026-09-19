@@ -1,8 +1,8 @@
-"""initial
+"""init
 
-Revision ID: 393892ff52a9
+Revision ID: f3aa6b638605
 Revises:
-Create Date: 2026-09-17 02:53:05.898166
+Create Date: 2026-09-19 01:17:44.389164
 
 """
 
@@ -12,7 +12,7 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision: str = "393892ff52a9"
+revision: str = "f3aa6b638605"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -56,30 +56,22 @@ def upgrade() -> None:
         "idx_modules_is_delete", "modules", ["is_delete"], unique=False
     )
     op.create_table(
-        "pages",
+        "page_pres",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("datetime", sa.DateTime(), nullable=False),
-        sa.Column("title", sa.String(length=255), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("logo", sa.Text(), nullable=True),
-        sa.Column("content", sa.Text(), nullable=True),
-        sa.Column("content_json", sa.Text(), nullable=True),
-        sa.Column("is_active", sa.Integer(), nullable=False),
+        sa.Column("html", sa.Text(), nullable=True),
+        sa.Column("thumbnail_path", sa.String(length=500), nullable=True),
         sa.Column("is_delete", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
-        sa.Column("rss_yandex_id", sa.String(length=64), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("idx_pages_datetime", "pages", ["datetime"], unique=False)
     op.create_index(
-        "idx_pages_is_active", "pages", ["is_active"], unique=False
+        "idx_page_pres_created_at", "page_pres", ["created_at"], unique=False
     )
     op.create_index(
-        "idx_pages_is_delete", "pages", ["is_delete"], unique=False
-    )
-    op.create_index(
-        "idx_pages_rss_yandex_id", "pages", ["rss_yandex_id"], unique=False
+        "idx_page_pres_is_delete", "page_pres", ["is_delete"], unique=False
     )
     op.create_table(
         "settings",
@@ -166,6 +158,41 @@ def upgrade() -> None:
     op.create_index("idx_nav_type", "nav", ["card_type"], unique=False)
     op.create_index("idx_nav_user_id", "nav", ["user_id"], unique=False)
     op.create_table(
+        "pages",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("mod_id", sa.Integer(), nullable=False),
+        sa.Column("datetime", sa.DateTime(), nullable=False),
+        sa.Column("title", sa.String(length=255), nullable=False),
+        sa.Column("description", sa.Text(), nullable=True),
+        sa.Column("logo", sa.Text(), nullable=True),
+        sa.Column("content", sa.Text(), nullable=True),
+        sa.Column("content_json", sa.Text(), nullable=True),
+        sa.Column("is_active", sa.Integer(), nullable=False),
+        sa.Column("is_delete", sa.Integer(), nullable=False),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), nullable=False),
+        sa.Column("rss_yandex_id", sa.String(length=64), nullable=True),
+        sa.ForeignKeyConstraint(
+            ["mod_id"],
+            ["modules.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index("idx_pages_datetime", "pages", ["datetime"], unique=False)
+    op.create_index(
+        "idx_pages_is_active", "pages", ["is_active"], unique=False
+    )
+    op.create_index(
+        "idx_pages_is_delete", "pages", ["is_delete"], unique=False
+    )
+    op.create_index(
+        "idx_pages_mod_datetime", "pages", ["mod_id", "datetime"], unique=False
+    )
+    op.create_index("idx_pages_mod_id", "pages", ["mod_id"], unique=False)
+    op.create_index(
+        "idx_pages_rss_yandex_id", "pages", ["rss_yandex_id"], unique=False
+    )
+    op.create_table(
         "password_resets",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
@@ -178,13 +205,82 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("token"),
     )
+    op.create_table(
+        "page_chat",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("page_id", sa.Integer(), nullable=False),
+        sa.Column("role", sa.String(length=20), nullable=False),
+        sa.Column("content", sa.Text(), nullable=False),
+        sa.Column("model", sa.String(length=50), nullable=True),
+        sa.Column("prompt_tokens", sa.Integer(), nullable=True),
+        sa.Column("completion_tokens", sa.Integer(), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["page_id"],
+            ["pages.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(
+        "idx_page_chat_created_at", "page_chat", ["created_at"], unique=False
+    )
+    op.create_index(
+        "idx_page_chat_page_created",
+        "page_chat",
+        ["page_id", "created_at"],
+        unique=False,
+    )
+    op.create_index(
+        "idx_page_chat_page_id", "page_chat", ["page_id"], unique=False
+    )
+    op.create_table(
+        "page_hist",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("page_id", sa.Integer(), nullable=False),
+        sa.Column("html", sa.Text(), nullable=False),
+        sa.Column("action", sa.String(length=50), nullable=True),
+        sa.Column("note", sa.Text(), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["page_id"],
+            ["pages.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(
+        "idx_page_hist_created_at", "page_hist", ["created_at"], unique=False
+    )
+    op.create_index(
+        "idx_page_hist_page_created",
+        "page_hist",
+        ["page_id", "created_at"],
+        unique=False,
+    )
+    op.create_index(
+        "idx_page_hist_page_id", "page_hist", ["page_id"], unique=False
+    )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_index("idx_page_hist_page_id", table_name="page_hist")
+    op.drop_index("idx_page_hist_page_created", table_name="page_hist")
+    op.drop_index("idx_page_hist_created_at", table_name="page_hist")
+    op.drop_table("page_hist")
+    op.drop_index("idx_page_chat_page_id", table_name="page_chat")
+    op.drop_index("idx_page_chat_page_created", table_name="page_chat")
+    op.drop_index("idx_page_chat_created_at", table_name="page_chat")
+    op.drop_table("page_chat")
     op.drop_table("password_resets")
+    op.drop_index("idx_pages_rss_yandex_id", table_name="pages")
+    op.drop_index("idx_pages_mod_id", table_name="pages")
+    op.drop_index("idx_pages_mod_datetime", table_name="pages")
+    op.drop_index("idx_pages_is_delete", table_name="pages")
+    op.drop_index("idx_pages_is_active", table_name="pages")
+    op.drop_index("idx_pages_datetime", table_name="pages")
+    op.drop_table("pages")
     op.drop_index("idx_nav_user_id", table_name="nav")
     op.drop_index("idx_nav_type", table_name="nav")
     op.drop_index("idx_nav_parent", table_name="nav")
@@ -197,11 +293,9 @@ def downgrade() -> None:
     op.drop_index("idx_settings_lookup", table_name="settings")
     op.drop_index("idx_settings_is_delete", table_name="settings")
     op.drop_table("settings")
-    op.drop_index("idx_pages_rss_yandex_id", table_name="pages")
-    op.drop_index("idx_pages_is_delete", table_name="pages")
-    op.drop_index("idx_pages_is_active", table_name="pages")
-    op.drop_index("idx_pages_datetime", table_name="pages")
-    op.drop_table("pages")
+    op.drop_index("idx_page_pres_is_delete", table_name="page_pres")
+    op.drop_index("idx_page_pres_created_at", table_name="page_pres")
+    op.drop_table("page_pres")
     op.drop_index("idx_modules_is_delete", table_name="modules")
     op.drop_table("modules")
     op.drop_index("idx_access_user_module", table_name="access")

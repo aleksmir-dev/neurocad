@@ -1,15 +1,15 @@
 // app/core/engine/lib/pages/pages.js
 
 /**
- * Компонент Pages — каталог статей.
- * Тонкая обёртка над BaseCards.
+ * Pages component — article catalog.
+ * Thin wrapper around BaseCards.
  *
- * Если items не переданы в props — загружает список с сервера.
+ * If items are not passed in props, loads the list from the server.
  */
 
 export class Pages {
     constructor(container, props = {}) {
-        console.log('[Pages] Конструктор вызван', { container, props });
+        console.log('[Pages] Constructor', { container, props });
 
         this.container = container;
         this.props = props;
@@ -37,9 +37,9 @@ export class Pages {
 
             const isAdmin = this._isAdmin();
 
-            // Если items не переданы в props — загружаем с сервера
+            // If items are not passed in props — load from server
             if (!this.props.items || this.props.items.length === 0) {
-                console.log('[Pages] items пусты — загружаем с сервера');
+                console.log('[Pages] items empty — loading from server');
                 await this._loadFromServer();
             }
 
@@ -58,7 +58,7 @@ export class Pages {
                     restore: '/item/{id}/restore',
                 },
 
-                // ===== ПОЛЯ ДЛЯ ФОРМЫ СОЗДАНИЯ/РЕДАКТИРОВАНИЯ =====
+                // ===== FIELDS FOR CREATE/EDIT FORM =====
                 fields: [
                     {
                         key: 'title',
@@ -86,18 +86,18 @@ export class Pages {
                     },
                 ],
 
-                // Поля для стандартного рендера
+                // Fields for standard render
                 listFields: ['title', 'description'],
 
-                // Тип сущности
+                // Entity type (used in UI messages)
                 entityType: 'статью',
 
-                // Сетка — широкие карточки
+                // Grid — wide cards
                 listView: {
                     gridColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
                 },
 
-                // Кнопки — только для админа
+                // Buttons — admin only
                 showAddButton: isAdmin,
                 showEditButton: isAdmin,
                 showDeleteButton: isAdmin,
@@ -105,14 +105,14 @@ export class Pages {
                 showSearch: false,
                 showStatusFilter: false,
 
-                // Кастомный рендер карточки
+                // Custom card render
                 renderCard: (item) => this._renderArticleCard(item),
                 cardOptions: { customClass: 'pages-card-wrapper' },
 
-                // Клик → переход в редактор/просмотр
+                // Click → navigate to editor/view
                 onItemClick: (id) => this._openArticle(id),
 
-                // Колбэки
+                // Callbacks
                 onReload: () => this._reload(),
                 onRetry: () => this._reload(),
 
@@ -125,14 +125,14 @@ export class Pages {
             this._initialized = true;
             console.log('[Pages] _init() COMPLETE');
         } catch (error) {
-            console.error('[Pages] Ошибка инициализации:', error);
+            console.error('[Pages] Init error:', error);
             this._initialized = false;
             throw error;
         }
     }
 
     // ============================================
-    // ЗАГРУЗКА С СЕРВЕРА
+    // LOAD FROM SERVER
     // ============================================
 
     async _loadFromServer() {
@@ -146,26 +146,26 @@ export class Pages {
             });
 
             if (!response.ok) {
-                throw new Error(`Ошибка загрузки: ${response.status}`);
+                throw new Error(`Load error: ${response.status}`);
             }
 
             const result = await response.json();
 
             if (result.success) {
                 this.props.items = result.data || [];
-                console.log('[Pages] Загружено с сервера:', this.props.items.length);
+                console.log('[Pages] Loaded from server:', this.props.items.length);
             } else {
-                console.warn('[Pages] Ответ без success:', result);
+                console.warn('[Pages] Response without success:', result);
                 this.props.items = [];
             }
         } catch (error) {
-            console.error('[Pages] Ошибка загрузки списка:', error);
+            console.error('[Pages] List load error:', error);
             this.props.items = [];
         }
     }
 
     // ============================================
-    // РЕНДЕР КАРТОЧКИ
+    // CARD RENDER
     // ============================================
 
     _renderArticleCard(item) {
@@ -197,96 +197,57 @@ export class Pages {
     }
 
     // ============================================
-    // ПЕРЕХОД ПО КАРТОЧКЕ
+    // NAVIGATION
     // ============================================
 
+    /**
+     * Navigate to the article page.
+     *
+     * CoreEngine.baseUrl points to the current module URL
+     * (e.g. /core/engine/app). The link is built as:
+     *   {baseUrl}/page/{date}/{time}
+     *   → /core/engine/app/page/20260919/015911
+     *
+     * Module segment in URL is required — otherwise route.py
+     * cannot find the config.
+     */
     _openArticle(id) {
-        // ===== ПОДРОБНОЕ ЛОГИРОВАНИЕ =====
-        console.log('[Pages] _openArticle() START');
         console.log('[Pages] _openArticle() id =', id, '(type:', typeof id, ')');
-        console.log('[Pages] _openArticle() window.coreEngine =', window.coreEngine);
-        console.log('[Pages] _openArticle() window.coreEngine.baseUrl =',
-            window.coreEngine?.baseUrl);
 
         const cardsItems = this.cardsInstance?.props?.items;
         const ownItems = this.props.items;
         const items = cardsItems || ownItems || [];
 
-        console.log('[Pages] _openArticle() items из cardsInstance:',
-            cardsItems?.length, 'items из props:', ownItems?.length);
-        console.log('[Pages] _openArticle() items (всего):', items.length);
-        console.log('[Pages] _openArticle() items[0]:', items[0]);
-
-        // Ищем item с приведением типов (id может быть числом или строкой)
+        // Find item with type coercion (id may be number or string)
         const item = items.find(i => String(i.id) === String(id));
 
-        console.log('[Pages] _openArticle() найденный item =', item);
+        // Base URL — current module, e.g. /core/engine/app
+        const baseUrl = window.coreEngine?.baseUrl || '/core/engine';
+        console.log('[Pages] _openArticle() baseUrl =', baseUrl);
 
         if (!item) {
-            console.warn('[Pages] _openArticle() item не найден, fallback на /page/item/${id}');
-            const baseUrl = window.coreEngine?.baseUrl || '';
-            const url = `${baseUrl}/page/item/${id}`;
-            console.log('[Pages] _openArticle() fallback URL =', url);
-            window.location.href = url;
+            console.warn(`[Pages] item not found, fallback to ${baseUrl}/page/item/${id}`);
+            window.location.href = `${baseUrl}/page/item/${id}`;
             return;
         }
 
         if (!item.datetime) {
-            console.warn('[Pages] _openArticle() у item нет datetime, fallback на /page/item/${id}');
-            const baseUrl = window.coreEngine?.baseUrl || '';
-            const url = `${baseUrl}/page/item/${id}`;
-            console.log('[Pages] _openArticle() fallback URL =', url);
-            window.location.href = url;
+            console.warn(`[Pages] item has no datetime, fallback to ${baseUrl}/page/item/${id}`);
+            window.location.href = `${baseUrl}/page/item/${id}`;
             return;
         }
 
         const date = this._formatDate(item.datetime);
         const time = this._formatTime(item.datetime);
 
-        console.log('[Pages] _openArticle() date =', date, 'time =', time);
-
-        // ВАЖНО: baseUrl у CoreEngine указывает на URL текущего модуля,
-        // например /core/engine/app. Для ссылки на другой модуль
-        // нужен корень /core/engine.
-        const engineRoot = this._getEngineRoot();
-        console.log('[Pages] _openArticle() engineRoot =', engineRoot);
-
-        const url = `${engineRoot}/page/${date}/${time}`;
-        console.log('[Pages] _openArticle() итоговый URL =', url);
-        console.log('[Pages] _openArticle() переход...');
+        const url = `${baseUrl}/page/${date}/${time}`;
+        console.log('[Pages] _openArticle() navigating to:', url);
 
         window.location.href = url;
     }
 
     // ============================================
-    // ПОЛУЧЕНИЕ КОРНЯ ENGINE
-    // ============================================
-
-    _getEngineRoot() {
-        // 1. Если coreEngine даёт отдельный корень — используем его
-        if (window.coreEngine?.engineRoot) {
-            return window.coreEngine.engineRoot;
-        }
-
-        // 2. Иначе — берём baseUrl и отрезаем последний сегмент (имя модуля)
-        //    /core/engine/app  →  /core/engine
-        const baseUrl = window.coreEngine?.baseUrl || '';
-        if (baseUrl) {
-            const parts = baseUrl.split('/').filter(Boolean);
-            // parts = ['core', 'engine', 'app'] → отрезаем 'app'
-            if (parts.length > 1) {
-                parts.pop();
-                return '/' + parts.join('/');
-            }
-            return '/' + parts.join('/');
-        }
-
-        // 3. Fallback — жёстко
-        return '/core/engine';
-    }
-
-    // ============================================
-    // ПЕРЕЗАГРУЗКА
+    // RELOAD
     // ============================================
 
     async _reload() {
@@ -305,7 +266,7 @@ export class Pages {
     }
 
     // ============================================
-    // УТИЛИТЫ
+    // UTILITIES
     // ============================================
 
     _isAdmin() {
@@ -329,7 +290,7 @@ export class Pages {
             const dd = String(d.getDate()).padStart(2, '0');
             return `${yyyy}${mm}${dd}`;
         } catch (e) {
-            console.warn('[Pages] Ошибка форматирования даты:', e);
+            console.warn('[Pages] Date format error:', e);
             return '';
         }
     }
@@ -342,13 +303,13 @@ export class Pages {
             const ss = String(d.getSeconds()).padStart(2, '0');
             return `${hh}${mi}${ss}`;
         } catch (e) {
-            console.warn('[Pages] Ошибка форматирования времени:', e);
+            console.warn('[Pages] Time format error:', e);
             return '';
         }
     }
 
     // ============================================
-    // ПУБЛИЧНЫЕ МЕТОДЫ
+    // PUBLIC METHODS
     // ============================================
 
     async waitForInit() {

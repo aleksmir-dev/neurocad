@@ -1,9 +1,0 @@
-{
-  "component": "page",
-  "extend": "base",
-  "title": "Статья",
-  "content": "{{ word }}",
-  "components": [
-    { "component": "word" }
-  ]
-}

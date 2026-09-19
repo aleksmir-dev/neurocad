@@ -1,4 +1,4 @@
-# alembic/env.py
+# neurocad/alembic/env.py
 
 import os
 from logging.config import fileConfig
@@ -10,22 +10,38 @@ import sqlalchemy as sa
 from neurocad.core.models.base import Base
 from neurocad.config import settings
 
-# ────────────── Конфигурация Alembic ──────────────
-# URL для Alembic (синхронный) берём из settings.SQLITE_URL_SYNC
+# ============================================
+# ALEMBIC CONFIG
+# ============================================
+
+# Don't override sqlalchemy.url if already set by migrations.py
 db_url = settings.SQLITE_URL_SYNC
 config = context.config
-config.set_main_option("sqlalchemy.url", db_url)
+if not config.get_main_option("sqlalchemy.url"):
+    config.set_main_option("sqlalchemy.url", db_url)
 
 
-# Настройка логирования
+# ============================================
+# LOGGING
+# ============================================
+
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Метаданные моделей
+
+# ============================================
+# MODEL METADATA
+# ============================================
+
 target_metadata = Base.metadata
 
-# ────────────── Патчим для автосоздания папок ──────────────
+
+# ============================================
+# PATCH: AUTO-CREATE NESTED FOLDERS
+# ============================================
+
 _orig_rev_path = OriginalScriptDirectory._rev_path
+
 
 def _rev_path_hook(self, version_path, revid, message, create_date, head=None, *args, **kwargs):
     full_path = _orig_rev_path(self, version_path, revid, message, create_date)
@@ -33,33 +49,41 @@ def _rev_path_hook(self, version_path, revid, message, create_date, head=None, *
     os.makedirs(dir_path, exist_ok=True)
     return full_path
 
+
 OriginalScriptDirectory._rev_path = _rev_path_hook
 
-# ────────────── Функция для модификации колонок перед рендерингом ──────────────
+
+# ============================================
+# PROCESS REVISION DIRECTIVES
+# ============================================
+
 def process_revision_directives(context, revision, directives):
-    """Добавляет server_default для булевых NOT NULL колонок в SQLite"""
+    """Add server_default for Boolean NOT NULL columns in SQLite."""
     if context.dialect.name != 'sqlite':
         return
-    
+
     for directive in directives:
         if hasattr(directive, 'upgrade_ops') and directive.upgrade_ops:
             for op in directive.upgrade_ops.ops:
-                # Обработка добавления колонки
+                # Handle add_column
                 if hasattr(op, 'add_column') and hasattr(op, 'column'):
                     col = op.column
-                    # Проверяем, что это колонка (Column), а не другой объект
                     if isinstance(col, sa.Column) and isinstance(col.type, sa.Boolean):
                         if not col.nullable and col.server_default is None:
                             col.server_default = sa.text('0')
-                
-                # Обработка создания таблицы
+
+                # Handle create_table
                 elif hasattr(op, 'create_table') and hasattr(op, 'columns'):
                     for col in op.columns:
                         if isinstance(col, sa.Column) and isinstance(col.type, sa.Boolean):
                             if not col.nullable and col.server_default is None:
                                 col.server_default = sa.text('0')
 
-# ────────────── Offline режим ──────────────
+
+# ============================================
+# OFFLINE MODE
+# ============================================
+
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
@@ -72,7 +96,11 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
-# ────────────── Online режим (синхронный) ──────────────
+
+# ============================================
+# ONLINE MODE (SYNC)
+# ============================================
+
 def run_migrations_online() -> None:
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
@@ -89,7 +117,11 @@ def run_migrations_online() -> None:
         with context.begin_transaction():
             context.run_migrations()
 
-# ────────────── Точка входа ──────────────
+
+# ============================================
+# ENTRY POINT
+# ============================================
+
 if context.is_offline_mode():
     run_migrations_offline()
 else:

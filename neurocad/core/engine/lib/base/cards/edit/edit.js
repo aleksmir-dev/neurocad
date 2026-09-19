@@ -1,8 +1,8 @@
 // app/core/engine/lib/base/cards/edit.js
 
 /**
- * Универсальная форма для создания/редактирования карточек
- * Генерируется из описания полей в JSON-конфиге
+ * Universal form for creating/editing cards.
+ * Generated from field descriptions in a JSON config.
  */
 export class BaseCardsEdit {
     constructor(props = {}) {
@@ -16,31 +16,31 @@ export class BaseCardsEdit {
         this.initialData = props.initialData || null;
         this.isEdit = !!props.initialData?.id;
 
-        // Состояние
+        // State
         this.values = {};
         this.errors = {};
         this.isSubmitting = false;
         this.modalOverlay = null;
         this.modalContent = null;
 
-        // Загружаем CSS
+        // Load CSS
         this._loadCSS();
 
-        // Инициализируем значения
+        // Initialize values
         this._initValues();
     }
 
     /**
-     * Загрузить CSS
+     * Load CSS
      */
     _loadCSS() {
         if (window.coreEngine && typeof window.coreEngine.loadCSS === 'function') {
-            window.coreEngine.loadCSS('core/engine/lib/base/cards/edit.css');
+            window.coreEngine.loadCSS('core/engine/lib/base/cards/edit/edit.css');
         }
     }
 
     /**
-     * Инициализировать значения из данных
+     * Initialize values from data
      */
     _initValues() {
         this.fields.forEach(field => {
@@ -56,7 +56,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Открыть форму в модальном окне
+     * Open form in a modal
      */
     open() {
         this._createModal();
@@ -66,7 +66,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Закрыть форму
+     * Close form
      */
     close() {
         this._hideModal();
@@ -76,10 +76,10 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Создать модальное окно
+     * Create modal
      */
     _createModal() {
-        // Удаляем старую модалку, если есть
+        // Remove existing modal, if any
         const existing = document.querySelector('.core-engine-lib-base-cards-edit');
         if (existing) {
             existing.remove();
@@ -111,7 +111,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Рендерить форму
+     * Render form
      */
     _renderForm() {
         if (!this.editBody) return;
@@ -128,18 +128,18 @@ export class BaseCardsEdit {
         this.editBody.innerHTML = '';
         this.editBody.appendChild(form);
 
-        // Сохраняем ссылку на форму
+        // Save form reference
         this.form = form;
     }
 
     /**
-     * Создать группу полей
+     * Create field group
      */
     _createFieldGroup(field) {
         const group = document.createElement('div');
         group.className = 'edit-group';
 
-        // Метка
+        // Label
         const label = document.createElement('label');
         label.className = 'edit-label';
         label.textContent = field.label || field.key;
@@ -151,11 +151,11 @@ export class BaseCardsEdit {
         }
         group.appendChild(label);
 
-        // Поле
+        // Input
         const input = this._createInput(field);
         group.appendChild(input);
 
-        // Ошибка
+        // Error
         const error = document.createElement('span');
         error.className = 'edit-error';
         error.setAttribute('data-js', `error-${field.key}`);
@@ -165,7 +165,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Создать поле ввода
+     * Create input
      */
     _createInput(field) {
         const value = this.values[field.key] || '';
@@ -258,7 +258,7 @@ export class BaseCardsEdit {
 
         input.appendChild(el);
 
-        // Обработка изменения
+        // Change handling
         el.addEventListener('change', () => {
             this._onFieldChange(field, el);
         });
@@ -272,7 +272,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Обработка изменения поля
+     * Handle field change
      */
     _onFieldChange(field, el) {
         let value;
@@ -289,7 +289,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Валидация формы
+     * Form validation
      */
     _validate() {
         let isValid = true;
@@ -326,7 +326,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Показать ошибки
+     * Show errors
      */
     _showErrors() {
         this.fields.forEach(field => {
@@ -353,7 +353,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Очистить ошибку поля
+     * Clear field error
      */
     _clearError(key) {
         const errorEl = this.editBody.querySelector(`[data-js="error-${key}"]`);
@@ -371,7 +371,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Получить данные формы
+     * Get form data
      */
     getData() {
         const data = {};
@@ -385,7 +385,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Обработка отправки формы
+     * Handle form submit
      */
     async _handleSubmit(e) {
         e.preventDefault();
@@ -441,7 +441,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Привязать события
+     * Bind events
      */
     _bindEvents() {
         const closeBtn = this.modalContent.querySelector('[data-js="edit-close"]');
@@ -482,7 +482,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Показать модалку
+     * Show modal
      */
     _showModal() {
         if (this.modalOverlay) {
@@ -497,7 +497,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Скрыть модалку
+     * Hide modal
      */
     _hideModal() {
         if (this.modalOverlay) {
@@ -519,7 +519,7 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Уничтожить
+     * Destroy
      */
     destroy() {
         this._hideModal();
