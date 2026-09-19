@@ -26,6 +26,6 @@ def setup_routes(app: FastAPI) -> None:
 
         # Если не задано или корень — берём дефолт
         if not main_url or main_url == "/":
-            main_url = "/core/engine/app"
+            main_url = "/core/engine/default"
 
         return RedirectResponse(url=main_url)
