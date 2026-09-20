@@ -243,4 +243,6 @@ __marimo__/
 # ============================================
 # Add your own patterns below.
 # They will be preserved by `neurocad run`.
-# ============================================
+# ============================================dist/
+build/
+*.egg-info/
