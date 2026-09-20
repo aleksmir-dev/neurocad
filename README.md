@@ -2,7 +2,7 @@
 
 **English** | [Русский](#русский)
 
-[![PyPI version](https://badge.fury.io/py/neurocad.svg)](https://pypi.org/project/neurocad/)
+[![PyPI version](https://img.shields.io/pypi/v/neurocad.svg)](https://pypi.org/project/neurocad/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python versions](https://img.shields.io/pypi/pyversions/neurocad.svg)](https://pypi.org/project/neurocad/)
 

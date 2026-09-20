@@ -86,6 +86,7 @@ def ensure_workdirs():
       - alembic/versions/ — user migrations
       - main.py — entry point (if missing)
       - .env — settings (if missing)
+      - .gitignore — project gitignore (created or synced)
     """
     from ..config import settings
 
@@ -187,6 +188,94 @@ def ensure_workdirs():
             encoding="utf-8",
         )
 
+    # ===== 6. .gitignore — create or sync =====
+    ensure_gitignore()
+
+
+# ============================================
+# .gitignore
+# ============================================
+
+_GITIGNORE_BEGIN = "# === NEUROCAD BEGIN ==="
+_GITIGNORE_END = "# === NEUROCAD END ==="
+
+
+def ensure_gitignore():
+    """
+    Create or sync the project .gitignore.
+
+    Rules:
+      1. .gitignore doesn't exist            → copy package version (full).
+      2. Exists, identical to package        → skip.
+      3. Exists, has no NEUROCAD markers     → full overwrite (package version).
+      4. Exists, both have markers, differs  → replace NEUROCAD block only.
+      5. Exists, both have markers, same     → skip.
+
+    User additions AFTER the NEUROCAD END marker are preserved
+    once the file has markers.
+
+    Source: neurocad/.gitignore (inside the installed package).
+    Destination: ./.gitignore (cwd).
+    """
+    dst = Path(".gitignore")
+    src = package_dir() / ".gitignore"
+
+    if not src.exists():
+        print("[neurocad] .gitignore template not found in package")
+        return
+
+    src_content = src.read_text(encoding="utf-8")
+
+    # ===== Case 1: no .gitignore — copy =====
+    if not dst.exists():
+        shutil.copy(src, dst)
+        print(f"[neurocad] .gitignore created from template: {dst}")
+        return
+
+    dst_content = dst.read_text(encoding="utf-8")
+
+    # ===== Case 2: identical — skip =====
+    if dst_content.strip() == src_content.strip():
+        print("[neurocad] .gitignore already up to date — skipping")
+        return
+
+    src_has_markers = _GITIGNORE_BEGIN in src_content and _GITIGNORE_END in src_content
+    dst_has_markers = _GITIGNORE_BEGIN in dst_content and _GITIGNORE_END in dst_content
+
+    # ===== Case 3: dst has no markers — full overwrite =====
+    if not dst_has_markers:
+        shutil.copy(src, dst)
+        print(f"[neurocad] .gitignore overwritten (no markers found): {dst}")
+        return
+
+    # ===== Case 4: both have markers — replace block only =====
+    if src_has_markers and dst_has_markers:
+        src_block = _extract_gitignore_block(src_content)
+        dst_block = _extract_gitignore_block(dst_content)
+
+        if src_block == dst_block:
+            print("[neurocad] .gitignore NEUROCAD block up to date — skipping")
+            return
+
+        new_content = dst_content.replace(dst_block, src_block)
+        dst.write_text(new_content, encoding="utf-8")
+        print(f"[neurocad] .gitignore NEUROCAD block updated: {dst}")
+        return
+
+    # Fallback: src has no markers (некорректный пакет)
+    print("[neurocad] .gitignore template has no markers — skipping")
+
+
+def _extract_gitignore_block(content: str) -> str:
+    """Extract the NEUROCAD block (BEGIN..END inclusive) from .gitignore content."""
+    i = content.index(_GITIGNORE_BEGIN)
+    j = content.index(_GITIGNORE_END) + len(_GITIGNORE_END)
+    return content[i:j]
+
+
+# ============================================
+# BUILTIN APP COPY
+# ============================================
 
 def _copy_builtin_app(app_dir: Path):
     """
