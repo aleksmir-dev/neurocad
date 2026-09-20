@@ -1,11 +1,11 @@
 /* neurocad/core/engine/lib/word/word.css */
 
 /* ============================================
-   КОМПОНЕНТ WORD — отображение контента страницы
+   WORD COMPONENT — page content display
    ============================================ */
 
 .core-engine-lib-word {
-    /* Растягиваемся на всю площадь .area-center */
+    /* Stretch to the entire .area-center */
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
@@ -15,13 +15,13 @@
     height: 100%;
     box-sizing: border-box;
 
-    /* Плоско — без карточки */
+    /* Flat — no card */
     padding: 0;
     background: transparent;
     border-radius: 0;
     box-shadow: none;
 
-    /* Оформление */
+    /* Typography */
     color: var(--text-main, #1e293b);
     font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
     font-size: 16px;
@@ -29,17 +29,17 @@
 }
 
 /* ============================================
-   ТУЛБАР ВИДЖЕТА (кнопки: карандаш, link, дата)
+   WIDGET TOOLBAR (buttons: pencil, link, date)
    ============================================ */
 
 .core-engine-lib-word-toolbar {
     display: flex;
     align-items: center;
-    gap: 8px;                     /* отступ между кнопками */
+    gap: 8px;                     /* spacing between buttons */
     flex-wrap: wrap;
 }
 
-/* Кнопка тулбара — только иконка, без фона и рамки */
+/* Toolbar button — icon only, no background, no border */
 .core-engine-lib-word-toolbar-btn {
     display: inline-flex;
     align-items: center;
@@ -47,8 +47,8 @@
     width: 28px;
     height: 28px;
     padding: 0;
-    border: none;                 /* убрали рамку */
-    background: transparent;      /* убрали фон */
+    border: none;
+    background: transparent;
     border-radius: 6px;
     cursor: pointer;
     transition: background 0.15s ease, transform 0.1s ease;
@@ -56,7 +56,7 @@
 }
 
 .core-engine-lib-word-toolbar-btn:hover {
-    background: #f1f5f9;          /* мягкий фон только при hover */
+    background: #f1f5f9;          /* soft background on hover only */
 }
 
 .core-engine-lib-word-toolbar-btn:active {
@@ -76,7 +76,7 @@
     opacity: 1;
 }
 
-/* Дата справа в тулбаре */
+/* Date on the right side of the toolbar */
 .core-engine-lib-word-toolbar-date {
     margin-left: auto;
     font-size: 12px;
@@ -89,7 +89,7 @@
 }
 
 /* ============================================
-   СОСТОЯНИЕ ОШИБКИ
+   ERROR STATE
    ============================================ */
 
 .core-engine-lib-word-error {
@@ -126,7 +126,7 @@
 }
 
 /* ============================================
-   КОНТЕНТ СТРАНИЦЫ
+   PAGE CONTENT
    ============================================ */
 
 .core-engine-lib-word-content {
@@ -139,9 +139,32 @@
     color: #334155;
     word-wrap: break-word;
     overflow-wrap: break-word;
+
+    /* Inner layout: make the first child (the "body" wrapper) stretch
+       to fill the entire content area. */
+    display: flex;
+    flex-direction: column;
 }
 
-/* Пустое состояние */
+/*
+ * GrapesJS saves content wrapped in <body>...</body>, which we convert to
+ * a plain <div> on render. That div is the visual page root (with the
+ * background, padding, etc.). Make it stretch to the full height of the
+ * content area, and stack its children vertically.
+ */
+.core-engine-lib-word-content > div:first-of-type {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Inner blocks keep natural height — only the root div grows. */
+.core-engine-lib-word-content > div:first-of-type > * {
+    flex-shrink: 0;
+}
+
+/* Empty state */
 .core-engine-lib-word-empty {
     text-align: center;
     color: #94a3b8;
@@ -149,7 +172,7 @@
     padding: 40px 20px;
 }
 
-/* --- Заголовки внутри контента --- */
+/* --- Headings inside content --- */
 
 :where(.core-engine-lib-word-content) h1 {
     margin: 32px 0 16px;
@@ -194,13 +217,13 @@
     color: #475569;
 }
 
-/* --- Параграфы --- */
+/* --- Paragraphs --- */
 
 :where(.core-engine-lib-word-content) p {
     margin: 0 0 16px;
 }
 
-/* --- Ссылки --- */
+/* --- Links --- */
 
 :where(.core-engine-lib-word-content) a {
     color: #2563eb;
@@ -214,7 +237,7 @@
     border-bottom-color: #1d4ed8;
 }
 
-/* --- Списки --- */
+/* --- Lists --- */
 
 :where(.core-engine-lib-word-content) ul,
 :where(.core-engine-lib-word-content) ol {
@@ -237,7 +260,7 @@
     font-weight: 600;
 }
 
-/* --- Цитаты --- */
+/* --- Blockquotes --- */
 
 :where(.core-engine-lib-word-content) blockquote {
     margin: 24px 0;
@@ -253,7 +276,7 @@
     margin-bottom: 0;
 }
 
-/* --- Код --- */
+/* --- Code --- */
 
 :where(.core-engine-lib-word-content) code {
     padding: 2px 6px;
@@ -283,7 +306,7 @@
     font-size: inherit;
 }
 
-/* --- Изображения --- */
+/* --- Images --- */
 
 :where(.core-engine-lib-word-content) img {
     max-width: 100%;
@@ -293,7 +316,7 @@
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
 }
 
-/* --- Таблицы --- */
+/* --- Tables --- */
 
 :where(.core-engine-lib-word-content) table {
     width: 100%;
@@ -334,7 +357,7 @@
     background: rgba(59, 130, 246, 0.03);
 }
 
-/* --- Горизонтальная линия --- */
+/* --- Horizontal rule --- */
 
 :where(.core-engine-lib-word-content) hr {
     margin: 32px 0;
@@ -343,7 +366,7 @@
     background: linear-gradient(90deg, transparent, #e2e8f0 20%, #e2e8f0 80%, transparent);
 }
 
-/* --- Выделение --- */
+/* --- Emphasis --- */
 
 :where(.core-engine-lib-word-content) strong,
 :where(.core-engine-lib-word-content) b {
@@ -364,7 +387,7 @@
 }
 
 /* ============================================
-   КНОПКА "РЕДАКТИРОВАТЬ" (старый стиль, если где-то используется)
+   "EDIT" BUTTON (legacy style, if used anywhere)
    ============================================ */
 
 .core-engine-lib-word-actions {
@@ -414,11 +437,11 @@
 }
 
 /* ============================================
-   РЕЖИМ РЕДАКТИРОВАНИЯ
+   EDIT MODE
    ============================================ */
 
-/* Когда открыт редактор — убираем padding у внешнего .word,
-   убираем padding у .word-widget-content и скрываем word-toolbar. */
+/* When the editor is open — remove padding from the outer .word,
+   remove padding from .word-widget-content, and hide the word-toolbar. */
 .core-engine-lib-word:has(.core-engine-lib-word-editor-canvas) {
     padding: 0;
     border-radius: 0;
@@ -431,14 +454,14 @@
     padding: 0 !important;
 }
 
-/* Скрыть word-toolbar (карандаш, link) в режиме редактирования */
+/* Hide word-toolbar (pencil, link) in edit mode */
 .core-engine-lib-word-widget:has(.core-engine-lib-word-editor-canvas)
 .core-engine-lib-word-toolbar {
     display: none;
 }
 
 /* ============================================
-   АДАПТИВ
+   RESPONSIVE
    ============================================ */
 
 @media (max-width: 768px) {
@@ -519,7 +542,7 @@
 }
 
 /* ============================================
-   ПЕЧАТЬ
+   PRINT
    ============================================ */
 
 @media print {

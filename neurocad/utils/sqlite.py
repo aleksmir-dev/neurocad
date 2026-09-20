@@ -129,7 +129,7 @@ async def ensure_superadmin():
         new_admin = User(
             login=login,
             password=hashed_password,
-            name="Super Admin",
+            name="Админ",
             is_superadmin=True,
             is_active=True,
             is_delete=False,

@@ -1,8 +1,13 @@
 // app/core/engine/lib/base/modal/index.js
 
 /**
- * Фабрика для создания модалок по типу.
- * Асинхронная: классы подгружаются динамическим import().
+ * Modal factory — creates modal instances by type.
+ *
+ * Async: modal classes are loaded via dynamic import().
+ * Adding a new modal type:
+ *   1. Create `<type>.js` next to this file.
+ *   2. Export a class with the same API (open / close / setOnOk / setOnCancel / destroy).
+ *   3. Add a `case '<type>':` below.
  */
 export async function createModal(type, props = {}) {
     switch (type) {
@@ -22,6 +27,10 @@ export async function createModal(type, props = {}) {
             const { BaseModalTextarea } = await import('./textarea.js');
             return new BaseModalTextarea(props);
         }
+        case 'textareatwo': {
+            const { BaseModalTextareaTwo } = await import('./textareatwo.js');
+            return new BaseModalTextareaTwo(props);
+        }
         case 'date': {
             const { BaseModalDate } = await import('./date.js');
             return new BaseModalDate(props);
@@ -31,7 +40,7 @@ export async function createModal(type, props = {}) {
             return new BaseModalInterval(props);
         }
         default:
-            console.warn(`[Modal] Неизвестный тип: ${type}`);
+            console.warn(`[Modal] Unknown type: ${type}`);
             return null;
     }
 }

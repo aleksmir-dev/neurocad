@@ -1,15 +1,22 @@
 // app/core/engine/lib/word/editor/index.js
 
 /**
- * Точка входа редактора GrapesJS.
+ * GrapesJS editor entry point.
  *
- * Реэкспортирует класс Editor из editor.js.
- * Компонент Word импортирует отсюда:
+ * Dynamically loads the Editor class from editor.js with a version query,
+ * so the browser does not serve a stale cached copy after updates.
  *
- *   const { Editor } = await import(`./editor/index.js?v=${version}`);
+ * Usage (from word.js):
  *
- * Внутренние модули (grapes, widgets, styles, assets, resizer, blocks/*)
- * Editor подгружает сам — динамически, с версией.
+ *   const version = window.coreEngine?.static_version || Date.now();
+ *   const { loadEditor } = await import(`./editor/index.js?v=${version}`);
+ *   const Editor = await loadEditor();
+ *
+ *   this.editorInstance = new Editor(container, props);
  */
 
-export { Editor } from './editor.js';
+export async function loadEditor() {
+    const version = window.coreEngine?.static_version || Date.now();
+    const { Editor } = await import(`./editor.js?v=${version}`);
+    return Editor;
+}

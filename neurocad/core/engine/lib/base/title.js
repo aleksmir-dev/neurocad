@@ -1,5 +1,25 @@
 // app/core/engine/lib/base/title.js
 
+/**
+ * Title — заголовок в шапке (header).
+ *
+ * Поддерживает конфиг в нескольких форматах:
+ *
+ *   1. Строка:
+ *        "title": "Главная"
+ *
+ *   2. Объект с текстом:
+ *        "title": { "type": "text", "text": "Главная" }
+ *
+ *   3. Объект-селектор (переключение по списку):
+ *        "title": {
+ *            "type": "select",
+ *            "list": ["Главная", "О проекте", "Контакты"],
+ *            "event": "title-change"
+ *        }
+ *
+ *   4. Пусто (null / undefined / отсутствует) → рендерится пустой <div>.
+ */
 export class Title {
     constructor(config) {
         this.config = config || null;
@@ -9,19 +29,31 @@ export class Title {
     }
 
     render() {
-        if (!this.config || this.config.type !== 'select' || this.list.length === 0) {
-            return `<div class="core-engine-lib-base-title">Заголовок страницы</div>`;
+        // ===== Строка =====
+        if (typeof this.config === 'string') {
+            return `<div class="core-engine-lib-base-title">${this.config}</div>`;
         }
 
-        const current = this.list[this.index] || this.list[0];
+        // ===== Объект с явным типом "text" =====
+        if (this.config?.type === 'text') {
+            const text = this.config.text || '';
+            return `<div class="core-engine-lib-base-title">${text}</div>`;
+        }
 
-        return `
-            <div class="core-engine-lib-base-title" data-js="title-select">
-                <button class="core-engine-lib-base-title-btn" data-action="title_prev">‹</button>
-                <span class="core-engine-lib-base-title-text" data-js="title-text">${current}</span>
-                <button class="core-engine-lib-base-title-btn" data-action="title_next">›</button>
-            </div>
-        `;
+        // ===== Селектор (list + prev/next) =====
+        if (this.config?.type === 'select' && this.list.length > 0) {
+            const current = this.list[this.index] || this.list[0];
+            return `
+                <div class="core-engine-lib-base-title" data-js="title-select">
+                    <button class="core-engine-lib-base-title-btn" data-action="title_prev">‹</button>
+                    <span class="core-engine-lib-base-title-text" data-js="title-text">${current}</span>
+                    <button class="core-engine-lib-base-title-btn" data-action="title_next">›</button>
+                </div>
+            `;
+        }
+
+        // ===== Пусто =====
+        return `<div class="core-engine-lib-base-title"></div>`;
     }
 
     bindEvents() {
@@ -34,6 +66,7 @@ export class Title {
 
         if (!prevBtn || !nextBtn || !textEl) return;
 
+        // Клонируем кнопки, чтобы снять старые обработчики
         const newPrev = prevBtn.cloneNode(true);
         const newNext = nextBtn.cloneNode(true);
         prevBtn.replaceWith(newPrev);

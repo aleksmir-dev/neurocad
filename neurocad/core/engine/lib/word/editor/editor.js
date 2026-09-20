@@ -11,7 +11,9 @@
  *   assets.js     -> works with media library (GET /assets, POST /assets/upload)
  *   blocks/       -> registers block library
  *   resizer.js    -> handles for dragging borders between areas
- *   base/modal    -> Base modals (incl. textarea for custom CSS)
+ *   modals.js     -> HTML+CSS page modal and element CSS modal
+ *   formatter.js  -> js-beautify wrapper (CSS / HTML pretty-print)
+ *   base/modal    -> Base modals (incl. code modal for HTML + CSS)
  *   ../llm/chat.js    -> LLM chat panel (right)
  *   ../llm/presets.js -> Presets list (left tab)
  *
@@ -55,6 +57,7 @@ export class Editor {
         this._blocks = null;
         this._resizer = null;
         this._createModal = null;
+        this._modals = null;    // modals.js module
         this._chat = null;      // LLM chat
         this._presets = null;   // LLM presets
 
@@ -106,6 +109,7 @@ export class Editor {
                 { AssetsManager },
                 { BlocksRegistry },
                 { Resizer },
+                modalsModule,
                 { createModal },
                 { LLMChat },
                 { LLMPresets },
@@ -116,12 +120,14 @@ export class Editor {
                 import(`./assets.js?v=${version}`),
                 import(`./blocks/index.js?v=${version}`),
                 import(`./resizer.js?v=${version}`),
+                import(`./modals.js?v=${version}`),
                 import(`../../base/modal/index.js?v=${version}`),
                 import(`../llm/chat.js?v=${version}`),
                 import(`../llm/presets.js?v=${version}`),
             ]);
 
             this._createModal = createModal;
+            this._modals = modalsModule;
 
             // 2. Build DOM of three areas (left / center / right) + toolbar
             this._widgets = new WidgetsBuilder(this);
@@ -196,14 +202,12 @@ export class Editor {
     _setTab(name) {
         if (!this.tabsEl) return;
 
-        // Buttons
         this.tabsEl
             .querySelectorAll('.core-engine-lib-word-editor-tab')
             .forEach((btn) => {
                 btn.classList.toggle('active', btn.dataset.tab === name);
             });
 
-        // Panels
         const leftTop = this.leftArea?.querySelector('.core-engine-lib-word-editor-left-top');
         if (!leftTop) return;
 
@@ -216,18 +220,70 @@ export class Editor {
     // DATA LOADING
     // ============================================
 
+    /**
+     * Load initial data into GrapesJS.
+     *
+     * Priority:
+     *   1. Full project JSON (getProjectData()) — preferred, keeps wrapper
+     *      attributes (e.g. id) and CSS rules tied to them.
+     *   2. HTML fallback — used for new pages or when the project JSON is
+     *      missing. <style>...</style> blocks are extracted and applied to
+     *      the CssComposer manually, because GrapesJS ignores them in
+     *      setComponents(html).
+     *
+     * GrapesJS getProjectData() returns:
+     *   { pages, styles, assets, ... }  — NO top-level `components`!
+     * So we check `pages` / `styles` / `components`.
+     */
     _loadData() {
         console.log('[Editor] Loading data');
 
-        if (this.initialProject && this.initialProject.components) {
-            this.editor.loadProjectData(this.initialProject);
-            console.log('[Editor] JSON project loaded');
-        } else if (this.initialHtml) {
+        const proj = this.initialProject;
+        const hasProject = !!(proj && (
+            (proj.pages && proj.pages.length) ||
+            (proj.styles && proj.styles.length) ||
+            proj.components
+        ));
+
+        if (hasProject) {
+            try {
+                this.editor.loadProjectData(proj);
+                console.log('[Editor] JSON project loaded');
+                return;
+            } catch (e) {
+                console.warn('[Editor] loadProjectData failed, falling back to HTML:', e);
+            }
+        }
+
+        if (this.initialHtml) {
             this.editor.setComponents(this.initialHtml);
-            console.log('[Editor] HTML loaded');
+            this._applyStylesFromHtml(this.initialHtml);
+            console.log('[Editor] HTML loaded (+styles extracted)');
         } else {
             console.log('[Editor] No data — setting empty paragraph');
             this.editor.setComponents('<p></p>');
+        }
+    }
+
+    /**
+     * Extract <style>...</style> blocks from an HTML string and apply the
+     * combined CSS to GrapesJS CssComposer.
+     *
+     * Why: setComponents(html) only parses components — <style> is ignored
+     * by GrapesJS. So when loading a page as HTML (not as project JSON),
+     * we must explicitly push its CSS into StyleManager.
+     */
+    _applyStylesFromHtml(html) {
+        const matches = [...(html || '').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];
+        const css = matches.map(m => m[1]).join('\n').trim();
+
+        if (!css) return;
+
+        try {
+            this.editor.setStyle(css);
+            console.log('[Editor] Inline <style> applied to CssComposer');
+        } catch (e) {
+            console.warn('[Editor] setStyle failed:', e);
         }
     }
 
@@ -274,7 +330,10 @@ export class Editor {
                 </button>
             </div>
             <div class="core-engine-lib-word-editor-separator"></div>
-            <button type="button" data-action="css" title="Кастомный CSS" class="core-engine-lib-word-editor-btn">
+            <button type="button" data-action="html" title="Просмотр/редактирование HTML + CSS" class="core-engine-lib-word-editor-btn">
+                <span class="core-engine-lib-word-editor-btn-icon">&lt;&gt;</span>
+            </button>
+            <button type="button" data-action="css" title="Кастомный CSS элемента" class="core-engine-lib-word-editor-btn">
                 <span class="core-engine-lib-word-editor-btn-icon">{ }</span>
             </button>
 
@@ -326,6 +385,9 @@ export class Editor {
             case 'mobile':
                 this._setDevice(action);
                 break;
+            case 'html':
+                this._openHtmlModal();
+                break;
             case 'css':
                 this._openCssModal();
                 break;
@@ -345,111 +407,37 @@ export class Editor {
     }
 
     // ============================================
-    // CUSTOM CSS MODAL (via Base Modal)
+    // MODALS (delegated to modals.js)
     // ============================================
 
     /**
-     * Open custom CSS modal.
-     * Uses BaseModalTextarea from base/modal.
+     * Open the page-level HTML + CSS modal.
+     * Delegates to modals.js — openHtmlCssModal().
+     */
+    async _openHtmlModal() {
+        if (!this._modals) {
+            console.warn('[Editor] modals module not loaded');
+            return;
+        }
+        await this._modals.openHtmlCssModal({
+            editor: this.editor,
+            createModal: this._createModal,
+        });
+    }
+
+    /**
+     * Open the element-level custom CSS modal.
+     * Delegates to modals.js — openElementCssModal().
      */
     async _openCssModal() {
-        if (!this._createModal) {
-            console.warn('[Editor] createModal not loaded');
+        if (!this._modals) {
+            console.warn('[Editor] modals module not loaded');
             return;
         }
-
-        const comp = this.editor.getSelected();
-
-        if (!comp) {
-            // Nothing selected — nothing to open
-            const modal = await this._createModal('message');
-            modal.open(
-                'Сначала выберите элемент на холсте.',
-                'Кастомный CSS',
-                'Понятно'
-            );
-            modal.setOnOk(() => modal.destroy());
-            return;
-        }
-
-        const tag = (comp.get('tagName') || 'DIV').toUpperCase();
-        const classes = comp.getClasses().join('.');
-        const targetLabel = classes
-            ? `<${tag} class="${classes}">`
-            : `<${tag}>`;
-
-        // Current inline styles
-        const style = comp.getStyle() || {};
-        const initialCss = Object.entries(style)
-            .map(([k, v]) => `${k}: ${v};`)
-            .join('\n');
-
-        const modal = await this._createModal('textarea');
-
-        modal.open(
-            targetLabel,
-            'Кастомный CSS',
-            'Например:\nbackground: url("/media/uploads/photo.jpg") center/cover no-repeat;\nborder-radius: 12px;',
-            initialCss
-        );
-
-        modal.setOnOk((value) => {
-            this._applyCustomCss(value);
-            modal.destroy();
+        await this._modals.openElementCssModal({
+            editor: this.editor,
+            createModal: this._createModal,
         });
-
-        modal.setOnCancel(() => {
-            modal.destroy();
-        });
-    }
-
-    /**
-     * Apply CSS from string to the selected component.
-     */
-    _applyCustomCss(cssText) {
-        const comp = this.editor.getSelected();
-        if (!comp) return;
-
-        const styleObj = this._parseCssText(cssText || '');
-
-        if (Object.keys(styleObj).length === 0) {
-            console.warn('[Editor] Custom CSS is empty or unrecognized');
-            return;
-        }
-
-        comp.addStyle(styleObj);
-        console.log('[Editor] Custom CSS applied:', styleObj);
-    }
-
-    /**
-     * Simple CSS text parser into {property: value} object.
-     * Understands multi-line and single-line format, ignores comments.
-     */
-    _parseCssText(text) {
-        const result = {};
-
-        // Remove /* ... */ comments
-        const cleaned = text.replace(/\/\*[\s\S]*?\*\//g, '');
-
-        // Split by ';' or newlines
-        const declarations = cleaned.split(/;|\n/);
-
-        for (let decl of declarations) {
-            decl = decl.trim();
-            if (!decl) continue;
-
-            const idx = decl.indexOf(':');
-            if (idx === -1) continue;
-
-            const prop = decl.slice(0, idx).trim();
-            const value = decl.slice(idx + 1).trim();
-
-            if (prop && value) {
-                result[prop] = value;
-            }
-        }
-
-        return result;
     }
 
     // ============================================
@@ -547,6 +535,7 @@ export class Editor {
         this._assets = null;
         this._blocks = null;
         this._createModal = null;
+        this._modals = null;
 
         this._initialized = false;
         this._initPromise = null;

@@ -17,19 +17,20 @@ export async function render(cards) {
 
     cards.grid.innerHTML = '';
     cards.itemInstances.clear();
-    cards.grid.style.display = 'grid';
     cards.grid.style.gridTemplateColumns = cards.gridColumns;
 
     // Снимаем выделение при полном ре-рендере (инстансы всё равно удаляются)
     cards.selectedIds.clear();
 
     if (cards.isLoading) {
+        cards.grid.style.display = 'grid';
         renderLoading(cards);
         cards._updateUI();
         return;
     }
 
     if (cards.error) {
+        cards.grid.style.display = 'grid';
         renderError(cards, cards.error);
         cards._updateUI();
         return;
@@ -37,11 +38,13 @@ export async function render(cards) {
 
     const itemsToShow = getItemsToShow(cards);
     if (itemsToShow.length === 0) {
-        renderEmptyState(cards);
+        // Нет карточек — скрываем grid полностью (без empty state)
+        cards.grid.style.display = 'none';
         cards._updateUI();
         return;
     }
 
+    cards.grid.style.display = 'grid';
     for (const item of itemsToShow) {
         const cardEl = await renderItem(cards, item);
         cards.grid.appendChild(cardEl);

@@ -1,4 +1,5 @@
 {
+  "_file": "default/nav.json",      
   "component": "page",
   "extend": "base",
   "title": "Навигация",

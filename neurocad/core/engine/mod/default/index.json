@@ -1,7 +1,8 @@
 {
+  "_file": "default/index.json",    
   "component": "page",
   "extend": "base",
-  "title": "Главная",
+  "title": "Каталог статей",
   "content": "{{ pages }}",
   "components": [
     { "component": "pages" }

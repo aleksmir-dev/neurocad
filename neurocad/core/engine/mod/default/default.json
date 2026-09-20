@@ -1,6 +1,7 @@
 {
+  "_file": "default/default.json",
   "component": "module",
   "default_page": "index",
-  "auth_required": false,
+  "auth_required": true,
   "domain": "default"
 }

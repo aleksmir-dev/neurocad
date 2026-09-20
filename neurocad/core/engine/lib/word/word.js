@@ -16,7 +16,7 @@
  *          │    ├─ "Open public" button (link) — opens /page/<date>/<time> in new tab
  *          │    └─ date (right, pushed by margin-left: auto)
  *          └─ .core-engine-lib-base-widget-content   ← article with content
- *   4. Pencil button — Editor (./editor/index.js) — GrapesJS with LLM chat + presets.
+ *   4. Pencil button — openEditor (./bridge.js) — GrapesJS with LLM chat + presets.
  *   5. Link button — opens public version of the page in a new tab.
  *   6. Save via lib/word API.
  *
@@ -54,6 +54,7 @@ export class Word {
         this.isEditing = false;
         this._initialized = false;
         this._initPromise = null;
+        this._editorToken = 0;           // race protection token
 
         // DOM refs to widget parts
         this.widgetEl = null;
@@ -92,9 +93,7 @@ export class Word {
                 }
             }
 
-            // ===== Write page title into app header =====
             this._setHeaderTitle();
-
             this._render();
 
             this._initialized = true;
@@ -182,10 +181,8 @@ export class Word {
 
     /**
      * Write page title into the app header (.core-engine-lib-base-title).
-     *
      * Header markup is rendered by Base (header.js) before Word is mounted,
      * so we just find the element and replace its text.
-     *
      * Uses a short retry loop in case header isn't in DOM yet.
      */
     _setHeaderTitle(retries = 5) {
@@ -200,7 +197,6 @@ export class Word {
             return;
         }
 
-        // Remember original once
         if (this._originalHeaderTitle === null) {
             this._originalHeaderTitle = el.textContent;
         }
@@ -215,7 +211,6 @@ export class Word {
     _render() {
         console.log('[Word] _render()');
 
-        // Clear container
         while (this.container.firstChild) {
             this.container.removeChild(this.container.firstChild);
         }
@@ -225,50 +220,15 @@ export class Word {
         widget.className = 'core-engine-lib-base-widget core-engine-lib-word-widget';
         this.widgetEl = widget;
 
-        // ===== Widget toolbar =====
+        // ===== Toolbar =====
         const toolbar = document.createElement('div');
         toolbar.className = 'core-engine-lib-base-widget-toolbar core-engine-lib-word-toolbar';
         toolbar.setAttribute('data-js', 'word-toolbar');
         this.toolbarEl = toolbar;
         widget.appendChild(toolbar);
 
-        // Toolbar buttons — admin only
         if (this._isAdmin()) {
-            // ===== "Edit" button (GrapesJS) =====
-            const editBtn = document.createElement('button');
-            editBtn.type = 'button';
-            editBtn.className = 'core-engine-lib-word-toolbar-btn';
-            editBtn.setAttribute('data-action', 'word-edit');
-            editBtn.setAttribute('title', 'Редактировать (визуальный редактор)');
-            editBtn.setAttribute('aria-label', 'Редактировать');
-
-            const editIcon = document.createElement('img');
-            editIcon.className = 'core-engine-lib-word-toolbar-btn-icon';
-            editIcon.src = `${this._iconsBase}/edit.svg`;
-            editIcon.alt = '';
-            editIcon.setAttribute('aria-hidden', 'true');
-            editBtn.appendChild(editIcon);
-
-            editBtn.addEventListener('click', () => this._openEditor());
-            toolbar.appendChild(editBtn);
-
-            // ===== "Open public" button (link) =====
-            const publicBtn = document.createElement('button');
-            publicBtn.type = 'button';
-            publicBtn.className = 'core-engine-lib-word-toolbar-btn';
-            publicBtn.setAttribute('data-action', 'word-public');
-            publicBtn.setAttribute('title', 'Открыть публичную версию');
-            publicBtn.setAttribute('aria-label', 'Открыть публичную версию');
-
-            const publicIcon = document.createElement('img');
-            publicIcon.className = 'core-engine-lib-word-toolbar-btn-icon';
-            publicIcon.src = `${this._iconsBase}/link.svg`;
-            publicIcon.alt = '';
-            publicIcon.setAttribute('aria-hidden', 'true');
-            publicBtn.appendChild(publicIcon);
-
-            publicBtn.addEventListener('click', () => this._openPublicPage());
-            toolbar.appendChild(publicBtn);
+            this._buildToolbarButtons(toolbar);
         }
 
         // ===== Date — right side of toolbar =====
@@ -286,12 +246,51 @@ export class Word {
         this.widgetContentEl = widgetContent;
         widget.appendChild(widgetContent);
 
-        // ===== Article inside content =====
-        const article = this._buildArticle();
-        widgetContent.appendChild(article);
+        // ===== Article =====
+        widgetContent.appendChild(this._buildArticle());
 
-        // Insert widget into container
         this.container.appendChild(widget);
+    }
+
+    /**
+     * Build toolbar buttons (Edit + Open public).
+     */
+    _buildToolbarButtons(toolbar) {
+        // "Edit" button (GrapesJS)
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'core-engine-lib-word-toolbar-btn';
+        editBtn.setAttribute('data-action', 'word-edit');
+        editBtn.setAttribute('title', 'Редактировать (визуальный редактор)');
+        editBtn.setAttribute('aria-label', 'Редактировать');
+
+        const editIcon = document.createElement('img');
+        editIcon.className = 'core-engine-lib-word-toolbar-btn-icon';
+        editIcon.src = `${this._iconsBase}/edit.svg`;
+        editIcon.alt = '';
+        editIcon.setAttribute('aria-hidden', 'true');
+        editBtn.appendChild(editIcon);
+
+        editBtn.addEventListener('click', () => this._openEditor());
+        toolbar.appendChild(editBtn);
+
+        // "Open public" button (link)
+        const publicBtn = document.createElement('button');
+        publicBtn.type = 'button';
+        publicBtn.className = 'core-engine-lib-word-toolbar-btn';
+        publicBtn.setAttribute('data-action', 'word-public');
+        publicBtn.setAttribute('title', 'Открыть публичную версию');
+        publicBtn.setAttribute('aria-label', 'Открыть публичную версию');
+
+        const publicIcon = document.createElement('img');
+        publicIcon.className = 'core-engine-lib-word-toolbar-btn-icon';
+        publicIcon.src = `${this._iconsBase}/link.svg`;
+        publicIcon.alt = '';
+        publicIcon.setAttribute('aria-hidden', 'true');
+        publicBtn.appendChild(publicIcon);
+
+        publicBtn.addEventListener('click', () => this._openPublicPage());
+        toolbar.appendChild(publicBtn);
     }
 
     /**
@@ -300,23 +299,49 @@ export class Word {
      * Title lives in the app header (set via _setHeaderTitle()).
      * Date lives in the toolbar. Neither appears here.
      *
-     * Used in _render(), _closeEditor().
+     * GrapesJS saves content wrapped in <body>...</body>. Browsers ignore
+     * nested <body> and drop its id, so CSS selectors like #id4l break.
+     * We replace <body> with <div> here to preserve the id and make CSS work.
+     *
+     * <style> blocks are inserted via document.createElement('style') to
+     * avoid innerHTML parsing quirks.
      */
     _buildArticle() {
-        // content = HTML + <style>…</style> (merged on save)
-        const html = this.pageData?.content
+        const raw = this.pageData?.content
             || '<p class="core-engine-lib-word-empty">Контент пуст</p>';
+
+        // Replace <body ...> with <div ...> — keep id, class, style attributes.
+        const html = raw
+            .replace(/<body(\s[^>]*)?>/i, '<div$1>')
+            .replace(/<\/body>/i, '</div>');
 
         const article = document.createElement('article');
         article.className = 'core-engine-lib-word';
 
-        // ===== Content =====
         const contentEl = document.createElement('div');
         contentEl.className = 'core-engine-lib-word-content';
         contentEl.setAttribute('data-js', 'word-content');
-        contentEl.innerHTML = html;
-        article.appendChild(contentEl);
 
+        // Extract <style>...</style> blocks
+        const styleMatches = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];
+        const styles = styleMatches.map(m => m[1]).join('\n');
+        const htmlWithoutStyles = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+
+        // Insert <style> via createElement — safer than innerHTML
+        if (styles.trim()) {
+            const styleEl = document.createElement('style');
+            styleEl.textContent = styles;
+            contentEl.appendChild(styleEl);
+        }
+
+        // Insert HTML (without <style>) via temp container
+        const temp = document.createElement('div');
+        temp.innerHTML = htmlWithoutStyles;
+        while (temp.firstChild) {
+            contentEl.appendChild(temp.firstChild);
+        }
+
+        article.appendChild(contentEl);
         return article;
     }
 
@@ -349,7 +374,7 @@ export class Word {
     }
 
     // ============================================
-    // RESIZER HANDLES — CLEANUP ON MODE SWITCH
+    // RESIZER HANDLES
     // ============================================
 
     /**
@@ -360,53 +385,33 @@ export class Word {
     }
 
     // ============================================
-    // GRAPESJS EDITOR
+    // EDITOR (delegated to bridge.js)
     // ============================================
 
+    /**
+     * Open the GrapesJS editor.
+     * Delegates to bridge.js — openEditor().
+     */
     async _openEditor() {
-        console.log('[Word] Opening GrapesJS editor');
-
-        this.isEditing = true;
-        this.toolbarEl?.classList.add('core-engine-lib-word-toolbar-hidden');
-        // Remove all handles from previous modes
-        this._clearAllResizers();
-
-        // Clear widget content (keep toolbar and widget itself)
-        if (this.widgetContentEl) {
-            while (this.widgetContentEl.firstChild) {
-                this.widgetContentEl.removeChild(this.widgetContentEl.firstChild);
-            }
-        } else {
-            console.warn('[Word] widgetContentEl not found — re-creating');
-            this._render();
-        }
-
-        // Editor is built in word-widget-content — there's room for toolbar+canvas
         const version = window.coreEngine?.static_version || Date.now();
-        const { Editor } = await import(`./editor/index.js?v=${version}`);
-
-        this.editorInstance = new Editor(this.widgetContentEl, {
-            title: this.pageData?.title || 'Страница',
-            html: this.pageData?.content || '',
-            project: this.pageData?.content_json
-                ? this._safeJsonParse(this.pageData.content_json)
-                : null,
-
-            // Page context for LLM chat and presets
-            pageId: this.pageId,
-            pageData: this.pageData,
-
-            onSave: async (data) => {
-                await this._saveContent(data);
-            },
-
-            onCancel: () => {
-                this._closeEditor();
-            },
-        });
-
-        await this.editorInstance.waitForInit();
+        const mod = await import(`./bridge.js?v=${version}`);
+        await mod.openEditor(this);
     }
+
+    /**
+     * Close the editor.
+     * Delegates to bridge.js — closeEditor().
+     */
+    _closeEditor() {
+        const version = window.coreEngine?.static_version || Date.now();
+        import(`./bridge.js?v=${version}`).then(mod => {
+            mod.closeEditor(this);
+        });
+    }
+
+    // ============================================
+    // SAVING
+    // ============================================
 
     async _saveContent(data) {
         console.log('[Word] Saving content for id:', this.pageId);
@@ -415,10 +420,8 @@ export class Word {
             throw new Error('Unknown page id');
         }
 
-        // ===== Merge HTML + CSS =====
-        // GrapesJS generates CSS via StyleManager. If we save only
-        // getHtml(), all flex/grid/alignments are lost on render.
-        // So we put CSS in <style> right before HTML.
+        // Merge HTML + CSS: GrapesJS generates CSS via StyleManager.
+        // Save CSS in <style> before HTML so it renders on public pages.
         const css = (data.css || '').trim();
         const html = data.html || '';
 
@@ -445,39 +448,16 @@ export class Word {
             throw new Error(errorData.detail || 'Save error');
         }
 
-        // Update local data — so that after closing the editor,
-        // content with styles renders immediately (no page reload).
+        // Update local data so it renders immediately after close
         this.pageData.content = contentWithCss;
         this.pageData.content_json = JSON.stringify(data.project);
 
         console.log('[Word] Content saved (HTML + CSS)');
 
-        this._closeEditor();
-    }
-
-    _closeEditor() {
-        console.log('[Word] Closing GrapesJS editor');
-        this.toolbarEl?.classList.remove('core-engine-lib-word-toolbar-hidden');
-
-        if (this.editorInstance?.destroy) {
-            this.editorInstance.destroy();
-        }
-        this.editorInstance = null;
-        this.isEditing = false;
-
-        // Remove any remaining handles
-        this._clearAllResizers();
-
-        // Clear widget content and put article back
-        if (this.widgetContentEl) {
-            while (this.widgetContentEl.firstChild) {
-                this.widgetContentEl.removeChild(this.widgetContentEl.firstChild);
-            }
-            this.widgetContentEl.appendChild(this._buildArticle());
-        } else {
-            // fallback — full re-render
-            this._render();
-        }
+        // Close editor and restore article
+        const version = window.coreEngine?.static_version || Date.now();
+        const mod = await import(`./bridge.js?v=${version}`);
+        mod.closeEditor(this);
     }
 
     // ============================================
@@ -486,9 +466,7 @@ export class Word {
 
     /**
      * Open public version of the page in a new tab.
-     *
      * Builds URL: /page/<YYYYMMDD>/<HHMMSS>
-     * Uses pageData.datetime.
      */
     _openPublicPage() {
         console.log('[Word] Opening public page');
@@ -543,9 +521,6 @@ export class Word {
         }
     }
 
-    /**
-     * Format ISO datetime to YYYYMMDD.
-     */
     _formatDateShort(isoString) {
         try {
             const d = new Date(isoString);
@@ -559,9 +534,6 @@ export class Word {
         }
     }
 
-    /**
-     * Format ISO datetime to HHMMSS.
-     */
     _formatTimeShort(isoString) {
         try {
             const d = new Date(isoString);
@@ -607,12 +579,17 @@ export class Word {
             this._originalHeaderTitle = null;
         }
 
+        // Destroy editor if open
         if (this.editorInstance?.destroy) {
-            this.editorInstance.destroy();
+            try {
+                this.editorInstance.destroy();
+            } catch (e) {
+                console.warn('[Word] editor.destroy() error:', e);
+            }
         }
         this.editorInstance = null;
+        this._editorToken = (this._editorToken || 0) + 1;
 
-        // Remove all handles
         this._clearAllResizers();
 
         this._initialized = false;
