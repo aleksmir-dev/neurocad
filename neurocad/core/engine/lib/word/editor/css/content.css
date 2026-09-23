@@ -1,0 +1,492 @@
+/* app/core/engine/lib/word/editor/css/content.css */
+
+/**
+ * Content — theme variables + shared atoms + layout for CONTENT pages.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Uses ONLY --theme-* variables, defined at the top of this file.
+ * Completely independent from base/css/00_variables.css (admin UI):
+ * admin theme changes do NOT affect page content.
+ *
+ * Contents:
+ *   THEME VARIABLES
+ *     --theme-*                 all colors, fonts, radii, spacing
+ *
+ *   ATOMS
+ *     .h1, .h2, .h3             headings
+ *     .text, .text--muted, .text--center
+ *     .lead                     intro paragraph
+ *     .list, .list--check, .list--num
+ *     .btn, .btn--ghost         buttons
+ *     .card, .card__title, .card__text
+ *     .badge, .quote, .image, .icon, .divider
+ *
+ *   LAYOUT
+ *     .section                  vertical rhythm wrapper
+ *     .container                centered max-width wrapper
+ *     .grid, .grid--2/3/4/auto  base grids
+ *     .col                      grid cell
+ *
+ * .flex-shell* lives in blocks/layout.css — it is block-specific
+ * (only used by the flex-shell block).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   THEME VARIABLES — content
+   ============================================ */
+
+/*
+ * Completely independent from base/css/00_variables.css (admin UI).
+ * Admin theme changes do NOT affect these values.
+ *
+ * Scoped under .core-engine-lib-word-blocks — the same class sits
+ * on the canvas <body> in the editor and on the article wrapper
+ * on the public page.
+ */
+.core-engine-lib-word-blocks {
+
+    /* ===== COLORS ===== */
+
+    --theme-bg:             #ffffff;
+    --theme-bg-subtle:      #f8fafc;
+    --theme-bg-dark:        #0f172a;
+    --theme-bg-hover:       #f1f5f9;
+
+    --theme-text:           #1e293b;
+    --theme-text-muted:     #64748b;
+    --theme-text-invert:    #ffffff;
+
+    --theme-accent:         #246eaa;
+    --theme-accent-hover:   #1e5a8a;
+    --theme-accent-soft:    #e0edf7;
+
+    --theme-border:         #e2e8f0;
+    --theme-border-strong:  #cbd5e1;
+
+    --theme-success:        #16a34a;
+    --theme-warning:        #d97706;
+    --theme-danger:         #dc2626;
+
+    /* ===== SHADOWS ===== */
+
+    --theme-shadow-sm:  0 1px 3px rgba(15, 23, 42, 0.06);
+    --theme-shadow-md:  0 4px 12px rgba(15, 23, 42, 0.08);
+    --theme-shadow-lg:  0 12px 32px rgba(15, 23, 42, 0.12);
+
+    /* ===== FONTS ===== */
+
+    --theme-font-family:    'Inter', 'Golos Text', sans-serif;
+    --theme-font-size-xs:   0.75rem;
+    --theme-font-size-sm:   0.875rem;
+    --theme-font-size-base: 1rem;
+    --theme-font-size-lg:   1.125rem;
+    --theme-font-size-xl:   1.25rem;
+    --theme-font-size-2xl:  1.5rem;
+    --theme-font-size-3xl:  2rem;
+    --theme-font-size-4xl:  2.5rem;
+
+    --theme-font-weight-regular:  400;
+    --theme-font-weight-medium:   500;
+    --theme-font-weight-semibold: 600;
+    --theme-font-weight-bold:     700;
+
+    --theme-line-height-tight:  1.25;
+    --theme-line-height-base:   1.6;
+    --theme-line-height-loose:  1.8;
+
+    /* ===== RADII ===== */
+
+    --theme-radius-sm:   0.25rem;
+    --theme-radius-md:   0.5rem;
+    --theme-radius-lg:   0.75rem;
+    --theme-radius-xl:   1rem;
+    --theme-radius-pill: 9999px;
+
+    /* ===== SPACING ===== */
+
+    --theme-space-1:   0.25rem;
+    --theme-space-2:   0.5rem;
+    --theme-space-3:   0.75rem;
+    --theme-space-4:   1rem;
+    --theme-space-5:   1.25rem;
+    --theme-space-6:   1.5rem;
+    --theme-space-8:   2rem;
+    --theme-space-10:  2.5rem;
+    --theme-space-12:  3rem;
+    --theme-space-16:  4rem;
+    --theme-space-20:  5rem;
+
+    --theme-space-section:  4rem;
+    --theme-space-gutter:   1rem;
+    --theme-space-grid:     1rem;
+
+    /* ===== LAYOUT ===== */
+
+    --theme-container-max:  75rem;
+}
+
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+
+.core-engine-lib-word-blocks .h1 {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-4xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.02em;
+}
+
+.core-engine-lib-word-blocks .h2 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-3xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.01em;
+}
+
+.core-engine-lib-word-blocks .h3 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-2xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   TEXT
+   ============================================ */
+
+.core-engine-lib-word-blocks .text {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .text--muted {
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .text--center {
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .text:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================
+   LEAD
+   ============================================ */
+
+.core-engine-lib-word-blocks .lead {
+    margin: 0 0 var(--theme-space-5);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   LISTS
+   ============================================ */
+
+.core-engine-lib-word-blocks .list {
+    margin: 0 0 var(--theme-space-4);
+    padding-left: var(--theme-space-6);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .list li {
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .list li:last-child {
+    margin-bottom: 0;
+}
+
+.core-engine-lib-word-blocks .list li::marker {
+    color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .list--check {
+    list-style: none;
+    padding-left: 0;
+}
+
+.core-engine-lib-word-blocks .list--check li {
+    position: relative;
+    padding-left: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .list--check li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-bold);
+}
+
+.core-engine-lib-word-blocks .list--num {
+    list-style: decimal;
+}
+
+.core-engine-lib-word-blocks .list--num li::marker {
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-semibold);
+}
+
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.core-engine-lib-word-blocks .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--theme-space-2);
+    padding: var(--theme-space-3) var(--theme-space-6);
+    border: 2px solid transparent;
+    border-radius: var(--theme-radius-md);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: 1.2;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--theme-accent);
+    color: var(--theme-text-invert);
+    border-color: var(--theme-accent);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.core-engine-lib-word-blocks .btn:hover {
+    background: var(--theme-accent-hover);
+    border-color: var(--theme-accent-hover);
+    color: var(--theme-text-invert);
+}
+
+.core-engine-lib-word-blocks .btn:active {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-word-blocks .btn--ghost {
+    background: transparent;
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .btn--ghost:hover {
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+
+/* ============================================
+   CARD
+   ============================================ */
+
+.core-engine-lib-word-blocks .card {
+    padding: var(--theme-space-6);
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    border-radius: var(--theme-radius-lg);
+    box-shadow: var(--theme-shadow-sm);
+}
+
+.core-engine-lib-word-blocks .card__title {
+    margin: 0 0 var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .card__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   BADGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .badge {
+    display: inline-block;
+    padding: var(--theme-space-1) var(--theme-space-3);
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+}
+
+
+/* ============================================
+   QUOTE
+   ============================================ */
+
+.core-engine-lib-word-blocks .quote {
+    margin: var(--theme-space-6) 0;
+    padding: var(--theme-space-4) var(--theme-space-5);
+    border-left: 4px solid var(--theme-accent);
+    background: var(--theme-bg-subtle);
+    border-radius: 0 var(--theme-radius-md) var(--theme-radius-md) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-style: italic;
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   IMAGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--theme-radius-md);
+    margin: 0;
+}
+
+
+/* ============================================
+   ICON
+   ============================================ */
+
+.core-engine-lib-word-blocks .icon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    color: var(--theme-accent);
+    flex-shrink: 0;
+}
+
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+
+.core-engine-lib-word-blocks .divider {
+    margin: var(--theme-space-8) 0;
+    border: none;
+    height: 1px;
+    background: var(--theme-border);
+}
+
+
+/* ============================================
+   SECTION — vertical rhythm wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .section {
+    padding-top: var(--theme-space-section);
+    padding-bottom: var(--theme-space-section);
+}
+
+
+/* ============================================
+   CONTAINER — centered max-width wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .container {
+    width: 100%;
+    max-width: var(--theme-container-max);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--theme-space-gutter);
+    padding-right: var(--theme-space-gutter);
+    box-sizing: border-box;
+}
+
+
+/* ============================================
+   GRID — base
+   ============================================ */
+
+.core-engine-lib-word-blocks .grid {
+    display: grid;
+    gap: var(--theme-space-grid);
+}
+
+.core-engine-lib-word-blocks .grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--auto {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+
+/* ============================================
+   COLUMN — grid cell
+   ============================================ */
+
+/*
+ * Minimal cell: only prevents overflow. Padding, background, border
+ * are set per block (e.g. .card, .col--tile were removed on purpose).
+ */
+.core-engine-lib-word-blocks .col {
+    min-width: 0;
+}
+
+
+/* ============================================
+   GRID — responsive fallback
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .grid--2,
+    .core-engine-lib-word-blocks .grid--3,
+    .core-engine-lib-word-blocks .grid--4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

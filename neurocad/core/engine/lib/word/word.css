@@ -12,12 +12,11 @@
     width: 100%;
     min-width: 0;
     min-height: 0;
-    height: 100%;
     box-sizing: border-box;
 
     /* Flat — no card */
     padding: 0;
-    background: transparent;
+    background: #ffffff;
     border-radius: 0;
     box-shadow: none;
 
@@ -26,6 +25,27 @@
     font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
     font-size: 16px;
     line-height: 1.7;
+}
+
+/* ============================================
+   WIDGET CONTENT — wraps toolbar + article
+   ============================================ */
+
+/*
+ * Widget content sits between .core-engine-lib-word-widget and the
+ * article. With the flex chain it must stretch to fill the widget,
+ * so the article (and its content) can fill the area.
+ *
+ * overflow: hidden — scrolling happens INSIDE .aleksmir-layout__main
+ * (or any other block with overflow: auto), not here.
+ */
+.core-engine-lib-word-widget-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
 }
 
 /* ============================================
@@ -129,10 +149,19 @@
    PAGE CONTENT
    ============================================ */
 
+/*
+ * .core-engine-lib-word-content is the inner content area of the article.
+ *
+ * With the flex chain it must stretch to fill .core-engine-lib-word,
+ * and its child (.core-engine-lib-word-blocks) gets its height from it.
+ *
+ * overflow: hidden — scrolling happens INSIDE .aleksmir-layout__main
+ * (or any other block with overflow: auto), not here.
+ */
 .core-engine-lib-word-content {
     flex: 1 1 auto;
     min-height: 0;
-    overflow-y: auto;
+    overflow: hidden;
 
     font-size: 16px;
     line-height: 1.75;
@@ -140,28 +169,40 @@
     word-wrap: break-word;
     overflow-wrap: break-word;
 
-    /* Inner layout: make the first child (the "body" wrapper) stretch
-       to fill the entire content area. */
+    /* Inner layout: vertical stack of content. */
     display: flex;
     flex-direction: column;
 }
+
+/* ============================================
+   SCOPE WRAPPER — fills content
+   ============================================ */
 
 /*
- * GrapesJS saves content wrapped in <body>...</body>, which we convert to
- * a plain <div> on render. That div is the visual page root (with the
- * background, padding, etc.). Make it stretch to the full height of the
- * content area, and stack its children vertically.
+ * .core-engine-lib-word-blocks is the single scope class for the whole
+ * page content. In the admin preview it's a wrapper div inside
+ * .core-engine-lib-word-content.
+ *
+ * With the flex chain, this wrapper must stretch to fill the content
+ * area, and its child blocks (like .aleksmir-layout) get their height
+ * from it.
+ *
+ * The same class is also used on the public page (on <article>) —
+ * see public.css for the matching rule.
+ *
+ * overflow: hidden — scrolling happens INSIDE child blocks
+ * (e.g. .aleksmir-layout__main), not here.
+ *
+ * NOT display: flex — so its children (.card, .grid, .hero, ...)
+ * stay ordinary block-level elements, matching the editor canvas
+ * behavior (body there is also a plain block container).
  */
-.core-engine-lib-word-content > div:first-of-type {
+.core-engine-lib-word-blocks {
+    position: relative;
     flex: 1 1 auto;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Inner blocks keep natural height — only the root div grows. */
-.core-engine-lib-word-content > div:first-of-type > * {
-    flex-shrink: 0;
+    width: 100%;
+    overflow: hidden;
 }
 
 /* Empty state */
@@ -570,4 +611,8 @@
         color: #0f172a;
         border: 1px solid #e2e8f0;
     }
+}
+
+.core-engine-lib-base-widget-content.core-engine-lib-word-widget-content {
+    padding: 0;
 }

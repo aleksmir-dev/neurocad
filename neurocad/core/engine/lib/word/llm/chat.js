@@ -11,6 +11,19 @@
  *
  * Container:
  *   editor.chatEl — .core-engine-lib-word-llm-chat-content
+ *
+ * Typing indicator:
+ *   Dots are added one by one via setInterval:
+ *   . → .. → ... → .... → ..... → ...... → ....... → (empty) → .
+ *   and so on, until the response arrives.
+ *
+ * Error handling:
+ *   - Network errors        → "Нет связи с сервером"
+ *   - Timeout (120s)        → "Модель долго думает, попробуйте снова"
+ *   - HTTP 4xx / 5xx        → "Сервер вернул ошибку: <detail>"
+ *   - success:false         → "Модель ответила ошибкой: <message>"
+ *   - Malformed response    → "Не удалось разобрать ответ модели"
+ *   - Apply errors          → "Ошибка применения HTML+CSS: <message>"
  */
 export class LLMChat {
     constructor(editor) {
@@ -32,6 +45,15 @@ export class LLMChat {
 
         // State
         this._sending = false;
+        this._sendAbortController = null;     // to cancel fetch on timeout
+
+        // Typing indicator state
+        this._typingEl = null;
+        this._typingDotsEl = null;
+        this._typingInterval = null;
+        this._typingCount = 0;
+        this._typingMaxDots = 7;
+        this._typingIntervalMs = 350;
     }
 
     async init() {
@@ -209,7 +231,7 @@ export class LLMChat {
 
         const pageId = this.editor.pageId;
         if (!pageId) {
-            console.error('[LLMChat] pageId not set');
+            this._addErrorMessage('Не удалось определить страницу (pageId не задан).');
             return;
         }
 
@@ -230,8 +252,15 @@ export class LLMChat {
             this.inputEl.value = '';
         }
 
-        // Show "typing..."
+        // Show "typing..." with animated dots
         this._showTyping();
+
+        // ===== Timeout: abort fetch after 120 seconds =====
+        this._sendAbortController = new AbortController();
+        const timeoutId = setTimeout(() => {
+            console.warn('[LLMChat] Request timeout — aborting');
+            this._sendAbortController.abort();
+        }, 120000);
 
         try {
             const response = await fetch(`${this._apiBase}/chat/${pageId}`, {
@@ -242,43 +271,83 @@ export class LLMChat {
                 },
                 credentials: 'include',
                 body: JSON.stringify({ message: text }),
+                signal: this._sendAbortController.signal,
             });
 
+            // ===== HTTP errors =====
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `Error ${response.status}`);
+                let detail = `HTTP ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    if (errorData?.detail) detail = errorData.detail;
+                    else if (errorData?.message) detail = errorData.message;
+                } catch (_) { /* ignore — use default */ }
+                throw new Error(`Сервер вернул ошибку: ${detail}`);
             }
 
-            const result = await response.json();
+            // ===== Parse JSON =====
+            let result;
+            try {
+                result = await response.json();
+            } catch (e) {
+                throw new Error('Не удалось разобрать ответ сервера (не JSON).');
+            }
 
+            // ===== success: false =====
             if (!result.success) {
-                throw new Error(result.message || 'LLM error');
+                const msg = result.message || result.detail || 'без деталей';
+                throw new Error(`Модель ответила ошибкой: ${msg}`);
             }
 
+            // ===== Validate data =====
             const data = result.data;
+            if (!data || typeof data !== 'object') {
+                throw new Error('Не удалось разобрать ответ модели (пустой data).');
+            }
+
             const newHtml = data.html || '';
             const newCss = data.css || '';
+
+            // ===== Apply new HTML + CSS =====
+            if (this.editor.editor && (newHtml || newCss)) {
+                try {
+                    console.log('[LLMChat] Applying new HTML+CSS to canvas:', newHtml.length, '+', newCss.length);
+
+                    // Clear existing CSS first, then add new (matches modals.js behavior)
+                    if (newCss) {
+                        if (this.editor.editor.Css?.clear) {
+                            this.editor.editor.Css.clear();
+                        }
+                        if (this.editor.editor.Css?.addRules) {
+                            this.editor.editor.Css.addRules(newCss);
+                        }
+                    }
+                    // Then set components (HTML)
+                    this.editor.editor.setComponents(newHtml);
+                } catch (applyErr) {
+                    console.error('[LLMChat] Apply error:', applyErr);
+                    throw new Error(`Ошибка применения HTML+CSS: ${applyErr.message}`);
+                }
+            }
 
             // Hide "typing..."
             this._hideTyping();
 
             // ===== Replace user message with server version =====
-            // (it has id, created_at from DB)
             const lastUserIdx = this.messages.length - 1;
             if (lastUserIdx >= 0 && this.messages[lastUserIdx].role === 'user') {
-                this.messages[lastUserIdx] = data.user_message;
+                this.messages[lastUserIdx] = data.user_message || this.messages[lastUserIdx];
             }
 
             // ===== Add assistant message =====
-            this._addMessage(data.assistant_message);
-
-            // ===== Apply HTML + CSS to GrapesJS canvas =====
-            if (this.editor.editor && (newHtml || newCss)) {
-                console.log('[LLMChat] Applying new HTML+CSS to canvas:', newHtml.length, '+', newCss.length);
-                this.editor.editor.setComponents(newHtml);
-                if (newCss) {
-                    this.editor.editor.setStyle(newCss);
-                }
+            if (data.assistant_message) {
+                this._addMessage(data.assistant_message);
+            } else {
+                this._addMessage({
+                    role: 'assistant',
+                    content: 'Изменения применены.',
+                    created_at: new Date().toISOString(),
+                });
             }
 
             console.log('[LLMChat] Response received and applied');
@@ -286,15 +355,32 @@ export class LLMChat {
         } catch (error) {
             console.error('[LLMChat] Send error:', error);
             this._hideTyping();
-            this._addMessage({
-                role: 'assistant',
-                content: `⚠️ Ошибка: ${error.message}`,
-                created_at: new Date().toISOString(),
-            });
+
+            // ===== Friendly error message =====
+            let message;
+            if (error.name === 'AbortError') {
+                message = 'Модель долго не отвечает (120 секунд). Попробуйте ещё раз.';
+            } else if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+                message = 'Нет связи с сервером. Проверьте подключение.';
+            } else {
+                message = error.message || 'Неизвестная ошибка.';
+            }
+
+            this._addErrorMessage(message);
         } finally {
+            clearTimeout(timeoutId);
+            this._sendAbortController = null;
             this._sending = false;
             this._setSendingState(false);
         }
+    }
+
+    _addErrorMessage(text) {
+        this._addMessage({
+            role: 'assistant',
+            content: `⚠️ ${text}`,
+            created_at: new Date().toISOString(),
+        });
     }
 
     _setSendingState(sending) {
@@ -310,9 +396,19 @@ export class LLMChat {
     // TYPING INDICATOR
     // ============================================
 
+    /**
+     * Show typing indicator with animated dots.
+     *
+     * Dots are added one by one via setInterval:
+     *   . → .. → ... → .... → ..... → ...... → ....... → (empty) → .
+     *
+     * When the response arrives — _hideTyping() stops the interval
+     * and removes the element.
+     */
     _showTyping() {
         if (!this.messagesEl) return;
 
+        // Prevent duplicates
         if (this.messagesEl.querySelector('.core-engine-lib-word-llm-chat-typing')) return;
 
         const el = document.createElement('div');
@@ -320,16 +416,42 @@ export class LLMChat {
 
         const bubble = document.createElement('div');
         bubble.className = 'core-engine-lib-word-llm-chat-bubble';
-        bubble.textContent = '...';
+
+        const dots = document.createElement('span');
+        dots.className = 'core-engine-lib-word-llm-chat-typing-dots';
+        bubble.appendChild(dots);
+
         el.appendChild(bubble);
 
         this.messagesEl.appendChild(el);
         this._scrollToBottom();
 
         this._typingEl = el;
+        this._typingDotsEl = dots;
+        this._typingCount = 0;
+
+        // Start dot animation
+        this._typingInterval = setInterval(() => {
+            this._typingCount++;
+            if (this._typingCount > this._typingMaxDots) {
+                this._typingCount = 0;
+            }
+            if (this._typingDotsEl) {
+                this._typingDotsEl.textContent = '.'.repeat(this._typingCount);
+            }
+        }, this._typingIntervalMs);
     }
 
     _hideTyping() {
+        // Stop animation
+        if (this._typingInterval) {
+            clearInterval(this._typingInterval);
+            this._typingInterval = null;
+        }
+        this._typingCount = 0;
+        this._typingDotsEl = null;
+
+        // Remove element
         if (this._typingEl && this._typingEl.parentNode) {
             this._typingEl.parentNode.removeChild(this._typingEl);
         }
@@ -351,6 +473,19 @@ export class LLMChat {
 
     destroy() {
         console.log('[LLMChat] destroy()');
+
+        // Stop typing animation
+        if (this._typingInterval) {
+            clearInterval(this._typingInterval);
+            this._typingInterval = null;
+        }
+
+        // Abort pending request
+        if (this._sendAbortController) {
+            try { this._sendAbortController.abort(); } catch (e) { /* ignore */ }
+            this._sendAbortController = null;
+        }
+
         this.rootEl = null;
         this.messagesEl = null;
         this.inputEl = null;
@@ -358,5 +493,8 @@ export class LLMChat {
         this.formEl = null;
         this.messages = [];
         this._sending = false;
+        this._typingEl = null;
+        this._typingDotsEl = null;
+        this._typingCount = 0;
     }
 }

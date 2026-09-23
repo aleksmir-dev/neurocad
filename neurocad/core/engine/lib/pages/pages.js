@@ -5,6 +5,11 @@
  * Thin wrapper around BaseCards.
  *
  * If items are not passed in props, loads the list from the server.
+ *
+ * Template system:
+ *   - is_template: page can be used as a base template by other pages.
+ *   - template_id: this page inherits layout from that template page;
+ *     its own `content` is inserted into [data-slot="content"] slot.
  */
 
 export class Pages {
@@ -17,6 +22,9 @@ export class Pages {
         this.cardsInstance = null;
         this._initialized = false;
         this._initPromise = null;
+
+        // Cached list of templates (is_template=1), for the dropdown
+        this._templates = [];
 
         this._loadCSS();
 
@@ -41,6 +49,11 @@ export class Pages {
             if (!this.props.items || this.props.items.length === 0) {
                 console.log('[Pages] items empty — loading from server');
                 await this._loadFromServer();
+            }
+
+            // Load templates list (for "Наследовать от" dropdown)
+            if (isAdmin) {
+                await this._loadTemplates();
             }
 
             this.cardsInstance = new BaseCards(this.container, {
@@ -79,12 +92,51 @@ export class Pages {
                     },
                     {
                         key: 'logo',
-                        label: 'Логотип (URL)',
-                        type: 'text',
-                        maxLength: 500,
-                        placeholder: 'URL изображения (необязательно)',
+                        label: 'Логотип',
+                        type: 'media',
+                        placeholder: 'Не выбрано',
+                    },
+
+                    // ===== Template system =====
+                    {
+                        key: 'is_template',
+                        label: 'сделать базовым шаблоном',
+                        type: 'checkbox',
+                        default: 0,
+                    },
+                    {
+                        key: 'template_id',
+                        label: 'Наследовать от',
+                        type: 'select',
+                        // Opt-in: values are numbers (page ids)
+                        valueType: 'number',
+                        // Function — evaluated on every form render, so the
+                        // dropdown always shows the latest templates
+                        // (including ones created after init, without
+                        // a page reload).
+                        options: () => this._templates.map(t => ({
+                            value: t.id,
+                            label: t.title,
+                        })),
+                        placeholder: '— Без шаблона —',
                     },
                 ],
+
+                // ===== INITIAL DATA FOR "CREATE" FORM =====
+                // Prefill the title field with "Статья N", where N is max + 1
+                // among existing "Статья X" titles. Called on every "+" click.
+                //
+                // Types match the backend schema:
+                //   is_template → int (0/1)
+                //   template_id → int | null
+                initialData: (cards) => {
+                    const nextNum = this._nextArticleNumber(cards.items || []);
+                    return {
+                        title: `Статья ${nextNum}`,
+                        is_template: 0,
+                        template_id: null,
+                    };
+                },
 
                 // Fields for standard render
                 listFields: ['title', 'description'],
@@ -122,6 +174,13 @@ export class Pages {
 
             await this.cardsInstance._initPromise;
 
+            // Normalize payload types before they hit the API.
+            // BaseCardsEdit sends checkbox as boolean and empty select
+            // as '', while the backend schema expects int (0/1) and null.
+            // We patch the instance methods so cards.js and edit.js
+            // stay untouched.
+            this._patchPayloadNormalization();
+
             this._initialized = true;
             console.log('[Pages] _init() COMPLETE');
         } catch (error) {
@@ -129,6 +188,83 @@ export class Pages {
             this._initialized = false;
             throw error;
         }
+    }
+
+    // ============================================
+    // PAYLOAD NORMALIZATION
+    // ============================================
+
+    /**
+     * Wrap cardsInstance._addItem / _updateItem so that values coming
+     * from BaseCardsEdit are coerced to the types expected by the
+     * backend Pydantic schema:
+     *
+     *   - checkbox        → 0 / 1     (not true / false)
+     *   - select (empty)  → null      (not '')
+     *   - select (number) → Number    (when field.valueType === 'number')
+     *   - number          → Number    (or null when empty)
+     *
+     * Only affects this instance; the original class files are not
+     * modified.
+     */
+    _patchPayloadNormalization() {
+        const cards = this.cardsInstance;
+        if (!cards) return;
+
+        const fields = cards.fields || [];
+
+        const normalize = (data) => {
+            if (!data || typeof data !== 'object') return data;
+
+            const out = { ...data };
+
+            for (const field of fields) {
+                const key = field.key;
+                if (!(key in out)) continue;
+
+                const v = out[key];
+
+                switch (field.type) {
+                    case 'checkbox':
+                        out[key] = v ? 1 : 0;
+                        break;
+
+                    case 'select': {
+                        if (v === '' || v === null || v === undefined) {
+                            out[key] = null;
+                        } else if (field.valueType === 'number') {
+                            const n = Number(v);
+                            out[key] = Number.isNaN(n) ? null : n;
+                        }
+                        break;
+                    }
+
+                    case 'number': {
+                        if (v === '' || v === null || v === undefined) {
+                            out[key] = null;
+                        } else {
+                            const n = Number(v);
+                            out[key] = Number.isNaN(n) ? null : n;
+                        }
+                        break;
+                    }
+
+                    default:
+                        // text / textarea / media / date / time — as-is
+                        break;
+                }
+            }
+
+            return out;
+        };
+
+        const origAdd = cards._addItem.bind(cards);
+        cards._addItem = async (data) => origAdd(normalize(data));
+
+        const origUpdate = cards._updateItem.bind(cards);
+        cards._updateItem = async (id, data) => origUpdate(id, normalize(data));
+
+        console.log('[Pages] _patchPayloadNormalization() applied');
     }
 
     // ============================================
@@ -164,6 +300,39 @@ export class Pages {
         }
     }
 
+    /**
+     * Load templates list (pages with is_template=1).
+     * Used to fill the "Наследовать от" dropdown.
+     */
+    async _loadTemplates() {
+        console.log('[Pages] _loadTemplates()');
+
+        try {
+            const url = `/core/engine/lib/pages/list?is_template=1`;
+            const response = await fetch(url, {
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Templates load error: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                this._templates = result.data || [];
+                console.log('[Pages] Loaded templates:', this._templates.length);
+            } else {
+                console.warn('[Pages] Templates response without success:', result);
+                this._templates = [];
+            }
+        } catch (error) {
+            console.error('[Pages] Templates load error:', error);
+            this._templates = [];
+        }
+    }
+
     // ============================================
     // CARD RENDER
     // ============================================
@@ -179,6 +348,11 @@ export class Pages {
               })
             : '';
 
+        // Optional badge for templates
+        const templateBadge = item.is_template
+            ? `<span class="pages-card-badge">Шаблон</span>`
+            : '';
+
         return `
             <div class="pages-card">
                 <div class="pages-card-glow"></div>
@@ -191,6 +365,7 @@ export class Pages {
                     <h3 class="pages-card-title">${esc(item.title)}</h3>
                     ${item.description ? `<p class="pages-card-desc">${esc(item.description)}</p>` : ''}
                     ${date ? `<time class="pages-card-date">${esc(date)}</time>` : ''}
+                    ${templateBadge}
                 </div>
             </div>
         `;
@@ -255,6 +430,11 @@ export class Pages {
 
         await this._loadFromServer();
 
+        // Reload templates too — list might have changed
+        if (this._isAdmin()) {
+            await this._loadTemplates();
+        }
+
         if (this.cardsInstance) {
             await this.cardsInstance.updateProps({
                 items: this.props.items,
@@ -268,6 +448,24 @@ export class Pages {
     // ============================================
     // UTILITIES
     // ============================================
+
+    /**
+     * Compute the next article number from existing items.
+     */
+    _nextArticleNumber(items) {
+        let max = 0;
+
+        for (const item of items) {
+            const title = String(item.title || '');
+            const m = title.match(/^Статья\s+(\d+)/i);
+            if (m) {
+                const num = parseInt(m[1], 10);
+                if (num > max) max = num;
+            }
+        }
+
+        return max + 1;
+    }
 
     _isAdmin() {
         const auth = window.coreEngine?.auth;

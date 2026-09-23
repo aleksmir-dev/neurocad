@@ -1,23 +1,22 @@
 # neurocad/core/engine/lib/word/llm/route.py
 
 """
-API LLM-редактора: пресеты + чат.
+LLM editor API: presets + chat.
 
 Endpoints:
-  GET    /core/engine/lib/word/llm/presets                    — список пресетов
-  POST   /core/engine/lib/word/llm/presets                    — создать пресет
-  GET    /core/engine/lib/word/llm/presets/{id}               — один пресет
-  PUT    /core/engine/lib/word/llm/presets/{id}               — обновить пресет
-  DELETE /core/engine/lib/word/llm/presets/{id}               — мягко удалить
-  POST   /core/engine/lib/word/llm/presets/{id}/restore       — восстановить
-  POST   /core/engine/lib/word/llm/presets/{id}/thumbnail     — загрузить миниатюру
-  DELETE /core/engine/lib/word/llm/presets/{id}/thumbnail     — удалить миниатюру
+  GET    /core/engine/lib/word/llm/presets                    — list presets
+  POST   /core/engine/lib/word/llm/presets                    — create preset
+  GET    /core/engine/lib/word/llm/presets/{id}               — get one preset
+  PUT    /core/engine/lib/word/llm/presets/{id}               — update preset
+  DELETE /core/engine/lib/word/llm/presets/{id}               — soft delete
+  POST   /core/engine/lib/word/llm/presets/{id}/restore       — restore
+  POST   /core/engine/lib/word/llm/presets/{id}/thumbnail     — upload thumbnail
+  DELETE /core/engine/lib/word/llm/presets/{id}/thumbnail     — delete thumbnail
 
-  GET    /core/engine/lib/word/llm/chat/{page_id}/history     — история чата
-  POST   /core/engine/lib/word/llm/chat/{page_id}             — отправить сообщение
+  GET    /core/engine/lib/word/llm/chat/{page_id}/history     — chat history
+  POST   /core/engine/lib/word/llm/chat/{page_id}             — send message
 
-Все эндпоинты (кроме GET-списка пресетов, GET-одного пресета и GET-истории чата) —
-только для суперадмина.
+All endpoints except GET-list, GET-one and GET-history require superadmin.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
@@ -36,14 +35,14 @@ router = APIRouter(prefix="/llm", tags=["core/engine/lib/word/llm"])
 
 
 # ============================================
-# ПРЕСЕТЫ — СПИСОК
+# PRESETS — LIST
 # ============================================
 
 @router.get("/presets")
 async def list_presets(
-    include_deleted: bool = Query(False, description="Включая удалённые"),
+    include_deleted: bool = Query(False, description="Include deleted"),
 ) -> JSONResponse:
-    """Список пресетов. Публичный эндпоинт."""
+    """List presets. Public endpoint."""
     result = await LLMService.list_presets(include_deleted=include_deleted)
 
     return JSONResponse({
@@ -54,16 +53,16 @@ async def list_presets(
 
 
 # ============================================
-# ПРЕСЕТЫ — ОДИН
+# PRESETS — GET ONE
 # ============================================
 
 @router.get("/presets/{preset_id}")
 async def get_preset(preset_id: int) -> JSONResponse:
-    """Получить один пресет по ID. Публичный эндпоинт."""
+    """Get one preset by ID. Public endpoint."""
     item = await LLMService.get_preset(preset_id)
 
     if not item:
-        raise HTTPException(status_code=404, detail="Пресет не найден")
+        raise HTTPException(status_code=404, detail="Preset not found")
 
     return JSONResponse({
         "success": True,
@@ -72,7 +71,7 @@ async def get_preset(preset_id: int) -> JSONResponse:
 
 
 # ============================================
-# ПРЕСЕТЫ — СОЗДАНИЕ
+# PRESETS — CREATE
 # ============================================
 
 @router.post("/presets")
@@ -80,18 +79,19 @@ async def create_preset(
     data: LLMPresetCreate,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Создать пресет. Только суперадмин."""
+    """Create preset. Superadmin only."""
     if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     item = await LLMService.create_preset(
         name=data.name,
         description=data.description,
         html=data.html,
+        css=data.css,
     )
 
     if not item:
-        raise HTTPException(status_code=400, detail="Не удалось создать пресет")
+        raise HTTPException(status_code=400, detail="Failed to create preset")
 
     return JSONResponse({
         "success": True,
@@ -100,7 +100,7 @@ async def create_preset(
 
 
 # ============================================
-# ПРЕСЕТЫ — ОБНОВЛЕНИЕ
+# PRESETS — UPDATE
 # ============================================
 
 @router.put("/presets/{preset_id}")
@@ -109,19 +109,20 @@ async def update_preset(
     data: LLMPresetUpdate,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Обновить пресет. Только суперадмин."""
+    """Update preset. Superadmin only."""
     if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     item = await LLMService.update_preset(
         preset_id=preset_id,
         name=data.name,
         description=data.description,
         html=data.html,
+        css=data.css,
     )
 
     if not item:
-        raise HTTPException(status_code=404, detail="Пресет не найден")
+        raise HTTPException(status_code=404, detail="Preset not found")
 
     return JSONResponse({
         "success": True,
@@ -130,7 +131,7 @@ async def update_preset(
 
 
 # ============================================
-# ПРЕСЕТЫ — МЯГКОЕ УДАЛЕНИЕ
+# PRESETS — SOFT DELETE
 # ============================================
 
 @router.delete("/presets/{preset_id}")
@@ -138,23 +139,23 @@ async def delete_preset(
     preset_id: int,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Мягко удалить пресет. Только суперадмин."""
+    """Soft delete preset. Superadmin only."""
     if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     result = await LLMService.delete_preset(preset_id)
 
     if not result:
-        raise HTTPException(status_code=404, detail="Пресет не найден")
+        raise HTTPException(status_code=404, detail="Preset not found")
 
     return JSONResponse({
         "success": True,
-        "message": "Пресет удалён",
+        "message": "Preset deleted",
     })
 
 
 # ============================================
-# ПРЕСЕТЫ — ВОССТАНОВЛЕНИЕ
+# PRESETS — RESTORE
 # ============================================
 
 @router.post("/presets/{preset_id}/restore")
@@ -162,23 +163,23 @@ async def restore_preset(
     preset_id: int,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Восстановить удалённый пресет. Только суперадмин."""
+    """Restore deleted preset. Superadmin only."""
     if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     result = await LLMService.restore_preset(preset_id)
 
     if not result:
-        raise HTTPException(status_code=404, detail="Пресет не найден")
+        raise HTTPException(status_code=404, detail="Preset not found")
 
     return JSONResponse({
         "success": True,
-        "message": "Пресет восстановлен",
+        "message": "Preset restored",
     })
 
 
 # ============================================
-# ПРЕСЕТЫ — ЗАГРУЗКА МИНИАТЮРЫ
+# PRESETS — UPLOAD THUMBNAIL
 # ============================================
 
 @router.post("/presets/{preset_id}/thumbnail")
@@ -187,19 +188,19 @@ async def upload_thumbnail(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Загрузить PNG-миниатюру пресета. Только суперадмин."""
+    """Upload PNG thumbnail for preset. Superadmin only."""
     if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     try:
         result = await LLMService.upload_thumbnail(preset_id, file)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка загрузки: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Upload error: {str(e)}")
 
     if not result:
-        raise HTTPException(status_code=404, detail="Пресет не найден")
+        raise HTTPException(status_code=404, detail="Preset not found")
 
     return JSONResponse({
         "success": True,
@@ -208,7 +209,7 @@ async def upload_thumbnail(
 
 
 # ============================================
-# ПРЕСЕТЫ — УДАЛЕНИЕ МИНИАТЮРЫ
+# PRESETS — DELETE THUMBNAIL
 # ============================================
 
 @router.delete("/presets/{preset_id}/thumbnail")
@@ -216,30 +217,30 @@ async def delete_thumbnail(
     preset_id: int,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Удалить миниатюру пресета. Только суперадмин."""
+    """Delete preset thumbnail. Superadmin only."""
     if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     result = await LLMService.delete_thumbnail(preset_id)
 
     if not result:
-        raise HTTPException(status_code=404, detail="Пресет не найден")
+        raise HTTPException(status_code=404, detail="Preset not found")
 
     return JSONResponse({
         "success": True,
-        "message": "Миниатюра удалена",
+        "message": "Thumbnail deleted",
     })
 
 
 # ============================================
-# ЧАТ — ИСТОРИЯ
+# CHAT — HISTORY
 # ============================================
 
 @router.get("/chat/{page_id}/history")
 async def get_chat_history(page_id: int) -> JSONResponse:
     """
-    История чата по странице. Публичный эндпоинт —
-    нужен для отображения истории при открытии LLM-редактора.
+    Chat history for a page. Public endpoint —
+    needed to show history when opening the LLM editor.
     """
     messages = await LLMService.load_chat_history(page_id)
 
@@ -250,7 +251,7 @@ async def get_chat_history(page_id: int) -> JSONResponse:
 
 
 # ============================================
-# ЧАТ — ОТПРАВКА СООБЩЕНИЯ
+# CHAT — SEND MESSAGE
 # ============================================
 
 @router.post("/chat/{page_id}")
@@ -260,17 +261,18 @@ async def send_chat_message(
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """
-    Отправить сообщение в чат по странице.
+    Send a chat message for a page.
 
-    Возвращает:
-      - user_message — сохранённое сообщение пользователя;
-      - assistant_message — ответ LLM;
-      - html — новый HTML страницы.
+    Returns:
+      - user_message       — saved user message;
+      - assistant_message  — LLM response;
+      - html               — new page HTML;
+      - css                — new page CSS.
 
-    Только суперадмин.
+    Superadmin only.
     """
     if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     result = await LLMService.send_chat_message(
         page_id=page_id,
@@ -278,7 +280,7 @@ async def send_chat_message(
     )
 
     if not result:
-        raise HTTPException(status_code=404, detail="Страница не найдена")
+        raise HTTPException(status_code=404, detail="Page not found")
 
     return JSONResponse({
         "success": True,

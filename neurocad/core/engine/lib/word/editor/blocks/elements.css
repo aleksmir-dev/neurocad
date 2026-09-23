@@ -1,0 +1,23 @@
+/* app/core/engine/lib/word/editor/blocks/elements.css */
+
+/**
+ * Elements — styles for the "Элементы" (atoms) blocks.
+ *
+ * This file is intentionally EMPTY.
+ *
+ * All atom classes used by blocks/elements.js (.h1, .h2, .h3, .text,
+ * .lead, .list, .btn, .card, .badge, .quote, .image, .icon, .divider)
+ * live in editor/css/content.css — they are shared across multiple
+ * categories (elements, sections, layout), so they are loaded globally
+ * via canvasCss, not per-block.
+ *
+ * This file is kept (and registered in blocks/manifest.js) only for
+ * symmetry with layout.css and ready.css, and as a place to put
+ * element-specific styles in the future if some atom stops being
+ * shared and becomes unique to this category.
+ *
+ * Rules:
+ *   - Do NOT add shared atom styles here.
+ *   - Add a rule here only if a style is used by blocks/elements.js
+ *     and by NO other category.
+ */

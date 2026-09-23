@@ -1,33 +1,39 @@
 /* app/core/engine/lib/word/editor/css/blocks.css */
 
 /**
- * Blocks — левая панель редактора (BlockManager).
+ * Blocks — editor left panel (BlockManager) UI.
  *
- * Что здесь:
- *   1. Стили самой панели блоков: карточки, категории, hover.
- *   2. Стили классов блоков (core-btn, core-card и т.д.) —
- *      чтобы кнопки и карточки в блоках выглядели одинаково
- *      и в редакторе, и на сайте.
+ * ONLY editor UI styles:
+ *   - block cards in the panel
+ *   - categories
+ *   - grid layout
  *
- * Префиксы:
- *   .gjs-block*          — стандартные классы GrapesJS
- *   .core-btn*           — кнопки в блоках
- *   .core-card*          — карточки
+ * Prefixes:
+ *   .gjs-block*                            — standard GrapesJS
+ *   .core-engine-lib-word-editor-blocks-*  — our editor wrapper
  *
- * Правило: !important не используем. Специфичности нашего селектора
- * (.core-engine-lib-word-editor-blocks-content .gjs-block — 2 класса)
- * достаточно, чтобы перебить встроенные правила GrapesJS (.gjs-block —
- * 1 класс). Если где-то GrapesJS ставит inline-стиль — это лечится
- * в grapes.js, а не !important.
+ * Content classes (.core-btn, .core-card, ...) live in content.css.
+ * They are loaded BOTH in editor and on public pages.
+ *
+ * Collapse behaviour:
+ *   Category visibility is toggled via the `.gjs-open` class on
+ *   `.gjs-block-category`. Collapsed categories are pre-created with
+ *   `open: false` in BlocksRegistry; GrapesJS re-renders the DOM
+ *   from that model flag. So all rules for `.gjs-blocks-c` are scoped
+ *   to `.gjs-block-category.gjs-open` — the collapsed state stays
+ *   under GrapesJS control.
+ *
+ * Rule: no !important. Two classes on our side
+ * (.core-engine-lib-word-editor-blocks-content .gjs-block)
+ * are enough to override GrapesJS builtin rules (.gjs-block = 1 class).
  */
 
 /* ============================================
-   КАРТОЧКА БЛОКА
+   BLOCK CARD
    ============================================ */
 
 .core-engine-lib-word-editor-blocks-content .gjs-block {
-    /* Сброс настроек GrapesJS, которые делают блоки по 2 в ряд.
-       Их специфичность ниже — наш селектор с двумя классами выигрывает. */
+    /* Reset GrapesJS default (2 per row). Our selector wins. */
     width: 100%;
     max-width: none;
     min-width: 0;
@@ -36,7 +42,7 @@
     float: none;
     box-sizing: border-box;
 
-    /* Наше оформление */
+    /* Our design */
     border: 1px solid var(--border-light, #e2e8f0);
     background: #ffffff;
     color: var(--text-main, #1e293b);
@@ -46,7 +52,7 @@
     min-height: 70px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 
-    /* Выравнивание содержимого по центру */
+    /* Center content */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -84,7 +90,7 @@
     display: block;
 }
 
-/* Медиа-контейнер (иконка блока) */
+/* Media container (block icon) */
 .core-engine-lib-word-editor-blocks-content .gjs-block__media {
     display: flex;
     align-items: center;
@@ -93,7 +99,7 @@
 }
 
 /* ============================================
-   КАТЕГОРИИ БЛОКОВ
+   BLOCK CATEGORIES
    ============================================ */
 
 .core-engine-lib-word-editor-blocks-content .gjs-block-category {
@@ -109,7 +115,7 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     padding: 10px 6px 6px;
-    border-bottom: 2px solid #3b82f6;
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
     margin-bottom: 8px;
     cursor: pointer;
 }
@@ -119,95 +125,28 @@
 }
 
 /* ============================================
-   СЕТКА БЛОКОВ ВНУТРИ КАТЕГОРИИ
+   BLOCKS GRID INSIDE CATEGORY
    ============================================ */
 
-/* display: grid — без !important.
-   GrapesJS при сворачивании категории ставит на .gjs-blocks-c
-   inline style="display: none;", который перебивает CSS-правило.
-   Если поставить display с !important — сворачивание сломается. */
-.core-engine-lib-word-editor-blocks-content .gjs-blocks-c {
+/*
+ * display: grid — scoped to the OPEN category only.
+ *
+ * Why .gjs-block-category.gjs-open:
+ *   Collapsed categories are hidden by grapes.min.css
+ *   (display: none on .gjs-blocks-c). Our blocks.css loads AFTER
+ *   grapes.min.css, so an unscoped rule like
+ *     .core-engine-lib-... .gjs-blocks-c { display: grid }
+ *   would override the collapsed state and every category would
+ *   always be open. Scoping to `.gjs-block-category.gjs-open`
+ *   keeps the collapsed state under GrapesJS control.
+ *
+ * No !important anywhere — the extra class on .gjs-open is enough
+ * to beat the base .gjs-blocks-c rule.
+ */
+.core-engine-lib-word-editor-blocks-content
+.gjs-block-category.gjs-open .gjs-blocks-c {
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
     padding: 0 6px 8px;
-}
-
-/* ============================================
-   КНОПКИ В БЛОКАХ — .core-btn
-   Чтобы блоки с кнопками выглядели одинаково
-   и в редакторе, и на сайте.
-   ============================================ */
-
-.core-btn {
-    display: inline-block;
-    padding: 12px 28px;
-    font-size: 15px;
-    font-weight: 600;
-    font-family: inherit;
-    text-decoration: none;
-    text-align: center;
-    border: 2px solid transparent;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
-    line-height: 1.2;
-    white-space: nowrap;
-}
-
-.core-btn:active {
-    transform: translateY(1px);
-}
-
-/* --- Основная (акцентная) --- */
-
-.core-btn--primary {
-    background: #3b82f6;
-    color: #ffffff;
-    border-color: #3b82f6;
-}
-
-.core-btn--primary:hover {
-    background: #2563eb;
-    border-color: #2563eb;
-    color: #ffffff;
-}
-
-/* --- Вторичная (контурная) --- */
-
-.core-btn--secondary {
-    background: #ffffff;
-    color: #3b82f6;
-    border-color: #3b82f6;
-}
-
-.core-btn--secondary:hover {
-    background: #3b82f6;
-    color: #ffffff;
-}
-
-/* --- Прозрачная (ghost) --- */
-
-.core-btn--ghost {
-    background: transparent;
-    color: #64748b;
-    border-color: #cbd5e1;
-}
-
-.core-btn--ghost:hover {
-    background: rgba(15, 23, 42, 0.05);
-    color: #1e293b;
-    border-color: #94a3b8;
-}
-
-/* ============================================
-   КАРТОЧКИ В БЛОКАХ — .core-card
-   ============================================ */
-
-.core-card {
-    background: #ffffff;
-    border: 1px solid var(--border-light, #e2e8f0);
-    border-radius: 8px;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }

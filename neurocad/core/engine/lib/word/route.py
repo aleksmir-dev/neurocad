@@ -153,6 +153,9 @@ async def save_word_content(
     """
     Save page content (HTML + GrapesJS JSON).
 
+    Before update, a snapshot of the current state is written
+    to page_hist with action='user_edit' (see service.save_content).
+
     Available only to superadmin.
     """
     if not current_user.get("is_superadmin", False):
@@ -165,10 +168,122 @@ async def save_word_content(
         mod_id=mod_id,
         content=data.content,
         content_json=data.content_json,
+        user_note=current_user.get("username") or current_user.get("email"),
     )
 
     if not result:
         raise HTTPException(status_code=404, detail="Страница не найдена")
+
+    return JSONResponse({
+        "success": True,
+        "data": result,
+    })
+
+
+# ============================================
+# HISTORY — LIST
+# ============================================
+
+@router.get("/{page_id}/history")
+async def get_word_history(
+    page_id: int,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    List all snapshots for a page, newest first.
+
+    Does NOT include html / content_json (heavy) — only metadata.
+    Use GET /{page_id}/history/{hist_id} for a full snapshot.
+
+    Available only to superadmin.
+    """
+    if not current_user.get("is_superadmin", False):
+        raise HTTPException(status_code=403, detail="Недостаточно прав")
+
+    mod_id = await _get_mod_id(request)
+
+    items = await CoreEngineLibWordService.list_history(page_id, mod_id)
+
+    if items is None:
+        raise HTTPException(status_code=404, detail="Страница не найдена")
+
+    return JSONResponse({
+        "success": True,
+        "data": items,
+    })
+
+
+# ============================================
+# HISTORY — ONE ITEM (full snapshot)
+# ============================================
+
+@router.get("/{page_id}/history/{hist_id}")
+async def get_word_history_item(
+    page_id: int,
+    hist_id: int,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Get one full snapshot (html + content_json).
+
+    Available only to superadmin.
+    """
+    if not current_user.get("is_superadmin", False):
+        raise HTTPException(status_code=403, detail="Недостаточно прав")
+
+    mod_id = await _get_mod_id(request)
+
+    item = await CoreEngineLibWordService.get_history_item(
+        hist_id=hist_id,
+        page_id=page_id,
+        mod_id=mod_id,
+    )
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Снимок не найден")
+
+    return JSONResponse({
+        "success": True,
+        "data": item,
+    })
+
+
+# ============================================
+# HISTORY — ROLLBACK
+# ============================================
+
+@router.post("/{page_id}/rollback/{hist_id}")
+async def rollback_word_content(
+    page_id: int,
+    hist_id: int,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Roll the page back to the given snapshot.
+
+    Before rollback, the current state is snapshotted into page_hist
+    (action='user_edit'), then the snapshot is applied, and a new
+    record with action='rollback' is written (audit trail).
+
+    Available only to superadmin.
+    """
+    if not current_user.get("is_superadmin", False):
+        raise HTTPException(status_code=403, detail="Недостаточно прав")
+
+    mod_id = await _get_mod_id(request)
+
+    result = await CoreEngineLibWordService.rollback(
+        page_id=page_id,
+        mod_id=mod_id,
+        hist_id=hist_id,
+        user_note=current_user.get("username") or current_user.get("email"),
+    )
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Страница или снимок не найдены")
 
     return JSONResponse({
         "success": True,

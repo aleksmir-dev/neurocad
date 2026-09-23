@@ -14,12 +14,23 @@
  *     editor.rightArea      — right <aside>
  *     editor.blocksEl       — BlockManager container
  *     editor.presetsEl      — Presets list container
- *     editor.canvasEl       — Canvas container
+ *     editor.canvasEl       — Canvas container (whole center area)
+ *     editor.templateEl     — Template HTML wrapper (filled by bridge.js)
+ *     editor.slotEl         — Slot placeholder (GrapesJS container when template exists)
  *     editor.toolbarEl      — toolbar above Canvas
  *     editor.stylesEl       — StyleManager container
  *     editor.traitsEl       — TraitManager container
  *     editor.chatEl         — LLM Chat container (right)
  *     editor.tabsEl         — tabs container
+ *
+ * Canvas DOM has two layers:
+ *   - .core-engine-lib-word-editor-template — static HTML of the base template.
+ *     Rendered outside GrapesJS iframe, so user cannot edit it.
+ *   - .core-engine-lib-word-editor-slot — placeholder inside the template.
+ *     If the page has a template, GrapesJS mounts its iframe here.
+ *     If the page has no template, GrapesJS mounts into .editor-canvas directly.
+ *
+ * Which mode to use is decided by bridge.js before GrapesJS init.
  *
  * All classes use prefix core-engine-lib-word-editor-.
  * Widget containers — standard from base (core-engine-lib-base-widget-*).
@@ -142,18 +153,34 @@ export class WidgetsBuilder {
             e.tabsEl = e.leftArea.querySelector('[data-js="editor-tabs"]');
         }
 
-        // ===== CENTER: toolbar + canvas =====
+        // ===== CENTER: toolbar + canvas (two layers) =====
         // this.editor.container — is .core-engine-component--word,
         // passed by Word via its _openEditor().
+        //
+        // Canvas structure:
+        //   .core-engine-lib-word-editor-canvas-content      — outer area
+        //     .core-engine-lib-word-editor-template          — static HTML of the template
+        //       (bridge.js fills this with the template HTML,
+        //        replacing [data-slot="content"] with .editor-slot)
+        //     .core-engine-lib-word-editor-slot              — placeholder for GrapesJS iframe
+        //
+        // When the page has no template, bridge.js will NOT render anything
+        // into .editor-template, and GrapesJS will mount into .editor-canvas directly.
+        // The .editor-slot element stays empty and hidden.
         e.container.innerHTML = `
             <div class="core-engine-lib-base-widget core-engine-lib-word-editor-canvas">
                 <div class="core-engine-lib-base-widget-toolbar core-engine-lib-word-editor-toolbar"
                      data-js="editor-toolbar"></div>
                 <div class="core-engine-lib-base-widget-content core-engine-lib-word-editor-canvas-content"
-                     data-js="editor-canvas"></div>
+                     data-js="editor-canvas">
+                    <div class="core-engine-lib-word-editor-template" data-js="editor-template" hidden></div>
+                    <div class="core-engine-lib-word-editor-slot" data-js="editor-slot"></div>
+                </div>
             </div>
         `;
         e.canvasEl = e.container.querySelector('[data-js="editor-canvas"]');
+        e.templateEl = e.container.querySelector('[data-js="editor-template"]');
+        e.slotEl = e.container.querySelector('[data-js="editor-slot"]');
         e.toolbarEl = e.container.querySelector('[data-js="editor-toolbar"]');
 
         // ===== RIGHT: LLM Chat (full height) =====
@@ -175,6 +202,8 @@ export class WidgetsBuilder {
             blocksEl: !!e.blocksEl,
             presetsEl: !!e.presetsEl,
             canvasEl: !!e.canvasEl,
+            templateEl: !!e.templateEl,
+            slotEl: !!e.slotEl,
             toolbarEl: !!e.toolbarEl,
             stylesEl: !!e.stylesEl,
             traitsEl: !!e.traitsEl,

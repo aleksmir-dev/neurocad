@@ -1,47 +1,37 @@
 // app/core/engine/lib/word/word.js
 
+import { blockCssUrls } from './editor/blocks/manifest.js';
+
 /**
  * Word — page content display component.
  *
- * Tasks:
- *   1. Get page data:
- *      - from props.page_data (if provided);
- *      - or load by props.page_id;
- *      - or load by params from window.coreEngine.paramsList.
- *   2. Set page title into app header (.core-engine-lib-base-title).
- *   3. Render widget:
- *        .core-engine-lib-base-widget.core-engine-lib-word-widget
- *          ├─ .core-engine-lib-base-widget-toolbar
- *          │    ├─ "Edit" button (pencil, GrapesJS)
- *          │    ├─ "Open public" button (link) — opens /page/<date>/<time> in new tab
- *          │    └─ date (right, pushed by margin-left: auto)
- *          └─ .core-engine-lib-base-widget-content   ← article with content
- *   4. Pencil button — openEditor (./bridge.js) — GrapesJS with LLM chat + presets.
- *   5. Link button — opens public version of the page in a new tab.
- *   6. Save via lib/word API.
+ * Orchestrator. Delegates work to submodules:
+ *   data.js     — loadById, loadByParams, loadTemplateById
+ *   view.js     — render, buildArticle, buildToolbarButtons, renderError
+ *   actions.js  — setHeaderTitle, goBack, openPublicPage, saveContent
+ *   bridge.js   — openEditor, closeEditor (GrapesJS editor)
+ *   utils.js    — date formatting, safe JSON parse
  *
- * API (all — lib/word, independent of lib/pages):
- *   GET  /core/engine/lib/word/bydatetime/{date}/{time}?module=<name>
- *   GET  /core/engine/lib/word/item/{id}?module=<name>
- *   PUT  /core/engine/lib/word/{id}?module=<name>
- *   GET  /core/engine/lib/word/assets?module=<name>
- *   POST /core/engine/lib/word/assets/upload?module=<name>
+ * All submodules are loaded dynamically with a version to avoid
+ * browser cache issues on updates.
  *
- * module query param — for multi-site support. Resolved by route.py
- * via _module_name() (query -> Referer fallback).
+ * Public API (to Renderer / Word):
+ *   - waitForInit()
+ *   - isInitialized()
+ *   - destroy()
  */
 export class Word {
     constructor(container, props = {}) {
         console.log('[Word] Constructor', { container, props });
 
-        this.container = container;      // .core-engine-component--word (from Renderer)
+        this.container = container;
         this.props = props;
 
         // Page data
         this.pageId = props.page_id || null;
         this.pageData = props.page_data || null;
 
-        // Module name for multi-site support (query param in URLs)
+        // Module name for multi-site support
         this.moduleName = window.coreEngine?.moduleName
             || document.body.dataset.module
             || '';
@@ -50,51 +40,117 @@ export class Word {
             : '';
 
         // State
-        this.editorInstance = null;      // GrapesJS editor
+        this.editorInstance = null;
         this.isEditing = false;
         this._initialized = false;
         this._initPromise = null;
-        this._editorToken = 0;           // race protection token
+        this._editorToken = 0;
 
-        // DOM refs to widget parts
+        // DOM refs
         this.widgetEl = null;
         this.toolbarEl = null;
         this.widgetContentEl = null;
 
-        // Original header title (restored on destroy)
+        // Original header title
         this._originalHeaderTitle = null;
 
         // Path to Base icons
         this._iconsBase = '/static/core/engine/lib/base/images';
+
+        // Submodules (loaded in _init)
+        this._data = null;
+        this._view = null;
+        this._actions = null;
+        this._utils = null;
 
         this._loadCSS();
 
         this._initPromise = this._init();
     }
 
+    /**
+     * Load page-level CSS into the main document.
+     *
+     * Shared CSS (word.css, llm.css, content.css) — hardcoded.
+     * Block CSS (elements, layout, ready, ...) — taken from
+     * blocks/manifest.js, so adding a new block = one entry in the
+     * manifest, nothing to change here.
+     *
+     * ORDER MATTERS:
+     *   content.css — shared atoms (.btn, .card, .grid, .h1, .text, ...)
+     *                 AND --theme-* variables (they are defined at the
+     *                 top of content.css, scoped under
+     *                 .core-engine-lib-word-blocks).
+     *   blocks/*.css — block-specific classes (.hero, .flex-shell, ...).
+     *                  Must load AFTER content.css so block rules can
+     *                  override shared rules at equal specificity.
+     *
+     * NOTE: editor/css/theme.css is NOT loaded here. That file is the
+     * GrapesJS UI theme (light override of GrapesJS dark panels),
+     * only needed inside the editor top document — loaded by
+     * grapes.js → cssFiles when the editor opens.
+     *
+     * coreEngine.loadCSS() expects a path relative to /static/
+     * (no leading slash, no /static/ prefix). blockCssUrls() returns
+     * full /static/... URLs, so we strip the prefix before passing.
+     */
     _loadCSS() {
-        if (window.coreEngine?.loadCSS) {
-            window.coreEngine.loadCSS('core/engine/lib/word/word.css');
-            window.coreEngine.loadCSS('core/engine/lib/word/llm/llm.css');
-        }
+        if (!window.coreEngine?.loadCSS) return;
+
+        window.coreEngine.loadCSS('core/engine/lib/word/word.css');
+        window.coreEngine.loadCSS('core/engine/lib/word/llm/llm.css');
+
+        // Shared content classes (.btn, .card, .grid, .h1, .text, ...)
+        // AND --theme-* variables (defined at the top of content.css).
+        // Scoped under .core-engine-lib-word-blocks.
+        window.coreEngine.loadCSS('core/engine/lib/word/editor/css/content.css');
+
+        // Block-specific classes — must load AFTER content.css,
+        // so block rules can override shared rules at equal specificity.
+        // List comes from the manifest, in order.
+        const version = window.coreEngine?.static_version || Date.now();
+        blockCssUrls(version).forEach((url) => {
+            // '/static/core/...?v=123' → 'core/...'
+            const path = url
+                .replace(/^\/static\//, '')
+                .replace(/\?.*$/, '');
+            window.coreEngine.loadCSS(path);
+        });
     }
 
     async _init() {
         console.log('[Word] _init() START');
+        const version = window.coreEngine?.static_version || Date.now();
+
         try {
+            // Load all submodules in parallel
+            const [data, view, actions, utils] = await Promise.all([
+                import(`./data.js?v=${version}`),
+                import(`./view.js?v=${version}`),
+                import(`./actions.js?v=${version}`),
+                import(`./utils.js?v=${version}`),
+            ]);
+
+            this._data = data;
+            this._view = view;
+            this._actions = actions;
+            this._utils = utils;
+
+            // Load page data if not provided
             if (!this.pageData) {
                 if (this.pageId) {
-                    await this._loadById();
+                    await data.loadById(this);
                 } else {
-                    const loaded = await this._loadByParams();
+                    const loaded = await data.loadByParams(this);
                     if (!loaded) {
                         throw new Error('No data to load: no page_data, page_id, or URL params');
                     }
                 }
             }
 
-            this._setHeaderTitle();
-            this._render();
+            // Set header title and render
+            actions.setHeaderTitle(this);
+            await view.render(this);
 
             this._initialized = true;
             console.log('[Word] _init() COMPLETE');
@@ -107,301 +163,39 @@ export class Word {
     }
 
     // ============================================
-    // DATA LOADING
+    // DELEGATION
     // ============================================
-
-    async _loadByParams() {
-        const engine = window.coreEngine;
-        const params = engine?.paramsList || [];
-
-        const date = params[0] || null;
-        const time = params[1] || null;
-
-        if (!date || !time) {
-            console.log('[Word] URL params missing');
-            return false;
-        }
-
-        console.log(`[Word] Loading by date/time: ${date} ${time}`);
-
-        const url = `/core/engine/lib/word/bydatetime/${date}/${time}${this._qs}`;
-        const response = await fetch(url, {
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' },
-        });
-
-        if (response.status === 404) {
-            throw new Error('Page not found');
-        }
-
-        if (!response.ok) {
-            throw new Error(`Load error: ${response.status}`);
-        }
-
-        const result = await response.json();
-        if (!result.success) {
-            throw new Error(result.message || 'Page load error');
-        }
-
-        this.pageData = result.data;
-        this.pageId = result.data.id;
-        console.log('[Word] Page loaded:', this.pageData.title);
-        return true;
-    }
-
-    async _loadById() {
-        console.log(`[Word] Loading by id: ${this.pageId}`);
-
-        const url = `/core/engine/lib/word/item/${this.pageId}${this._qs}`;
-        const response = await fetch(url, {
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' },
-        });
-
-        if (response.status === 404) {
-            throw new Error('Page not found');
-        }
-
-        if (!response.ok) {
-            throw new Error(`Load error: ${response.status}`);
-        }
-
-        const result = await response.json();
-        if (!result.success) {
-            throw new Error(result.message || 'Page load error');
-        }
-
-        this.pageData = result.data;
-        console.log('[Word] Page loaded:', this.pageData.title);
-    }
-
-    // ============================================
-    // APP HEADER TITLE
-    // ============================================
-
-    /**
-     * Write page title into the app header (.core-engine-lib-base-title).
-     * Header markup is rendered by Base (header.js) before Word is mounted,
-     * so we just find the element and replace its text.
-     * Uses a short retry loop in case header isn't in DOM yet.
-     */
-    _setHeaderTitle(retries = 5) {
-        const el = document.querySelector('.core-engine-lib-base-title');
-
-        if (!el) {
-            if (retries > 0) {
-                setTimeout(() => this._setHeaderTitle(retries - 1), 50);
-            } else {
-                console.warn('[Word] .core-engine-lib-base-title not found in header');
-            }
-            return;
-        }
-
-        if (this._originalHeaderTitle === null) {
-            this._originalHeaderTitle = el.textContent;
-        }
-
-        el.textContent = this.pageData?.title || '';
-    }
-
-    // ============================================
-    // RENDER
-    // ============================================
-
-    _render() {
-        console.log('[Word] _render()');
-
-        while (this.container.firstChild) {
-            this.container.removeChild(this.container.firstChild);
-        }
-
-        // ===== Root widget =====
-        const widget = document.createElement('div');
-        widget.className = 'core-engine-lib-base-widget core-engine-lib-word-widget';
-        this.widgetEl = widget;
-
-        // ===== Toolbar =====
-        const toolbar = document.createElement('div');
-        toolbar.className = 'core-engine-lib-base-widget-toolbar core-engine-lib-word-toolbar';
-        toolbar.setAttribute('data-js', 'word-toolbar');
-        this.toolbarEl = toolbar;
-        widget.appendChild(toolbar);
-
-        if (this._isAdmin()) {
-            this._buildToolbarButtons(toolbar);
-        }
-
-        // ===== Date — right side of toolbar =====
-        if (this.pageData?.datetime) {
-            const dateEl = document.createElement('time');
-            dateEl.className = 'core-engine-lib-word-toolbar-date';
-            dateEl.textContent = this._formatDate(this.pageData.datetime);
-            toolbar.appendChild(dateEl);
-        }
-
-        // ===== Widget content =====
-        const widgetContent = document.createElement('div');
-        widgetContent.className = 'core-engine-lib-base-widget-content core-engine-lib-word-widget-content';
-        widgetContent.setAttribute('data-js', 'word-widget-content');
-        this.widgetContentEl = widgetContent;
-        widget.appendChild(widgetContent);
-
-        // ===== Article =====
-        widgetContent.appendChild(this._buildArticle());
-
-        this.container.appendChild(widget);
-    }
-
-    /**
-     * Build toolbar buttons (Edit + Open public).
-     */
-    _buildToolbarButtons(toolbar) {
-        // "Edit" button (GrapesJS)
-        const editBtn = document.createElement('button');
-        editBtn.type = 'button';
-        editBtn.className = 'core-engine-lib-word-toolbar-btn';
-        editBtn.setAttribute('data-action', 'word-edit');
-        editBtn.setAttribute('title', 'Редактировать (визуальный редактор)');
-        editBtn.setAttribute('aria-label', 'Редактировать');
-
-        const editIcon = document.createElement('img');
-        editIcon.className = 'core-engine-lib-word-toolbar-btn-icon';
-        editIcon.src = `${this._iconsBase}/edit.svg`;
-        editIcon.alt = '';
-        editIcon.setAttribute('aria-hidden', 'true');
-        editBtn.appendChild(editIcon);
-
-        editBtn.addEventListener('click', () => this._openEditor());
-        toolbar.appendChild(editBtn);
-
-        // "Open public" button (link)
-        const publicBtn = document.createElement('button');
-        publicBtn.type = 'button';
-        publicBtn.className = 'core-engine-lib-word-toolbar-btn';
-        publicBtn.setAttribute('data-action', 'word-public');
-        publicBtn.setAttribute('title', 'Открыть публичную версию');
-        publicBtn.setAttribute('aria-label', 'Открыть публичную версию');
-
-        const publicIcon = document.createElement('img');
-        publicIcon.className = 'core-engine-lib-word-toolbar-btn-icon';
-        publicIcon.src = `${this._iconsBase}/link.svg`;
-        publicIcon.alt = '';
-        publicIcon.setAttribute('aria-hidden', 'true');
-        publicBtn.appendChild(publicIcon);
-
-        publicBtn.addEventListener('click', () => this._openPublicPage());
-        toolbar.appendChild(publicBtn);
-    }
-
-    /**
-     * Build article with content only.
-     *
-     * Title lives in the app header (set via _setHeaderTitle()).
-     * Date lives in the toolbar. Neither appears here.
-     *
-     * GrapesJS saves content wrapped in <body>...</body>. Browsers ignore
-     * nested <body> and drop its id, so CSS selectors like #id4l break.
-     * We replace <body> with <div> here to preserve the id and make CSS work.
-     *
-     * <style> blocks are inserted via document.createElement('style') to
-     * avoid innerHTML parsing quirks.
-     */
-    _buildArticle() {
-        const raw = this.pageData?.content
-            || '<p class="core-engine-lib-word-empty">Контент пуст</p>';
-
-        // Replace <body ...> with <div ...> — keep id, class, style attributes.
-        const html = raw
-            .replace(/<body(\s[^>]*)?>/i, '<div$1>')
-            .replace(/<\/body>/i, '</div>');
-
-        const article = document.createElement('article');
-        article.className = 'core-engine-lib-word';
-
-        const contentEl = document.createElement('div');
-        contentEl.className = 'core-engine-lib-word-content';
-        contentEl.setAttribute('data-js', 'word-content');
-
-        // Extract <style>...</style> blocks
-        const styleMatches = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];
-        const styles = styleMatches.map(m => m[1]).join('\n');
-        const htmlWithoutStyles = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-
-        // Insert <style> via createElement — safer than innerHTML
-        if (styles.trim()) {
-            const styleEl = document.createElement('style');
-            styleEl.textContent = styles;
-            contentEl.appendChild(styleEl);
-        }
-
-        // Insert HTML (without <style>) via temp container
-        const temp = document.createElement('div');
-        temp.innerHTML = htmlWithoutStyles;
-        while (temp.firstChild) {
-            contentEl.appendChild(temp.firstChild);
-        }
-
-        article.appendChild(contentEl);
-        return article;
-    }
 
     _renderError(message) {
-        console.log('[Word] _renderError()', message);
-
-        while (this.container.firstChild) {
-            this.container.removeChild(this.container.firstChild);
-        }
-
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'core-engine-lib-word-error';
-
-        const icon = document.createElement('div');
-        icon.className = 'core-engine-lib-word-error-icon';
-        icon.textContent = '⚠️';
-        errorDiv.appendChild(icon);
-
-        const title = document.createElement('h2');
-        title.className = 'core-engine-lib-word-error-title';
-        title.textContent = 'Страница не найдена';
-        errorDiv.appendChild(title);
-
-        const text = document.createElement('p');
-        text.className = 'core-engine-lib-word-error-text';
-        text.textContent = message;
-        errorDiv.appendChild(text);
-
-        this.container.appendChild(errorDiv);
+        this._view?.renderError(this, message);
     }
 
-    // ============================================
-    // RESIZER HANDLES
-    // ============================================
+    _goBack() {
+        this._actions?.goBack(this);
+    }
 
-    /**
-     * Remove all resizer handles (GrapesJS).
-     */
-    _clearAllResizers() {
-        document.querySelectorAll('.core-engine-lib-word-editor-resizer').forEach(h => h.remove());
+    _openPublicPage() {
+        this._actions?.openPublicPage(this);
+    }
+
+    async _saveContent(data) {
+        await this._actions?.saveContent(this, data);
+    }
+
+    _setHeaderTitle() {
+        this._actions?.setHeaderTitle(this);
     }
 
     // ============================================
     // EDITOR (delegated to bridge.js)
     // ============================================
 
-    /**
-     * Open the GrapesJS editor.
-     * Delegates to bridge.js — openEditor().
-     */
     async _openEditor() {
         const version = window.coreEngine?.static_version || Date.now();
         const mod = await import(`./bridge.js?v=${version}`);
         await mod.openEditor(this);
     }
 
-    /**
-     * Close the editor.
-     * Delegates to bridge.js — closeEditor().
-     */
     _closeEditor() {
         const version = window.coreEngine?.static_version || Date.now();
         import(`./bridge.js?v=${version}`).then(mod => {
@@ -410,85 +204,11 @@ export class Word {
     }
 
     // ============================================
-    // SAVING
+    // RESIZER HANDLES
     // ============================================
 
-    async _saveContent(data) {
-        console.log('[Word] Saving content for id:', this.pageId);
-
-        if (!this.pageId) {
-            throw new Error('Unknown page id');
-        }
-
-        // Merge HTML + CSS: GrapesJS generates CSS via StyleManager.
-        // Save CSS in <style> before HTML so it renders on public pages.
-        const css = (data.css || '').trim();
-        const html = data.html || '';
-
-        const contentWithCss = css
-            ? `<style>${css}</style>${html}`
-            : html;
-
-        const url = `/core/engine/lib/word/${this.pageId}${this._qs}`;
-        const response = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                content: contentWithCss,
-                content_json: JSON.stringify(data.project),
-            }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Save error');
-        }
-
-        // Update local data so it renders immediately after close
-        this.pageData.content = contentWithCss;
-        this.pageData.content_json = JSON.stringify(data.project);
-
-        console.log('[Word] Content saved (HTML + CSS)');
-
-        // Close editor and restore article
-        const version = window.coreEngine?.static_version || Date.now();
-        const mod = await import(`./bridge.js?v=${version}`);
-        mod.closeEditor(this);
-    }
-
-    // ============================================
-    // PUBLIC PAGE
-    // ============================================
-
-    /**
-     * Open public version of the page in a new tab.
-     * Builds URL: /page/<YYYYMMDD>/<HHMMSS>
-     */
-    _openPublicPage() {
-        console.log('[Word] Opening public page');
-
-        const datetime = this.pageData?.datetime;
-        if (!datetime) {
-            console.warn('[Word] No datetime — cannot open public page');
-            return;
-        }
-
-        const date = this._formatDateShort(datetime);
-        const time = this._formatTimeShort(datetime);
-
-        if (!date || !time) {
-            console.warn('[Word] Failed to format date/time');
-            return;
-        }
-
-        const url = `/page/${date}/${time}`;
-        console.log('[Word] Public URL:', url);
-
-        window.open(url, '_blank', 'noopener,noreferrer');
+    _clearAllResizers() {
+        document.querySelectorAll('.core-engine-lib-word-editor-resizer').forEach(h => h.remove());
     }
 
     // ============================================
@@ -506,54 +226,6 @@ export class Word {
             return user?.is_superadmin === true;
         }
         return false;
-    }
-
-    _formatDate(isoString) {
-        try {
-            const d = new Date(isoString);
-            return d.toLocaleDateString('ru-RU', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-            });
-        } catch (e) {
-            return isoString;
-        }
-    }
-
-    _formatDateShort(isoString) {
-        try {
-            const d = new Date(isoString);
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const dd = String(d.getDate()).padStart(2, '0');
-            return `${yyyy}${mm}${dd}`;
-        } catch (e) {
-            console.warn('[Word] Date format error:', e);
-            return '';
-        }
-    }
-
-    _formatTimeShort(isoString) {
-        try {
-            const d = new Date(isoString);
-            const hh = String(d.getHours()).padStart(2, '0');
-            const mi = String(d.getMinutes()).padStart(2, '0');
-            const ss = String(d.getSeconds()).padStart(2, '0');
-            return `${hh}${mi}${ss}`;
-        } catch (e) {
-            console.warn('[Word] Time format error:', e);
-            return '';
-        }
-    }
-
-    _safeJsonParse(str) {
-        try {
-            return JSON.parse(str);
-        } catch (e) {
-            console.warn('[Word] Failed to parse JSON:', e);
-            return null;
-        }
     }
 
     // ============================================
@@ -584,7 +256,7 @@ export class Word {
             try {
                 this.editorInstance.destroy();
             } catch (e) {
-                console.warn('[Word] editor.destroy() error:', e);
+                console.warn('[Word] destroy() error:', e);
             }
         }
         this.editorInstance = null;

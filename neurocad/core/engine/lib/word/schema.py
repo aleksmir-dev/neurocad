@@ -80,3 +80,67 @@ class CoreEngineLibWordUploadResponse(BaseModel):
     """Ответ на загрузку ассетов"""
     success: bool = True
     data: List[str] = Field(..., description="URL загруженных файлов")
+
+
+# ============================================
+# ИСТОРИЯ ИЗМЕНЕНИЙ (page_hist)
+# ============================================
+
+class CoreEngineLibWordHistoryItem(BaseModel):
+    """
+    Метаданные одного снимка истории.
+
+    Не включает html / content_json (тяжёлые поля) —
+    для полного снимка используйте GET /{page_id}/history/{hist_id}.
+    """
+    id: int
+    action: Optional[str] = Field(
+        None,
+        description="user_edit | ai_edit | preset_apply | rollback",
+    )
+    note: Optional[str] = None
+    created_at: Optional[dt] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CoreEngineLibWordHistoryListResponse(BaseModel):
+    """Ответ со списком снимков (метаданные, без html/content_json)"""
+    success: bool = True
+    data: List[CoreEngineLibWordHistoryItem]
+
+
+class CoreEngineLibWordHistoryItemResponse(BaseModel):
+    """
+    Полный снимок истории — html + content_json.
+
+    Используется для превью и для отката.
+    """
+    id: int
+    page_id: int
+    html: str
+    content_json: Optional[str] = None
+    action: Optional[str] = None
+    note: Optional[str] = None
+    created_at: Optional[dt] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CoreEngineLibWordHistoryItemFullResponse(BaseModel):
+    """Обёртка ответа для одного полного снимка"""
+    success: bool = True
+    data: CoreEngineLibWordHistoryItemResponse
+
+
+class CoreEngineLibWordRollbackResponse(BaseModel):
+    """
+    Ответ на откат к снимку.
+
+    Возвращает обновлённые content / content_json / updated_at —
+    чтобы фронтенд мог сразу обновить состояние без повторного GET.
+    """
+    success: bool = True
+    data: dict

@@ -50,6 +50,13 @@ class CoreEngineLibPagesPublicItem(CoreEngineLibPagesPublicItemBase):
         None,
         description="HTML content (rendered as-is)",
     )
+    template_id: Optional[int] = Field(
+        None,
+        description=(
+            "Base template page ID. If set, this page's content is inserted "
+            "into [data-slot='content'] of the template page."
+        ),
+    )
 
     class Config:
         from_attributes = True

@@ -3,6 +3,22 @@
 /**
  * Universal form for creating/editing cards.
  * Generated from field descriptions in a JSON config.
+ *
+ * Layout for checkbox fields:
+ *   .edit-group--checkbox
+ *     └── label.edit-label-checkbox
+ *         ├── input[type=checkbox]
+ *         └── span (field label)
+ *   → checkbox on the LEFT, label text on the RIGHT.
+ *
+ * Layout for media fields:
+ *   .edit-group--media
+ *     ├── actions (Выбрать / Очистить)  ← LEFT
+ *     └── preview (img or placeholder)  ← RIGHT
+ *   → click "Выбрать" opens BaseAssets picker.
+ *   → selected src is stored in this.values[key].
+ *
+ * Other field types keep the standard label-above-input layout.
  */
 export class BaseCardsEdit {
     constructor(props = {}) {
@@ -133,9 +149,22 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Create field group
+     * Create field group.
+     *
+     * Three layouts:
+     *   - checkbox: label with embedded input (checkbox left, text right)
+     *   - media:    actions on the left, preview on the right
+     *   - others:   label on top, input below (standard)
      */
     _createFieldGroup(field) {
+        if (field.type === 'checkbox') {
+            return this._createCheckboxGroup(field);
+        }
+        if (field.type === 'media') {
+            return this._createMediaGroup(field);
+        }
+
+        // ===== STANDARD layout =====
         const group = document.createElement('div');
         group.className = 'edit-group';
 
@@ -165,7 +194,235 @@ export class BaseCardsEdit {
     }
 
     /**
-     * Create input
+     * Create checkbox field group.
+     *
+     * Layout:
+     *   <div class="edit-group edit-group--checkbox">
+     *     <label class="edit-label-checkbox">
+     *       <input type="checkbox" ...>
+     *       <span>Label text</span>
+     *     </label>
+     *     <span class="edit-error">...</span>
+     *   </div>
+     *
+     * The <label> wraps the checkbox, so clicking the text toggles
+     * the checkbox (native browser behavior).
+     */
+    _createCheckboxGroup(field) {
+        const group = document.createElement('div');
+        group.className = 'edit-group edit-group--checkbox';
+
+        // Label wrapper — clickable, contains checkbox + text
+        const label = document.createElement('label');
+        label.className = 'edit-label-checkbox';
+
+        // Checkbox input
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.className = 'edit-checkbox';
+        input.checked = !!this.values[field.key];
+        input.setAttribute('data-js', `field-${field.key}`);
+        input.setAttribute('data-field', field.key);
+        label.appendChild(input);
+
+        // Label text
+        const text = document.createElement('span');
+        text.className = 'edit-label-text';
+        text.textContent = field.label || field.key;
+        if (field.required) {
+            const req = document.createElement('span');
+            req.className = 'edit-required';
+            req.textContent = ' *';
+            text.appendChild(req);
+        }
+        label.appendChild(text);
+
+        group.appendChild(label);
+
+        // Error
+        const error = document.createElement('span');
+        error.className = 'edit-error';
+        error.setAttribute('data-js', `error-${field.key}`);
+        group.appendChild(error);
+
+        // Change handler
+        input.addEventListener('change', () => {
+            this._onFieldChange(field, input);
+        });
+
+        return group;
+    }
+
+    /**
+     * Create media field group.
+     *
+     * Layout:
+     *   <div class="edit-group edit-group--media">
+     *     <label class="edit-label">...</label>
+     *     <div class="edit-media">
+     *       <div class="edit-media-actions">
+     *         <button class="edit-media-btn edit-media-btn-pick">Выбрать</button>
+     *         <button class="edit-media-btn edit-media-btn-clear">Очистить</button>
+     *       </div>
+     *       <div class="edit-media-preview" data-js="preview-<key>">
+     *         <img> or placeholder
+     *       </div>
+     *     </div>
+     *     <input type="hidden" data-js="field-<key>" data-field="<key>">
+     *     <span class="edit-error">...</span>
+     *   </div>
+     *
+     * Actions on the LEFT, preview on the RIGHT.
+     * Click "Выбрать" opens BaseAssets picker (media library).
+     * Selected src is written to hidden input and shown in preview.
+     */
+    _createMediaGroup(field) {
+        const group = document.createElement('div');
+        group.className = 'edit-group edit-group--media';
+
+        const value = this.values[field.key] || '';
+
+        // Label
+        const label = document.createElement('label');
+        label.className = 'edit-label';
+        label.textContent = field.label || field.key;
+        if (field.required) {
+            const req = document.createElement('span');
+            req.className = 'edit-required';
+            req.textContent = ' *';
+            label.appendChild(req);
+        }
+        group.appendChild(label);
+
+        // Media container
+        const media = document.createElement('div');
+        media.className = 'edit-media';
+
+        // Actions (LEFT)
+        const actions = document.createElement('div');
+        actions.className = 'edit-media-actions';
+
+        const pickBtn = document.createElement('button');
+        pickBtn.type = 'button';
+        pickBtn.className = 'edit-media-btn edit-media-btn-pick';
+        pickBtn.textContent = 'Выбрать';
+        pickBtn.addEventListener('click', () => {
+            this._openMediaPicker(field);
+        });
+        actions.appendChild(pickBtn);
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'edit-media-btn edit-media-btn-clear';
+        clearBtn.textContent = 'Очистить';
+        clearBtn.addEventListener('click', () => {
+            this._setMediaValue(field, '');
+        });
+        actions.appendChild(clearBtn);
+
+        media.appendChild(actions);
+
+        // Preview (RIGHT)
+        const preview = document.createElement('div');
+        preview.className = 'edit-media-preview';
+        preview.setAttribute('data-js', `preview-${field.key}`);
+        if (value) {
+            const img = document.createElement('img');
+            img.src = value;
+            img.alt = '';
+            preview.appendChild(img);
+        } else {
+            const placeholder = document.createElement('span');
+            placeholder.className = 'edit-media-placeholder';
+            placeholder.textContent = field.placeholder || 'Не выбрано';
+            preview.appendChild(placeholder);
+        }
+        media.appendChild(preview);
+
+        group.appendChild(media);
+
+        // Hidden input — keeps value in the same shape as other fields
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.setAttribute('data-js', `field-${field.key}`);
+        hidden.setAttribute('data-field', field.key);
+        hidden.value = value;
+        group.appendChild(hidden);
+
+        // Error
+        const error = document.createElement('span');
+        error.className = 'edit-error';
+        error.setAttribute('data-js', `error-${field.key}`);
+        group.appendChild(error);
+
+        return group;
+    }
+
+    /**
+     * Open the media picker (BaseAssets) and update the field value.
+     *
+     * @param {Object} field
+     */
+    async _openMediaPicker(field) {
+        const version = window.coreEngine?.static_version || Date.now();
+
+        try {
+            const { BaseAssets } = await import(
+                `/static/core/engine/lib/base/assets/assets.js?v=${version}`
+            );
+
+            BaseAssets.open({
+                onSelect: (src) => {
+                    this._setMediaValue(field, src);
+                },
+            });
+        } catch (e) {
+            console.warn('[BaseCardsEdit] BaseAssets unavailable:', e);
+            alert('Не удалось открыть медиатеку');
+        }
+    }
+
+    /**
+     * Set the value of a media field:
+     *   - update this.values[key]
+     *   - update hidden input
+     *   - update preview
+     *   - clear error
+     *
+     * @param {Object} field
+     * @param {string} src
+     */
+    _setMediaValue(field, src) {
+        this.values[field.key] = src;
+
+        // Hidden input
+        const hidden = this.editBody.querySelector(`[data-js="field-${field.key}"]`);
+        if (hidden) {
+            hidden.value = src;
+        }
+
+        // Preview
+        const preview = this.editBody.querySelector(`[data-js="preview-${field.key}"]`);
+        if (preview) {
+            preview.innerHTML = '';
+            if (src) {
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = '';
+                preview.appendChild(img);
+            } else {
+                const placeholder = document.createElement('span');
+                placeholder.className = 'edit-media-placeholder';
+                placeholder.textContent = field.placeholder || 'Не выбрано';
+                preview.appendChild(placeholder);
+            }
+        }
+
+        this._clearError(field.key);
+    }
+
+    /**
+     * Create input (for non-checkbox, non-media fields)
      */
     _createInput(field) {
         const value = this.values[field.key] || '';
@@ -191,8 +448,16 @@ export class BaseCardsEdit {
                 emptyOpt.textContent = field.placeholder || 'Выберите...';
                 el.appendChild(emptyOpt);
 
-                if (field.options) {
-                    field.options.forEach(opt => {
+                // Support options as array OR as function.
+                // Function form is evaluated at render time — so dynamic
+                // lists (e.g. templates created after init) are always
+                // up to date.
+                const optionsList = typeof field.options === 'function'
+                    ? field.options()
+                    : field.options;
+
+                if (optionsList) {
+                    optionsList.forEach(opt => {
                         const option = document.createElement('option');
                         option.value = opt.value;
                         option.textContent = opt.label || opt.value;
@@ -202,13 +467,6 @@ export class BaseCardsEdit {
                         el.appendChild(option);
                     });
                 }
-                break;
-
-            case 'checkbox':
-                el = document.createElement('input');
-                el.type = 'checkbox';
-                el.className = 'edit-input edit-checkbox';
-                el.checked = !!value;
                 break;
 
             case 'date':
@@ -252,10 +510,6 @@ export class BaseCardsEdit {
         el.setAttribute('data-field', field.key);
         el.required = field.required || false;
 
-        if (field.required) {
-            el.required = true;
-        }
-
         input.appendChild(el);
 
         // Change handling
@@ -279,8 +533,6 @@ export class BaseCardsEdit {
 
         if (field.type === 'checkbox') {
             value = el.checked;
-        } else if (field.type === 'select') {
-            value = el.value;
         } else {
             value = el.value;
         }
@@ -488,7 +740,7 @@ export class BaseCardsEdit {
         if (this.modalOverlay) {
             this.modalOverlay.classList.add('active');
             setTimeout(() => {
-                const firstInput = this.editBody?.querySelector('.edit-input');
+                const firstInput = this.editBody?.querySelector('.edit-input, .edit-checkbox');
                 if (firstInput) {
                     firstInput.focus();
                 }

@@ -11,7 +11,11 @@
  *   assets.js     -> works with media library (GET /assets, POST /assets/upload)
  *   blocks/       -> registers block library
  *   resizer.js    -> handles for dragging borders between areas
+ *   template.js   -> base template rendering + slot height sync
+ *   toolbar.js    -> editor toolbar + hotkeys + device switcher
+ *   dataloader.js -> load project data + re-apply scope class / body traits
  *   modals.js     -> HTML+CSS page modal and element CSS modal
+ *   history.js    -> page history modal (list, preview, rollback)
  *   formatter.js  -> js-beautify wrapper (CSS / HTML pretty-print)
  *   base/modal    -> Base modals (incl. code modal for HTML + CSS)
  *   ../llm/chat.js    -> LLM chat panel (right)
@@ -20,11 +24,29 @@
  * All internal modules are loaded dynamically, with version from coreEngine,
  * to avoid browser cache on updates.
  *
+ * Template mode:
+ *   If props.templateHtml is provided:
+ *     - Rendered into .editor-template (outside GrapesJS iframe).
+ *     - If the template contains [data-slot="content"], the slot is
+ *       replaced with .editor-slot and GrapesJS mounts into it.
+ *     - If the template has no slot, GrapesJS is NOT created at all —
+ *       the template is shown as a read-only preview. The toolbar is
+ *       still rendered (only the "Close" button).
+ *
+ *   Device behavior (when the template has a slot):
+ *     - desktop: template is visible, slot lives inside .editor-template.
+ *     - tablet / mobile: template is hidden, slot is moved into
+ *       .editor-canvas so the user can test how the slot content fits
+ *       narrow viewports without the surrounding template layout.
+ *
+ *   Otherwise (no template):
+ *     - GrapesJS mounts into .editor-canvas — same as before.
+ *
  * Exposes (to Word):
  *   - waitForInit()   — wait for readiness
  *   - isInitialized() — check readiness
  *   - destroy()       — destroy editor
- *   - editor          — GrapesJS instance (if needed externally)
+ *   - editor          — GrapesJS instance (or null in preview mode)
  *
  * Save / cancel — via onSave / onCancel callbacks from props.
  */
@@ -38,6 +60,7 @@ export class Editor {
         // Data to load
         this.initialHtml = props.html || '';
         this.initialProject = props.project || null;
+        this.templateHtml = props.templateHtml || null;
 
         // Callbacks
         this.onSave = props.onSave || null;
@@ -47,7 +70,6 @@ export class Editor {
         this.editor = null;
         this._initialized = false;
         this._initPromise = null;
-        this._onKeyDown = null;
 
         // Submodules (created in _init)
         this._widgets = null;
@@ -56,17 +78,23 @@ export class Editor {
         this._assets = null;
         this._blocks = null;
         this._resizer = null;
+        this._templateMgr = null;   // template.js module
+        this._toolbarMgr = null;    // toolbar.js module
+        this._dataLoader = null;    // dataloader.js module
         this._createModal = null;
-        this._modals = null;    // modals.js module
-        this._chat = null;      // LLM chat
-        this._presets = null;   // LLM presets
+        this._modals = null;        // modals.js module
+        this._history = null;       // history.js module
+        this._chat = null;          // LLM chat
+        this._presets = null;       // LLM presets
 
         // DOM elements (filled by widgets.build())
         this.leftArea = null;
         this.rightArea = null;
         this.blocksEl = null;
         this.presetsEl = null;
-        this.canvasEl = null;
+        this.canvasEl = null;     // whole center area
+        this.templateEl = null;   // static template HTML (when template exists)
+        this.slotEl = null;       // GrapesJS mount point (when template exists)
         this.toolbarEl = null;
         this.stylesEl = null;
         this.traitsEl = null;
@@ -78,7 +106,6 @@ export class Editor {
         this.pageData = props.pageData || null;
 
         // Media library API — with module_name for multi-site support.
-        // module_name is passed via ?module= (see route.py / _module_name()).
         const moduleName = window.coreEngine?.moduleName
             || document.body.dataset.module
             || '';
@@ -88,6 +115,12 @@ export class Editor {
 
         this._assetsApi = `/core/engine/lib/word/assets${qs}`;
         this._assetsUploadApi = `/core/engine/lib/word/assets/upload${qs}`;
+
+        // History API base
+        this._historyApi = `/core/engine/lib/word${qs}`;
+
+        // Scope class — must match GrapesLoader.scopeClass
+        this._scopeClass = 'core-engine-lib-word-blocks';
 
         this._initPromise = this._init();
     }
@@ -109,6 +142,9 @@ export class Editor {
                 { AssetsManager },
                 { BlocksRegistry },
                 { Resizer },
+                { TemplateManager },
+                { ToolbarManager },
+                { DataLoader },
                 modalsModule,
                 { createModal },
                 { LLMChat },
@@ -120,6 +156,9 @@ export class Editor {
                 import(`./assets.js?v=${version}`),
                 import(`./blocks/index.js?v=${version}`),
                 import(`./resizer.js?v=${version}`),
+                import(`./template.js?v=${version}`),
+                import(`./toolbar.js?v=${version}`),
+                import(`./dataloader.js?v=${version}`),
                 import(`./modals.js?v=${version}`),
                 import(`../../base/modal/index.js?v=${version}`),
                 import(`../llm/chat.js?v=${version}`),
@@ -133,10 +172,16 @@ export class Editor {
             this._widgets = new WidgetsBuilder(this);
             this._widgets.build();
 
-            // 2.5. Bind tabs [Styles|Traits|Blocks|Presets]
+            // 2.5. Template manager — render template HTML into .editor-template
+            // (if any). If the template contains [data-slot="content"],
+            // GrapesLoader will later replace that slot and mount into it.
+            this._templateMgr = new TemplateManager(this);
+            this._templateMgr.render();
+
+            // 2.6. Bind tabs [Styles|Traits|Blocks|Presets]
             this._bindTabs();
 
-            // 2.6. Resizer handles — BEFORE grapesjs.init(),
+            // 2.7. Resizer handles — BEFORE grapesjs.init(),
             // so panel widths from localStorage are applied,
             // and GrapesJS calculates canvas at the right size.
             this._resizer = new Resizer(this);
@@ -145,34 +190,53 @@ export class Editor {
             // 3. StyleManager config
             this._stylesConfig = new StylesConfig(this);
 
-            // 4. GrapesJS init
+            // 4. GrapesJS init.
+            //    Returns the instance, OR null if the template has no
+            //    [data-slot="content"] — in that case we are in preview mode.
             this._grapes = new GrapesLoader(this, {
                 styleManagerSectors: this._stylesConfig.sectors(),
             });
             await this._grapes.load();
             this.editor = this._grapes.init();
 
-            // 5. Block library
-            this._blocks = new BlocksRegistry(this.editor);
-            await this._blocks.register();
+            if (this.editor) {
+                // ----- Everything that requires GrapesJS -----
 
-            // 6. Media library (load existing assets)
-            this._assets = new AssetsManager(this);
-            await this._assets.load();
+                // 4.5. If template is used — watch iframe height and resize
+                // .editor-slot so that the iframe fits its content.
+                if (this.templateHtml) {
+                    this._templateMgr.setupSlotResize();
+                }
 
-            // 7. LLM Chat (right)
-            this._chat = new LLMChat(this);
-            await this._chat.init();
+                // 5. Block library
+                this._blocks = new BlocksRegistry(this.editor);
+                await this._blocks.register();
 
-            // 8. LLM Presets (left tab)
-            this._presets = new LLMPresets(this);
-            await this._presets.init();
+                // 6. Media library (load existing assets)
+                this._assets = new AssetsManager(this);
+                await this._assets.load();
 
-            // 9. Initial data
-            this._loadData();
+                // 7. LLM Chat (right)
+                this._chat = new LLMChat(this);
+                await this._chat.init();
 
-            // 10. Toolbar + hotkeys
-            this._buildToolbar();
+                // 8. LLM Presets (left tab)
+                this._presets = new LLMPresets(this);
+                await this._presets.init();
+
+                // 9. Initial data — JSON project or HTML fallback.
+                //    DataLoader also re-applies scope class + body traits
+                //    after GrapesJS replaces <body> and wrapper.
+                this._dataLoader = new DataLoader(this);
+                this._dataLoader.loadInitial();
+            } else {
+                console.log('[Editor] Preview mode — GrapesJS not initialized, panels disabled');
+            }
+
+            // 10. Toolbar + hotkeys — built in BOTH modes.
+            //     In preview mode it renders only the "Close" button.
+            this._toolbarMgr = new ToolbarManager(this);
+            this._toolbarMgr.build();
 
             this._initialized = true;
             console.log('[Editor] _init() COMPLETE');
@@ -217,204 +281,11 @@ export class Editor {
     }
 
     // ============================================
-    // DATA LOADING
-    // ============================================
-
-    /**
-     * Load initial data into GrapesJS.
-     *
-     * Priority:
-     *   1. Full project JSON (getProjectData()) — preferred, keeps wrapper
-     *      attributes (e.g. id) and CSS rules tied to them.
-     *   2. HTML fallback — used for new pages or when the project JSON is
-     *      missing. <style>...</style> blocks are extracted and applied to
-     *      the CssComposer manually, because GrapesJS ignores them in
-     *      setComponents(html).
-     *
-     * GrapesJS getProjectData() returns:
-     *   { pages, styles, assets, ... }  — NO top-level `components`!
-     * So we check `pages` / `styles` / `components`.
-     */
-    _loadData() {
-        console.log('[Editor] Loading data');
-
-        const proj = this.initialProject;
-        const hasProject = !!(proj && (
-            (proj.pages && proj.pages.length) ||
-            (proj.styles && proj.styles.length) ||
-            proj.components
-        ));
-
-        if (hasProject) {
-            try {
-                this.editor.loadProjectData(proj);
-                console.log('[Editor] JSON project loaded');
-                return;
-            } catch (e) {
-                console.warn('[Editor] loadProjectData failed, falling back to HTML:', e);
-            }
-        }
-
-        if (this.initialHtml) {
-            this.editor.setComponents(this.initialHtml);
-            this._applyStylesFromHtml(this.initialHtml);
-            console.log('[Editor] HTML loaded (+styles extracted)');
-        } else {
-            console.log('[Editor] No data — setting empty paragraph');
-            this.editor.setComponents('<p></p>');
-        }
-    }
-
-    /**
-     * Extract <style>...</style> blocks from an HTML string and apply the
-     * combined CSS to GrapesJS CssComposer.
-     *
-     * Why: setComponents(html) only parses components — <style> is ignored
-     * by GrapesJS. So when loading a page as HTML (not as project JSON),
-     * we must explicitly push its CSS into StyleManager.
-     */
-    _applyStylesFromHtml(html) {
-        const matches = [...(html || '').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];
-        const css = matches.map(m => m[1]).join('\n').trim();
-
-        if (!css) return;
-
-        try {
-            this.editor.setStyle(css);
-            console.log('[Editor] Inline <style> applied to CssComposer');
-        } catch (e) {
-            console.warn('[Editor] setStyle failed:', e);
-        }
-    }
-
-    // ============================================
-    // TOOLBAR + HOTKEYS
-    // ============================================
-
-    _buildToolbar() {
-        console.log('[Editor] _buildToolbar()');
-
-        if (!this.toolbarEl) return;
-
-        const iconsBase = '/static/core/engine/lib/base/images';
-
-        this.toolbarEl.innerHTML = `
-            <button type="button" data-action="save" title="Сохранить (Ctrl+S)" class="core-engine-lib-word-editor-btn">
-                <img class="core-engine-lib-word-editor-btn-icon"
-                     src="${iconsBase}/save.svg"
-                     alt="" aria-hidden="true">
-            </button>
-            <div class="core-engine-lib-word-editor-separator"></div>
-            <button type="button" data-action="undo" title="Отменить (Ctrl+Z)" class="core-engine-lib-word-editor-btn">
-                <span class="core-engine-lib-word-editor-btn-icon">↶</span>
-            </button>
-            <button type="button" data-action="redo" title="Повторить (Ctrl+Y)" class="core-engine-lib-word-editor-btn">
-                <span class="core-engine-lib-word-editor-btn-icon">↷</span>
-            </button>
-            <div class="core-engine-lib-word-editor-separator"></div>
-            <div class="core-engine-lib-word-editor-devices">
-                <button type="button" data-action="desktop" title="Десктоп" class="core-engine-lib-word-editor-btn core-engine-lib-word-editor-btn-device active">
-                    <img class="core-engine-lib-word-editor-btn-icon"
-                         src="${iconsBase}/desktop.svg"
-                         alt="" aria-hidden="true">
-                </button>
-                <button type="button" data-action="tablet" title="Планшет" class="core-engine-lib-word-editor-btn core-engine-lib-word-editor-btn-device">
-                    <img class="core-engine-lib-word-editor-btn-icon"
-                         src="${iconsBase}/tablet.svg"
-                         alt="" aria-hidden="true">
-                </button>
-                <button type="button" data-action="mobile" title="Мобильный" class="core-engine-lib-word-editor-btn core-engine-lib-word-editor-btn-device">
-                    <img class="core-engine-lib-word-editor-btn-icon"
-                         src="${iconsBase}/mobile.svg"
-                         alt="" aria-hidden="true">
-                </button>
-            </div>
-            <div class="core-engine-lib-word-editor-separator"></div>
-            <button type="button" data-action="html" title="Просмотр/редактирование HTML + CSS" class="core-engine-lib-word-editor-btn">
-                <span class="core-engine-lib-word-editor-btn-icon">&lt;&gt;</span>
-            </button>
-            <button type="button" data-action="css" title="Кастомный CSS элемента" class="core-engine-lib-word-editor-btn">
-                <span class="core-engine-lib-word-editor-btn-icon">{ }</span>
-            </button>
-
-            <div class="core-engine-lib-word-editor-toolbar-spacer"></div>
-
-            <button type="button" data-action="cancel" title="Выход без сохранения" class="core-engine-lib-word-editor-btn">
-                <span class="core-engine-lib-word-editor-btn-icon">✕</span>
-            </button>
-        `;
-
-        // Delegated click handler for toolbar buttons
-        this.toolbarEl.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-action]');
-            if (!btn) return;
-            this._handleToolbarAction(btn.dataset.action);
-        });
-
-        // Hotkeys
-        this._onKeyDown = (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                this._handleSave();
-            } else if (e.key === 'Escape') {
-                this._handleCancel();
-            } else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-                e.preventDefault();
-                this.editor.UndoManager.undo();
-            } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) {
-                e.preventDefault();
-                this.editor.UndoManager.redo();
-            }
-        };
-        document.addEventListener('keydown', this._onKeyDown);
-    }
-
-    _handleToolbarAction(action) {
-        switch (action) {
-            case 'save':
-                this._handleSave();
-                break;
-            case 'undo':
-                this.editor.UndoManager.undo();
-                break;
-            case 'redo':
-                this.editor.UndoManager.redo();
-                break;
-            case 'desktop':
-            case 'tablet':
-            case 'mobile':
-                this._setDevice(action);
-                break;
-            case 'html':
-                this._openHtmlModal();
-                break;
-            case 'css':
-                this._openCssModal();
-                break;
-            case 'cancel':
-                this._handleCancel();
-                break;
-        }
-    }
-
-    _setDevice(device) {
-        this.editor.setDevice(device);
-        this.toolbarEl
-            .querySelectorAll('.core-engine-lib-word-editor-btn-device')
-            .forEach((btn) => {
-                btn.classList.toggle('active', btn.dataset.action === device);
-            });
-    }
-
-    // ============================================
     // MODALS (delegated to modals.js)
     // ============================================
 
-    /**
-     * Open the page-level HTML + CSS modal.
-     * Delegates to modals.js — openHtmlCssModal().
-     */
     async _openHtmlModal() {
+        if (!this.editor) return;
         if (!this._modals) {
             console.warn('[Editor] modals module not loaded');
             return;
@@ -425,11 +296,8 @@ export class Editor {
         });
     }
 
-    /**
-     * Open the element-level custom CSS modal.
-     * Delegates to modals.js — openElementCssModal().
-     */
     async _openCssModal() {
+        if (!this.editor) return;
         if (!this._modals) {
             console.warn('[Editor] modals module not loaded');
             return;
@@ -440,11 +308,69 @@ export class Editor {
         });
     }
 
+    /**
+     * Open the page history modal (list, preview, rollback).
+     *
+     * Loads history.js lazily (versioned), then delegates.
+     * The module itself fetches data via /word/{page_id}/history endpoints.
+     */
+    async _openHistoryModal() {
+        if (!this.editor) return;
+
+        if (!this.pageId) {
+            console.warn('[Editor] pageId not set — history unavailable');
+            return;
+        }
+
+        try {
+            const version = window.coreEngine?.static_version || Date.now();
+            const mod = await import(`./history.js?v=${version}`);
+            this._history = mod;
+
+            await mod.openHistoryModal({
+                editor: this.editor,
+                createModal: this._createModal,
+                pageId: this.pageId,
+                qs: this._qsForHistory(),
+                onRollback: (data) => this._applyRollback(data),
+            });
+        } catch (err) {
+            console.error('[Editor] history modal error:', err);
+        }
+    }
+
+    /**
+     * Build ?module=<name> query string for history API.
+     */
+    _qsForHistory() {
+        const moduleName = window.coreEngine?.moduleName
+            || document.body.dataset.module
+            || '';
+        return moduleName
+            ? `?module=${encodeURIComponent(moduleName)}`
+            : '';
+    }
+
+    /**
+     * Apply a rollback result to the editor.
+     * Delegates to DataLoader.applyRollback().
+     *
+     * data = { id, title, content, content_json, updated_at }
+     */
+    _applyRollback(data) {
+        this._dataLoader?.applyRollback(data);
+    }
+
     // ============================================
-    // SAVING
+    // SAVING / CLEAR / CANCEL
     // ============================================
 
     async _handleSave() {
+        if (!this.editor) {
+            console.warn('[Editor] save: GrapesJS not initialized');
+            return;
+        }
+
         if (!this.onSave) {
             console.warn('[Editor] onSave not bound');
             return;
@@ -463,6 +389,89 @@ export class Editor {
             console.log('[Editor] Saved');
         } catch (error) {
             console.error('[Editor] Save error:', error);
+
+            // 401 — session expired. Redirect to login, preserving return URL.
+            if (error?.status === 401) {
+                this._redirectToLogin();
+                return;
+            }
+
+            // Other errors — show a message modal (best-effort).
+            this._showSaveError(error);
+        }
+    }
+
+    /**
+     * Clear the whole edited page:
+     *   - remove all components from the canvas;
+     *   - clear generated CSS rules (kept by GrapesJS separately);
+     *   - drop selection, so traits/styles panels don't show stale data.
+     *
+     * UndoManager is intentionally NOT cleared — Ctrl+Z must bring
+     * the page back if the user clicked "Очистить" by mistake.
+     *
+     * Save is NOT triggered here: the user decides when to persist
+     * (top toolbar "Сохранить" / Ctrl+S).
+     */
+    _handleClear() {
+        console.log('[Editor] Clear page');
+
+        if (!this.editor) return;
+
+        try {
+            // 1. Remove all components from the wrapper (body).
+            //    Wrapper itself stays — this is what "clean page" means.
+            this.editor.DomComponents.clear();
+
+            // 2. Clear CSS rules generated by GrapesJS
+            //    (not the ones inside canvas <head> from canvas.css etc.).
+            this.editor.Css.clear();
+
+            // 3. Drop selection so right panels reflect the empty state.
+            this.editor.select(null);
+
+            // 4. (Optional) notify the page is dirty.
+            //    If you have a _markDirty() method — uncomment:
+            // this._markDirty?.();
+
+            console.log('[Editor] Page cleared');
+        } catch (e) {
+            console.warn('[Editor] clear failed:', e);
+        }
+    }
+
+    /**
+     * Redirect to login page with ?next=<current URL>.
+     * Uses window.coreEngine.authRedirect if available, else '/login'.
+     */
+    _redirectToLogin() {
+        console.log('[Editor] Session expired — redirecting to login');
+
+        const authRedirect = window.coreEngine?.authRedirect || '/login';
+        const returnUrl = encodeURIComponent(window.location.href);
+        const sep = authRedirect.includes('?') ? '&' : '?';
+
+        window.location.href = `${authRedirect}${sep}next=${returnUrl}`;
+    }
+
+    /**
+     * Show a small message modal with the save error text.
+     * Fire-and-forget: if createModal is unavailable, only logs.
+     */
+    async _showSaveError(error) {
+        const message = error?.message || 'Не удалось сохранить';
+
+        if (!this._createModal) {
+            console.warn('[Editor] createModal not available — error not shown:', message);
+            return;
+        }
+
+        try {
+            const modal = await this._createModal('message');
+            modal.open(message, 'Ошибка сохранения', 'Понятно');
+            modal.setOnOk(() => modal.destroy());
+        } catch (e) {
+            console.warn('[Editor] failed to show save error modal:', e);
         }
     }
 
@@ -489,12 +498,19 @@ export class Editor {
     destroy() {
         console.log('[Editor] destroy()');
 
-        if (this._onKeyDown) {
-            document.removeEventListener('keydown', this._onKeyDown);
-            this._onKeyDown = null;
+        // Toolbar manager — detach global keydown
+        if (this._toolbarMgr) {
+            try { this._toolbarMgr.destroy(); } catch (e) { console.warn(e); }
+            this._toolbarMgr = null;
         }
 
-        // Destroy LLM submodules
+        // Template manager — disconnect observer + detach frame:load
+        if (this._templateMgr) {
+            try { this._templateMgr.destroy(); } catch (e) { console.warn(e); }
+            this._templateMgr = null;
+        }
+
+        // Chat + presets
         if (this._chat) {
             try { this._chat.destroy(); } catch (e) { console.warn(e); }
             this._chat = null;
@@ -504,7 +520,7 @@ export class Editor {
             this._presets = null;
         }
 
-        // Remove resizer handles and listeners
+        // Resizer
         if (this._resizer) {
             try {
                 this._resizer.destroy();
@@ -514,6 +530,16 @@ export class Editor {
             this._resizer = null;
         }
 
+        // Detach frame:load handler inside GrapesLoader (scope class re-attach)
+        if (this._grapes) {
+            try {
+                this._grapes.destroy(this.editor);
+            } catch (e) {
+                console.warn('[Editor] grapes.destroy() error:', e);
+            }
+        }
+
+        // Destroy GrapesJS instance
         if (this.editor) {
             try {
                 this.editor.destroy();
@@ -528,14 +554,15 @@ export class Editor {
         if (this.rightArea) this.rightArea.innerHTML = '';
         if (this.container) this.container.innerHTML = '';
 
-        // Reset submodules
         this._widgets = null;
         this._stylesConfig = null;
         this._grapes = null;
         this._assets = null;
         this._blocks = null;
+        this._dataLoader = null;
         this._createModal = null;
         this._modals = null;
+        this._history = null;
 
         this._initialized = false;
         this._initPromise = null;

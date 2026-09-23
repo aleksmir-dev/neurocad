@@ -23,6 +23,7 @@ class CoreEngineLibPagesService:
         page: int = 1,
         limit: int = 20,
         is_active: Optional[int] = None,
+        is_template: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         Получить список статей с пагинацией.
@@ -30,6 +31,7 @@ class CoreEngineLibPagesService:
         page — номер страницы (1-based)
         limit — размер страницы
         is_active — фильтр: 1 (только активные), 0 (только неактивные), None (все)
+        is_template — фильтр: 1 (только шаблоны), 0 (только обычные), None (все)
         """
         offset = (page - 1) * limit
 
@@ -38,6 +40,9 @@ class CoreEngineLibPagesService:
 
             if is_active is not None:
                 base_stmt = base_stmt.where(Page.is_active == is_active)
+
+            if is_template is not None:
+                base_stmt = base_stmt.where(Page.is_template == is_template)
 
             count_stmt = select(func.count()).select_from(base_stmt.subquery())
             total_result = await session.execute(count_stmt)
@@ -62,6 +67,8 @@ class CoreEngineLibPagesService:
                     "logo": page_item.logo,
                     "is_active": page_item.is_active,
                     "is_delete": page_item.is_delete,
+                    "is_template": page_item.is_template or 0,
+                    "template_id": page_item.template_id,
                     "created_at": page_item.created_at.isoformat() if page_item.created_at else None,
                     "updated_at": page_item.updated_at.isoformat() if page_item.updated_at else None,
                     "rss_yandex_id": page_item.rss_yandex_id,
@@ -104,6 +111,8 @@ class CoreEngineLibPagesService:
                 "content_json": page_item.content_json,
                 "is_active": page_item.is_active,
                 "is_delete": page_item.is_delete,
+                "is_template": page_item.is_template or 0,
+                "template_id": page_item.template_id,
                 "created_at": page_item.created_at.isoformat() if page_item.created_at else None,
                 "updated_at": page_item.updated_at.isoformat() if page_item.updated_at else None,
                 "rss_yandex_id": page_item.rss_yandex_id,
@@ -156,6 +165,8 @@ class CoreEngineLibPagesService:
                 "content_json": page_item.content_json,
                 "is_active": page_item.is_active,
                 "is_delete": page_item.is_delete,
+                "is_template": page_item.is_template or 0,
+                "template_id": page_item.template_id,
                 "created_at": page_item.created_at.isoformat() if page_item.created_at else None,
                 "updated_at": page_item.updated_at.isoformat() if page_item.updated_at else None,
                 "rss_yandex_id": page_item.rss_yandex_id,
@@ -189,6 +200,8 @@ class CoreEngineLibPagesService:
                 content_json=data.content_json,
                 is_active=data.is_active,
                 is_delete=0,
+                is_template=getattr(data, "is_template", 0) or 0,
+                template_id=getattr(data, "template_id", None),
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )
@@ -206,6 +219,8 @@ class CoreEngineLibPagesService:
                 "content_json": new_item.content_json,
                 "is_active": new_item.is_active,
                 "is_delete": new_item.is_delete,
+                "is_template": new_item.is_template or 0,
+                "template_id": new_item.template_id,
                 "created_at": new_item.created_at.isoformat() if new_item.created_at else None,
                 "updated_at": new_item.updated_at.isoformat() if new_item.updated_at else None,
             }
@@ -234,9 +249,14 @@ class CoreEngineLibPagesService:
                 return None
 
             update_data = data.model_dump(exclude_unset=True)
+
+            # template_id can be explicitly set to None (unlink from template)
             for key, value in update_data.items():
-                if value is not None and hasattr(page_item, key):
-                    setattr(page_item, key, value)
+                if not hasattr(page_item, key):
+                    continue
+                if value is None and key != "template_id":
+                    continue
+                setattr(page_item, key, value)
 
             page_item.updated_at = datetime.now()
             await session.commit()
@@ -252,6 +272,8 @@ class CoreEngineLibPagesService:
                 "content_json": page_item.content_json,
                 "is_active": page_item.is_active,
                 "is_delete": page_item.is_delete,
+                "is_template": page_item.is_template or 0,
+                "template_id": page_item.template_id,
                 "created_at": page_item.created_at.isoformat() if page_item.created_at else None,
                 "updated_at": page_item.updated_at.isoformat() if page_item.updated_at else None,
             }

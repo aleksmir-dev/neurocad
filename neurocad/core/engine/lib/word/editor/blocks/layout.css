@@ -1,0 +1,151 @@
+/* app/core/engine/lib/word/editor/blocks/layout.css */
+
+/**
+ * Layout — styles for the "Сетки" (layout) blocks.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Covers classes from blocks/layout.js:
+ *   - .flex-shell                     full-height page skeleton
+ *   - .flex-shell__nav                top navigation bar
+ *   - .flex-shell__main               three-area flex row
+ *   - .flex-shell__area               shared area (flex: 1, scroll)
+ *   - .flex-shell__area--left         1 share of free space
+ *   - .flex-shell__area--center       3 shares of free space
+ *   - .flex-shell__area--right        1 share of free space
+ *   - .flex-shell__footer             bottom bar
+ *
+ * Generic layout classes (.section, .container, .grid, .grid--2/3/4/auto,
+ * .col) live in editor/css/content.css — they are shared across many
+ * blocks and loaded globally.
+ *
+ * Uses ONLY --theme-* variables (see theme.css).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   FLEX SHELL — full-height page skeleton
+   ============================================ */
+
+/*
+ * Full-height page skeleton with a three-column main.
+ *
+ * position: absolute + inset: 0 — the shell fills its parent EXACTLY.
+ * The parent must be position: relative:
+ *   - editor canvas: iframe <body> (canvas.css);
+ *   - admin preview: inner <div id="..."> (word.css);
+ *   - public page:   .core-engine-lib-word-blocks (public.css).
+ *
+ * No 100vh anywhere — the shell adapts to its parent.
+ */
+.core-engine-lib-word-blocks .flex-shell {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--theme-bg);
+    box-sizing: border-box;
+}
+
+/* ===== NAV ===== */
+
+.core-engine-lib-word-blocks .flex-shell__nav {
+    flex: 0 0 auto;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--theme-space-5);
+    background: var(--theme-accent);
+    color: var(--theme-text-invert);
+    box-sizing: border-box;
+}
+
+/* ===== MAIN — three-area flex row ===== */
+
+.core-engine-lib-word-blocks .flex-shell__main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    background: var(--theme-bg);
+    box-sizing: border-box;
+}
+
+/* ===== AREA — shared ===== */
+
+.core-engine-lib-word-blocks .flex-shell__area {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    padding: var(--theme-space-5);
+    background: var(--theme-bg);
+    box-sizing: border-box;
+}
+
+/* ===== LEFT — 1 share ===== */
+
+.core-engine-lib-word-blocks .flex-shell__area--left {
+    flex: 1 1 0;
+    background: var(--theme-bg-subtle);
+    border-right: 1px solid var(--theme-border);
+}
+
+/* ===== CENTER — 3 shares ===== */
+
+.core-engine-lib-word-blocks .flex-shell__area--center {
+    flex: 3 1 0;
+    background: var(--theme-bg);
+    border-right: 1px solid var(--theme-border);
+}
+
+/* ===== RIGHT — 1 share ===== */
+
+.core-engine-lib-word-blocks .flex-shell__area--right {
+    flex: 1 1 0;
+    background: var(--theme-bg-subtle);
+}
+
+/* ===== FOOTER ===== */
+
+.core-engine-lib-word-blocks .flex-shell__footer {
+    flex: 0 0 auto;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--theme-space-5);
+    background: var(--theme-bg-dark);
+    color: var(--theme-text-invert);
+    font-size: var(--theme-font-size-xs);
+    box-sizing: border-box;
+}
+
+/* ===== FLEX SHELL — narrow viewports ===== */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .flex-shell__main {
+        flex-direction: column;
+    }
+
+    .core-engine-lib-word-blocks .flex-shell__area {
+        flex: 0 0 auto;
+        max-height: 40vh;
+    }
+
+    .core-engine-lib-word-blocks .flex-shell__area--left,
+    .core-engine-lib-word-blocks .flex-shell__area--center {
+        border-right: none;
+        border-bottom: 1px solid var(--theme-border);
+    }
+}

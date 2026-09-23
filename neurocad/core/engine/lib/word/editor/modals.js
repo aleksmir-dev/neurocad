@@ -6,9 +6,10 @@
  * Two modals:
  *   - openHtmlCssModal: page-level HTML + CSS viewer/editor (two fields).
  *   - openElementCssModal: element-level inline CSS editor.
+ *
+ * All external modules (formatter) are loaded dynamically with a version
+ * query — to avoid browser cache issues on updates.
  */
-
-import { loadBeautify, formatCss, formatHtml } from './formatter.js';
 
 /**
  * Open the page-level HTML + CSS modal.
@@ -17,8 +18,11 @@ import { loadBeautify, formatCss, formatHtml } from './formatter.js';
  * and a draggable divider between them. Labels are hidden by default.
  *
  * On OK:
- *   - applies CSS via editor.setStyle(css)
- *   - applies HTML via editor.setComponents(html)
+ *   - applies CSS via editor.Css.clear() + editor.Css.addRules(css)
+ *   - applies HTML via editor.setComponents(html), but ONLY if HTML changed
+ *
+ * NOTE: editor.setStyle() is for INLINE styles on the selected component,
+ * not for global CSS rules — do not use it for CssComposer.
  *
  * @param {Object} opts
  * @param {Object} opts.editor        — GrapesJS instance
@@ -27,6 +31,19 @@ import { loadBeautify, formatCss, formatHtml } from './formatter.js';
 export async function openHtmlCssModal({ editor, createModal }) {
     if (!createModal) {
         console.warn('[Modals] createModal not provided');
+        return;
+    }
+
+    // Load formatter module dynamically (with version)
+    const version = window.coreEngine?.static_version || Date.now();
+    let loadBeautify, formatCss, formatHtml;
+    try {
+        const mod = await import(`./formatter.js?v=${version}`);
+        loadBeautify = mod.loadBeautify;
+        formatCss = mod.formatCss;
+        formatHtml = mod.formatHtml;
+    } catch (e) {
+        console.warn('[Modals] formatter module not loaded', e);
         return;
     }
 
@@ -40,8 +57,18 @@ export async function openHtmlCssModal({ editor, createModal }) {
     const rawHtml = editor.getHtml();
     const rawCss = editor.getCss();
 
+    console.log('[Modals] === OPEN ===');
+    console.log('[Modals] rawCss length:', rawCss.length);
+    console.log('[Modals] rawCss has #i3eb:', rawCss.includes('#i3eb'));
+    console.log('[Modals] rawHtml length:', rawHtml.length);
+
     const css = formatCss(rawCss);
     const html = formatHtml(rawHtml);
+
+    console.log('[Modals] formatted css length:', css.length);
+    console.log('[Modals] formatted css has #i3eb:', css.includes('#i3eb'));
+    console.log('[Modals] formatted html length:', html.length);
+    console.log('[Modals] formatted html has #i3eb:', html.includes('i3eb'));
 
     const modal = await createModal('textareatwo');
 
@@ -52,14 +79,70 @@ export async function openHtmlCssModal({ editor, createModal }) {
         showLabels: false,
     });
 
+    // ===== DEBUG: inspect modal DOM after open =====
+    setTimeout(() => {
+        const rootEl = document.querySelector('.core-engine-lib-base-modal-textareatwo')
+            || document.querySelector('[data-modal="textareatwo"]')
+            || document.body;
+
+        const textareas = rootEl.querySelectorAll('textarea');
+        console.log('[Modals] === MODAL DOM AFTER OPEN ===');
+        console.log('[Modals] textareas count:', textareas.length);
+        textareas.forEach((ta, i) => {
+            console.log(`[Modals] textarea[${i}] value length:`, ta.value.length);
+            console.log(`[Modals] textarea[${i}] has #i3eb:`, ta.value.includes('#i3eb'));
+            console.log(`[Modals] textarea[${i}] first 200 chars:`, ta.value.slice(0, 200));
+        });
+    }, 100);
+    // ===== /DEBUG =====
+
     modal.setOnOk(({ css: newCss, html: newHtml }) => {
+        console.log('[Modals] === ON OK ===');
+        console.log('[Modals] newCss length:', newCss?.length);
+        console.log('[Modals] newCss has #i3eb:', newCss?.includes('#i3eb'));
+        console.log('[Modals] newHtml length:', newHtml?.length);
+        console.log('[Modals] newHtml has i3eb:', newHtml?.includes('i3eb'));
+
+        // Check editor state BEFORE applying
+        console.log('[Modals] cssCount BEFORE:', editor.Css.getAll().length);
+        console.log('[Modals] css has #i3eb BEFORE:', editor.getCss().includes('#i3eb'));
+
         try {
+            // ===== CSS =====
+            // NOTE: editor.setStyle() is for INLINE styles on the selected
+            // component, NOT for global CSS rules. For CssComposer — use
+            // clear() + addRules().
             if (newCss && newCss.trim()) {
-                editor.setStyle(newCss);
-                console.log('[Modals] CSS applied');
+                if (editor.Css?.clear) {
+                    editor.Css.clear();
+                }
+                if (editor.Css?.addRules) {
+                    editor.Css.addRules(newCss);
+                    console.log('[Modals] CSS applied via Css.addRules');
+                } else {
+                    console.warn('[Modals] Css.addRules not available — CSS not applied');
+                }
             }
-            editor.setComponents(newHtml || '');
-            console.log('[Modals] HTML applied');
+
+            // ===== HTML =====
+            // setComponents() recreates components from HTML, losing
+            // attributes (like data-slot) and some inline styles.
+            // Only apply if HTML actually changed — so opening the modal
+            // and pressing OK without edits does NOT destroy anything.
+            const currentHtml = editor.getHtml();
+            const htmlChanged = newHtml && newHtml.trim() && newHtml.trim() !== currentHtml.trim();
+
+            if (htmlChanged) {
+                editor.setComponents(newHtml);
+                console.log('[Modals] HTML applied (was changed)');
+            } else {
+                console.log('[Modals] HTML unchanged — skipped setComponents');
+            }
+
+            // Check editor state AFTER applying
+            console.log('[Modals] cssCount AFTER:', editor.Css.getAll().length);
+            console.log('[Modals] css has #i3eb AFTER:', editor.getCss().includes('#i3eb'));
+            console.log('[Modals] html has i3eb AFTER:', editor.getHtml().includes('i3eb'));
         } catch (e) {
             console.error('[Modals] HTML+CSS apply error:', e);
         }
@@ -133,6 +216,8 @@ export async function openElementCssModal({ editor, createModal }) {
 /**
  * Apply a CSS string to the currently selected component.
  * Parses "prop: value;" lines into an object and passes to addStyle().
+ *
+ * This function is synchronous — no async imports inside.
  */
 export function applyElementCss(editor, cssText) {
     const comp = editor.getSelected();
@@ -152,6 +237,8 @@ export function applyElementCss(editor, cssText) {
 /**
  * Parse "prop: value;" text into a {property: value} object.
  * Ignores comments, extra whitespace, malformed lines.
+ *
+ * This function is synchronous — no async imports inside.
  */
 export function parseCssText(text) {
     const result = {};

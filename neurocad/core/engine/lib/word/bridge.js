@@ -7,6 +7,15 @@
  *   - openEditor: switch Word widget into edit mode, mount Editor.
  *   - closeEditor: destroy Editor and restore the article view.
  *
+ * Template handling:
+ *   If the page has template_id, the base template HTML is rendered
+ *   OUTSIDE the GrapesJS iframe (in .editor-template), and GrapesJS
+ *   mounts only into the [data-slot="content"] placeholder.
+ *   This way the template layout is visible but not editable.
+ *
+ *   If the page has no template, GrapesJS mounts into .editor-canvas
+ *   directly — same as before.
+ *
  * Race protection:
  *   Editor init is async (dynamic imports, GrapesJS init). If the user
  *   cancels while init is still running, we must NOT create a new Editor
@@ -39,7 +48,30 @@ export async function openEditor(word) {
         }
     } else {
         console.warn('[Word] widgetContentEl not found — re-rendering');
-        word._render();
+        await word._view.render(word);
+    }
+
+    // ===== Load base template (if any) =====
+    // Render template HTML into .editor-template, replace [data-slot="content"]
+    // with the .editor-slot placeholder. GrapesJS will mount into that slot.
+    const templateId = word.pageData?.template_id;
+    let templateHtml = null;
+
+    if (templateId) {
+        const template = await word._data.loadTemplateById(word, templateId);
+
+        // Race check — the editor could be closed during template load
+        if (word._editorToken !== myToken) {
+            console.log('[Word] Editor was closed during template load — aborting open');
+            return;
+        }
+
+        if (template && template.content) {
+            templateHtml = template.content;
+            console.log('[Word] Template loaded for editor:', templateId);
+        } else {
+            console.warn('[Word] Template not loaded — editor opens without layout');
+        }
     }
 
     // Lazy-load Editor with cache-busting version
@@ -53,15 +85,19 @@ export async function openEditor(word) {
         return;
     }
 
-    // Create Editor instance
+    // ===== Create Editor instance =====
     word.editorInstance = new Editor(word.widgetContentEl, {
         title: word.pageData?.title || 'Страница',
         html: word.pageData?.content || '',
         project: word.pageData?.content_json
-            ? word._safeJsonParse(word.pageData.content_json)
+            ? word._utils.safeJsonParse(word.pageData.content_json)
             : null,
         pageId: word.pageId,
         pageData: word.pageData,
+
+        // Template HTML — Editor renders it into .editor-template before
+        // GrapesJS init, and mounts into .editor-slot.
+        templateHtml: templateHtml,
 
         onSave: async (data) => {
             await word._saveContent(data);
@@ -95,7 +131,7 @@ export async function openEditor(word) {
  *
  * @param {Object} word — Word instance
  */
-export function closeEditor(word) {
+export async function closeEditor(word) {
     console.log('[Word] Closing GrapesJS editor');
 
     // ★ Invalidate any pending openEditor
@@ -126,9 +162,10 @@ export function closeEditor(word) {
         while (word.widgetContentEl.firstChild) {
             word.widgetContentEl.removeChild(word.widgetContentEl.firstChild);
         }
-        word.widgetContentEl.appendChild(word._buildArticle());
+        const article = await word._view.buildArticle(word);
+        word.widgetContentEl.appendChild(article);
     } else {
-        word._render();
+        await word._view.render(word);
     }
 
     console.log('[Word] Editor closed, article restored');

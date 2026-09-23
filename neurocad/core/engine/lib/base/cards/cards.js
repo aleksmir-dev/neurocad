@@ -1,28 +1,28 @@
 // app/core/engine/lib/base/cards/cards.js
 
 /**
- * BaseCards — контейнер списка карточек.
+ * BaseCards — card list container.
  *
- * Фасад. Вся логика — в модулях:
+ * Facade. All logic is in submodules:
  *   api.js        → CRUD (buildUrl, addItem, updateItem, deleteItem, restoreItem)
- *   dom.js        → создание DOM widget'а
- *   render.js     → рендер сетки, loading, error, empty
- *   selection.js  → выделение, updateUI, syncToolbar, delete/restore выделенных
- *   initool.js    → инициализация тулбара (какие кнопки показать)
+ *   dom.js        → DOM widget creation
+ *   render.js     → grid render, loading, error, empty
+ *   selection.js  → selection, updateUI, syncToolbar, delete/restore selected
+ *   initool.js    → toolbar initialization (which buttons to show)
  *
- * Все модули подгружаются динамически с версией, чтобы кэш браузера
- * не мешал при обновлениях.
+ * All submodules are loaded dynamically with a version to avoid
+ * browser cache issues on updates.
  */
 export class BaseCards {
     constructor(container, props = {}) {
-        console.log('[BaseCards] ===== КОНСТРУКТОР =====');
+        console.log('[BaseCards] ===== CONSTRUCTOR =====');
         console.log('[BaseCards] container:', container);
         console.log('[BaseCards] props:', props);
 
         this.container = container;
         this.props = props;
 
-        // Настройки из пропсов
+        // Settings from props
         this.entityType = props.entityType || 'items';
         this.title = props.title || 'Список';
         this.icon = props.icon || '📋';
@@ -42,6 +42,13 @@ export class BaseCards {
         this.renderCard = props.renderCard || null;
         this.cardOptions = props.cardOptions || {};
 
+        // Initial data for "Create" form.
+        // Can be:
+        //   - an object  → merged as-is into initialData;
+        //   - a function → called with `this` (cards instance), returns object.
+        // Consumer can use this to prefill fields (e.g. default title).
+        this.initialData = props.initialData || null;
+
         this.apiBase = props.apiBase || '/api';
         this.apiEndpoints = props.apiEndpoints || {
             list: '/items',
@@ -60,27 +67,27 @@ export class BaseCards {
         this.statusFilter = 'all';
         this.itemInstances = new Map();
 
-        // Колбэки
-        this.onItemClick = props.onItemClick || null;   // переход (для Nav)
+        // Callbacks
+        this.onItemClick = props.onItemClick || null;   // navigation (for Nav)
         this.onReload = props.onReload || null;
         this.onRetry = props.onRetry || null;
 
         this._initialized = false;
         this._initPromise = null;
 
-        // Классы (загружаются динамически)
+        // Classes (loaded dynamically)
         this._BaseCardsCard = null;
         this._BaseCardsToolbar = null;
         this._BaseCardsEdit = null;
 
-        // Модули (загружаются динамически)
+        // Modules (loaded dynamically)
         this._api = null;
         this._dom = null;
         this._render = null;
         this._selection = null;
         this._initool = null;
 
-        // Ссылки на глобальные обработчики (для destroy)
+        // Global handler refs (for destroy)
         this._onKeyDownEscape = null;
         this._onKeyDownDelete = null;
         this._onGridClick = null;
@@ -100,7 +107,7 @@ export class BaseCards {
             this._initialized = true;
             console.log('[BaseCards] _init() COMPLETE');
         } catch (error) {
-            console.error('[BaseCards] Ошибка инициализации:', error);
+            console.error('[BaseCards] Init error:', error);
             this._initialized = false;
             throw error;
         }
@@ -141,10 +148,10 @@ export class BaseCards {
             this._BaseCardsToolbar = toolbarModule.BaseCardsToolbar;
             this._BaseCardsEdit = editModule.BaseCardsEdit;
 
-            console.log('[BaseCards] Зависимости загружены:',
+            console.log('[BaseCards] Dependencies loaded:',
                 !!this._BaseCardsCard, !!this._BaseCardsToolbar, !!this._BaseCardsEdit);
         } catch (error) {
-            console.error('[BaseCards] Ошибка загрузки зависимостей:', error);
+            console.error('[BaseCards] Dependency load error:', error);
             throw error;
         }
     }
@@ -163,7 +170,7 @@ export class BaseCards {
             }));
             await Promise.all(loadPromises);
         } else {
-            console.warn('[BaseCards] coreEngine.loadCSS не найден');
+            console.warn('[BaseCards] coreEngine.loadCSS not found');
         }
     }
 
@@ -173,14 +180,14 @@ export class BaseCards {
     }
 
     _bindEvents() {
-        // Escape — снять выделение
+        // Escape — clear selection
         this._onKeyDownEscape = (e) => {
             if (e.key === 'Escape') {
                 this._selection.clearSelection(this);
             }
         };
 
-        // Delete/Backspace — удалить (или восстановить) выделенные
+        // Delete/Backspace — delete (or restore) selected
         this._onKeyDownDelete = (e) => {
             if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedIds.size > 0) {
                 if (!e.target.closest('input, textarea, select')) {
@@ -197,7 +204,7 @@ export class BaseCards {
         document.addEventListener('keydown', this._onKeyDownEscape);
         document.addEventListener('keydown', this._onKeyDownDelete);
 
-        // Клик по пустому месту grid — снять выделение
+        // Click on empty grid area — clear selection
         this._onGridClick = (e) => {
             if (e.target.closest('.core-engine-lib-base-cards-card')) return;
             this._selection.clearSelection(this);
@@ -209,7 +216,7 @@ export class BaseCards {
     }
 
     // ============================================
-    // ДЕЛЕГИРОВАНИЕ В МОДУЛИ
+    // DELEGATION TO MODULES
     // ============================================
 
     async render() {
@@ -275,14 +282,45 @@ export class BaseCards {
     }
 
     // ============================================
-    // ФОРМЫ
+    // FORMS
     // ============================================
 
+    /**
+     * Open the "Create" form.
+     *
+     * initialData priority:
+     *   1. this.initialData as a function → called with `this`, returns object.
+     *   2. this.initialData as an object  → used as-is.
+     *   3. Fallback — basic card defaults.
+     *
+     * Consumer can use this to prefill fields (e.g. default title "Статья N").
+     */
     openCreateForm() {
+        console.log('[BaseCards] openCreateForm()');
+
+        let initialData = {
+            parent_id: this.parentId,
+            card_type: 'folder',
+        };
+
+        try {
+            if (typeof this.initialData === 'function') {
+                const extra = this.initialData(this) || {};
+                initialData = { ...initialData, ...extra };
+                console.log('[BaseCards] initialData (function):', initialData);
+            } else if (this.initialData && typeof this.initialData === 'object') {
+                initialData = { ...initialData, ...this.initialData };
+                console.log('[BaseCards] initialData (object):', initialData);
+            }
+        } catch (e) {
+            console.warn('[BaseCards] initialData provider failed:', e);
+        }
+
+        // Fallback — no BaseCardsEdit available
         if (!this._BaseCardsEdit) {
-            const title = prompt('Введите название:');
+            const title = prompt('Введите название:', initialData.title || '');
             if (title) {
-                this._addItem({ name: title, card_type: 'folder', parent_id: this.parentId });
+                this._addItem({ name: title, ...initialData });
             }
             return;
         }
@@ -291,7 +329,7 @@ export class BaseCards {
             fields: this.fields,
             title: 'Создать',
             entityType: this.entityType,
-            initialData: { parent_id: this.parentId, card_type: 'folder' },
+            initialData,
             onSubmit: async (data) => { await this._addItem(data); }
         });
 
@@ -301,7 +339,7 @@ export class BaseCards {
     openEditForm(id) {
         const item = this.items.find(i => i.id === id);
         if (!item) {
-            console.warn('[BaseCards] Элемент не найден:', id);
+            console.warn('[BaseCards] Item not found:', id);
             return;
         }
 
@@ -323,7 +361,7 @@ export class BaseCards {
     }
 
     // ============================================
-    // ПУБЛИЧНЫЙ API
+    // PUBLIC API
     // ============================================
 
     async updateProps(props) {

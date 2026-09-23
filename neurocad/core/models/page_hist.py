@@ -11,8 +11,15 @@ class PageHist(Base):
     """
     История изменений HTML страницы.
 
-    Снимки полного HTML после каждого изменения — для undo/redo
-    в LLM-редакторе. Привязана к конкретной странице (page_id).
+    Снимки полного состояния страницы после каждого изменения —
+    для undo/redo в LLM-редакторе и визуальном редакторе GrapesJS.
+    Привязана к конкретной странице (page_id).
+
+    Хранит:
+      - html          — HTML для рендера (с уже встроенным <style>).
+      - content_json  — полный project JSON GrapesJS (getProjectData()).
+                        При откате загружается через loadProjectData()
+                        и восстанавливает структуру, стили, assets.
     """
     __tablename__ = "page_hist"
 
@@ -27,6 +34,10 @@ class PageHist(Base):
 
     # Снимок полного HTML на момент изменения
     html: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # Снимок полного project JSON GrapesJS (getProjectData()).
+    # Optional: для старых записей (созданных до появления поля) — NULL.
+    content_json: Mapped[Optional[str]] = mapped_column(Text)
 
     # Что стало причиной изменения:
     #   'user_edit'    — ручное редактирование

@@ -6,17 +6,51 @@
  * Content CSS comes from GrapesJS (embedded in Page.content as <style>).
  * This file must NOT style content elements (h1, p, a, img, ...) —
  * it would conflict with user's GrapesJS styles.
+ *
+ * Layout:
+ *   html, body            — min-height: 100vh; flex-column
+ *     └─ article          — flex: 1; min-height: 0
+ *          └─ content     — flex: 1; min-height: 0
+ *               └─ .core-engine-lib-word-blocks — flex: 1; min-height: 0;
+ *                                                position: relative; overflow: hidden
+ *                                                (BLOCK container — NOT flex)
+ *                    └─ .aleksmir-layout        — position: absolute; inset: 0
+ *
+ * The shell (.aleksmir-layout) is position: absolute with inset: 0 —
+ * it fills its parent exactly, whatever its height. Its parent is the
+ * scope wrapper (.core-engine-lib-word-blocks), which is set to
+ * position: relative to anchor the absolute shell.
+ *
+ * The scope wrapper is NOT a flex container:
+ *   - its children are ordinary block-level elements, so normal blocks
+ *     (.card, .grid, .hero, ...) behave exactly like in the editor;
+ *   - the only thing that "stretches" is the shell, and it does so via
+ *     position: absolute, not via flex.
+ *
+ * Result:
+ *   - if content < viewport → article stretches to fill body, the
+ *     wrapper stretches to fill article, shell fills the wrapper;
+ *   - if content > viewport → body grows (min-height), wrapper grows
+ *     with it, scrolling happens INSIDE .aleksmir-layout__main.
+ *
+ * No 100vh on lower levels — every level takes 100% of its parent.
  */
 
 /* ============================================ */
-/* BODY — full viewport                        */
+/* HTML / BODY — full viewport                  */
 /* ============================================ */
+
+html {
+    height: 100%;
+}
 
 .core-engine-lib-pages-public-body {
     margin: 0;
     padding: 0;
     width: 100%;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: #ffffff;
     font-family: system-ui, -apple-system, sans-serif;
     font-size: 16px;
@@ -25,18 +59,21 @@
 }
 
 /* ============================================ */
-/* PAGE WRAPPER — full width/height            */
+/* PAGE WRAPPER — fills body                    */
 /* ============================================ */
 
 .core-engine-lib-pages-public-page {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
     width: 100%;
-    min-height: 100vh;
     margin: 0;
     padding: 0;
 }
 
 /* ============================================ */
-/* HEADER — hidden for testing                 */
+/* HEADER — hidden for testing                  */
 /* ============================================ */
 
 .core-engine-lib-pages-public-header {
@@ -44,11 +81,40 @@
 }
 
 /* ============================================ */
-/* CONTENT — full width/height                 */
+/* CONTENT — fills article                      */
 /* ============================================ */
 
 .core-engine-lib-pages-public-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
     width: 100%;
-    min-height: 100vh;
     /* Content is styled by GrapesJS — do not add typography rules here */
+}
+
+/* ============================================ */
+/* SCOPE WRAPPER — fills content                */
+/* ============================================ */
+
+/*
+ * .core-engine-lib-word-blocks is the single scope class for the whole
+ * page content. On the public page it sits on <article> — but also on
+ * the inner wrapper created by view.js (buildArticle).
+ *
+ * This rule covers BOTH cases: any element with this class becomes a
+ * positioned BLOCK container that fills its parent via flex-grow.
+ * position: relative makes it the anchor for the absolutely positioned
+ * shell (.aleksmir-layout — see blocks/layout.css).
+ *
+ * NOT display: flex — so its children (.card, .grid, .hero, ...) stay
+ * ordinary block-level elements, matching the editor canvas behavior
+ * (body there is also a plain block container).
+ */
+.core-engine-lib-word-blocks {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
 }

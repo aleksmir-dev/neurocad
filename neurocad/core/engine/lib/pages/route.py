@@ -23,12 +23,14 @@ async def get_pages_list(
     page: int = Query(1, ge=1, description="Номер страницы"),
     limit: int = Query(20, ge=1, le=100, description="Размер страницы"),
     is_active: Optional[int] = Query(None, description="Фильтр: 1 — активные, 0 — неактивные"),
+    is_template: Optional[int] = Query(None, description="Фильтр: 1 — только шаблоны, 0 — только обычные"),
 ) -> JSONResponse:
     """Получить список статей с пагинацией. Публичный эндпоинт."""
     result = await CoreEngineLibPagesService.get_list(
         page=page,
         limit=limit,
         is_active=is_active,
+        is_template=is_template,
     )
 
     return JSONResponse({
@@ -66,12 +68,12 @@ async def get_page_item(item_id: int) -> JSONResponse:
 async def get_page_by_datetime(date: str, time: str) -> JSONResponse:
     """
     Получить одну статью по дате и времени.
-    
+
     Пример: /core/engine/lib/pages/bydatetime/20260914/153910
-    
+
     date = "20260914" (YYYYMMDD)
     time = "153910"   (HHMMSS)
-    
+
     Публичный эндпоинт.
     """
     item = await CoreEngineLibPagesService.get_by_datetime(date, time)

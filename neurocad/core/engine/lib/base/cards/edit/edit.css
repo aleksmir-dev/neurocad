@@ -1,7 +1,31 @@
 /* app/core/engine/lib/base/cards/edit/edit.css */
 
+/**
+ * BaseCardsEdit — universal form for creating/editing cards.
+ *
+ * Namespace: .core-engine-lib-base-cards-edit
+ *
+ * Structure:
+ *   .core-engine-lib-base-cards-edit
+ *     ├── .edit-overlay
+ *     └── .edit-content
+ *         ├── .edit-header
+ *         ├── .edit-body
+ *         │   └── .edit-form
+ *         │       └── .edit-group (or .edit-group--checkbox / .edit-group--media)
+ *         └── .edit-footer
+ *
+ * Field groups:
+ *   .edit-group              — label on top, input below
+ *   .edit-group--checkbox    — checkbox on the left, label on the right
+ *   .edit-group--media       — buttons top-left, preview right
+ *
+ * All styles are scoped under .core-engine-lib-base-cards-edit.
+ * No global .btn / .core-engine-lib-base-btn classes are used.
+ */
+
 /* ============================================ */
-/* MODAL */
+/* MODAL OVERLAY                                */
 /* ============================================ */
 
 .core-engine-lib-base-cards-edit {
@@ -35,7 +59,7 @@
 
 @keyframes edit-overlay-in {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
 }
 
 .core-engine-lib-base-cards-edit .edit-content {
@@ -64,7 +88,7 @@
 }
 
 /* ============================================ */
-/* FORM HEADER */
+/* HEADER                                       */
 /* ============================================ */
 
 .core-engine-lib-base-cards-edit .edit-header {
@@ -92,7 +116,7 @@
     color: #94a3b8;
     cursor: pointer;
     border-radius: 6px;
-    transition: all 0.2s;
+    transition: background 0.2s, color 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -105,7 +129,7 @@
 }
 
 /* ============================================ */
-/* FORM BODY */
+/* BODY                                         */
 /* ============================================ */
 
 .core-engine-lib-base-cards-edit .edit-body {
@@ -128,16 +152,20 @@
 }
 
 /* ============================================ */
-/* FIELD GROUP */
+/* FIELD GROUP — common                         */
 /* ============================================ */
 
 .core-engine-lib-base-cards-edit .edit-group {
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 
 .core-engine-lib-base-cards-edit .edit-group:last-child {
     margin-bottom: 0;
 }
+
+/* ============================================ */
+/* FIELD GROUP — standard (label on top)        */
+/* ============================================ */
 
 .core-engine-lib-base-cards-edit .edit-label {
     display: block;
@@ -152,7 +180,178 @@
 }
 
 /* ============================================ */
-/* INPUTS */
+/* FIELD GROUP — checkbox (checkbox left)       */
+/* ============================================ */
+
+/*
+ * Layout:
+ *   .edit-group--checkbox
+ *     └── label.edit-label-checkbox
+ *         ├── input.edit-checkbox
+ *         └── span.edit-label-text
+ *
+ * Checkbox is on the left, label text is on the right, with a gap.
+ * The whole label is clickable — clicking the text toggles the checkbox.
+ *
+ * Font weight is NORMAL (not bold) — matches the visual weight of
+ * value text inside inputs and other form controls, not the field labels.
+ */
+.core-engine-lib-base-cards-edit .edit-group--checkbox {
+    margin-bottom: 8px;
+}
+
+.core-engine-lib-base-cards-edit .edit-label-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-text, #1e293b);
+    line-height: 1.4;
+}
+
+.core-engine-lib-base-cards-edit .edit-label-text {
+    line-height: 1.4;
+}
+
+.core-engine-lib-base-cards-edit .edit-label-text .edit-required {
+    color: #ef4444;
+}
+
+/* ============================================ */
+/* FIELD GROUP — media (buttons top-left, preview right) */
+/* ============================================ */
+
+/*
+ * Layout:
+ *   .edit-group--media
+ *     ├── label.edit-label
+ *     └── .edit-media
+ *         ├── .edit-media-actions    — Выбрать / Очистить (top-left)
+ *         └── .edit-media-preview    — img or placeholder (right)
+ *     └── input[type=hidden]         — the actual value
+ *     └── span.edit-error
+ *
+ * Buttons are stacked at the TOP-LEFT of the free area.
+ * Preview tile is on the RIGHT, vertically centered.
+ * Wrapper background is white (same as other field groups).
+ * Both buttons are secondary (white) and compact (fit content).
+ */
+.core-engine-lib-base-cards-edit .edit-group--media {
+    margin-bottom: 8px;
+}
+
+.core-engine-lib-base-cards-edit .edit-media {
+    display: flex;
+    align-items: center;              /* preview vertically centered */
+    justify-content: space-between;   /* actions left, preview right */
+    gap: 12px;
+    padding: 8px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: var(--radius, 8px);
+    background: var(--color-white, #ffffff);
+    box-sizing: border-box;
+}
+
+/* Actions — stacked buttons, aligned to the TOP-LEFT of the free area */
+.core-engine-lib-base-cards-edit .edit-media-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;      /* push buttons to top */
+    align-items: flex-start;          /* push buttons to left */
+    gap: 6px;
+    flex: 1;                          /* take the free width */
+    min-width: 0;
+    align-self: stretch;              /* stretch to the full height of the row */
+}
+
+.core-engine-lib-base-cards-edit .edit-media-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 12px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: var(--radius, 8px);
+    background: var(--color-white, #ffffff);
+    color: var(--color-text, #1e293b);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.core-engine-lib-base-cards-edit .edit-media-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.core-engine-lib-base-cards-edit .edit-media-btn:active {
+    transform: scale(0.98);
+}
+
+.core-engine-lib-base-cards-edit .edit-media-btn:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/*
+ * Pick button — same white secondary style as Clear.
+ */
+.core-engine-lib-base-cards-edit .edit-media-btn-pick {
+    /* same as base .edit-media-btn */
+}
+
+/*
+ * Clear button — white secondary (red on hover).
+ */
+.core-engine-lib-base-cards-edit .edit-media-btn-clear {
+    color: #64748b;
+}
+
+.core-engine-lib-base-cards-edit .edit-media-btn-clear:hover {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+/* Preview — square tile on the RIGHT */
+.core-engine-lib-base-cards-edit .edit-media-preview {
+    flex-shrink: 0;
+    width: 96px;
+    height: 96px;
+    border-radius: calc(var(--radius, 8px) - 2px);
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.core-engine-lib-base-cards-edit .edit-media-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.core-engine-lib-base-cards-edit .edit-media-placeholder {
+    font-size: 12px;
+    color: #94a3b8;
+    font-style: italic;
+    text-align: center;
+    padding: 4px;
+    line-height: 1.3;
+}
+
+/* ============================================ */
+/* INPUTS                                       */
 /* ============================================ */
 
 .core-engine-lib-base-cards-edit .edit-input-wrapper {
@@ -204,16 +403,18 @@
     cursor: pointer;
 }
 
-/* Checkbox */
+/* Checkbox — base look (inside .edit-label-checkbox) */
 .core-engine-lib-base-cards-edit .edit-checkbox {
+    flex-shrink: 0;
     width: 18px;
     height: 18px;
+    margin: 0;
     cursor: pointer;
     accent-color: #3b82f6;
 }
 
 /* ============================================ */
-/* ERRORS */
+/* ERRORS                                       */
 /* ============================================ */
 
 .core-engine-lib-base-cards-edit .edit-error {
@@ -222,6 +423,11 @@
     color: #ef4444;
     margin-top: 4px;
     min-height: 18px;
+}
+
+.core-engine-lib-base-cards-edit .edit-group--checkbox .edit-error {
+    /* Align with text, not with checkbox */
+    padding-left: 28px;
 }
 
 .core-engine-lib-base-cards-edit .edit-global-error {
@@ -235,7 +441,7 @@
 }
 
 /* ============================================ */
-/* FORM FOOTER (BUTTONS) */
+/* FOOTER (BUTTONS)                             */
 /* ============================================ */
 
 .core-engine-lib-base-cards-edit .edit-footer {
@@ -255,7 +461,7 @@
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
     min-width: 80px;
 }
 
@@ -268,7 +474,7 @@
     cursor: not-allowed;
 }
 
-/* Cancel button */
+/* Cancel */
 .core-engine-lib-base-cards-edit .edit-btn-cancel {
     background: var(--color-white, #ffffff);
     color: var(--color-text, #1e293b);
@@ -279,10 +485,10 @@
     background: #f1f5f9;
 }
 
-/* Submit button */
+/* Submit */
 .core-engine-lib-base-cards-edit .edit-btn-submit {
     background: #3b82f6;
-    color: white;
+    color: #ffffff;
 }
 
 .core-engine-lib-base-cards-edit .edit-btn-submit:hover:not(:disabled) {
@@ -290,12 +496,8 @@
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.core-engine-lib-base-cards-edit .edit-btn-submit:active:not(:disabled) {
-    transform: scale(0.95);
-}
-
 /* ============================================ */
-/* RESPONSIVE */
+/* RESPONSIVE                                   */
 /* ============================================ */
 
 @media (max-width: 768px) {
@@ -333,6 +535,17 @@
         font-size: 16px;
         padding: 10px 12px;
     }
+
+    /* Media — slightly tighter */
+    .core-engine-lib-base-cards-edit .edit-media {
+        gap: 10px;
+        padding: 6px;
+    }
+
+    .core-engine-lib-base-cards-edit .edit-media-preview {
+        width: 80px;
+        height: 80px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -360,10 +573,22 @@
     }
 
     .core-engine-lib-base-cards-edit .edit-group {
-        margin-bottom: 12px;
+        margin-bottom: 6px;
+    }
+
+    .core-engine-lib-base-cards-edit .edit-group--checkbox {
+        margin-bottom: 6px;
+    }
+
+    .core-engine-lib-base-cards-edit .edit-group--media {
+        margin-bottom: 6px;
     }
 
     .core-engine-lib-base-cards-edit .edit-label {
+        font-size: 13px;
+    }
+
+    .core-engine-lib-base-cards-edit .edit-label-checkbox {
         font-size: 13px;
     }
 
@@ -371,10 +596,21 @@
         font-size: 15px;
         padding: 8px 10px;
     }
+
+    /* Media — smaller preview */
+    .core-engine-lib-base-cards-edit .edit-media-preview {
+        width: 64px;
+        height: 64px;
+    }
+
+    .core-engine-lib-base-cards-edit .edit-media-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
 }
 
 /* ============================================ */
-/* PRINT */
+/* PRINT                                        */
 /* ============================================ */
 
 @media print {

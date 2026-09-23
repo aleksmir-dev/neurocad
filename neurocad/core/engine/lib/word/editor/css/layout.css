@@ -12,6 +12,20 @@
  *
  * NOTE: base class .core-engine-lib-base-widget-content has padding:
  * var(--gap-md). We override it to 0 for all tab contents and chat.
+ *
+ * Canvas has two modes:
+ *   - Plain mode: GrapesJS mounts into .editor-canvas directly.
+ *   - Template mode: template HTML rendered in .editor-template,
+ *     GrapesJS mounts into .editor-slot inside it.
+ *
+ * GrapesJS canvas sizing:
+ *   GrapesJS subtracts two CSS variables from 100% on .gjs-cv-canvas:
+ *     --gjs-left-width  — width of the built-in left panel
+ *     --gjs-canvas-top  — height of the built-in top panel
+ *   We do not use GrapesJS built-in panels (they live in separate
+ *   Base areas outside .gjs-editor), so the defaults leave grey gaps
+ *   around the iframe. We zero the variables on .gjs-editor so the
+ *   canvas fills the whole container.
  */
 
 /* ============================================
@@ -77,7 +91,7 @@
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
-    padding: 0 !important;
+    padding: 0;
     overflow-y: auto;
     background: var(--bg-surface, #f0f4fa);
 }
@@ -89,7 +103,7 @@
 .core-engine-lib-word-editor-styles-content {
     flex: 1 1 auto;
     min-height: 0;
-    padding: 0 !important;
+    padding: 0;
     overflow-y: auto;
     background: var(--bg-surface, #f0f4fa);
 }
@@ -97,7 +111,7 @@
 .core-engine-lib-word-editor-traits-content {
     flex: 1 1 auto;
     min-height: 0;
-    padding: 8px 12px !important;
+    padding: 8px 12px;
     overflow-y: auto;
     background: var(--bg-surface, #f0f4fa);
 }
@@ -105,7 +119,7 @@
 .core-engine-lib-word-editor-blocks-content {
     flex: 1 1 auto;
     min-height: 0;
-    padding: 0 !important;
+    padding: 0;
     overflow-y: auto;
     background: var(--bg-surface, #f0f4fa);
 }
@@ -123,7 +137,7 @@
 .core-engine-lib-word-editor-presets-content {
     flex: 1 1 auto;
     min-height: 0;
-    padding: 0 !important;
+    padding: 0;
     overflow-y: auto;
     background: var(--bg-surface, #f0f4fa);
 }
@@ -140,14 +154,105 @@
     height: 100%;
 }
 
+/*
+ * Canvas content — outer area. Scrolls when content overflows.
+ *
+ * In plain mode (no template): contains the GrapesJS iframe directly.
+ * In template mode: contains .editor-template, which includes the
+ * GrapesJS iframe inside .editor-slot.
+ */
 .core-engine-lib-word-editor-canvas-content {
     flex: 1 1 auto;
     min-height: 0;
-    padding: 0 !important;
-    overflow: hidden;
+    padding: 0;
+    overflow: auto;
     height: 100%;
     position: relative;
     background: var(--bg-surface, #f0f4fa);
+}
+
+/* ============================================
+   TEMPLATE MODE — static template HTML + slot
+   ============================================ */
+
+/*
+ * Static template HTML — rendered outside the GrapesJS iframe.
+ * The user cannot edit this; it is only shown for visual context.
+ */
+.core-engine-lib-word-editor-template {
+    display: block;
+    width: 100%;
+    background: #ffffff;
+}
+
+.core-engine-lib-word-editor-template[hidden] {
+    display: none;
+}
+
+/*
+ * Slot — the placeholder inside the template where GrapesJS mounts.
+ * Its height is synced with the iframe content via ResizeObserver
+ * in editor.js (_setupSlotResize).
+ */
+.core-engine-lib-word-editor-slot {
+    display: block;
+    width: 100%;
+    min-height: 100px;
+}
+
+/* GrapesJS iframe must fill the slot and remove default borders */
+.core-engine-lib-word-editor-slot iframe {
+    display: block;
+    width: 100%;
+    border: none;
+}
+
+/* GrapesJS canvas wrapper inside the slot must fill the slot */
+.core-engine-lib-word-editor-slot .gjs-cv-canvas {
+    background: #ffffff;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: auto;
+    left: auto;
+}
+
+.core-engine-lib-word-editor-slot .gjs-cv-canvas .gjs-frame-wrapper {
+    background: #ffffff;
+}
+
+/* ============================================
+   PLAIN MODE — GrapesJS iframe directly in canvas
+   ============================================ */
+
+/*
+ * When the page has no template, GrapesJS mounts into .editor-canvas.
+ *
+ * GrapesJS sizes .gjs-cv-canvas as:
+ *   width:  calc(100% - var(--gjs-left-width))
+ *   height: calc(100% - var(--gjs-canvas-top))
+ *   top:    var(--gjs-canvas-top)
+ *
+ * The defaults for those variables match GrapesJS built-in panels
+ * (left panel + top panel). We do not use those panels — our panels
+ * live in separate Base areas outside .gjs-editor. Without resetting
+ * the variables, the canvas is ~100px narrower and ~40px shorter than
+ * the container, which leaves grey gaps around the iframe.
+ *
+ * Zero the variables on .gjs-editor — the canvas fills the container
+ * naturally through the existing calc() rules, no !important needed.
+ */
+.core-engine-lib-word-editor-canvas-content .gjs-editor {
+    --gjs-left-width: 0px;
+    --gjs-canvas-top: 0px;
+}
+
+.core-engine-lib-word-editor-canvas-content > .gjs-cv-canvas {
+    background: var(--bg-surface, #f0f4fa);
+}
+
+.core-engine-lib-word-editor-canvas-content > .gjs-cv-canvas .gjs-frame-wrapper {
+    background: #ffffff;
 }
 
 /* ============================================
@@ -180,28 +285,11 @@
 .core-engine-lib-word-llm-chat-content {
     flex: 1 1 auto;
     min-height: 0;
-    padding: 0 !important;
+    padding: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     background: var(--bg-surface, #f0f4fa);
-}
-
-/* ============================================
-   GRAPESJS CANVAS
-   ============================================ */
-
-.core-engine-lib-word-editor-canvas-content .gjs-cv-canvas {
-    background: var(--bg-surface, #f0f4fa);
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    position: absolute;
-}
-
-.core-engine-lib-word-editor-canvas-content .gjs-cv-canvas .gjs-frame-wrapper {
-    background: #ffffff;
 }
 
 /* ============================================

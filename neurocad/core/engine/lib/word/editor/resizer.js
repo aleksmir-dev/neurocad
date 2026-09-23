@@ -21,6 +21,12 @@
  *     core-engine:word-editor:left-width
  *     core-engine:word-editor:right-width
  *
+ * Заморозка iframe:
+ *   Пока идёт drag — все <iframe> в документе получают
+ *   pointer-events: none. Без этого mousemove уходит в iframe
+ *   (canvas GrapesJS), как только мышь пересекает его границу —
+ *   и drag «залипает» (работает только в сторону панели).
+ *
  * Совместимо с layout из base/css/03_layout.css:
  *   .core-engine-lib-base-main-inner  — flex-row
  *   .core-engine-lib-base-area-left   — flex-shrink:0, width:12.5rem
@@ -132,6 +138,10 @@ export class Resizer {
         document.body.style.cursor = 'col-resize';
         document.body.style.userSelect = 'none';
 
+        // Замораживаем iframe — иначе mousemove уходит в него,
+        // как только мышь пересекает границу canvas.
+        this._freezeIframes(true);
+
         // Слушатели на весь документ — чтобы drag не терялся
         this._onMouseMove = (ev) => this._onMouseMoveHandler(ev);
         this._onMouseUp = () => this._onMouseUpHandler();
@@ -180,6 +190,9 @@ export class Resizer {
             }
         }
 
+        // Размораживаем iframe
+        this._freezeIframes(false);
+
         // Снимаем слушатели
         document.removeEventListener('mousemove', this._onMouseMove);
         document.removeEventListener('mouseup', this._onMouseUp);
@@ -199,6 +212,38 @@ export class Resizer {
                 console.warn('[Resizer] refresh() не сработал:', err);
             }
         }
+    }
+
+    // ============================================
+    // ЗАМОРОЗКА IFRAME
+    // ============================================
+
+    /**
+     * Заморозить/разморозить все iframe на время drag.
+     *
+     * Ставим pointer-events: none — тогда мышь «проходит сквозь»
+     * iframe, и mousemove продолжает приходить в родительский
+     * документ. Без этого drag работает только в сторону панели
+     * (влево для левой, вправо для правой), а при движении в сторону
+     * canvas — «залипает».
+     *
+     * Сохраняем предыдущее значение pointer-events, чтобы
+     * восстановить его после drag (если было непустым).
+     */
+    _freezeIframes(freeze) {
+        const iframes = document.querySelectorAll('iframe');
+        iframes.forEach((iframe) => {
+            if (freeze) {
+                if (iframe.dataset._prevPointerEvents === undefined) {
+                    iframe.dataset._prevPointerEvents = iframe.style.pointerEvents || '';
+                }
+                iframe.style.pointerEvents = 'none';
+            } else {
+                const prev = iframe.dataset._prevPointerEvents || '';
+                iframe.style.pointerEvents = prev;
+                delete iframe.dataset._prevPointerEvents;
+            }
+        });
     }
 
     // ============================================
@@ -254,6 +299,9 @@ export class Resizer {
             document.removeEventListener('mouseup', this._onMouseUp);
             this._onMouseUp = null;
         }
+
+        // Размораживаем iframe — на случай, если destroy() во время drag
+        this._freezeIframes(false);
 
         // Удаляем ручки из DOM
         if (this.leftHandle && this.leftHandle.parentNode) {

@@ -17,6 +17,10 @@ class CoreEngineLibPagesItemBase(BaseModel):
     logo: Optional[str] = Field(None, description="Логотип (URL или emoji)")
     is_active: int = Field(1, description="Активна: 1 — да, 0 — нет")
 
+    # Template system
+    is_template: int = Field(0, description="Базовый шаблон: 1 — да, 0 — нет")
+    template_id: Optional[int] = Field(None, description="ID базового шаблона (наследование)")
+
 
 # ============================================
 # СОЗДАНИЕ
@@ -42,6 +46,10 @@ class CoreEngineLibPagesItemUpdate(BaseModel):
     content_json: Optional[str] = None
     is_active: Optional[int] = None
 
+    # Template system
+    is_template: Optional[int] = None
+    template_id: Optional[int] = None
+
 
 # ============================================
 # СПИСОК (без content/content_json)
@@ -59,6 +67,10 @@ class CoreEngineLibPagesItemListItem(BaseModel):
     created_at: Optional[dt] = None
     updated_at: Optional[dt] = None
     rss_yandex_id: Optional[str] = None
+
+    # Template system
+    is_template: int = 0
+    template_id: Optional[int] = None
 
     class Config:
         from_attributes = True

@@ -12,6 +12,7 @@ from sqlalchemy import select
 
 from ....models.base import Page
 from ....models.module import Module
+from ....models.page_hist import PageHist
 from .....utils.sqlite import get_db_sqlite
 
 
@@ -109,11 +110,21 @@ class CoreEngineLibWordService:
         mod_id: int,
         content: Optional[str],
         content_json: Optional[str],
+        user_note: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """
-        Save page content.
+        Save page content and write a snapshot to page_hist.
 
-        Updates content and content_json in Page model.
+        Flow:
+          1. Find page.
+          2. If content actually changed — write a snapshot of the
+             CURRENT (pre-save) state to page_hist with action='user_edit'.
+             Duplicates are skipped (same html + content_json as last snapshot).
+          3. Update Page.content / Page.content_json.
+          4. Commit.
+
+        user_note — optional comment for the snapshot (e.g. username).
+
         Returns updated data or None if page not found.
         """
         async for session in get_db_sqlite():
@@ -128,6 +139,33 @@ class CoreEngineLibWordService:
             if not page:
                 return None
 
+            # ===== Snapshot BEFORE update =====
+            old_html = page.content or ""
+            old_json = page.content_json
+
+            # Determine new values (fallback to old if None)
+            new_html = content if content is not None else old_html
+            new_json = content_json if content_json is not None else old_json
+
+            # Only snapshot if something actually changed
+            changed = (new_html != old_html) or (new_json != old_json)
+
+            if changed and old_html:
+                # Check for duplicates — skip if last snapshot is identical
+                is_dup = await _is_duplicate_snapshot(
+                    session, page_id, old_html, old_json
+                )
+                if not is_dup:
+                    snapshot = PageHist(
+                        page_id=page_id,
+                        html=old_html,
+                        content_json=old_json,
+                        action="user_edit",
+                        note=user_note,
+                    )
+                    session.add(snapshot)
+
+            # ===== Update Page =====
             if content is not None:
                 page.content = content
             if content_json is not None:
@@ -140,6 +178,193 @@ class CoreEngineLibWordService:
             return {
                 "id": page.id,
                 "title": page.title,
+                "updated_at": page.updated_at.isoformat() if page.updated_at else None,
+            }
+
+        return None
+
+    # ========================================
+    # HISTORY — LIST
+    # ========================================
+
+    @staticmethod
+    async def list_history(
+        page_id: int,
+        mod_id: int,
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        List all snapshots for a page, newest first.
+
+        Does NOT return html / content_json (heavy) — only metadata.
+        For full snapshot — use get_history_item().
+
+        Returns None if page not found, [] if no snapshots.
+        """
+        async for session in get_db_sqlite():
+            # Verify page belongs to this module
+            page_stmt = select(Page).where(
+                Page.id == page_id,
+                Page.mod_id == mod_id,
+                Page.is_delete == 0,
+            )
+            page_res = await session.execute(page_stmt)
+            page = page_res.scalar_one_or_none()
+            if not page:
+                return None
+
+            stmt = (
+                select(PageHist)
+                .where(PageHist.page_id == page_id)
+                .order_by(PageHist.created_at.desc())
+            )
+            result = await session.execute(stmt)
+            snapshots = result.scalars().all()
+
+            return [
+                {
+                    "id": s.id,
+                    "action": s.action,
+                    "note": s.note,
+                    "created_at": s.created_at.isoformat() if s.created_at else None,
+                }
+                for s in snapshots
+            ]
+
+        return None
+
+    # ========================================
+    # HISTORY — ONE ITEM
+    # ========================================
+
+    @staticmethod
+    async def get_history_item(
+        hist_id: int,
+        page_id: int,
+        mod_id: int,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Get one full snapshot (html + content_json).
+
+        Returns None if the snapshot does not exist or the page
+        does not belong to this module.
+        """
+        async for session in get_db_sqlite():
+            page_stmt = select(Page).where(
+                Page.id == page_id,
+                Page.mod_id == mod_id,
+                Page.is_delete == 0,
+            )
+            page_res = await session.execute(page_stmt)
+            page = page_res.scalar_one_or_none()
+            if not page:
+                return None
+
+            stmt = select(PageHist).where(
+                PageHist.id == hist_id,
+                PageHist.page_id == page_id,
+            )
+            result = await session.execute(stmt)
+            s = result.scalar_one_or_none()
+            if not s:
+                return None
+
+            return {
+                "id": s.id,
+                "page_id": s.page_id,
+                "html": s.html,
+                "content_json": s.content_json,
+                "action": s.action,
+                "note": s.note,
+                "created_at": s.created_at.isoformat() if s.created_at else None,
+            }
+
+        return None
+
+    # ========================================
+    # HISTORY — ROLLBACK
+    # ========================================
+
+    @staticmethod
+    async def rollback(
+        page_id: int,
+        mod_id: int,
+        hist_id: int,
+        user_note: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Roll the page back to the given snapshot.
+
+        Flow:
+          1. Find page and snapshot.
+          2. Snapshot the CURRENT (pre-rollback) state into page_hist
+             with action='user_edit' — so the rollback itself is undoable.
+          3. Set Page.content / Page.content_json to the snapshot values.
+          4. Write a new record with action='rollback' — audit trail.
+          5. Commit.
+
+        Returns updated data or None if page / snapshot not found.
+        """
+        async for session in get_db_sqlite():
+            # ----- Find page -----
+            page_stmt = select(Page).where(
+                Page.id == page_id,
+                Page.mod_id == mod_id,
+                Page.is_delete == 0,
+            )
+            page_res = await session.execute(page_stmt)
+            page = page_res.scalar_one_or_none()
+            if not page:
+                return None
+
+            # ----- Find snapshot -----
+            hist_stmt = select(PageHist).where(
+                PageHist.id == hist_id,
+                PageHist.page_id == page_id,
+            )
+            hist_res = await session.execute(hist_stmt)
+            snapshot = hist_res.scalar_one_or_none()
+            if not snapshot:
+                return None
+
+            # ----- Snapshot current state (before rollback) -----
+            current_html = page.content or ""
+            current_json = page.content_json
+
+            if current_html:
+                is_dup = await _is_duplicate_snapshot(
+                    session, page_id, current_html, current_json
+                )
+                if not is_dup:
+                    session.add(PageHist(
+                        page_id=page_id,
+                        html=current_html,
+                        content_json=current_json,
+                        action="user_edit",
+                        note=user_note,
+                    ))
+
+            # ----- Apply snapshot -----
+            page.content = snapshot.html
+            page.content_json = snapshot.content_json
+            page.updated_at = datetime.now()
+
+            # ----- Audit trail: new record with action='rollback' -----
+            session.add(PageHist(
+                page_id=page_id,
+                html=snapshot.html,
+                content_json=snapshot.content_json,
+                action="rollback",
+                note=f"rollback to snapshot id={hist_id}",
+            ))
+
+            await session.commit()
+            await session.refresh(page)
+
+            return {
+                "id": page.id,
+                "title": page.title,
+                "content": page.content,
+                "content_json": page.content_json,
                 "updated_at": page.updated_at.isoformat() if page.updated_at else None,
             }
 
@@ -256,6 +481,8 @@ def _page_to_dict(page) -> Dict[str, Any]:
         "created_at": page.created_at.isoformat() if page.created_at else None,
         "updated_at": page.updated_at.isoformat() if page.updated_at else None,
         "rss_yandex_id": page.rss_yandex_id,
+        "is_template": int(page.is_template) if page.is_template is not None else 0,
+        "template_id": page.template_id,
     }
 
 
@@ -267,3 +494,27 @@ async def _get_module_name(mod_id: int) -> Optional[str]:
         module = result.scalar_one_or_none()
         return module.name if module else None
     return None
+
+
+async def _is_duplicate_snapshot(
+    session,
+    page_id: int,
+    html: str,
+    content_json: Optional[str],
+) -> bool:
+    """
+    Return True if the LAST snapshot for this page has identical
+    html AND content_json — to skip writing duplicates.
+    """
+    stmt = (
+        select(PageHist)
+        .where(PageHist.page_id == page_id)
+        .order_by(PageHist.created_at.desc())
+        .limit(1)
+    )
+    result = await session.execute(stmt)
+    last = result.scalar_one_or_none()
+    if not last:
+        return False
+
+    return (last.html == html) and (last.content_json == content_json)

@@ -7,13 +7,19 @@
  * grapesjs.init({ styleManager: { sectors: [...] } }).
  *
  * Секции:
- *   - Размеры          — width, height, max-width, padding, margin, overflow
- *   - Типографика      — шрифт, размер, цвет, выравнивание, decoration
+ *   - Размеры          — width/height (все варианты), aspect-ratio, overflow
+ *   - Отступы          — padding, margin, gap
+ *   - Типографика      — шрифт, размер, вес, line-height, letter-spacing,
+ *                        color, text-align, decoration, white-space
  *   - Фон              — background-color/image/size/position/repeat/attachment
  *   - Оформление       — границы, скругление, тень, прозрачность
- *   - Flex             — направление, выравнивание, gap, grow/shrink/basis/order/align-self
+ *   - Flex             — направление, выравнивание, grow/shrink/basis/order
+ *   - Grid             — шаблоны, выравнивание, gap
  *   - Позиционирование — display, position, top/right/bottom/left, z-index
  *   - Дополнительно    — cursor, transform, transition, text-shadow
+ *
+ * Свойства <body> (wrapper) вынесены во вкладку «Свойства» (Traits),
+ * см. GrapesLoader._registerBodyStyleTraits.
  *
  * Названия и порядок секций — на русском, для контент-менеджеров.
  */
@@ -40,9 +46,21 @@ export class StylesConfig {
                     'height',
                     'min-height',
                     'max-height',
+                    'aspect-ratio',
+                    'overflow',
+                ],
+            },
+
+            // ============================================
+            // ОТСТУПЫ
+            // ============================================
+            {
+                name: 'Отступы',
+                open: false,
+                buildProps: [
                     'padding',
                     'margin',
-                    'overflow',
+                    'gap',
                 ],
             },
 
@@ -56,10 +74,11 @@ export class StylesConfig {
                     'font-family',
                     'font-size',
                     'font-weight',
-                    'letter-spacing',
                     'line-height',
+                    'letter-spacing',
                     'color',
                     'text-align',
+                    'text-transform',
                     'text-decoration',
                     'text-shadow',
                     'white-space',
@@ -113,7 +132,22 @@ export class StylesConfig {
                     'flex-shrink',
                     'flex-basis',
                     'order',
-                    'gap',
+                ],
+            },
+
+            // ============================================
+            // GRID
+            // ============================================
+            {
+                name: 'Grid',
+                open: false,
+                buildProps: [
+                    'grid-template-columns',
+                    'grid-template-rows',
+                    'grid-auto-flow',
+                    'justify-items',
+                    'align-items',
+                    'place-content',
                 ],
             },
 

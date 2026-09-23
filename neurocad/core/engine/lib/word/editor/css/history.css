@@ -1,0 +1,383 @@
+/* app/core/engine/lib/word/editor/css/history.css */
+
+/**
+ * History modal — page history (list + preview + rollback).
+ *
+ * Follows Base Modal conventions:
+ *   .core-engine-lib-word-editor-history        (overlay)
+ *     └── .window
+ *         ├── .title-bar                        (title + close)
+ *         └── .content
+ *             ├── .history-body                 (two columns)
+ *             │   ├── .history-list             (left, snapshots)
+ *             │   └── .history-preview          (right, iframe)
+ *             ├── .history-status               (one-line status)
+ *             └── .actions-bar                  (cancel + rollback)
+ *
+ * Layout:
+ *   - Wide window (~960px) — enough for list (~280px) + preview.
+ *   - On narrow screens (<= 760px) — single column, preview under list.
+ *
+ * Buttons:
+ *   .cancel-btn — ghost (Base Modal style)
+ *   .ok-btn     — primary blue (Base Modal style); disabled until item selected
+ */
+
+/* ============================================
+   ROOT OVERLAY
+   ============================================ */
+
+.core-engine-lib-word-editor-history {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.core-engine-lib-word-editor-history.active {
+    display: flex;
+}
+
+/* ============================================
+   WINDOW
+   ============================================ */
+
+.core-engine-lib-word-editor-history .window {
+    width: 60rem;              /* 960px */
+    min-width: 60rem;
+    max-width: 90vw;
+    max-height: 90vh;
+    background: linear-gradient(180deg, #f0f4fa 0%, #e3e9f2 100%);
+    border-radius: 0.75rem;
+    box-shadow:
+        0 1.25rem 3.75rem rgba(44, 62, 80, 0.25),
+        0 0.5rem 1.25rem rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================
+   TITLE BAR
+   ============================================ */
+
+.core-engine-lib-word-editor-history .title-bar {
+    background: linear-gradient(90deg, #ffffff 0%, #f5f8fd 100%);
+    height: 2.625rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    border-bottom: 1px solid rgba(180, 195, 215, 0.5);
+    flex-shrink: 0;
+}
+
+.core-engine-lib-word-editor-history .title-bar-text {
+    font-size: var(--font-size-lg, 1rem);
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.core-engine-lib-word-editor-history .title-bar-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.core-engine-lib-word-editor-history .close-btn {
+    font-size: var(--font-size-xl, 1.25rem);
+    color: #7f8fa6;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0 0.375rem;
+    border-radius: 0.25rem;
+    line-height: 1.4;
+}
+
+.core-engine-lib-word-editor-history .close-btn:hover {
+    background: rgba(44, 62, 80, 0.08);
+    color: #2c3e50;
+}
+
+/* ============================================
+   CONTENT
+   ============================================ */
+
+.core-engine-lib-word-editor-history .content {
+    padding: 1rem 1.25rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ============================================
+   BODY — two columns
+   ============================================ */
+
+.core-engine-lib-word-editor-history .history-body {
+    display: flex;
+    gap: 1rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 32rem;              /* fixed workspace height inside modal */
+}
+
+/* ============================================
+   LIST (left)
+   ============================================ */
+
+.core-engine-lib-word-editor-history .history-list {
+    flex: 0 0 18rem;            /* 288px */
+    max-width: 18rem;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #d5dee9;
+    border-radius: 0.5rem;
+    padding: 0.375rem;
+    box-sizing: border-box;
+}
+
+.core-engine-lib-word-editor-history .history-list-empty {
+    padding: 1rem;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.875rem;
+}
+
+.core-engine-lib-word-editor-history .history-list-item {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    margin-bottom: 0.25rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.core-engine-lib-word-editor-history .history-list-item:hover {
+    background: rgba(74, 139, 194, 0.06);
+}
+
+.core-engine-lib-word-editor-history .history-list-item.active {
+    background: rgba(74, 139, 194, 0.12);
+    border-color: rgba(74, 139, 194, 0.5);
+}
+
+.core-engine-lib-word-editor-history .history-item-action {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.125rem;
+}
+
+.core-engine-lib-word-editor-history .history-item-date {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-variant-numeric: tabular-nums;
+}
+
+.core-engine-lib-word-editor-history .history-item-note {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+/* ============================================
+   PREVIEW (right)
+   ============================================ */
+
+.core-engine-lib-word-editor-history .history-preview {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: #ffffff;
+    border: 1px solid #d5dee9;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.core-engine-lib-word-editor-history .history-preview-empty {
+    margin: auto;
+    padding: 1rem;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.875rem;
+}
+
+.core-engine-lib-word-editor-history .history-preview-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    background: #ffffff;
+}
+
+/* ============================================
+   STATUS LINE
+   ============================================ */
+
+.core-engine-lib-word-editor-history .history-status {
+    min-height: 1.125rem;
+    font-size: 0.8125rem;
+    color: #64748b;
+    padding: 0 0.25rem;
+}
+
+.core-engine-lib-word-editor-history .history-status:empty {
+    visibility: hidden;
+}
+
+/* ============================================
+   ACTIONS BAR
+   ============================================ */
+
+.core-engine-lib-word-editor-history .actions-bar {
+    display: flex;
+    gap: 0.625rem;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+/* ============================================
+   BUTTONS (Base Modal style)
+   ============================================ */
+
+.core-engine-lib-word-editor-history .ok-btn,
+.core-engine-lib-word-editor-history .cancel-btn {
+    height: 2.375rem;
+    padding: 0 1.5rem;
+    border-radius: 0.625rem;
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+    letter-spacing: 0.01875rem;
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.04);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-editor-history .ok-btn:active:not(:disabled),
+.core-engine-lib-word-editor-history .cancel-btn:active {
+    transform: scale(0.97);
+}
+
+.core-engine-lib-word-editor-history .ok-btn:focus-visible,
+.core-engine-lib-word-editor-history .cancel-btn:focus-visible {
+    outline: 0.125rem solid #4a8bc2;
+    outline-offset: 0.125rem;
+}
+
+/* --- OK (primary) --- */
+
+.core-engine-lib-word-editor-history .ok-btn {
+    background: linear-gradient(180deg, #4a8bc2 0%, #3a7ab0 100%);
+    color: #ffffff;
+    border: 1px solid #3a7ab0;
+    box-shadow: 0 0.125rem 0.5rem rgba(74, 139, 194, 0.25);
+}
+
+.core-engine-lib-word-editor-history .ok-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #5898cc 0%, #4a8bc2 100%);
+    box-shadow: 0 0.25rem 0.75rem rgba(74, 139, 194, 0.35);
+}
+
+.core-engine-lib-word-editor-history .ok-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(180deg, #b9c7d4 0%, #a3b1c0 100%);
+    border-color: #a3b1c0;
+    box-shadow: none;
+}
+
+/* --- Cancel (ghost) --- */
+
+.core-engine-lib-word-editor-history .cancel-btn {
+    background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
+    color: #64748b;
+    border: 1px solid #d5dee9;
+}
+
+.core-engine-lib-word-editor-history .cancel-btn:hover {
+    background: linear-gradient(180deg, #f5f8fd 0%, #e8edf5 100%);
+    color: #2c3e50;
+    box-shadow: 0 0.25rem 0.75rem rgba(44, 62, 80, 0.08);
+}
+
+/* ============================================
+   SCROLLBAR (list)
+   ============================================ */
+
+.core-engine-lib-word-editor-history .history-list::-webkit-scrollbar {
+    width: 0.5rem;
+}
+
+.core-engine-lib-word-editor-history .history-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.core-engine-lib-word-editor-history .history-list::-webkit-scrollbar-thumb {
+    background: rgba(44, 62, 80, 0.15);
+    border-radius: 0.25rem;
+}
+
+.core-engine-lib-word-editor-history .history-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(44, 62, 80, 0.25);
+}
+
+/* ============================================
+   RESPONSIVE — single column
+   ============================================ */
+
+@media (max-width: 760px) {
+    .core-engine-lib-word-editor-history .window {
+        width: 95%;
+        min-width: 95%;
+        max-width: 95%;
+        max-height: 92vh;
+        margin: 0.625rem;
+    }
+
+    .core-engine-lib-word-editor-history .content {
+        padding: 0.75rem 0.75rem 1rem;
+    }
+
+    .core-engine-lib-word-editor-history .history-body {
+        flex-direction: column;
+        height: auto;
+        flex: 1 1 auto;
+        overflow: hidden;
+    }
+
+    .core-engine-lib-word-editor-history .history-list {
+        flex: 0 0 auto;
+        max-width: 100%;
+        max-height: 12rem;
+    }
+
+    .core-engine-lib-word-editor-history .history-preview {
+        flex: 1 1 auto;
+        min-height: 14rem;
+    }
+
+    .core-engine-lib-word-editor-history .actions-bar {
+        justify-content: stretch;
+    }
+
+    .core-engine-lib-word-editor-history .ok-btn,
+    .core-engine-lib-word-editor-history .cancel-btn {
+        flex: 1;
+    }
+}

@@ -1,20 +1,41 @@
 // app/core/engine/lib/word/editor/blocks/layout.js
 
 /**
- * LayoutBlocks — библиотека блоков «Сетки».
+ * LayoutBlocks — structural blocks for GrapesJS.
  *
- * Категория: «Сетки»
+ * Category: "Разметка" (layout).
  *
- * Что внутри:
- *   - Контейнер (max-width 1200px)
- *   - 2 колонки
- *   - 3 колонки
- *   - 4 колонки
- *   - Карточка (светлая с тенью)
- *   - Тёмная плашка (CTA-блок)
+ * Blocks:
+ *   - Container       — centered max-width wrapper
+ *   - 2 columns       — grid
+ *   - 3 columns       — grid
+ *   - 4 columns       — grid
+ *   - Auto columns    — adaptive auto-fit grid
+ *   - Flex shell      — full-height page skeleton (nav / main / footer)
  *
- * Все сетки — на CSS Grid с auto-fit, чтобы адаптировались под ширину.
- * Никаких внешних CSS-файлов — только inline-стили.
+ * NOTE: blocks are NOT wrapped in .core-engine-lib-word-blocks anymore.
+ * That class is the single scope wrapper for the whole page:
+ *   - in the editor — added to the iframe <body> (GrapesLoader)
+ *   - on public pages — added to <article> (public.html)
+ *
+ * Layout classes:
+ *   Generic (.section, .container, .grid, .grid--2/3/4/auto, .col)
+ *     — live in editor/css/content.css (shared, loaded globally).
+ *   Flex-shell specific (.flex-shell, .flex-shell__*)
+ *     — live in editor/blocks/layout.css (only used by this block).
+ *
+ * Atoms (.h1, .h2, .text, .btn, .card, ...) live in
+ * editor/css/content.css.
+ *
+ * Sections (.hero, .features, .cta, ...) live in
+ * editor/blocks/ready.css.
+ *
+ * Droppable areas:
+ *   Containers, grids, columns and flex-shell areas are marked with
+ *   data-gjs-droppable="true" so GrapesJS accepts dropping other
+ *   blocks INSIDE them (instead of placing them next to the block).
+ *   data-gjs-draggable=".flex-shell__main" keeps the flex-shell
+ *   areas locked inside the flex row.
  */
 export class LayoutBlocks {
     /**
@@ -22,40 +43,46 @@ export class LayoutBlocks {
      */
     constructor(bm) {
         this.bm = bm;
-        this.category = 'Сетки';
+        this.category = 'Разметка';
     }
 
     register() {
         console.log('[LayoutBlocks] Регистрация');
 
-        // ===== КОНТЕЙНЕР =====
+        // ===== CONTAINER =====
 
+        /*
+         * Container — centered max-width wrapper.
+         * Uses .container from content.css (max-width: --theme-container-max).
+         *
+         * data-gjs-droppable="true" — other blocks can be dropped inside.
+         */
         this.bm.add('core-container', {
             label: 'Контейнер',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="6" y="4" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div style="max-width:1200px;margin:0 auto;padding:30px 15px;">
-                    <p style="text-align:center;color:#94a3b8;font-style:italic;">Содержимое контейнера</p>
+                <div class="container" data-gjs-droppable="true">
+                    <p class="text text--center text--muted">Содержимое контейнера</p>
                 </div>
             `,
         });
 
-        // ===== СЕТКИ =====
+        // ===== GRIDS =====
 
         this.bm.add('core-grid-2', {
             label: '2 колонки',
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="9" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="4" width="9" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin:24px 0;">
-                    <div style="padding:20px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;">
-                        <h3 style="font-size:18px;font-weight:600;margin-bottom:8px;">Колонка 1</h3>
-                        <p style="color:#64748b;font-size:14px;">Описание первой колонки</p>
+                <div class="grid grid--2" data-gjs-droppable="true">
+                    <div class="col" data-gjs-droppable="true">
+                        <h3 class="h3">Колонка 1</h3>
+                        <p class="text text--muted">Описание первой колонки</p>
                     </div>
-                    <div style="padding:20px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;">
-                        <h3 style="font-size:18px;font-weight:600;margin-bottom:8px;">Колонка 2</h3>
-                        <p style="color:#64748b;font-size:14px;">Описание второй колонки</p>
+                    <div class="col" data-gjs-droppable="true">
+                        <h3 class="h3">Колонка 2</h3>
+                        <p class="text text--muted">Описание второй колонки</p>
                     </div>
                 </div>
             `,
@@ -66,18 +93,18 @@ export class LayoutBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="5.5" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9.25" y="4" width="5.5" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16.5" y="4" width="5.5" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin:24px 0;">
-                    <div style="padding:20px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;text-align:center;">
-                        <h4 style="font-size:16px;font-weight:600;margin-bottom:6px;">Блок 1</h4>
-                        <p style="color:#64748b;font-size:14px;">Описание</p>
+                <div class="grid grid--3" data-gjs-droppable="true">
+                    <div class="col" data-gjs-droppable="true">
+                        <h3 class="h3">Колонка 1</h3>
+                        <p class="text text--muted">Описание</p>
                     </div>
-                    <div style="padding:20px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;text-align:center;">
-                        <h4 style="font-size:16px;font-weight:600;margin-bottom:6px;">Блок 2</h4>
-                        <p style="color:#64748b;font-size:14px;">Описание</p>
+                    <div class="col" data-gjs-droppable="true">
+                        <h3 class="h3">Колонка 2</h3>
+                        <p class="text text--muted">Описание</p>
                     </div>
-                    <div style="padding:20px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;text-align:center;">
-                        <h4 style="font-size:16px;font-weight:600;margin-bottom:6px;">Блок 3</h4>
-                        <p style="color:#64748b;font-size:14px;">Описание</p>
+                    <div class="col" data-gjs-droppable="true">
+                        <h3 class="h3">Колонка 3</h3>
+                        <p class="text text--muted">Описание</p>
                     </div>
                 </div>
             `,
@@ -88,38 +115,88 @@ export class LayoutBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="4" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="7.3" y="4" width="4" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="12.6" y="4" width="4" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="18" y="4" width="4" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0;">
-                    <div style="padding:16px;background:#f8fafc;border-radius:8px;text-align:center;">Колонка 1</div>
-                    <div style="padding:16px;background:#f8fafc;border-radius:8px;text-align:center;">Колонка 2</div>
-                    <div style="padding:16px;background:#f8fafc;border-radius:8px;text-align:center;">Колонка 3</div>
-                    <div style="padding:16px;background:#f8fafc;border-radius:8px;text-align:center;">Колонка 4</div>
+                <div class="grid grid--4" data-gjs-droppable="true">
+                    <div class="col" data-gjs-droppable="true">Колонка 1</div>
+                    <div class="col" data-gjs-droppable="true">Колонка 2</div>
+                    <div class="col" data-gjs-droppable="true">Колонка 3</div>
+                    <div class="col" data-gjs-droppable="true">Колонка 4</div>
                 </div>
             `,
         });
 
-        // ===== КАРТОЧКИ =====
-
-        this.bm.add('core-card', {
-            label: 'Карточка',
+        this.bm.add('core-grid-auto', {
+            label: 'Адаптивная сетка',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="3" width="18" height="18" rx="3" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/></svg>',
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9" y="4" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16" y="4" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="2" y="13" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9" y="13" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16" y="13" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:24px;box-shadow:0 4px 12px rgba(15,23,42,0.06);margin:20px 0;">
-                    <h3 style="font-size:20px;font-weight:700;margin-bottom:10px;">Заголовок карточки</h3>
-                    <p style="color:#475569;font-size:15px;line-height:1.6;">Содержимое карточки. Можно заменить на любой контент.</p>
+                <div class="grid grid--auto" data-gjs-droppable="true">
+                    <div class="col" data-gjs-droppable="true">Карточка 1</div>
+                    <div class="col" data-gjs-droppable="true">Карточка 2</div>
+                    <div class="col" data-gjs-droppable="true">Карточка 3</div>
+                    <div class="col" data-gjs-droppable="true">Карточка 4</div>
+                    <div class="col" data-gjs-droppable="true">Карточка 5</div>
+                    <div class="col" data-gjs-droppable="true">Карточка 6</div>
                 </div>
             `,
         });
 
-        this.bm.add('core-card-dark', {
-            label: 'Тёмная плашка',
+        // ===== FLEX SHELL =====
+
+        /*
+         * Flex shell — full-height page skeleton with a three-column main:
+         *
+         *   nav      — fixed height (60px)
+         *   main     — flex row of three areas:
+         *              left   (aside)   — 1 share of free space
+         *              center (section) — 3 shares of free space
+         *              right  (aside)   — 1 share of free space
+         *   footer   — fixed height (30px)
+         *
+         * Each area scrolls independently (overflow: auto).
+         *
+         * The shell itself is position: absolute; inset: 0 — it fills
+         * its parent exactly. The parent must be position: relative:
+         *   - editor canvas: iframe <body> (canvas.css);
+         *   - admin preview: inner <div id="..."> (word.css);
+         *   - public page:   .core-engine-lib-word-blocks (public.css).
+         *
+         * Droppable targets:
+         *   nav, all three areas and footer carry data-gjs-droppable="true"
+         *   so other blocks (headings, text, buttons, images, ...) can be
+         *   dropped INSIDE them. Without this, GrapesJS treats <nav>,
+         *   <aside>, <section>, <footer> as leaf elements and places the
+         *   new block NEXT TO the shell — exactly the bug we are fixing.
+         *
+         * Areas are also limited by data-gjs-draggable=".flex-shell__main"
+         * so they cannot be dragged out of the flex row.
+         *
+         * Section styles live in editor/blocks/layout.css.
+         */
+        this.bm.add('core-flex-shell', {
+            label: 'Flex-каркас (nav / main / footer)',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="3" width="18" height="18" rx="3" fill="#0f172a"/></svg>',
+            media: '<svg viewBox="0 0 24 24" width="24" height="24">'
+                + '<rect x="2" y="2" width="20" height="4" fill="#246eaa"/>'
+                + '<rect x="2" y="8" width="20" height="10" fill="#cbd5e1"/>'
+                + '<rect x="2" y="20" width="20" height="2" fill="#0f172a"/>'
+                + '</svg>',
             content: `
-                <div style="background:#0f172a;color:#fff;border-radius:8px;padding:30px;margin:24px 0;text-align:center;">
-                    <h3 style="font-size:22px;font-weight:700;color:#fbbf24;margin-bottom:12px;">Заголовок блока</h3>
-                    <p style="font-size:15px;opacity:.9;max-width:600px;margin:0 auto 16px;">Описание блока на тёмном фоне. Хорошо подходит для CTA-секций.</p>
-                    <a href="#" class="core-btn core-btn--primary">Кнопка</a>
+                <div class="flex-shell">
+                    <nav class="flex-shell__nav"
+                         data-gjs-droppable="true">Nav</nav>
+                    <main class="flex-shell__main">
+                        <aside class="flex-shell__area flex-shell__area--left"
+                               data-gjs-droppable="true"
+                               data-gjs-draggable=".flex-shell__main"></aside>
+                        <section class="flex-shell__area flex-shell__area--center"
+                                 data-gjs-droppable="true"
+                                 data-gjs-draggable=".flex-shell__main"><div data-slot="content"></div></section>
+                        <aside class="flex-shell__area flex-shell__area--right"
+                               data-gjs-droppable="true"
+                               data-gjs-draggable=".flex-shell__main"></aside>
+                    </main>
+                    <footer class="flex-shell__footer"
+                            data-gjs-droppable="true">Footer</footer>
                 </div>
             `,
         });

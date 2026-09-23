@@ -31,14 +31,27 @@
     border-top: 1px solid var(--border-light);
 }
 
+/*
+ * Widget content — fills the widget.
+ *
+ * overflow: hidden — DO NOT scroll here. Widget content is a flex
+ * wrapper for the inner component (word, base, ...). Scrolling must
+ * happen INSIDE the component itself (e.g. .aleksmir-layout__main
+ * in the shell block). Otherwise the outer widget would grow with
+ * the component and push the site footer off-screen.
+ */
 .core-engine-lib-base-widget-content {
     flex: 1 1 0;
-    overflow-y: auto;
+    overflow: hidden;
     padding: var(--gap-md);
     min-height: 0;
     font-size: var(--font-size-sm);
     line-height: 1.6;
     color: var(--text-main);
+
+    /* Flex column — so the inner component can fill the content area. */
+    display: flex;
+    flex-direction: column;
 }
 
 .core-engine-lib-base-widget-content p {

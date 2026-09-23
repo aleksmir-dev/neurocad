@@ -173,6 +173,13 @@ export class LLMPresets {
             if (result.success) {
                 this.presets = result.data || [];
                 console.log(`[LLMPresets] Loaded presets: ${this.presets.length}`);
+
+                // Detailed log for debugging CSS/html presence
+                this.presets.forEach(p => {
+                    const htmlLen = (p.html || '').length;
+                    const cssLen = (p.css || '').length;
+                    console.log(`[LLMPresets]   [${p.id}] "${p.name}" — html:${htmlLen} css:${cssLen}`);
+                });
             } else {
                 console.warn('[LLMPresets] Response without success:', result);
                 this.presets = [];
@@ -186,6 +193,13 @@ export class LLMPresets {
     }
 
     async _createPreset(name, description = '', html = '', css = '') {
+        console.log('[LLMPresets] _createPreset()', {
+            name,
+            description,
+            htmlLen: (html || '').length,
+            cssLen: (css || '').length,
+        });
+
         const response = await fetch(this._apiBase, {
             method: 'POST',
             headers: {
@@ -202,6 +216,12 @@ export class LLMPresets {
         }
 
         const result = await response.json();
+        console.log('[LLMPresets] _createPreset() result:', {
+            id: result.data?.id,
+            htmlLen: (result.data?.html || '').length,
+            cssLen: (result.data?.css || '').length,
+        });
+
         return result.data;
     }
 
@@ -219,6 +239,12 @@ export class LLMPresets {
     }
 
     async _updatePreset(id, data) {
+        console.log('[LLMPresets] _updatePreset()', {
+            id,
+            htmlLen: (data.html || '').length,
+            cssLen: (data.css || '').length,
+        });
+
         const response = await fetch(`${this._apiBase}/${id}`, {
             method: 'PUT',
             headers: {
@@ -258,6 +284,65 @@ export class LLMPresets {
     }
 
     // ============================================
+    // HELPERS — extract CSS from HTML
+    // ============================================
+
+    /**
+     * Extract CSS from <style>...</style> blocks inside HTML.
+     * Returns { html: string, css: string }.
+     *
+     * Used as a fallback when GrapesJS CssComposer is empty
+     * (e.g. when the page was loaded via setComponents(html) and
+     * the <style> block was never pushed to the CssComposer).
+     */
+    _extractCssFromHtml(html) {
+        if (!html) return { html: '', css: '' };
+
+        const matches = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];
+        const css = matches.map(m => m[1]).join('\n').trim();
+        const htmlClean = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').trim();
+
+        return { html: htmlClean, css };
+    }
+
+    /**
+     * Get current canvas HTML + CSS.
+     *
+     * Priority:
+     *   1. CssComposer (editor.getCss()) — if it has rules.
+     *   2. <style> inside HTML — fallback.
+     *
+     * Returns { html, css }.
+     */
+    _getCurrentHtmlCss() {
+        const ed = this.editor.editor;
+        if (!ed) return { html: '', css: '' };
+
+        const rawHtml = ed.getHtml() || '';
+        const rawCss = ed.getCss() || '';
+        const cssRulesCount = ed.Css?.getAll?.()?.length || 0;
+
+        console.log('[LLMPresets] _getCurrentHtmlCss()', {
+            htmlLen: rawHtml.length,
+            cssLen: rawCss.length,
+            cssRulesCount,
+        });
+
+        // If CssComposer has rules — use it as primary source
+        if (rawCss.trim() && cssRulesCount > 0) {
+            return { html: rawHtml, css: rawCss };
+        }
+
+        // Fallback: extract <style> from HTML
+        const extracted = this._extractCssFromHtml(rawHtml);
+        console.log('[LLMPresets] fallback: extracted from HTML', {
+            htmlLen: extracted.html.length,
+            cssLen: extracted.css.length,
+        });
+        return extracted;
+    }
+
+    // ============================================
     // ACTIONS
     // ============================================
 
@@ -270,34 +355,95 @@ export class LLMPresets {
             return;
         }
 
+        console.log('[LLMPresets] preset data:', {
+            name: preset.name,
+            htmlLen: (preset.html || '').length,
+            cssLen: (preset.css || '').length,
+        });
+
         this.currentId = id;
 
         // Highlight active
         this._renderList();
 
-        // Apply preset to GrapesJS canvas
-        if (this.editor.editor) {
-            console.log('[LLMPresets] Applying preset to canvas:', id);
-            this.editor.editor.setComponents(preset.html || '');
-            if (preset.css) {
-                this.editor.editor.setStyle(preset.css);
+        const ed = this.editor.editor;
+        if (!ed) {
+            console.warn('[LLMPresets] editor not available');
+            return;
+        }
+
+        // Prepare html + css (with fallback)
+        let html = preset.html || '';
+        let css = preset.css || '';
+
+        // If CSS empty but HTML has <style> — extract
+        if (!css.trim() && html.includes('<style')) {
+            const extracted = this._extractCssFromHtml(html);
+            html = extracted.html;
+            css = extracted.css;
+            console.log('[LLMPresets] CSS extracted from HTML (preset has no separate css)');
+        }
+
+        console.log('[LLMPresets] applying:', {
+            htmlLen: html.length,
+            cssLen: css.length,
+        });
+
+        try {
+            // 1. Clear ALL existing CSS rules (otherwise they accumulate on switch)
+            if (ed.Css?.clear) {
+                ed.Css.clear();
+                console.log('[LLMPresets] CssComposer cleared');
             }
+
+            // 2. Set HTML components
+            ed.setComponents(html || '');
+            console.log('[LLMPresets] components set');
+
+            // 3. Apply CSS via CssComposer
+            if (css && css.trim()) {
+                if (ed.Css?.addRules) {
+                    ed.Css.addRules(css);
+                    console.log('[LLMPresets] CSS rules added via Css.addRules');
+                } else {
+                    // Legacy fallback
+                    ed.setStyle(css);
+                    console.log('[LLMPresets] CSS applied via setStyle (legacy)');
+                }
+            }
+
+            // 4. Verify
+            const verifyCss = ed.getCss();
+            console.log('[LLMPresets] verify — new getCss():', verifyCss.slice(0, 300));
+        } catch (e) {
+            console.error('[LLMPresets] apply preset error:', e);
         }
     }
 
     async _onCreate() {
         console.log('[LLMPresets] _onCreate()');
 
-        // Simple prompt form (later replace with modal)
         const name = prompt('Название пресета:', 'Новый пресет');
         if (!name || !name.trim()) return;
 
-        // Take current canvas HTML + CSS
-        const html = this.editor.editor?.getHtml() || '';
-        const css = this.editor.editor?.getCss() || '';
+        // Get current canvas HTML + CSS (with fallback)
+        const { html, css } = this._getCurrentHtmlCss();
+
+        console.log('[LLMPresets] _onCreate() — will save:', {
+            name: name.trim(),
+            htmlLen: html.length,
+            cssLen: css.length,
+            cssPreview: css.slice(0, 200),
+        });
 
         try {
             const preset = await this._createPreset(name.trim(), '', html, css);
+
+            console.log('[LLMPresets] _onCreate() — response:', {
+                id: preset.id,
+                htmlLen: (preset.html || '').length,
+                cssLen: (preset.css || '').length,
+            });
 
             // Add to local list
             this.presets.push(preset);
@@ -347,8 +493,13 @@ export class LLMPresets {
             return;
         }
 
-        const html = this.editor.editor?.getHtml() || '';
-        const css = this.editor.editor?.getCss() || '';
+        const { html, css } = this._getCurrentHtmlCss();
+
+        console.log('[LLMPresets] saveCurrentHtml() — will save:', {
+            currentId: this.currentId,
+            htmlLen: html.length,
+            cssLen: css.length,
+        });
 
         try {
             await this._updatePreset(this.currentId, { html, css });

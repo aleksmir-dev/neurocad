@@ -1,0 +1,360 @@
+/* app/static/core/engine/lib/base/assets/assets.css */
+
+/**
+ * BaseAssets — media library picker.
+ *
+ * Namespace: .core-engine-lib-base-assets
+ *
+ * Structure:
+ *   .core-engine-lib-base-assets            — overlay (fixed, fullscreen)
+ *     └── .assets-content                   — modal window
+ *         ├── .assets-header                — title + close
+ *         ├── .assets-toolbar               — upload button + file input
+ *         ├── .assets-body
+ *         │   ├── .assets-grid              — grid of items
+ *         │   └── .assets-dropzone          — drag & drop hint
+ *         └── .assets-footer                — cancel button
+ *
+ * Item:
+ *   .assets-item
+ *     ├── img
+ *     └── .assets-item-delete   (× on hover)
+ *
+ * All styles are scoped under .core-engine-lib-base-assets.
+ * Uses CSS variables --color-* where available, with sensible fallbacks.
+ */
+
+/* ============================================ */
+/* OVERLAY                                      */
+/* ============================================ */
+
+.core-engine-lib-base-assets {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 20000;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.core-engine-lib-base-assets.active {
+    display: flex;
+    animation: assets-fade-in 0.2s ease;
+}
+
+@keyframes assets-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ============================================ */
+/* MODAL WINDOW                                 */
+/* ============================================ */
+
+.core-engine-lib-base-assets .assets-content {
+    position: relative;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    background: var(--color-white, #ffffff);
+    border-radius: var(--radius, 12px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: assets-content-in 0.25s ease;
+}
+
+@keyframes assets-content-in {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ============================================ */
+/* HEADER                                       */
+/* ============================================ */
+
+.core-engine-lib-base-assets .assets-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border, #e2e8f0);
+    background: var(--color-bg, #f8fafc);
+    flex-shrink: 0;
+}
+
+.core-engine-lib-base-assets .assets-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text, #1e293b);
+}
+
+.core-engine-lib-base-assets .assets-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    color: #94a3b8;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.core-engine-lib-base-assets .assets-close:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+/* ============================================ */
+/* TOOLBAR                                      */
+/* ============================================ */
+
+.core-engine-lib-base-assets .assets-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--color-border, #e2e8f0);
+    background: var(--color-white, #ffffff);
+    flex-shrink: 0;
+}
+
+.core-engine-lib-base-assets .assets-upload-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: var(--radius, 8px);
+    background: var(--color-white, #ffffff);
+    color: var(--color-text, #1e293b);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.core-engine-lib-base-assets .assets-upload-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+/* ============================================ */
+/* BODY                                         */
+/* ============================================ */
+
+.core-engine-lib-base-assets .assets-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 20px;
+    overflow-y: auto;
+    gap: 12px;
+}
+
+.core-engine-lib-base-assets .assets-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.core-engine-lib-base-assets .assets-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.core-engine-lib-base-assets .assets-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+/* ============================================ */
+/* GRID                                         */
+/* ============================================ */
+
+.core-engine-lib-base-assets .assets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+}
+
+.core-engine-lib-base-assets .assets-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+    padding: 40px 20px;
+}
+
+/* ============================================ */
+/* ITEM                                         */
+/* ============================================ */
+
+.core-engine-lib-base-assets .assets-item {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: #f8fafc;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: var(--radius, 8px);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.core-engine-lib-base-assets .assets-item:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    transform: translateY(-1px);
+}
+
+.core-engine-lib-base-assets .assets-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Delete button — appears on hover */
+.core-engine-lib-base-assets .assets-item-delete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: #dc2626;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.core-engine-lib-base-assets .assets-item:hover .assets-item-delete {
+    opacity: 1;
+}
+
+.core-engine-lib-base-assets .assets-item-delete:hover {
+    background: #fee2e2;
+}
+
+/* ============================================ */
+/* DROPZONE                                     */
+/* ============================================ */
+
+.core-engine-lib-base-assets .assets-dropzone {
+    flex-shrink: 0;
+    padding: 16px;
+    text-align: center;
+    font-size: 13px;
+    color: #94a3b8;
+    border: 2px dashed #cbd5e1;
+    border-radius: var(--radius, 8px);
+    background: #f8fafc;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    cursor: pointer;
+}
+
+.core-engine-lib-base-assets .assets-dropzone.active {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+/* ============================================ */
+/* FOOTER                                       */
+/* ============================================ */
+
+.core-engine-lib-base-assets .assets-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--color-border, #e2e8f0);
+    background: var(--color-bg, #f8fafc);
+    flex-shrink: 0;
+}
+
+.core-engine-lib-base-assets .assets-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: var(--radius, 8px);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    min-width: 80px;
+}
+
+.core-engine-lib-base-assets .assets-btn-cancel {
+    background: var(--color-white, #ffffff);
+    color: var(--color-text, #1e293b);
+    border: 1px solid var(--color-border, #e2e8f0);
+}
+
+.core-engine-lib-base-assets .assets-btn-cancel:hover {
+    background: #f1f5f9;
+}
+
+/* ============================================ */
+/* RESPONSIVE                                   */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-base-assets .assets-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .core-engine-lib-base-assets .assets-header {
+        padding: 12px 16px;
+    }
+
+    .core-engine-lib-base-assets .assets-title {
+        font-size: 16px;
+    }
+
+    .core-engine-lib-base-assets .assets-toolbar,
+    .core-engine-lib-base-assets .assets-body,
+    .core-engine-lib-base-assets .assets-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .core-engine-lib-base-assets .assets-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-assets .assets-content {
+        width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        max-width: 100%;
+    }
+
+    .core-engine-lib-base-assets .assets-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

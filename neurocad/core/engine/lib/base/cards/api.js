@@ -1,15 +1,23 @@
 // app/core/engine/lib/base/cards/api.js
 
 /**
- * CRUD-операции для BaseCards.
+ * CRUD operations for BaseCards.
  *
- * Все функции принимают `cards` (инстанс BaseCards) первым аргументом.
- * Все сетевые функции — async.
+ * All functions take `cards` (a BaseCards instance) as first argument.
+ * All network functions are async.
+ *
+ * Error shape:
+ *   err.status  — HTTP status code (401, 403, 404, 500, ...)
+ *   err.detail  — raw detail object from server (if JSON)
+ *   err.message — human-readable message (server's detail.message / detail / fallback)
+ *
+ * This lets callers (selection.js, cards.js) handle 401 centrally
+ * — e.g. redirect to login — instead of crashing with a raw Error.
  */
 
 /**
- * Собрать URL из endpoint + параметров.
- * Подставляет {id}, добавляет section/contextId/is_delete.
+ * Build URL from endpoint + params.
+ * Substitutes {id}, appends section / contextId / is_delete.
  */
 export function buildUrl(cards, endpoint, params = {}) {
     let url = cards.apiBase + endpoint;
@@ -27,7 +35,45 @@ export function buildUrl(cards, endpoint, params = {}) {
 }
 
 /**
- * Создать элемент.
+ * Parse a failed Response into a rich Error.
+ *
+ * Tries to read JSON body:
+ *   - { detail: { message: "..." } }  — new format
+ *   - { detail: "..." }               — FastAPI style
+ *   - { message: "..." }              — fallback
+ *   - otherwise                        — "HTTP <status>"
+ *
+ * @param {Response} response
+ * @param {string} fallbackMessage
+ * @returns {Promise<Error>}
+ */
+async function _errorFromResponse(response, fallbackMessage) {
+    let detail = null;
+    let message = `HTTP ${response.status}`;
+
+    try {
+        const data = await response.json();
+        detail = data?.detail ?? data;
+
+        if (data?.detail?.message) {
+            message = data.detail.message;
+        } else if (typeof data?.detail === 'string') {
+            message = data.detail;
+        } else if (data?.message) {
+            message = data.message;
+        }
+    } catch (e) {
+        // no JSON body — keep fallback
+    }
+
+    const err = new Error(message || fallbackMessage);
+    err.status = response.status;
+    err.detail = detail;
+    return err;
+}
+
+/**
+ * Create item.
  */
 export async function addItem(cards, data) {
     const url = buildUrl(cards, cards.apiEndpoints.create);
@@ -38,13 +84,12 @@ export async function addItem(cards, data) {
         body: JSON.stringify(data)
     });
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.detail || 'Failed to create item');
+        throw await _errorFromResponse(response, 'Failed to create item');
     }
 }
 
 /**
- * Обновить элемент.
+ * Update item.
  */
 export async function updateItem(cards, id, data) {
     const url = buildUrl(cards, cards.apiEndpoints.update, { id });
@@ -55,25 +100,36 @@ export async function updateItem(cards, id, data) {
         body: JSON.stringify(data)
     });
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.detail || 'Failed to update item');
+        throw await _errorFromResponse(response, 'Failed to update item');
     }
 }
 
 /**
- * Удалить элемент.
+ * Delete item.
  */
 export async function deleteItem(cards, id) {
     const url = buildUrl(cards, cards.apiEndpoints.delete, { id });
-    const response = await fetch(url, { method: 'DELETE', credentials: 'include' });
-    if (!response.ok) throw new Error('Failed to delete item');
+    const response = await fetch(url, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' }
+    });
+    if (!response.ok) {
+        throw await _errorFromResponse(response, 'Failed to delete item');
+    }
 }
 
 /**
- * Восстановить элемент.
+ * Restore item.
  */
 export async function restoreItem(cards, id) {
     const url = buildUrl(cards, cards.apiEndpoints.restore, { id });
-    const response = await fetch(url, { method: 'POST', credentials: 'include' });
-    if (!response.ok) throw new Error('Failed to restore item');
+    const response = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' }
+    });
+    if (!response.ok) {
+        throw await _errorFromResponse(response, 'Failed to restore item');
+    }
 }

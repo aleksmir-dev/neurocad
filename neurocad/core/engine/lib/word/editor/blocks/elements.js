@@ -1,26 +1,43 @@
 // app/core/engine/lib/word/editor/blocks/elements.js
 
 /**
- * ElementBlocks — библиотека элементарных блоков GrapesJS.
+ * ElementBlocks — atoms for GrapesJS.
  *
- * Категория: «Базовые»
+ * Category: "Элементы" (elements).
  *
- * Что внутри:
- *   - Кнопки (primary / secondary / ghost)
- *   - Заголовки (H1 / H2 / H3)
- *   - Параграф
- *   - Лид (вводный текст)
- *   - Список с галочками
- *   - Нумерованный список
- *   - Цитата
- *   - Изображение (с SVG-заглушкой)
- *   - Разделитель
- *   - Поле ввода
- *   - Textarea
- *   - Select
+ * Blocks:
+ *   - Heading H1        — .h1
+ *   - Heading H2        — .h2
+ *   - Heading H3        — .h3
+ *   - Text              — .text
+ *   - Lead              — .lead
+ *   - List              — .list
+ *   - List (check)      — .list--check
+ *   - List (num)        — .list--num
+ *   - Button            — .btn
+ *   - Button (ghost)    — .btn--ghost
+ *   - Image             — .image
+ *   - Divider           — .divider
+ *   - Quote             — .quote
+ *   - Badge             — .badge
+ *   - Card              — .card
  *
- * Классы блоков — с префиксом core- (core-btn, core-card и т.д.).
- * Картинка-заглушка — из editor/placeholder.svg (скопируется в /static/).
+ * NOTE: blocks are NOT wrapped in .core-engine-lib-word-blocks anymore.
+ * That class is the single scope wrapper for the whole page:
+ *   - in the editor — added to the iframe <body> (GrapesLoader)
+ *   - on public pages — added to <article> (public.html)
+ *
+ * All atom classes (.h1, .h2, .h3, .text, .lead, .list, .btn, .card,
+ * .badge, .quote, .image, .divider) live in editor/css/content.css —
+ * they are shared across multiple categories, so they are loaded
+ * globally via canvasCss, not per-block.
+ *
+ * editor/blocks/elements.css is intentionally empty (kept only for
+ * symmetry with layout.css and ready.css).
+ *
+ * Rules:
+ *   - Never change existing class names after release.
+ *   - Atom styles live in content.css and use only --theme-* vars.
  */
 export class ElementBlocks {
     /**
@@ -28,86 +45,75 @@ export class ElementBlocks {
      */
     constructor(bm) {
         this.bm = bm;
-        this.category = 'Базовые';
-        this.placeholder = '/static/core/engine/lib/word/editor/placeholder.svg';
+        this.category = 'Элементы';
     }
 
     register() {
         console.log('[ElementBlocks] Регистрация');
 
-        // ===== КНОПКИ =====
+        // ===== HEADINGS =====
 
-        this.bm.add('core-btn-primary', {
-            label: 'Кнопка (акцентная)',
-            category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="7" width="18" height="10" rx="3" fill="#3b82f6"/></svg>',
-            content: `<div style="text-align:center;margin:12px 0;"><a href="#" class="core-btn core-btn--primary">Кнопка</a></div>`,
-        });
-
-        this.bm.add('core-btn-secondary', {
-            label: 'Кнопка (вторичная)',
-            category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="7" width="18" height="10" rx="3" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/></svg>',
-            content: `<div style="text-align:center;margin:12px 0;"><a href="#" class="core-btn core-btn--secondary">Кнопка</a></div>`,
-        });
-
-        this.bm.add('core-btn-ghost', {
-            label: 'Кнопка (прозрачная)',
-            category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="7" width="18" height="10" rx="3" fill="none" stroke="#64748b" stroke-width="2"/></svg>',
-            content: `<div style="text-align:center;margin:12px 0;"><a href="#" class="core-btn core-btn--ghost">Кнопка</a></div>`,
-        });
-
-        // ===== ЗАГОЛОВКИ =====
-
-        this.bm.add('core-h1', {
+        this.bm.add('core-heading-h1', {
             label: 'Заголовок H1',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 4v16h2.5v-6.5h7V20H15V4h-2.5v7h-7V4H3z"/></svg>',
-            content: `<h1 style="font-size:36px;font-weight:700;margin:20px 0 16px;line-height:1.25;">Заголовок страницы</h1>`,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 4v16h2.5v-6.5h7V20H15V4h-2.5v7h-7V4H3z"></path></svg>',
+            content: '<h1 class="h1">Заголовок H1</h1>',
         });
 
-        this.bm.add('core-h2', {
+        this.bm.add('core-heading-h2', {
             label: 'Заголовок H2',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 4v16h2.5v-6.5h7V20H15V4h-2.5v7h-7V4H3z"/></svg>',
-            content: `<h2 style="font-size:28px;font-weight:700;margin:24px 0 14px;line-height:1.3;">Заголовок раздела</h2>`,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 4v16h2.5v-6.5h7V20H15V4h-2.5v7h-7V4H3z"></path></svg>',
+            content: '<h2 class="h2">Заголовок H2</h2>',
         });
 
-        this.bm.add('core-h3', {
+        this.bm.add('core-heading-h3', {
             label: 'Заголовок H3',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 4v16h2.5v-6.5h7V20H15V4h-2.5v7h-7V4H3z"/></svg>',
-            content: `<h3 style="font-size:22px;font-weight:600;margin:16px 0 10px;line-height:1.35;">Подзаголовок</h3>`,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 4v16h2.5v-6.5h7V20H15V4h-2.5v7h-7V4H3z"></path></svg>',
+            content: '<h3 class="h3">Заголовок H3</h3>',
         });
 
-        // ===== ТЕКСТ =====
+        // ===== TEXT =====
 
-        this.bm.add('core-p', {
+        this.bm.add('core-text', {
             label: 'Параграф',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg>',
-            content: `<p style="font-size:16px;line-height:1.7;margin-bottom:16px;">Текст параграфа. Замените его своим содержимым.</p>`,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"></path></svg>',
+            content: '<p class="text">Текст параграфа. Замените на любой контент.</p>',
         });
 
         this.bm.add('core-lead', {
             label: 'Лид (вводный текст)',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 5h18v3H3zm0 6h18v2H3zm0 5h14v2H3z"/></svg>',
-            content: `<p style="font-size:20px;line-height:1.6;margin-bottom:20px;">Крупный вводный текст, который привлекает внимание к разделу.</p>`,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 5h18v3H3zm0 6h18v2H3zm0 5h14v2H3z"></path></svg>',
+            content: '<p class="lead">Вводный текст. Расскажите коротко о главном.</p>',
         });
 
-        // ===== СПИСКИ =====
+        // ===== LISTS =====
+
+        this.bm.add('core-list', {
+            label: 'Список',
+            category: this.category,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M4 6h2v2H4zm4 0h12v2H8zm-4 5h2v2H4zm4 0h12v2H8zm-4 5h2v2H4zm4 0h12v2H8z"></path></svg>',
+            content: `
+                <ul class="list">
+                    <li>Первый пункт</li>
+                    <li>Второй пункт</li>
+                    <li>Третий пункт</li>
+                </ul>
+            `,
+        });
 
         this.bm.add('core-list-check', {
             label: 'Список с галочками',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>',
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path></svg>',
             content: `
-                <ul style="list-style:none;padding-left:0;margin:16px 0;">
-                    <li style="margin-bottom:10px;display:flex;gap:10px;align-items:flex-start;"><span style="color:#16a34a;font-weight:700;">✔</span> Первый пункт списка</li>
-                    <li style="margin-bottom:10px;display:flex;gap:10px;align-items:flex-start;"><span style="color:#16a34a;font-weight:700;">✔</span> Второй пункт списка</li>
-                    <li style="margin-bottom:10px;display:flex;gap:10px;align-items:flex-start;"><span style="color:#16a34a;font-weight:700;">✔</span> Третий пункт списка</li>
+                <ul class="list list--check">
+                    <li>Первый пункт</li>
+                    <li>Второй пункт</li>
+                    <li>Третий пункт</li>
                 </ul>
             `,
         });
@@ -115,9 +121,9 @@ export class ElementBlocks {
         this.bm.add('core-list-num', {
             label: 'Нумерованный список',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 4h2v5H3zm0 7h2v6H3zm0 8h2v2H3zm4-15h14v2H7zm0 7h14v2H7zm0 8h14v2H7z"/></svg>',
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 4h2v5H3zm0 7h2v6H3zm0 8h2v2H3zm4-15h14v2H7zm0 7h14v2H7zm0 8h14v2H7z"></path></svg>',
             content: `
-                <ol style="padding-left:24px;margin:16px 0;line-height:1.8;">
+                <ol class="list list--num">
                     <li>Первый пункт</li>
                     <li>Второй пункт</li>
                     <li>Третий пункт</li>
@@ -125,71 +131,68 @@ export class ElementBlocks {
             `,
         });
 
-        // ===== ЦИТАТА =====
+        // ===== BUTTONS =====
+
+        this.bm.add('core-btn', {
+            label: 'Кнопка',
+            category: this.category,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="7" width="18" height="10" rx="3" fill="currentColor"></rect></svg>',
+            content: '<a href="#" class="btn">Кнопка</a>',
+        });
+
+        this.bm.add('core-btn-ghost', {
+            label: 'Кнопка (вторичная)',
+            category: this.category,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="7" width="18" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="2"></rect></svg>',
+            content: '<a href="#" class="btn btn--ghost">Кнопка</a>',
+        });
+
+        // ===== IMAGE =====
+
+        this.bm.add('core-image', {
+            label: 'Картинка',
+            category: this.category,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M21 19V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2zM8.5 13.5l2.5 3L14.5 12l4.5 6H5z"></path></svg>',
+            content: '<img class="image" src="/static/core/engine/lib/base/images/placeholder.svg" alt="">',
+        });
+
+        // ===== DIVIDER =====
+
+        this.bm.add('core-divider', {
+            label: 'Разделитель',
+            category: this.category,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="11" width="20" height="2" fill="currentColor"></rect></svg>',
+            content: '<hr class="divider">',
+        });
+
+        // ===== QUOTE =====
 
         this.bm.add('core-quote', {
             label: 'Цитата',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/></svg>',
-            content: `<blockquote style="border-left:4px solid #3b82f6;padding:16px 20px;background:#f1f5f9;margin:20px 0;font-style:italic;">Текст цитаты или выделенной мысли.</blockquote>`,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"></path></svg>',
+            content: '<blockquote class="quote">Текст цитаты. Можно заменить на любой контент.</blockquote>',
         });
 
-        // ===== ИЗОБРАЖЕНИЕ =====
+        // ===== BADGE =====
 
-        this.bm.add('core-image', {
-            label: 'Изображение',
+        this.bm.add('core-badge', {
+            label: 'Плашка',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M21 19V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2zM8.5 13.5l2.5 3L14.5 12l4.5 6H5z"/></svg>',
-            content: `<div style="text-align:center;margin:20px 0;"><img src="${this.placeholder}" alt="" style="max-width:100%;height:auto;border-radius:8px;"></div>`,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="9" width="18" height="6" rx="3" fill="currentColor"></rect></svg>',
+            content: '<span class="badge">Плашка</span>',
         });
 
-        // ===== РАЗДЕЛИТЕЛЬ =====
+        // ===== CARD =====
 
-        this.bm.add('core-hr', {
-            label: 'Разделитель',
+        this.bm.add('core-card', {
+            label: 'Карточка',
             category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="11" width="20" height="2" fill="currentColor"/></svg>',
-            content: `<hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;">`,
-        });
-
-        // ===== ФОРМЫ =====
-
-        this.bm.add('core-input', {
-            label: 'Поле ввода',
-            category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="7" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div style="margin-bottom:15px;max-width:400px;">
-                    <label style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;">Подпись поля:</label>
-                    <input type="text" placeholder="Введите текст" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:15px;box-sizing:border-box;">
-                </div>
-            `,
-        });
-
-        this.bm.add('core-textarea', {
-            label: 'Многострочное поле',
-            category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
-            content: `
-                <div style="margin-bottom:15px;max-width:500px;">
-                    <label style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;">Комментарий:</label>
-                    <textarea rows="3" placeholder="Введите текст" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:15px;box-sizing:border-box;font-family:inherit;"></textarea>
-                </div>
-            `,
-        });
-
-        this.bm.add('core-select', {
-            label: 'Выпадающий список',
-            category: this.category,
-            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3" y="7" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 11l-2 2-2-2" stroke="currentColor" stroke-width="2" fill="none"/></svg>',
-            content: `
-                <div style="margin-bottom:15px;max-width:400px;">
-                    <label style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;">Выберите вариант:</label>
-                    <select style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:15px;box-sizing:border-box;background:#fff;">
-                        <option>Вариант 1</option>
-                        <option>Вариант 2</option>
-                        <option>Вариант 3</option>
-                    </select>
+                <div class="card">
+                    <h3 class="card__title">Заголовок карточки</h3>
+                    <p class="card__text">Содержимое карточки. Можно заменить на любой контент.</p>
                 </div>
             `,
         });

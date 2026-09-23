@@ -1,6 +1,6 @@
 [project]
 name = "neurocad"
-version = "0.1.18"
+version = "0.1.19"
 description = "NeuroCad — core engine + CMS + visual editor for FastAPI"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -47,9 +47,11 @@ dependencies = [
     "aiologger",
     "aiofiles",
     "jinja2",
-    "alembic",
+    "alembic==1.13.2",
     "httpx",
-    "tiktoken",    
+    "tiktoken",
+    "beautifulsoup4",
+    "lxml",
 ]
 
 [project.optional-dependencies]

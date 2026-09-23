@@ -33,6 +33,20 @@ class Page(Base):
     # GrapesJS JSON for editor
     content_json: Mapped[Optional[str]] = mapped_column(Text)
 
+    # ===== Template system =====
+    # is_template = True → this page can be used as a base template
+    #   by other pages (shown in "Наследовать от" dropdown).
+    # template_id = None → standalone page (renders its own content).
+    # template_id = <id> → inherits layout from that template page;
+    #   its own `content` is inserted into the [data-slot="content"] slot.
+    is_template: Mapped[int] = mapped_column(Integer, default=0)
+    template_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("pages.id"),
+        nullable=True,
+        default=None,
+    )
+
     is_active: Mapped[int] = mapped_column(Integer, default=1)
     is_delete: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[dt] = mapped_column(DateTime, default=dt.now)
@@ -46,4 +60,6 @@ class Page(Base):
         Index('idx_pages_is_delete', 'is_delete'),
         Index('idx_pages_is_active', 'is_active'),
         Index('idx_pages_rss_yandex_id', 'rss_yandex_id'),
+        Index('idx_pages_is_template', 'is_template'),
+        Index('idx_pages_template_id', 'template_id'),
     )

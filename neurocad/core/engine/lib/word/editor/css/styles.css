@@ -15,7 +15,7 @@
  *   - Properties: labels, inputs, composite fields (padding, margin, border).
  *   - Radio buttons (text-align), clear icon, color pickers.
  *   - Class Manager (class tags).
- *   - Trait Manager (element attributes).
+ *   - Trait Manager (element attributes) — label сверху, поле снизу.
  *
  * All classes — standard .gjs-sm-* / .gjs-field / .gjs-clm-* / .gjs-trt-*.
  * Styled for light Base theme.
@@ -242,7 +242,20 @@
     padding: 8px 12px;
 }
 
+/*
+ * Трейт — вертикальный: label сверху, поле снизу.
+ *
+ * По умолчанию GrapesJS ставит label и поле в ряд (flex-row).
+ * Из-за этого длинные названия («Внутренний отступ») обрезаются,
+ * а поля получаются узкими.
+ *
+ * flex-direction: column → label сверху, поле снизу.
+ */
 .core-engine-lib-word-editor-panel-content .gjs-trt-trait {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
     margin-bottom: 10px;
 }
 
@@ -252,11 +265,94 @@
 }
 
 .core-engine-lib-word-editor-panel-content .gjs-trt-trait .gjs-label-wrp {
+    width: 100%;
     color: #1e293b;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.02em;
+}
+
+.core-engine-lib-word-editor-panel-content .gjs-trt-trait .gjs-label-wrp .gjs-label {
+    color: inherit;
+}
+
+.core-engine-lib-word-editor-panel-content .gjs-trt-trait .gjs-field-wrp {
+    width: 100%;
+}
+
+/* --- Custom body-style-integer: input + unit select рядом --- */
+
+/*
+ * .gjs-field — обёртка GrapesJS для кастомного типа.
+ * Убираем padding и растягиваем внутренний flex
+ * (input + select) на всю ширину.
+ */
+.core-engine-lib-word-editor-panel-content .gjs-field.gjs-field-body-style-integer {
+    padding: 0;
+    display: flex;
+    align-items: stretch;
+}
+
+.core-engine-lib-word-editor-panel-content .body-style-integer {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    width: 100%;
+    align-items: stretch;
+    min-width: 0;
+}
+
+.core-engine-lib-word-editor-panel-content .body-style-integer__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #1e293b;
+    font-size: 12px;
+    font-family: inherit;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.core-engine-lib-word-editor-panel-content .body-style-integer__input::placeholder {
+    color: #94a3b8;
+}
+
+/*
+ * Селект единиц — фиксированной ширины, чтобы не отъедал
+ * место у input. Разделитель слева — тонкая линия.
+ */
+.core-engine-lib-word-editor-panel-content .body-style-integer__unit {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 2.5em;
+    border: none;
+    border-left: 1px solid var(--border-light, #e2e8f0);
+    outline: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0 6px;
+    text-align: center;
+}
+
+/* --- Custom body-style-select: select на всю ширину --- */
+
+.core-engine-lib-word-editor-panel-content .body-style-select {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #1e293b;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 6px 8px;
 }
 
 /* ============================================
