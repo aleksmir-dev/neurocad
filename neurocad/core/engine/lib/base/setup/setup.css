@@ -1,0 +1,131 @@
+/* neurocad/core/engine/lib/base/setup/setup.css */
+
+.core-engine-lib-base-setup {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.core-engine-lib-base-setup .setup-body {
+    width: 100%;
+    max-width: 720px;
+}
+
+/* ===== Header ===== */
+
+.core-engine-lib-base-setup .setup-header {
+    margin-bottom: 32px;
+}
+
+.core-engine-lib-base-setup .setup-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-main, #1e293b);
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.core-engine-lib-base-setup .setup-subtitle {
+    font-size: 15px;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ===== Menu ===== */
+
+.core-engine-lib-base-setup .setup-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.core-engine-lib-base-setup .setup-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: #ffffff;
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.core-engine-lib-base-setup .setup-menu-item:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-base-setup .setup-menu-item:active {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-base-setup .setup-menu-item-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.core-engine-lib-base-setup .setup-menu-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main, #1e293b);
+    line-height: 1.3;
+}
+
+.core-engine-lib-base-setup .setup-menu-item-desc {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.4;
+}
+
+.core-engine-lib-base-setup .setup-menu-item-arrow {
+    font-size: 20px;
+    color: #cbd5e1;
+    flex-shrink: 0;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.core-engine-lib-base-setup .setup-menu-item:hover .setup-menu-item-arrow {
+    color: #3b82f6;
+    transform: translateX(2px);
+}
+
+/* ===== Mobile ===== */
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-setup {
+        padding: 20px 12px;
+    }
+
+    .core-engine-lib-base-setup .setup-title {
+        font-size: 22px;
+    }
+
+    .core-engine-lib-base-setup .setup-menu-item {
+        padding: 14px 16px;
+        gap: 12px;
+    }
+
+    .core-engine-lib-base-setup .setup-menu-item-title {
+        font-size: 15px;
+    }
+
+    .core-engine-lib-base-setup .setup-menu-item-desc {
+        font-size: 12px;
+    }
+}

@@ -1,0 +1,321 @@
+/* neurocad/core/engine/lib/base/setup/llm/llm.css */
+
+.core-engine-lib-base-setup-llm {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.core-engine-lib-base-setup-llm .llm-body {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 24px 20px 0;
+    box-sizing: border-box;
+}
+
+/* ===== Titlebar (fixed) ===== */
+
+.core-engine-lib-base-setup-llm .llm-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 12px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.core-engine-lib-base-setup-llm .llm-titlebar-left,
+.core-engine-lib-base-setup-llm .llm-titlebar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 80px;
+}
+
+.core-engine-lib-base-setup-llm .llm-titlebar-right {
+    justify-content: flex-end;
+}
+
+.core-engine-lib-base-setup-llm .llm-titlebar-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-main, #1e293b);
+    text-align: center;
+    flex: 1 1 auto;
+}
+
+.core-engine-lib-base-setup-llm .llm-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    background: transparent;
+    color: #475569;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+    line-height: 1;
+}
+
+.core-engine-lib-base-setup-llm .llm-icon-btn:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 0.08);
+    color: #3b82f6;
+}
+
+.core-engine-lib-base-setup-llm .llm-icon-btn:active:not(:disabled) {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.core-engine-lib-base-setup-llm .llm-icon-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.core-engine-lib-base-setup-llm .llm-icon-img {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+/* ===== Status / warning (fixed) ===== */
+
+.core-engine-lib-base-setup-llm .llm-status {
+    padding: 10px 14px;
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    margin-bottom: 16px;
+    border: 1px solid transparent;
+    flex-shrink: 0;
+}
+
+.core-engine-lib-base-setup-llm .llm-status-success {
+    background: #dcfce7;
+    color: #16a34a;
+    border-color: #86efac;
+}
+
+.core-engine-lib-base-setup-llm .llm-status-error {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.core-engine-lib-base-setup-llm .llm-status-info {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #bfdbfe;
+}
+
+.core-engine-lib-base-setup-llm .llm-warning {
+    padding: 10px 14px;
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+    flex-shrink: 0;
+}
+
+/* ===== Form (fills remaining height) ===== */
+
+.core-engine-lib-base-setup-llm .llm-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 0;
+    padding: 0;
+}
+
+/* ===== Active provider row (fixed) ===== */
+
+.core-engine-lib-base-setup-llm .llm-active-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    padding: 4px 0 0;
+    margin-bottom: 12px;
+}
+
+.core-engine-lib-base-setup-llm .llm-active-row .llm-label {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.core-engine-lib-base-setup-llm .llm-active-row .llm-select {
+    flex: 1 1 auto;
+}
+
+/* ===== Divider (fixed) ===== */
+
+.core-engine-lib-base-setup-llm .llm-hr {
+    border: none;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    margin: 0 0 12px 0;
+    flex-shrink: 0;
+}
+
+/* ===== Scrollable area (providers) ===== */
+
+.core-engine-lib-base-setup-llm .llm-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+    margin-right: -4px;
+    padding-bottom: 24px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ===== Provider block ===== */
+
+.core-engine-lib-base-setup-llm .llm-provider {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    padding: 12px 16px 16px;
+    margin: 0;
+
+    background: #f8fafc;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+/*
+ * Inactive providers are kept in the DOM but hidden via the [hidden]
+ * attribute. The rule below ensures they do not take space even if
+ * some user-agent stylesheet tries to override display.
+ */
+.core-engine-lib-base-setup-llm .llm-provider[hidden] {
+    display: none;
+}
+
+.core-engine-lib-base-setup-llm .llm-provider-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-align: right;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px 0;
+    padding: 0;
+}
+
+/* ===== Field ===== */
+
+.core-engine-lib-base-setup-llm .llm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.core-engine-lib-base-setup-llm .llm-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+}
+
+.core-engine-lib-base-setup-llm .llm-input,
+.core-engine-lib-base-setup-llm .llm-select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    box-sizing: border-box;
+}
+
+.core-engine-lib-base-setup-llm .llm-input:focus,
+.core-engine-lib-base-setup-llm .llm-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-base-setup-llm .llm-select {
+    cursor: pointer;
+}
+
+/* ===== Buttons (error state only) ===== */
+
+.core-engine-lib-base-setup-llm .llm-btn {
+    padding: 9px 16px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.core-engine-lib-base-setup-llm .llm-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.core-engine-lib-base-setup-llm .llm-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ===== Error state ===== */
+
+.core-engine-lib-base-setup-llm .llm-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 48px 24px;
+    text-align: center;
+}
+
+.core-engine-lib-base-setup-llm .llm-error-icon {
+    font-size: 40px;
+    line-height: 1;
+}
+
+.core-engine-lib-base-setup-llm .llm-error-text {
+    font-size: 15px;
+    color: #dc2626;
+}
+
+/* ===== Mobile ===== */
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-setup-llm .llm-body {
+        padding: 12px 12px 0;
+    }
+
+    .core-engine-lib-base-setup-llm .llm-titlebar-title {
+        font-size: 15px;
+    }
+}

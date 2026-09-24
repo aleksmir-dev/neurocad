@@ -1,4 +1,4 @@
-# app/core/models/pages.py
+# app/core/models/page.py
 
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Text, Integer, DateTime, Index, ForeignKey
@@ -32,6 +32,11 @@ class Page(Base):
 
     # GrapesJS JSON for editor
     content_json: Mapped[Optional[str]] = mapped_column(Text)
+
+    # CSS страницы (источник правды).
+    # HTML — в content, CSS — здесь. При рендере CSS выгружается
+    # в static/pages/<id>.css, в HTML идёт <link> с ?v=<hash>.
+    css: Mapped[Optional[str]] = mapped_column(Text)
 
     # ===== Template system =====
     # is_template = True → this page can be used as a base template

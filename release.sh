@@ -4,7 +4,7 @@
 
 set -e  # stop on any error
 
-VERSION="0.1.19"
+VERSION="0.1.20"
 TAG="v${VERSION}"
 
 echo "=== 1. Clean old dist ==="

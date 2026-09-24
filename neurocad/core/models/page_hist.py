@@ -9,14 +9,17 @@ from .base import Base
 
 class PageHist(Base):
     """
-    История изменений HTML страницы.
+    История изменений страницы.
 
     Снимки полного состояния страницы после каждого изменения —
     для undo/redo в LLM-редакторе и визуальном редакторе GrapesJS.
     Привязана к конкретной странице (page_id).
 
     Хранит:
-      - html          — HTML для рендера (с уже встроенным <style>).
+      - html          — HTML для рендера (без <style>).
+      - css           — CSS страницы на момент снимка.
+                        Для старых записей (до выделения css
+                        в отдельное поле) — NULL, CSS вшит в html.
       - content_json  — полный project JSON GrapesJS (getProjectData()).
                         При откате загружается через loadProjectData()
                         и восстанавливает структуру, стили, assets.
@@ -38,6 +41,10 @@ class PageHist(Base):
     # Снимок полного project JSON GrapesJS (getProjectData()).
     # Optional: для старых записей (созданных до появления поля) — NULL.
     content_json: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Снимок CSS на момент изменения (для отката).
+    # Optional: для старых записей, где CSS вшит в html.
+    css: Mapped[Optional[str]] = mapped_column(Text)
 
     # Что стало причиной изменения:
     #   'user_edit'    — ручное редактирование

@@ -13,6 +13,9 @@
  *      Render preview in <iframe srcdoc="...">, wrapped in the scope class
  *      .core-engine-lib-word-blocks and with content.css + block CSS
  *      linked inside the iframe (isolation from editor styles).
+ *      Snapshot CSS (data.css) is injected as <style> in the iframe head.
+ *      For legacy snapshots without data.css, CSS is extracted from
+ *      <style> tags inside data.html.
  *   4. On "Откатить" — confirm dialog, then POST /word/{id}/rollback/{hist_id}.
  *      On success — call onRollback(data) and close the modal.
  *
@@ -374,6 +377,8 @@ class HistoryModal {
      *   - <base href="/"> so relative asset URLs work.
      *   - content.css  (shared classes: .btn, .card, .grid, ...)
      *   - block CSS    (elements.css, layout.css, ready.css, aleksmir.ru.css)
+     *   - snapshot CSS — either data.css (new) or <style> extracted
+     *                    from data.html (legacy)
      *   - the snapshot HTML wrapped in .core-engine-lib-word-blocks
      *
      * Result: styles in the preview match the public page and do NOT
@@ -387,7 +392,18 @@ class HistoryModal {
      *                         safe enough for preview purposes.
      */
     _renderPreview(data) {
-        const html = data.html || '<p style="color:#94a3b8;">Пустой снимок</p>';
+        const rawHtml = data.html || '<p style="color:#94a3b8;">Пустой снимок</p>';
+        const snapshotCss = (data.css || '').trim();
+
+        let htmlWithoutStyles = rawHtml;
+        let css = snapshotCss;
+
+        // Legacy path: CSS embedded in html as <style> tags
+        if (!css) {
+            const styleMatches = [...rawHtml.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];
+            css = styleMatches.map(m => m[1]).join('\n').trim();
+            htmlWithoutStyles = rawHtml.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+        }
 
         const version = window.coreEngine?.static_version || Date.now();
         const cssBase = '/static/core/engine/lib/word/editor/css';
@@ -402,19 +418,26 @@ class HistoryModal {
             `${blocksBase}/aleksmir.ru.css?v=${version}`,
         ].map((href) => `<link rel="stylesheet" href="${href}">`).join('\n');
 
+        // Snapshot CSS as inline <style> in iframe head — it must come
+        // AFTER block CSS so page rules override block defaults.
+        const snapshotStyle = css
+            ? `<style data-source="snapshot">${css}</style>`
+            : '';
+
         const srcdoc = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <base href="/">
 ${cssLinks}
+${snapshotStyle}
 <style>
   html, body { margin: 0; padding: 0; }
   body { padding: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 </style>
 </head>
 <body>
-<div class="core-engine-lib-word-blocks">${html}</div>
+<div class="core-engine-lib-word-blocks">${htmlWithoutStyles}</div>
 </body>
 </html>`;
 

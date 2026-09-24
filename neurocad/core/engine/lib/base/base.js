@@ -1,12 +1,12 @@
 // app/core/engine/lib/base/base.js
 
 /**
- * Базовый компонент — каркас приложения
- * Рендерит структуру страницы и управляет отображением блоков
+ * Base component — application shell.
+ * Renders page structure and manages block visibility.
  */
 export class Base {
     constructor(container, props = {}) {
-        console.log('[Base] Конструктор вызван');
+        console.log('[Base] Constructor called');
         this.container = container;
         this.props = props;
 
@@ -34,11 +34,15 @@ export class Base {
         this.redirectUrl = null;
         this.childComponents = [];
 
-        // Состояние инициализации
+        // Active "page" instance rendered into area-center (profile, setup, ...).
+        // Not the same as childComponents — those come from the config.
+        this.areaInstance = null;
+
+        // Init state
         this._initialized = false;
         this._initPromise = null;
 
-        // Флаг: идет процесс аутентификации (блокирует renderContent)
+        // Flag: authentication in progress (blocks renderContent)
         this._isAuthenticating = false;
 
         document.body.style.display = 'none';
@@ -87,7 +91,7 @@ export class Base {
             this._initialized = true;
             console.log('[Base] _init() COMPLETE');
         } catch (error) {
-            console.error('[Base] Ошибка инициализации:', error);
+            console.error('[Base] Init error:', error);
             this._initialized = false;
             throw error;
         }
@@ -123,7 +127,7 @@ export class Base {
             this.render();
             await this._initAuth();
         } catch (error) {
-            console.error('[Base] Ошибка загрузки модулей:', error);
+            console.error('[Base] Module load error:', error);
             throw error;
         }
     }
@@ -140,13 +144,17 @@ export class Base {
 
         if (window.coreEngine) {
             window.coreEngine.auth = this.auth;
+            // Base owns area-center. Register self so auth / menu /
+            // other components can render pages into area-center
+            // via the shared renderInArea() method.
+            window.coreEngine.base = this;
         }
 
         if (this.header) {
             this.header.setAuth(this.auth);
         }
 
-        // ===== Обработка изменения авторизации =====
+        // ===== React to auth state changes =====
         document.addEventListener('auth:changed', (e) => {
             const { user, isAuthenticated } = e.detail;
             console.log('[Base] auth:changed', { user, isAuthenticated });
@@ -157,7 +165,7 @@ export class Base {
             }
 
             if (isAuthenticated) {
-                // Разблокируем renderContent после успешного логина
+                // Unblock renderContent after successful login
                 this._isAuthenticating = false;
                 this.renderContent();
             }
@@ -166,10 +174,10 @@ export class Base {
             }
         });
 
-        // ===== Обработка неавторизованного доступа (401) =====
+        // ===== React to unauthorized access (401) =====
         document.addEventListener('auth:unauthorized', () => {
-            console.log('[Base] auth:unauthorized — блокируем renderContent');
-            // Блокируем renderContent, чтобы Nav/Cards не рендерились поверх формы входа
+            console.log('[Base] auth:unauthorized — blocking renderContent');
+            // Block renderContent so Nav/Cards don't render over the login form
             this._isAuthenticating = true;
         });
 
@@ -225,7 +233,7 @@ export class Base {
                 this._updateChatMode();
             });
         } catch (error) {
-            console.error('[Base] Ошибка загрузки чата:', error);
+            console.error('[Base] Chat load error:', error);
         }
     }
 
@@ -276,19 +284,19 @@ export class Base {
         console.log('[Base] renderContent()');
 
         if (this._isAuthenticating) {
-            console.log('[Base] Идет аутентификация, пропускаем renderContent');
+            console.log('[Base] Auth in progress, skipping renderContent');
             return;
         }
 
         const center = document.querySelector('.core-engine-lib-base-area-center');
         if (!center) {
-            console.error('[Base] center не найден');
+            console.error('[Base] center not found');
             return;
         }
 
         const renderer = window.coreEngine?.renderer;
         if (!renderer) {
-            console.error('[Base] renderer не найден');
+            console.error('[Base] renderer not found');
             center.innerHTML = '';
             return;
         }
@@ -296,19 +304,19 @@ export class Base {
         console.log('[Base] components:', this.components);
         console.log('[Base] content:', this.content);
 
-        // ===== ШАГ 1: рендерим компоненты в скрытый staging,
-        // чтобы их живой DOM не был уничтожен при сборке финального HTML =====
+        // ===== STEP 1: render components into a hidden staging area,
+        // so their live DOM isn't destroyed when we assemble the final HTML =====
         const staging = document.createElement('div');
         staging.style.display = 'none';
         document.body.appendChild(staging);
 
-        // Уничтожаем предыдущие экземпляры при повторном рендере
+        // Destroy previous instances on re-render
         if (this.childComponents && this.childComponents.length) {
             for (const inst of this.childComponents) {
                 try {
                     if (inst && typeof inst.destroy === 'function') inst.destroy();
                 } catch (e) {
-                    console.warn('[Base] Ошибка destroy дочернего компонента:', e);
+                    console.warn('[Base] Child component destroy error:', e);
                 }
             }
         }
@@ -319,28 +327,28 @@ export class Base {
         if (this.components && this.components.length > 0) {
             for (const comp of this.components) {
                 const alias = comp.alias || comp.component;
-                console.log('[Base] Рендеринг компонента:', alias);
+                console.log('[Base] Rendering component:', alias);
                 try {
                     const element = await renderer.renderComponent(comp, staging);
                     if (element) {
                         componentElements[alias] = element;
 
-                        // Если renderer положил инстанс в __instance — сохраняем
+                        // If renderer put the instance into __instance — keep it
                         if (element.__instance) {
                             this.childComponents.push(element.__instance);
                         }
 
-                        console.log(`[Base] Компонент ${alias} отрендерен`);
+                        console.log(`[Base] Component ${alias} rendered`);
                     } else {
-                        console.warn('[Base] Компонент не отрендерен:', alias);
+                        console.warn('[Base] Component not rendered:', alias);
                     }
                 } catch (error) {
-                    console.error('[Base] Ошибка рендеринга компонента:', error);
+                    console.error('[Base] Component render error:', error);
                 }
             }
         }
 
-        // ===== ШАГ 2: собираем финальный DOM, вставляя ЖИВЫЕ элементы вместо {{alias}} =====
+        // ===== STEP 2: assemble final DOM, inserting LIVE elements instead of {{alias}} =====
         center.innerHTML = '';
 
         if (this.content) {
@@ -354,7 +362,7 @@ export class Base {
                 template.innerHTML = html;
                 const fragment = template.content;
 
-                // Ищем все текстовые узлы, содержащие {{...}}
+                // Find all text nodes containing {{...}}
                 const walker = document.createTreeWalker(
                     fragment,
                     NodeFilter.SHOW_TEXT,
@@ -382,11 +390,11 @@ export class Base {
                             const alias = m[1].trim();
                             const el = componentElements[alias];
                             if (el) {
-                                console.log(`[Base] Вставка живого элемента для {{${alias}}}`);
+                                console.log(`[Base] Inserting live element for {{${alias}}}`);
                                 parent.insertBefore(el, refNode);
                                 delete componentElements[alias];
                             } else {
-                                console.warn(`[Base] Маркер {{${alias}}} не найден`);
+                                console.warn(`[Base] Marker {{${alias}}} not found`);
                                 parent.insertBefore(document.createTextNode(part), refNode);
                             }
                         } else if (part) {
@@ -401,17 +409,17 @@ export class Base {
             }
         }
 
-        // ===== ШАГ 3: компоненты без маркера — добавляем в конец center =====
+        // ===== STEP 3: components without a marker — append at the end of center =====
         for (const [alias, element] of Object.entries(componentElements)) {
             if (element) {
-                console.log('[Base] Добавление неиспользованного компонента в DOM:', alias);
+                console.log('[Base] Appending unused component to DOM:', alias);
                 center.appendChild(element);
             }
         }
 
         staging.remove();
 
-        console.log('[Base] renderContent() завершен');
+        console.log('[Base] renderContent() complete');
     }
 
     showAuthPage() {
@@ -507,10 +515,129 @@ export class Base {
         }
     }
 
+    /**
+     * Render a component into area-center.
+     *
+     * Used by auth (login/register/profile), setup pages, and any other
+     * page that replaces the whole center area with its own content.
+     *
+     * Destroys the previous areaInstance (if any) before rendering a new one.
+     * The instance is tracked in this.areaInstance — separate from
+     * childComponents (which come from the config and are destroyed in
+     * renderContent()).
+     *
+     * @param {Function} ComponentClass — component constructor
+     * @param {Object} options          — props passed to the constructor
+     * @returns {Promise<Object|null>}  — component instance or null on failure
+     */
+    async renderInArea(ComponentClass, options = {}) {
+        console.log('[Base] renderInArea()');
+
+        const center = document.querySelector('.core-engine-lib-base-area-center');
+        if (!center) {
+            console.error('[Base] area-center not found');
+            return null;
+        }
+
+        // Destroy previous page instance
+        if (this.areaInstance) {
+            try {
+                if (typeof this.areaInstance.destroy === 'function') {
+                    this.areaInstance.destroy();
+                }
+            } catch (e) {
+                console.warn('[Base] areaInstance destroy error:', e);
+            }
+            this.areaInstance = null;
+        }
+
+        center.innerHTML = '';
+
+        let instance;
+        try {
+            instance = new ComponentClass(options);
+
+            if (instance._initPromise) {
+                await instance._initPromise;
+            }
+
+            const element = await instance.render();
+            center.appendChild(element);
+
+            if (typeof instance.bindEvents === 'function') {
+                instance.bindEvents(center);
+            }
+        } catch (e) {
+            console.error('[Base] renderInArea error:', e);
+            center.innerHTML = `
+                <div style="padding:40px;text-align:center;color:#dc2626;">
+                    <div style="font-size:32px;margin-bottom:12px;">❌</div>
+                    <div>Не удалось загрузить страницу</div>
+                </div>
+            `;
+            return null;
+        }
+
+        this.areaInstance = instance;
+        return instance;
+    }
+
+    /**
+     * Open a setup page in area-center.
+     *
+     * Available to superadmin only. The guard is checked here (server-side
+     * permissions are enforced on the API endpoints).
+     *
+     * Two sections, two separate components:
+     *   - 'main' → setup/setup.js   (BaseSetup)     — setup landing page
+     *   - 'llm'  → setup/llm/llm.js (BaseSetupLlm)  — LLM settings page
+     *
+     * Each component navigates back via onNavigate(section).
+     *
+     * @param {string} section — 'main' (default) or 'llm'
+     */
+    async showSetup(section = 'main') {
+        console.log('[Base] showSetup()', section);
+
+        const user = this.auth?.getUser?.();
+        const isSuperadmin = user?.is_superadmin === true;
+        if (!isSuperadmin) {
+            console.warn('[Base] showSetup: access denied (not superadmin)');
+            return;
+        }
+
+        const version = window.coreEngine?.static_version || Date.now();
+
+        let ComponentClass = null;
+        try {
+            if (section === 'llm') {
+                const mod = await import(`./setup/llm/llm.js?v=${version}`);
+                ComponentClass = mod.BaseSetupLlm;
+            } else {
+                const mod = await import(`./setup/setup.js?v=${version}`);
+                ComponentClass = mod.BaseSetup;
+            }
+        } catch (err) {
+            console.error('[Base] showSetup import error:', err);
+            return;
+        }
+
+        if (!ComponentClass) {
+            console.error('[Base] showSetup: component class not found for section', section);
+            return;
+        }
+
+        await this.renderInArea(ComponentClass, {
+            section,
+            user,
+            onNavigate: (nextSection) => this.showSetup(nextSection),
+        });
+    }
+
     async openModal(type, title, message, options = {}) {
         const modal = this.modules.createModal(type);
         if (!modal) {
-            console.warn(`[Base] Неизвестный тип модалки: ${type}`);
+            console.warn(`[Base] Unknown modal type: ${type}`);
             return;
         }
 
@@ -538,7 +665,7 @@ export class Base {
                 modal.setOnOk(() => modal.destroy());
                 break;
             default:
-                console.warn(`[Base] Неизвестный тип модалки: ${type}`);
+                console.warn(`[Base] Unknown modal type: ${type}`);
         }
     }
 
@@ -589,12 +716,25 @@ export class Base {
 
     destroy() {
         console.log('[Base] destroy()');
+
+        // Destroy active area page instance
+        if (this.areaInstance) {
+            try {
+                if (typeof this.areaInstance.destroy === 'function') {
+                    this.areaInstance.destroy();
+                }
+            } catch (e) {
+                console.warn('[Base] areaInstance destroy error:', e);
+            }
+            this.areaInstance = null;
+        }
+
         if (this.childComponents && this.childComponents.length) {
             for (const inst of this.childComponents) {
                 try {
                     if (inst && typeof inst.destroy === 'function') inst.destroy();
                 } catch (e) {
-                    console.warn('[Base] Ошибка destroy дочернего компонента:', e);
+                    console.warn('[Base] Child component destroy error:', e);
                 }
             }
         }

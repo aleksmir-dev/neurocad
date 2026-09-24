@@ -1,9 +1,11 @@
 # neurocad/core/engine/lib/word/llm/route.py
 
 """
-LLM editor API: presets + chat.
+LLM editor API: presets + chat history + chat stream.
 
-Endpoints:
+Namespace: CoreEngineLibWordLlmRoute
+
+HTTP endpoints:
   GET    /core/engine/lib/word/llm/presets                    — list presets
   POST   /core/engine/lib/word/llm/presets                    — create preset
   GET    /core/engine/lib/word/llm/presets/{id}               — get one preset
@@ -14,21 +16,34 @@ Endpoints:
   DELETE /core/engine/lib/word/llm/presets/{id}/thumbnail     — delete thumbnail
 
   GET    /core/engine/lib/word/llm/chat/{page_id}/history     — chat history
-  POST   /core/engine/lib/word/llm/chat/{page_id}             — send message
+  DELETE /core/engine/lib/word/llm/chat/{page_id}/history     — clear history
+  GET    /core/engine/lib/word/llm/chat/{page_id}/run/active  — active run
 
-All endpoints except GET-list, GET-one and GET-history require superadmin.
+WebSocket:
+  WS     /core/engine/lib/word/llm/ws/{page_id}               — chat stream
+
+Note: sending a chat message is done via the WebSocket only.
+The old HTTP endpoint POST /chat/{page_id} was removed — it did
+the whole plan → fill → effects flow, which is now handled by the
+agent dispatcher in ws.py.
+
+All HTTP endpoints except GET-list, GET-one and GET-history require
+superadmin. The WebSocket endpoint also requires superadmin (checked
+inside the handler).
 """
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from fastapi.responses import JSONResponse
 
 from neurocad.core.auth.dependencies import get_current_user
-from .service import LLMService
+
+from .service import CoreEngineLibWordLlmService
+from .runs import CoreEngineLibWordLlmRuns
 from .schema import (
-    LLMPresetCreate,
-    LLMPresetUpdate,
-    LLMChatMessageCreate,
+    CoreEngineLibWordLlmPresetCreate,
+    CoreEngineLibWordLlmPresetUpdate,
 )
+from .ws import CoreEngineLibWordLlmWS
 
 
 router = APIRouter(prefix="/llm", tags=["core/engine/lib/word/llm"])
@@ -43,7 +58,7 @@ async def list_presets(
     include_deleted: bool = Query(False, description="Include deleted"),
 ) -> JSONResponse:
     """List presets. Public endpoint."""
-    result = await LLMService.list_presets(include_deleted=include_deleted)
+    result = await CoreEngineLibWordLlmService.list_presets(include_deleted=include_deleted)
 
     return JSONResponse({
         "success": True,
@@ -59,7 +74,7 @@ async def list_presets(
 @router.get("/presets/{preset_id}")
 async def get_preset(preset_id: int) -> JSONResponse:
     """Get one preset by ID. Public endpoint."""
-    item = await LLMService.get_preset(preset_id)
+    item = await CoreEngineLibWordLlmService.get_preset(preset_id)
 
     if not item:
         raise HTTPException(status_code=404, detail="Preset not found")
@@ -76,14 +91,14 @@ async def get_preset(preset_id: int) -> JSONResponse:
 
 @router.post("/presets")
 async def create_preset(
-    data: LLMPresetCreate,
+    data: CoreEngineLibWordLlmPresetCreate,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """Create preset. Superadmin only."""
     if not current_user.get("is_superadmin", False):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    item = await LLMService.create_preset(
+    item = await CoreEngineLibWordLlmService.create_preset(
         name=data.name,
         description=data.description,
         html=data.html,
@@ -106,14 +121,14 @@ async def create_preset(
 @router.put("/presets/{preset_id}")
 async def update_preset(
     preset_id: int,
-    data: LLMPresetUpdate,
+    data: CoreEngineLibWordLlmPresetUpdate,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """Update preset. Superadmin only."""
     if not current_user.get("is_superadmin", False):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    item = await LLMService.update_preset(
+    item = await CoreEngineLibWordLlmService.update_preset(
         preset_id=preset_id,
         name=data.name,
         description=data.description,
@@ -143,7 +158,7 @@ async def delete_preset(
     if not current_user.get("is_superadmin", False):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    result = await LLMService.delete_preset(preset_id)
+    result = await CoreEngineLibWordLlmService.delete_preset(preset_id)
 
     if not result:
         raise HTTPException(status_code=404, detail="Preset not found")
@@ -167,7 +182,7 @@ async def restore_preset(
     if not current_user.get("is_superadmin", False):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    result = await LLMService.restore_preset(preset_id)
+    result = await CoreEngineLibWordLlmService.restore_preset(preset_id)
 
     if not result:
         raise HTTPException(status_code=404, detail="Preset not found")
@@ -193,7 +208,7 @@ async def upload_thumbnail(
         raise HTTPException(status_code=403, detail="Forbidden")
 
     try:
-        result = await LLMService.upload_thumbnail(preset_id, file)
+        result = await CoreEngineLibWordLlmService.upload_thumbnail(preset_id, file)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -221,7 +236,7 @@ async def delete_thumbnail(
     if not current_user.get("is_superadmin", False):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    result = await LLMService.delete_thumbnail(preset_id)
+    result = await CoreEngineLibWordLlmService.delete_thumbnail(preset_id)
 
     if not result:
         raise HTTPException(status_code=404, detail="Preset not found")
@@ -239,10 +254,10 @@ async def delete_thumbnail(
 @router.get("/chat/{page_id}/history")
 async def get_chat_history(page_id: int) -> JSONResponse:
     """
-    Chat history for a page. Public endpoint —
-    needed to show history when opening the LLM editor.
+    Chat history for a page. Public endpoint — needed to show history
+    when opening the LLM editor.
     """
-    messages = await LLMService.load_chat_history(page_id)
+    messages = await CoreEngineLibWordLlmService.load_chat_history(page_id)
 
     return JSONResponse({
         "success": True,
@@ -251,38 +266,59 @@ async def get_chat_history(page_id: int) -> JSONResponse:
 
 
 # ============================================
-# CHAT — SEND MESSAGE
+# CHAT — CLEAR HISTORY
 # ============================================
 
-@router.post("/chat/{page_id}")
-async def send_chat_message(
+@router.delete("/chat/{page_id}/history")
+async def clear_chat_history(
     page_id: int,
-    data: LLMChatMessageCreate,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """
-    Send a chat message for a page.
+    Clear chat history for a page.
 
-    Returns:
-      - user_message       — saved user message;
-      - assistant_message  — LLM response;
-      - html               — new page HTML;
-      - css                — new page CSS.
-
-    Superadmin only.
+    Deletes all rows from page_chat for this page. Superadmin only.
     """
     if not current_user.get("is_superadmin", False):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    result = await LLMService.send_chat_message(
-        page_id=page_id,
-        user_message=data.message,
-    )
-
-    if not result:
-        raise HTTPException(status_code=404, detail="Page not found")
+    deleted = await CoreEngineLibWordLlmService.clear_chat_history(page_id)
 
     return JSONResponse({
         "success": True,
-        "data": result,
+        "deleted": deleted,
     })
+
+
+# ============================================
+# CHAT — ACTIVE RUN
+# ============================================
+
+@router.get("/chat/{page_id}/run/active")
+async def get_active_run(page_id: int) -> JSONResponse:
+    """
+    Return the latest unfinished run for a page, or null.
+
+    Used by the frontend after a WebSocket reconnect: if a run is
+    still active, the client shows a progress bubble and waits for
+    it to finish (or cancels it).
+
+    Public endpoint — same as chat history. The run belongs to the
+    page, not to a specific user.
+    """
+    run = await CoreEngineLibWordLlmRuns.get_active_run_for_page(page_id)
+
+    return JSONResponse({
+        "success": True,
+        "data": run,
+    })
+
+
+# ============================================
+# WEBSOCKET — CHAT STREAM
+# ============================================
+#
+# Mounted on the same router, so the final path is:
+#   /core/engine/lib/word/llm/ws/{page_id}
+
+router.add_api_websocket_route("/ws/{page_id}", CoreEngineLibWordLlmWS.llm_ws_endpoint)

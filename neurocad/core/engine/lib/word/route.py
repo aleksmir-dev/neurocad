@@ -151,7 +151,7 @@ async def save_word_content(
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """
-    Save page content (HTML + GrapesJS JSON).
+    Save page content (HTML + GrapesJS JSON + CSS).
 
     Before update, a snapshot of the current state is written
     to page_hist with action='user_edit' (see service.save_content).
@@ -168,6 +168,7 @@ async def save_word_content(
         mod_id=mod_id,
         content=data.content,
         content_json=data.content_json,
+        css=data.css,
         user_note=current_user.get("username") or current_user.get("email"),
     )
 
@@ -193,7 +194,7 @@ async def get_word_history(
     """
     List all snapshots for a page, newest first.
 
-    Does NOT include html / content_json (heavy) — only metadata.
+    Does NOT include html / content_json / css (heavy) — only metadata.
     Use GET /{page_id}/history/{hist_id} for a full snapshot.
 
     Available only to superadmin.
@@ -226,7 +227,7 @@ async def get_word_history_item(
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """
-    Get one full snapshot (html + content_json).
+    Get one full snapshot (html + content_json + css).
 
     Available only to superadmin.
     """

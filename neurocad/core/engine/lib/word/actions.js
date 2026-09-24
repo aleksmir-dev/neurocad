@@ -69,6 +69,11 @@ export function openPublicPage(word) {
 /**
  * Save content from the editor.
  *
+ * HTML and CSS are sent as separate fields:
+ *   content      = HTML (no <style>)
+ *   content_json = GrapesJS project JSON (string)
+ *   css          = CSS from editor.getCss()
+ *
  * Throws an Error with `.status` set to the HTTP status code —
  * so callers can distinguish 401 (session expired) from other errors.
  */
@@ -79,13 +84,8 @@ export async function saveContent(word, data) {
         throw new Error('Unknown page id');
     }
 
-    // Merge HTML + CSS
-    const css = (data.css || '').trim();
     const html = data.html || '';
-
-    const contentWithCss = css
-        ? `<style>${css}</style>${html}`
-        : html;
+    const css = (data.css || '').trim();
 
     const url = `/core/engine/lib/word/${word.pageId}${word._qs}`;
     const response = await fetch(url, {
@@ -96,8 +96,9 @@ export async function saveContent(word, data) {
         },
         credentials: 'include',
         body: JSON.stringify({
-            content: contentWithCss,
+            content: html,
             content_json: JSON.stringify(data.project),
+            css: css,
         }),
     });
 
@@ -116,10 +117,12 @@ export async function saveContent(word, data) {
         throw err;
     }
 
-    word.pageData.content = contentWithCss;
+    // Update local state so next render uses fresh values
+    word.pageData.content = html;
     word.pageData.content_json = JSON.stringify(data.project);
+    word.pageData.css = css;
 
-    console.log('[Word] Content saved (HTML + CSS)');
+    console.log('[Word] Content saved (HTML + CSS separate)');
 
     // Close editor
     const version = window.coreEngine?.static_version || Date.now();
@@ -128,7 +131,7 @@ export async function saveContent(word, data) {
 }
 
 /**
- * List snapshots for the current page (metadata only, no html/content_json).
+ * List snapshots for the current page (metadata only, no html/content_json/css).
  *
  * GET /core/engine/lib/word/{page_id}/history?module=<name>
  *
@@ -167,13 +170,13 @@ export async function listHistory(word) {
 }
 
 /**
- * Get one full snapshot (html + content_json).
+ * Get one full snapshot (html + content_json + css).
  *
  * GET /core/engine/lib/word/{page_id}/history/{hist_id}?module=<name>
  *
  * @param {Object} word — Word instance
  * @param {number} histId — snapshot id
- * @returns {Promise<Object>} — { id, page_id, html, content_json, action, note, created_at }
+ * @returns {Promise<Object>} — { id, page_id, html, content_json, css, action, note, created_at }
  */
 export async function getHistoryItem(word, histId) {
     console.log('[Word] Loading history item:', histId);
@@ -211,9 +214,12 @@ export async function getHistoryItem(word, histId) {
  *
  * POST /core/engine/lib/word/{page_id}/rollback/{hist_id}?module=<name>
  *
+ * Also updates local pageData with the rolled-back values, so the
+ * next render (article view / editor) uses the restored state.
+ *
  * @param {Object} word — Word instance
  * @param {number} histId — snapshot id
- * @returns {Promise<Object>} — { id, title, content, content_json, updated_at }
+ * @returns {Promise<Object>} — { id, title, content, content_json, css, updated_at }
  */
 export async function rollback(word, histId) {
     console.log('[Word] Rollback to snapshot:', histId);
@@ -246,5 +252,14 @@ export async function rollback(word, histId) {
     }
 
     const json = await response.json();
-    return json.data;
+    const data = json.data;
+
+    // Update local state so next render uses restored values
+    if (data && word.pageData) {
+        if (data.content !== undefined) word.pageData.content = data.content;
+        if (data.content_json !== undefined) word.pageData.content_json = data.content_json;
+        if (data.css !== undefined) word.pageData.css = data.css;
+    }
+
+    return data;
 }

@@ -6,6 +6,12 @@ Public pages routes.
 Clean HTML rendering — no admin UI, no JS engine.
 Uses base template + CSS from /static, content from DB.
 
+Page CSS is served as a static file under this module's namespace:
+    /static/core/engine/lib/pages/public/pages/<id>.css?v=<hash>
+Generated on demand from page.css (see neurocad/utils/css.py).
+For legacy pages (CSS embedded in content as <style>) the CSS is
+extracted by the service before rendering.
+
 Namespace: CoreEngineLibPagesPublic*
 """
 
@@ -17,7 +23,12 @@ from fastapi.responses import HTMLResponse
 from bs4 import BeautifulSoup
 
 from neurocad.utils.templates import templates
-from .service import CoreEngineLibPagesPublicService
+from neurocad.utils.css import ensure_css_file
+from .service import (
+    CoreEngineLibPagesPublicService,
+    PAGES_CSS_DIR,
+    PAGES_CSS_URL,
+)
 from .schema import CoreEngineLibPagesPublicItem
 
 
@@ -64,6 +75,17 @@ async def _render_public_page(
 
     If page has template_id — loads the base template page and inserts
     page content into [data-slot="content"] of the template.
+
+    Page CSS is written to
+        static/core/engine/lib/pages/public/pages/<id>.css
+    (if not already there with the same content) and passed to the
+    template as page_css_url. The URL includes ?v=<hash> for
+    cache-busting — the browser caches the file until the CSS content
+    actually changes.
+
+    The directory / URL prefix pair comes from the service
+    (PAGES_CSS_DIR / PAGES_CSS_URL) — this module owns its own static
+    namespace, and ensure_css_file() just writes where it's told.
     """
     # Format datetime for display
     dt_display = None
@@ -85,6 +107,15 @@ async def _render_public_page(
     # so public page and editor render identically.
     block_css_urls = CoreEngineLibPagesPublicService.get_block_css_urls()
 
+    # Page CSS — write derivative file (if needed) and get URL with ?v=<hash>.
+    # Returns None if page.css is empty (legacy pages without CSS at all).
+    page_css_url = ensure_css_file(
+        page.id,
+        page.css,
+        directory=PAGES_CSS_DIR,
+        url_prefix=PAGES_CSS_URL,
+    )
+
     return templates.TemplateResponse(
         request=request,
         name="core/engine/lib/pages/public/public.html",
@@ -96,6 +127,7 @@ async def _render_public_page(
             "logo": page.logo,
             "module_name": "default",
             "block_css_urls": block_css_urls,
+            "page_css_url": page_css_url,
         },
     )
 

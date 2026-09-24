@@ -46,6 +46,21 @@
     {% for css in block_css_urls %}
     <link rel="stylesheet" href="{{ css|static }}">
     {% endfor %}
+
+    {#
+      Page-specific CSS — from Page.css (source of truth in DB),
+      served as /static/pages/<id>.css?v=<hash>.
+
+      MUST load AFTER content.css and block CSS, so page rules
+      override shared and block defaults at equal specificity.
+
+      page_css_url is built by the route handler via
+      ensure_css_file() — includes ?v=<hash>, so no |static filter
+      is needed here. None for pages without CSS.
+    #}
+    {% if page_css_url %}
+    <link rel="stylesheet" href="{{ page_css_url }}">
+    {% endif %}
 </head>
 <body class="core-engine-lib-pages-public-body">
 
@@ -79,7 +94,7 @@
         </header>
         {% endif %}
 
-        {# Content — HTML + inline CSS from GrapesJS, rendered as-is #}
+        {# Content — HTML only (no <style>). CSS comes via page_css_url. #}
         <div class="core-engine-lib-pages-public-content">
             {{ content|safe }}
         </div>

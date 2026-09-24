@@ -40,7 +40,7 @@ class CoreEngineLibPagesPublicItemBase(BaseModel):
 # ============================================
 
 class CoreEngineLibPagesPublicItem(CoreEngineLibPagesPublicItemBase):
-    """Public page — includes HTML content for rendering"""
+    """Public page — includes HTML content and CSS for rendering"""
 
     logo: Optional[str] = Field(
         None,
@@ -48,7 +48,15 @@ class CoreEngineLibPagesPublicItem(CoreEngineLibPagesPublicItemBase):
     )
     content: Optional[str] = Field(
         None,
-        description="HTML content (rendered as-is)",
+        description="HTML content (no <style> — CSS is in the css field)",
+    )
+    css: Optional[str] = Field(
+        None,
+        description=(
+            "Page CSS. For legacy pages (before the css field existed) "
+            "this is extracted from <style> blocks inside content — "
+            "see CoreEngineLibPagesPublicService._page_to_public."
+        ),
     )
     template_id: Optional[int] = Field(
         None,

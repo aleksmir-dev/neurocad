@@ -193,6 +193,51 @@
 }
 
 /* ============================================ */
+/* CLEAR CHAT BUTTON (in toolbar)               */
+/* ============================================ */
+/*
+ * Thin, neutral icon button. No fill, no border — just the icon.
+ * On hover — soft background, so it stays subtle.
+ * Icon uses the shared editor-btn-icon class, so all buttons look
+ * consistent.
+ */
+
+.core-engine-lib-word-llm-chat-clear {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-llm-chat-clear:hover {
+    background: var(--bg-hover, #f1f5f9);
+}
+
+.core-engine-lib-word-llm-chat-clear:active {
+    transform: scale(0.94);
+}
+
+.core-engine-lib-word-llm-chat-clear img {
+    display: block;
+    width: 14px;
+    height: 14px;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+}
+
+.core-engine-lib-word-llm-chat-clear:hover img {
+    opacity: 1;
+}
+
+/* ============================================ */
 /* MESSAGES                                     */
 /* ============================================ */
 
@@ -250,9 +295,82 @@
     border-bottom-left-radius: 4px;
 }
 
+/* ============================================ */
+/* TYPING INDICATOR                             */
+/* ============================================ */
+/*
+ * Three big, colorful pulsing dots. Each dot has its own animation
+ * delay so they pulse in sequence. All animation is done in CSS —
+ * no JS timer.
+ */
+
 .core-engine-lib-word-llm-chat-typing .core-engine-lib-word-llm-chat-bubble {
-    opacity: 0.6;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: #f1f5f9;
+    min-height: 20px;
+}
+
+.core-engine-lib-word-llm-chat-typing-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--theme-primary, #3b82f6);
+    box-shadow: 0 0 6px currentColor;
+    animation: core-engine-lib-word-llm-typing-pulse 1.4s ease-in-out infinite both;
+}
+
+.core-engine-lib-word-llm-chat-typing-dot:nth-child(1) {
+    animation-delay: 0s;
+    background: var(--theme-primary, #3b82f6);
+    color: var(--theme-primary, #3b82f6);
+}
+
+.core-engine-lib-word-llm-chat-typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+    background: var(--theme-accent, #6fae9a);
+    color: var(--theme-accent, #6fae9a);
+}
+
+.core-engine-lib-word-llm-chat-typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+    background: #f59e0b;
+    color: #f59e0b;
+}
+
+@keyframes core-engine-lib-word-llm-typing-pulse {
+    0%, 80%, 100% {
+        transform: scale(0.6);
+        opacity: 0.4;
+    }
+    40% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* ============================================ */
+/* PROGRESS BUBBLE                              */
+/* ============================================ */
+/*
+ * One progress bubble per run. Text updates in place as step /
+ * plan / fill_progress events arrive. Removed on done / cancelled /
+ * error.
+ *
+ * Visually it is an assistant bubble, but slightly muted and
+ * italic, so it reads as a status line rather than a message.
+ */
+
+.core-engine-lib-word-llm-chat-progress .core-engine-lib-word-llm-chat-bubble {
+    opacity: 0.85;
     font-style: italic;
+}
+
+.core-engine-lib-word-llm-chat-progress-text {
+    display: inline;
 }
 
 /* ============================================ */
@@ -286,38 +404,70 @@
 }
 
 .core-engine-lib-word-llm-chat-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
 }
+
+/* ============================================ */
+/* SEND / STOP BUTTON                           */
+/* ============================================ */
+/*
+ * Neutral, low-contrast button. Thin border, no fill.
+ * On hover — very light background, so it stays subtle.
+ * The same button doubles as "stop" (■) while a run is active.
+ */
 
 .core-engine-lib-word-llm-chat-send {
     flex-shrink: 0;
     width: 36px;
     height: 36px;
     padding: 0;
-    border: none;
+    border: 1px solid #e2e8f0;
     border-radius: 8px;
-    background: #3b82f6;
-    color: #ffffff;
-    font-size: 14px;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1;
     cursor: pointer;
-    transition: background 0.15s ease, transform 0.1s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .core-engine-lib-word-llm-chat-send:hover:not(:disabled) {
-    background: #2563eb;
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #64748b;
 }
 
 .core-engine-lib-word-llm-chat-send:active:not(:disabled) {
-    transform: scale(0.95);
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
 }
 
 .core-engine-lib-word-llm-chat-send:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
+}
+
+/* Stop state — same neutral look, just a slightly different icon */
+.core-engine-lib-word-llm-chat-send.is-stop {
+    background: transparent;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+}
+
+.core-engine-lib-word-llm-chat-send.is-stop:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #64748b;
+}
+
+.core-engine-lib-word-llm-chat-send.is-stop:active:not(:disabled) {
+    background: #f1f5f9;
+    color: #475569;
 }
 
 /* ============================================ */

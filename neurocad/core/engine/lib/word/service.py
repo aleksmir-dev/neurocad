@@ -110,6 +110,7 @@ class CoreEngineLibWordService:
         mod_id: int,
         content: Optional[str],
         content_json: Optional[str],
+        css: Optional[str] = None,
         user_note: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """
@@ -117,10 +118,10 @@ class CoreEngineLibWordService:
 
         Flow:
           1. Find page.
-          2. If content actually changed — write a snapshot of the
-             CURRENT (pre-save) state to page_hist with action='user_edit'.
-             Duplicates are skipped (same html + content_json as last snapshot).
-          3. Update Page.content / Page.content_json.
+          2. If content / content_json / css actually changed — write a
+             snapshot of the CURRENT (pre-save) state to page_hist
+             with action='user_edit'. Duplicates are skipped.
+          3. Update Page.content / Page.content_json / Page.css.
           4. Commit.
 
         user_note — optional comment for the snapshot (e.g. username).
@@ -142,24 +143,31 @@ class CoreEngineLibWordService:
             # ===== Snapshot BEFORE update =====
             old_html = page.content or ""
             old_json = page.content_json
+            old_css = page.css or ""
 
             # Determine new values (fallback to old if None)
             new_html = content if content is not None else old_html
             new_json = content_json if content_json is not None else old_json
+            new_css = css if css is not None else old_css
 
             # Only snapshot if something actually changed
-            changed = (new_html != old_html) or (new_json != old_json)
+            changed = (
+                new_html != old_html
+                or new_json != old_json
+                or new_css != old_css
+            )
 
-            if changed and old_html:
+            if changed and (old_html or old_css):
                 # Check for duplicates — skip if last snapshot is identical
                 is_dup = await _is_duplicate_snapshot(
-                    session, page_id, old_html, old_json
+                    session, page_id, old_html, old_json, old_css
                 )
                 if not is_dup:
                     snapshot = PageHist(
                         page_id=page_id,
                         html=old_html,
                         content_json=old_json,
+                        css=old_css,
                         action="user_edit",
                         note=user_note,
                     )
@@ -170,6 +178,8 @@ class CoreEngineLibWordService:
                 page.content = content
             if content_json is not None:
                 page.content_json = content_json
+            if css is not None:
+                page.css = css
 
             page.updated_at = datetime.now()
             await session.commit()
@@ -195,7 +205,7 @@ class CoreEngineLibWordService:
         """
         List all snapshots for a page, newest first.
 
-        Does NOT return html / content_json (heavy) — only metadata.
+        Does NOT return html / content_json / css (heavy) — only metadata.
         For full snapshot — use get_history_item().
 
         Returns None if page not found, [] if no snapshots.
@@ -243,7 +253,7 @@ class CoreEngineLibWordService:
         mod_id: int,
     ) -> Optional[Dict[str, Any]]:
         """
-        Get one full snapshot (html + content_json).
+        Get one full snapshot (html + content_json + css).
 
         Returns None if the snapshot does not exist or the page
         does not belong to this module.
@@ -273,6 +283,7 @@ class CoreEngineLibWordService:
                 "page_id": s.page_id,
                 "html": s.html,
                 "content_json": s.content_json,
+                "css": s.css,
                 "action": s.action,
                 "note": s.note,
                 "created_at": s.created_at.isoformat() if s.created_at else None,
@@ -298,7 +309,8 @@ class CoreEngineLibWordService:
           1. Find page and snapshot.
           2. Snapshot the CURRENT (pre-rollback) state into page_hist
              with action='user_edit' — so the rollback itself is undoable.
-          3. Set Page.content / Page.content_json to the snapshot values.
+          3. Set Page.content / Page.content_json / Page.css to the
+             snapshot values.
           4. Write a new record with action='rollback' — audit trail.
           5. Commit.
 
@@ -329,16 +341,18 @@ class CoreEngineLibWordService:
             # ----- Snapshot current state (before rollback) -----
             current_html = page.content or ""
             current_json = page.content_json
+            current_css = page.css or ""
 
-            if current_html:
+            if current_html or current_css:
                 is_dup = await _is_duplicate_snapshot(
-                    session, page_id, current_html, current_json
+                    session, page_id, current_html, current_json, current_css
                 )
                 if not is_dup:
                     session.add(PageHist(
                         page_id=page_id,
                         html=current_html,
                         content_json=current_json,
+                        css=current_css,
                         action="user_edit",
                         note=user_note,
                     ))
@@ -346,6 +360,7 @@ class CoreEngineLibWordService:
             # ----- Apply snapshot -----
             page.content = snapshot.html
             page.content_json = snapshot.content_json
+            page.css = snapshot.css
             page.updated_at = datetime.now()
 
             # ----- Audit trail: new record with action='rollback' -----
@@ -353,6 +368,7 @@ class CoreEngineLibWordService:
                 page_id=page_id,
                 html=snapshot.html,
                 content_json=snapshot.content_json,
+                css=snapshot.css,
                 action="rollback",
                 note=f"rollback to snapshot id={hist_id}",
             ))
@@ -365,6 +381,7 @@ class CoreEngineLibWordService:
                 "title": page.title,
                 "content": page.content,
                 "content_json": page.content_json,
+                "css": page.css,
                 "updated_at": page.updated_at.isoformat() if page.updated_at else None,
             }
 
@@ -476,6 +493,7 @@ def _page_to_dict(page) -> Dict[str, Any]:
         "logo": page.logo,
         "content": page.content,
         "content_json": page.content_json,
+        "css": page.css,
         "is_active": page.is_active,
         "is_delete": page.is_delete,
         "created_at": page.created_at.isoformat() if page.created_at else None,
@@ -501,10 +519,11 @@ async def _is_duplicate_snapshot(
     page_id: int,
     html: str,
     content_json: Optional[str],
+    css: Optional[str],
 ) -> bool:
     """
     Return True if the LAST snapshot for this page has identical
-    html AND content_json — to skip writing duplicates.
+    html AND content_json AND css — to skip writing duplicates.
     """
     stmt = (
         select(PageHist)
@@ -517,4 +536,8 @@ async def _is_duplicate_snapshot(
     if not last:
         return False
 
-    return (last.html == html) and (last.content_json == content_json)
+    return (
+        last.html == html
+        and last.content_json == content_json
+        and (last.css or "") == (css or "")
+    )

@@ -9,6 +9,16 @@ No admin fields (content_json, is_active, is_delete, etc.).
 Also provides block CSS discovery — scans the blocks directory
 and returns the list of CSS files for the public page.
 
+CSS handling:
+  - Page.css is the source of truth (new pages).
+  - For legacy pages (css is NULL, CSS embedded in content as <style>)
+    the CSS is extracted on the fly via split_style_from_html.
+    This is read-only — nothing is written back to the DB here.
+  - Derivative CSS files of pages are written under this module's
+    namespace (PAGES_CSS_DIR / PAGES_CSS_URL) — see the constants
+    below. The utility ensure_css_file() takes both as parameters
+    and stays module-agnostic.
+
 Namespace: CoreEngineLibPagesPublicService
 """
 
@@ -21,11 +31,38 @@ from sqlalchemy import select
 from .....models.base import Page
 from .....models.module import Module
 from ......utils.sqlite import get_db_sqlite
+from ......utils.css import split_style_from_html
 from .schema import CoreEngineLibPagesPublicItem
 
 
 # Default module name for public pages
 DEFAULT_MODULE = "default"
+
+
+# ============================================
+# PATHS — this module's static namespace
+# ============================================
+
+# Module static root — on disk and in URL. Default Nginx maps
+# URL → filesystem 1:1, so no rewrites are needed.
+#
+#   disk: static/core/engine/lib/pages/public/...
+#   URL:  /static/core/engine/lib/pages/public/...
+#
+_MODULE_STATIC_DIR = (
+    Path("static") / "core" / "engine" / "lib" / "pages" / "public"
+)
+_MODULE_STATIC_URL = "/static/core/engine/lib/pages/public"
+
+# Derivative CSS files of pages (one per page, <page_id>.css).
+# Written on demand by ensure_css_file(), served by Nginx directly.
+PAGES_CSS_DIR = _MODULE_STATIC_DIR / "pages"
+PAGES_CSS_URL = _MODULE_STATIC_URL + "/pages"
+
+
+# ============================================
+# BLOCKS — GrapesJS block CSS discovery
+# ============================================
 
 # Blocks directory — where GrapesJS block CSS files live.
 # __file__ = .../pages/public/service.py
@@ -232,7 +269,26 @@ class CoreEngineLibPagesPublicService:
 
     @staticmethod
     def _page_to_public(page: Page) -> CoreEngineLibPagesPublicItem:
-        """Convert Page ORM object to public schema."""
+        """
+        Convert Page ORM object to public schema.
+
+        CSS resolution:
+          - New pages: page.css is set → use it as-is.
+          - Legacy pages: page.css is NULL, but content may contain
+            embedded <style> blocks. Extract them on the fly so the
+            public page gets CSS through the same path (css field +
+            <link>) as new pages.
+
+        NOTE: extraction is read-only — nothing is written back to
+        the DB here. The page.css field is only persisted when the
+        page is saved from the editor.
+        """
+        content = page.content
+        css = page.css
+
+        if not css and content and "<style" in content.lower():
+            css, content = split_style_from_html(content)
+
         return CoreEngineLibPagesPublicItem(
             id=page.id,
             mod_id=page.mod_id,
@@ -240,6 +296,7 @@ class CoreEngineLibPagesPublicService:
             title=page.title,
             description=page.description,
             logo=page.logo,
-            content=page.content,
+            content=content,
+            css=css,
             template_id=page.template_id,
         )

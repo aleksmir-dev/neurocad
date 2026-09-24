@@ -1,6 +1,13 @@
 # neurocad/core/engine/lib/word/llm/service.py
 
-"""LLM service: presets (CRUD + thumbnails) and chat (page_chat)."""
+"""
+LLM service: presets (CRUD + thumbnails) and chat history (page_chat).
+
+Namespace: CoreEngineLibWordLlmService
+
+Note: LLM calls (routing, agents) live in ws.py + agent/*.py.
+This service only handles DB-side operations: presets and chat history.
+"""
 
 import os
 import re
@@ -10,90 +17,39 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from fastapi import UploadFile
 
-from .....models.base import PagePres, PageChat, Page
+from .....models.base import PagePres, PageChat
 from ......utils.sqlite import get_db_sqlite
-from ......utils.llm.deepseek import generate_completion
 
 
-# ============================================
-# PATHS
-# ============================================
+class CoreEngineLibWordLlmService:
+    """LLM editor service: presets and chat history."""
 
-# Media is relative to cwd: <project>/media/
-MEDIA_ROOT = Path("media")
-PRESETS_DIR = MEDIA_ROOT / "presets"
-MEDIA_URL = "/media"
+    # ============================================
+    # PATHS / CONFIG
+    # ============================================
 
-THUMBNAIL_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.webp'}
+    # Media is relative to cwd: <project>/media/
+    MEDIA_ROOT = Path("media")
+    PRESETS_DIR = MEDIA_ROOT / "presets"
+    MEDIA_URL = "/media"
 
+    THUMBNAIL_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.webp'}
 
-# ============================================
-# SYSTEM PROMPT FOR HTML EDITOR
-# ============================================
+    #: How many previous messages to include as dialogue context.
+    HISTORY_LIMIT = 20
 
-HTML_EDITOR_SYSTEM_PROMPT = """Ты — редактор HTML + CSS.
-
-Пользователь даёт тебе HTML-фрагмент и CSS (могут быть пустыми) и запрос на русском.
-Ты возвращаешь JSON-объект с тремя полями:
-  - "message": короткое сообщение пользователю (1 предложение).
-  - "html": изменённый HTML-фрагмент.
-  - "css": изменённый CSS (без <style>).
-
-СТРОГИЕ ПРАВИЛА:
-1. Ответ — ТОЛЬКО валидный JSON. Начинается с `{`, заканчивается `}`.
-2. НЕ оборачивай в markdown (без ```json, без ```).
-3. НЕ добавляй пояснения до или после JSON.
-4. Поле "message" — короткое, нейтральное: «Готово», «Изменения применены». НЕ пересказывай HTML.
-5. Поле "html" — ТОЛЬКО HTML. Начинается с `<`, заканчивается `>`. Без <!DOCTYPE html>, <html>, <head>, <body>. Без <style> — стили идут в поле "css".
-6. Поле "css" — ТОЛЬКО CSS-правила. Без <style>, без HTML. Пример: `.my-class { color: red; }`
-7. Если HTML и CSS пустые — создай новые по запросу.
-8. Если HTML непустой — измени его, сохранив всё, что не касается запроса.
-9. Если не понял запрос — верни исходные HTML и CSS, message: «Не понял запрос, попробуйте переформулировать».
-
-ПРИМЕР 1 (есть HTML + CSS):
-Вход:
-HTML:
-<h1 class="title">Заголовок</h1>
-CSS:
-.title { color: black; }
-Запрос: Сделай заголовок красным
-
-Выход:
-{"message": "Заголовок стал красным.", "html": "<h1 class=\\"title\\">Заголовок</h1>", "css": ".title { color: red; }"}
-
-ПРИМЕР 2 (пусто):
-Вход:
-HTML:
-(пусто)
-CSS:
-(пусто)
-Запрос: Создай страницу с заголовком «Привет» и списком из 3 пунктов
-
-Выход:
-{"message": "Страница создана.", "html": "<h1>Привет</h1><ul><li>Первый</li><li>Второй</li><li>Третий</li></ul>", "css": ""}
-"""
-
-
-class LLMService:
-    """LLM editor service: presets and chat."""
-
-    # ========================================
+    # ============================================
     # LIST PRESETS
-    # ========================================
+    # ============================================
 
     @staticmethod
     async def list_presets(
         include_deleted: bool = False,
     ) -> Dict[str, Any]:
-        """
-        Get presets list.
-
-        include_deleted = False → only active (is_delete = 0)
-        include_deleted = True  → all
-        """
+        """Get presets list."""
         async for session in get_db_sqlite():
             stmt = select(PagePres)
 
@@ -126,9 +82,9 @@ class LLMService:
 
         return {"items": [], "total": 0}
 
-    # ========================================
+    # ============================================
     # GET PRESET
-    # ========================================
+    # ============================================
 
     @staticmethod
     async def get_preset(preset_id: int) -> Optional[Dict[str, Any]]:
@@ -158,9 +114,9 @@ class LLMService:
 
         return None
 
-    # ========================================
+    # ============================================
     # CREATE PRESET
-    # ========================================
+    # ============================================
 
     @staticmethod
     async def create_preset(
@@ -198,9 +154,9 @@ class LLMService:
 
         return None
 
-    # ========================================
+    # ============================================
     # UPDATE PRESET
-    # ========================================
+    # ============================================
 
     @staticmethod
     async def update_preset(
@@ -249,9 +205,9 @@ class LLMService:
 
         return None
 
-    # ========================================
+    # ============================================
     # SOFT DELETE
-    # ========================================
+    # ============================================
 
     @staticmethod
     async def delete_preset(preset_id: int) -> bool:
@@ -274,9 +230,9 @@ class LLMService:
 
         return False
 
-    # ========================================
+    # ============================================
     # RESTORE
-    # ========================================
+    # ============================================
 
     @staticmethod
     async def restore_preset(preset_id: int) -> bool:
@@ -299,9 +255,9 @@ class LLMService:
 
         return False
 
-    # ========================================
+    # ============================================
     # UPLOAD THUMBNAIL
-    # ========================================
+    # ============================================
 
     @staticmethod
     async def upload_thumbnail(
@@ -322,17 +278,19 @@ class LLMService:
 
             original_name = file.filename or "thumbnail.png"
             ext = Path(original_name).suffix.lower()
-            if ext not in THUMBNAIL_EXTENSIONS:
-                raise ValueError(f"Invalid extension: {ext}. Allowed: {', '.join(THUMBNAIL_EXTENSIONS)}")
+            if ext not in CoreEngineLibWordLlmService.THUMBNAIL_EXTENSIONS:
+                raise ValueError(
+                    f"Invalid extension: {ext}. "
+                    f"Allowed: {', '.join(CoreEngineLibWordLlmService.THUMBNAIL_EXTENSIONS)}"
+                )
 
-            PRESETS_DIR.mkdir(parents=True, exist_ok=True)
+            CoreEngineLibWordLlmService.PRESETS_DIR.mkdir(parents=True, exist_ok=True)
 
             final_name = f"{preset_id}{ext}"
-            save_path = PRESETS_DIR / final_name
+            save_path = CoreEngineLibWordLlmService.PRESETS_DIR / final_name
 
-            # Remove old thumbnail
-            for old_ext in THUMBNAIL_EXTENSIONS:
-                old_file = PRESETS_DIR / f"{preset_id}{old_ext}"
+            for old_ext in CoreEngineLibWordLlmService.THUMBNAIL_EXTENSIONS:
+                old_file = CoreEngineLibWordLlmService.PRESETS_DIR / f"{preset_id}{old_ext}"
                 if old_file.exists() and old_file != save_path:
                     try:
                         old_file.unlink()
@@ -360,9 +318,9 @@ class LLMService:
 
         return None
 
-    # ========================================
+    # ============================================
     # DELETE THUMBNAIL
-    # ========================================
+    # ============================================
 
     @staticmethod
     async def delete_thumbnail(preset_id: int) -> bool:
@@ -378,8 +336,8 @@ class LLMService:
             if not preset:
                 return False
 
-            for ext in THUMBNAIL_EXTENSIONS:
-                file_path = PRESETS_DIR / f"{preset_id}{ext}"
+            for ext in CoreEngineLibWordLlmService.THUMBNAIL_EXTENSIONS:
+                file_path = CoreEngineLibWordLlmService.PRESETS_DIR / f"{preset_id}{ext}"
                 if file_path.exists():
                     try:
                         file_path.unlink()
@@ -393,9 +351,9 @@ class LLMService:
 
         return False
 
-    # ========================================
+    # ============================================
     # CHAT — HISTORY
-    # ========================================
+    # ============================================
 
     @staticmethod
     async def load_chat_history(page_id: int) -> List[Dict[str, Any]]:
@@ -424,9 +382,28 @@ class LLMService:
 
         return []
 
-    # ========================================
+    # ============================================
+    # CHAT — CLEAR HISTORY
+    # ============================================
+
+    @staticmethod
+    async def clear_chat_history(page_id: int) -> int:
+        """
+        Delete all chat messages for a page.
+
+        Returns the number of deleted rows.
+        """
+        async for session in get_db_sqlite():
+            stmt = delete(PageChat).where(PageChat.page_id == page_id)
+            result = await session.execute(stmt)
+            await session.commit()
+            return result.rowcount or 0
+
+        return 0
+
+    # ============================================
     # CHAT — SAVE MESSAGE
-    # ========================================
+    # ============================================
 
     @staticmethod
     async def save_chat_message(
@@ -464,229 +441,27 @@ class LLMService:
 
         return None
 
-    # ========================================
-    # CHAT — SEND MESSAGE TO LLM
-    # ========================================
+    # ============================================
+    # CHAT — LOAD HISTORY AS MESSAGES
+    # ============================================
 
     @staticmethod
-    async def send_chat_message(
+    async def load_history_messages(
         page_id: int,
-        user_message: str,
-    ) -> Optional[Dict[str, Any]]:
+        limit: Optional[int] = None,
+    ) -> List[Dict[str, str]]:
         """
-        Handle one user message:
-          1. Load current page HTML + CSS.
-          2. Save user message to page_chat.
-          3. Send to LLM (system + HTML + CSS + request).
-          4. Parse LLM response into {message, html, css}.
-          5. Save assistant message to page_chat (with short message).
-          6. Update page HTML + content_json.
-          7. Return { user_message, assistant_message, html, css }.
+        Load the last `limit` messages from page_chat and return them
+        as a list of {"role": "user"|"assistant", "content": "..."}
+        dicts, oldest → newest.
         """
+        if limit is None:
+            limit = CoreEngineLibWordLlmService.HISTORY_LIMIT
 
-        # ===== 1. Load page =====
-        async for session in get_db_sqlite():
-            page_stmt = select(Page).where(
-                Page.id == page_id,
-                Page.is_delete == 0,
-            )
-            page_result = await session.execute(page_stmt)
-            page = page_result.scalar_one_or_none()
-
-            if not page:
-                return None
-
-            # Extract current HTML and CSS from page.content
-            # content may contain <style>...</style> prefix
-            current_html, current_css = LLMService._split_html_css(page.content or '')
-
-            # ===== 2. Save user message =====
-            user_msg = PageChat(
-                page_id=page_id,
-                role='user',
-                content=user_message,
-                created_at=datetime.now(),
-            )
-            session.add(user_msg)
-            await session.commit()
-            await session.refresh(user_msg)
-            user_msg_dict = {
-                "id": user_msg.id,
-                "role": user_msg.role,
-                "content": user_msg.content,
-                "created_at": user_msg.created_at.isoformat() if user_msg.created_at else None,
-            }
-
-            # ===== 3. Build messages for LLM =====
-            html_part = current_html.strip() if current_html and current_html.strip() else "(empty)"
-            css_part = current_css.strip() if current_css and current_css.strip() else "(empty)"
-
-            messages = [
-                {"role": "system", "content": HTML_EDITOR_SYSTEM_PROMPT},
-                {"role": "user", "content": f"HTML:\n{html_part}\n\nCSS:\n{css_part}\n\nRequest: {user_message}"},
-            ]
-
-            # ===== 4. Request to DeepSeek =====
-            try:
-                raw_response = await generate_completion(messages)
-            except Exception as e:
-                raw_response = json.dumps({
-                    "message": f"LLM error: {e}",
-                    "html": "",
-                    "css": "",
-                }, ensure_ascii=False)
-
-            # ===== 5. Parse LLM response =====
-            parsed = LLMService._parse_llm_response(raw_response)
-            new_html = parsed["html"]
-            new_css = parsed["css"]
-            chat_message = parsed["message"]
-
-            # ===== 6. Save assistant message =====
-            assistant_msg = PageChat(
-                page_id=page_id,
-                role='assistant',
-                content=chat_message,
-                model=None,
-                created_at=datetime.now(),
-            )
-            session.add(assistant_msg)
-            await session.commit()
-            await session.refresh(assistant_msg)
-            assistant_msg_dict = {
-                "id": assistant_msg.id,
-                "role": assistant_msg.role,
-                "content": assistant_msg.content,
-                "created_at": assistant_msg.created_at.isoformat() if assistant_msg.created_at else None,
-            }
-
-            # ===== 7. Update page HTML + CSS =====
-            if new_html or new_css:
-                page.content = LLMService._merge_html_css(new_html, new_css)
-                page.updated_at = datetime.now()
-                await session.commit()
-
-            return {
-                "user_message": user_msg_dict,
-                "assistant_message": assistant_msg_dict,
-                "html": new_html,
-                "css": new_css,
-            }
-
-        return None
-
-    # ========================================
-    # UTILS
-    # ========================================
-
-    @staticmethod
-    def _split_html_css(content: str) -> tuple[str, str]:
-        """
-        Split page.content into (html, css).
-
-        If content contains `<style>...</style>` prefix — extract CSS.
-        Otherwise — return content as HTML, empty CSS.
-        """
-        if not content:
-            return "", ""
-
-        s = content.strip()
-
-        # Match leading <style>...</style>
-        match = re.match(r'^\s*<style>(.*?)</style>(.*)$', s, re.DOTALL)
-        if match:
-            return match.group(2).strip(), match.group(1).strip()
-
-        return s, ""
-
-    @staticmethod
-    def _merge_html_css(html: str, css: str) -> str:
-        """
-        Merge HTML + CSS into single content string.
-        If CSS is not empty — prepend `<style>...</style>`.
-        """
-        html = (html or '').strip()
-        css = (css or '').strip()
-
-        if css:
-            return f"<style>{css}</style>{html}"
-        return html
-
-    @staticmethod
-    def _parse_llm_response(text: str) -> Dict[str, str]:
-        """
-        Parse LLM response into {message, html, css}.
-
-        Expect JSON: {"message": "...", "html": "...", "css": "..."}.
-        If JSON invalid — fallback (no crash):
-          - message = neutral
-          - html = cleaned text as HTML
-          - css = empty
-        """
-        if not text:
-            return {"message": "Empty LLM response.", "html": "", "css": ""}
-
-        s = text.strip()
-
-        # 1. Remove markdown wrapper ```json ... ```
-        if s.startswith('```'):
-            first_nl = s.find('\n')
-            if first_nl != -1:
-                s = s[first_nl + 1:]
-            if s.endswith('```'):
-                s = s[:-3]
-            s = s.strip()
-
-        # 2. Find JSON in text (if model added something before/after)
-        start = s.find('{')
-        end = s.rfind('}')
-        if start != -1 and end != -1 and end > start:
-            candidate = s[start:end + 1]
-            try:
-                data = json.loads(candidate)
-                if isinstance(data, dict):
-                    return LLMService._extract_fields(data)
-            except json.JSONDecodeError:
-                pass
-
-        # 3. Direct attempt — maybe already valid JSON
-        try:
-            data = json.loads(s)
-            if isinstance(data, dict):
-                return LLMService._extract_fields(data)
-        except json.JSONDecodeError:
-            pass
-
-        # 4. Fallback: not JSON — treat as HTML
-        cleaned = LLMService._clean_html_response(s)
-
-        return {
-            "message": "Done. Changes applied.",
-            "html": cleaned,
-            "css": "",
-        }
-
-    @staticmethod
-    def _extract_fields(data: dict) -> Dict[str, str]:
-        """Extract message/html/css from parsed JSON dict."""
-        message = str(data.get("message", "")).strip() or "Done."
-        html = str(data.get("html", "")).strip()
-        css = str(data.get("css", "")).strip()
-        return {"message": message, "html": html, "css": css}
-
-    @staticmethod
-    def _clean_html_response(text: str) -> str:
-        """Remove markdown wrappers (```html ... ```) if LLM added them."""
-        if not text:
-            return text
-
-        s = text.strip()
-
-        if s.startswith('```'):
-            first_nl = s.find('\n')
-            if first_nl != -1:
-                s = s[first_nl + 1:]
-            if s.endswith('```'):
-                s = s[:-3]
-
-        return s.strip()
+        rows = await CoreEngineLibWordLlmService.load_chat_history(page_id)
+        tail = rows[-limit:] if len(rows) > limit else rows
+        return [
+            {"role": m["role"], "content": m["content"]}
+            for m in tail
+            if m.get("role") in ("user", "assistant") and m.get("content")
+        ]

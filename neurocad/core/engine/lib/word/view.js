@@ -126,8 +126,17 @@ export function buildToolbarButtons(word, toolbar) {
  * nested <body> and drop its id, so CSS selectors like #id4l break.
  * We replace <body> with <div> here to preserve the id and make CSS work.
  *
- * <style> blocks are inserted via document.createElement('style') to
- * avoid innerHTML parsing quirks.
+ * ★ CSS strategy:
+ *   - New pages: pageData.css is stored separately (DB field `css`).
+ *     We serve it as a static file
+ *       /static/core/engine/lib/pages/public/pages/<id>.css?v=<hash>
+ *     and attach via <link>. Browser caches it; ?v= busts on change.
+ *   - Legacy pages: pageData.css is null and CSS is embedded in
+ *     content as <style>. Fallback: extract <style> and inject it
+ *     via document.createElement('style').
+ *
+ *   NOTE: PAGE_CSS_URL_PREFIX below must match PAGES_CSS_URL in
+ *         neurocad/core/engine/lib/pages/public/service.py.
  *
  * ★ All page content is wrapped in .core-engine-lib-word-blocks — this
  *   matches the same scope class used inside the editor canvas
@@ -135,6 +144,11 @@ export function buildToolbarButtons(word, toolbar) {
  *   (.core-engine-lib-word-blocks .btn, ...) only match when this
  *   wrapper is present — both in the editor and on the view page.
  */
+
+// URL prefix for page CSS files. Must match PAGES_CSS_URL in
+// neurocad/core/engine/lib/pages/public/service.py.
+const PAGE_CSS_URL_PREFIX = '/static/core/engine/lib/pages/public/pages';
+
 export async function buildArticle(word) {
     const raw = word.pageData?.content
         || '<p class="core-engine-lib-word-empty">Контент пуст</p>';
@@ -169,16 +183,32 @@ export async function buildArticle(word) {
     const scopeEl = document.createElement('div');
     scopeEl.className = 'core-engine-lib-word-blocks';
 
-    // Extract <style>...</style> blocks
-    const styleMatches = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];
-    const styles = styleMatches.map(m => m[1]).join('\n');
-    const htmlWithoutStyles = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+    // ===== CSS: page.css (new) or <style> inside content (legacy) =====
+    const pageId = word.pageData?.id || word.pageId;
+    const pageCss = (word.pageData?.css || '').trim();
 
-    // Insert <style> via createElement — safer than innerHTML
-    if (styles.trim()) {
-        const styleEl = document.createElement('style');
-        styleEl.textContent = styles;
-        contentEl.appendChild(styleEl);
+    let htmlWithoutStyles = html;
+
+    if (pageCss && pageId) {
+        // New path: CSS lives in DB, served as a static file.
+        const hash = _shortHash(pageCss);
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `${PAGE_CSS_URL_PREFIX}/${pageId}.css?v=${hash}`;
+        link.setAttribute('data-js', 'word-page-css');
+        contentEl.appendChild(link);
+    } else {
+        // Legacy path: extract <style> from HTML and inject via createElement.
+        const styleMatches = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];
+        const styles = styleMatches.map(m => m[1]).join('\n');
+        htmlWithoutStyles = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+
+        if (styles.trim()) {
+            const styleEl = document.createElement('style');
+            styleEl.setAttribute('data-js', 'word-page-css');
+            styleEl.textContent = styles;
+            contentEl.appendChild(styleEl);
+        }
     }
 
     // Insert HTML (without <style>) into the scope wrapper
@@ -242,4 +272,28 @@ export function renderError(word, message) {
     errorDiv.appendChild(text);
 
     word.container.appendChild(errorDiv);
+}
+
+/**
+ * Short stable hash of a string, 8 hex chars.
+ *
+ * Mirrors the Python-side css_hash() in neurocad/utils/css.py
+ * (sha256 hex truncated to 8) as closely as possible.
+ *
+ * NOTE: this is NOT a cryptographic hash. It exists only to bust
+ * the browser cache when CSS content changes — the actual file
+ * name (<id>.css) is stable, only ?v= changes. The Python side
+ * computes the same suffix for the same content (so ?v= matches
+ * what the public page / server would generate), but since the
+ * browser only needs *a* value that changes when content changes,
+ * a small non-crypto hash is acceptable here.
+ */
+function _shortHash(str) {
+    // FNV-1a 32-bit, expressed as 8 hex chars.
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return h.toString(16).padStart(8, '0');
 }

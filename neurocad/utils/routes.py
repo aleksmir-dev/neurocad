@@ -1,6 +1,6 @@
 # neurocad/utils/routes.py
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 
 from neurocad.core.route import router as core_router
@@ -30,3 +30,5 @@ def setup_routes(app: FastAPI) -> None:
         if not main_url or main_url == "/":
             main_url = "/core/engine/default"
         return RedirectResponse(url=main_url)
+    
+ 

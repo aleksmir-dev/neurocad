@@ -18,6 +18,7 @@ class CoreEngineLibWordItemResponse(BaseModel):
     logo: Optional[str] = None
     content: Optional[str] = None
     content_json: Optional[str] = None
+    css: Optional[str] = None
     is_active: int
     is_delete: int
     created_at: Optional[dt] = None
@@ -46,11 +47,13 @@ class CoreEngineLibWordSaveRequest(BaseModel):
     """
     Запрос на сохранение контента страницы из редактора.
 
-    content = HTML для отображения.
+    content      = HTML для отображения (без <style>).
     content_json = JSON GrapesJS (строка).
+    css          = CSS страницы (из editor.getCss()).
     """
     content: Optional[str] = Field(None, description="HTML для отображения")
     content_json: Optional[str] = Field(None, description="JSON GrapesJS")
+    css: Optional[str] = Field(None, description="CSS страницы")
 
 
 class CoreEngineLibWordSaveResponse(BaseModel):
@@ -90,7 +93,7 @@ class CoreEngineLibWordHistoryItem(BaseModel):
     """
     Метаданные одного снимка истории.
 
-    Не включает html / content_json (тяжёлые поля) —
+    Не включает html / content_json / css (тяжёлые поля) —
     для полного снимка используйте GET /{page_id}/history/{hist_id}.
     """
     id: int
@@ -106,14 +109,14 @@ class CoreEngineLibWordHistoryItem(BaseModel):
 
 
 class CoreEngineLibWordHistoryListResponse(BaseModel):
-    """Ответ со списком снимков (метаданные, без html/content_json)"""
+    """Ответ со списком снимков (метаданные, без html/content_json/css)"""
     success: bool = True
     data: List[CoreEngineLibWordHistoryItem]
 
 
 class CoreEngineLibWordHistoryItemResponse(BaseModel):
     """
-    Полный снимок истории — html + content_json.
+    Полный снимок истории — html + content_json + css.
 
     Используется для превью и для отката.
     """
@@ -121,6 +124,7 @@ class CoreEngineLibWordHistoryItemResponse(BaseModel):
     page_id: int
     html: str
     content_json: Optional[str] = None
+    css: Optional[str] = None
     action: Optional[str] = None
     note: Optional[str] = None
     created_at: Optional[dt] = None
@@ -139,7 +143,7 @@ class CoreEngineLibWordRollbackResponse(BaseModel):
     """
     Ответ на откат к снимку.
 
-    Возвращает обновлённые content / content_json / updated_at —
+    Возвращает обновлённые content / content_json / css / updated_at —
     чтобы фронтенд мог сразу обновить состояние без повторного GET.
     """
     success: bool = True

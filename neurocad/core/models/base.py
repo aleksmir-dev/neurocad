@@ -16,3 +16,4 @@ from .setting import Setting
 from .page_pres import PagePres
 from .page_hist import PageHist
 from .page_chat import PageChat
+from .run import Run

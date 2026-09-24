@@ -9,13 +9,15 @@
  *      is ready. Loads the project:
  *        - preferred: full project JSON (getProjectData()) — keeps
  *          wrapper attributes and CSS rules tied to them;
- *        - fallback: HTML — <style> blocks are extracted and applied
- *          to CssComposer manually, because GrapesJS ignores them in
- *          setComponents(html).
+ *        - fallback 1: separate HTML + css fields — HTML via
+ *          setComponents, CSS via setStyle;
+ *        - fallback 2: HTML with embedded <style> — extracted and
+ *          applied to CssComposer manually, because GrapesJS ignores
+ *          <style> in setComponents(html).
  *
  *   2. applyRollback(data) — called from the history modal after a
  *      successful rollback. Reloads the project from the rolled-back
- *      snapshot (JSON or HTML) and re-applies post-load state.
+ *      snapshot (JSON or HTML + css) and re-applies post-load state.
  *
  * Post-load state:
  *   GrapesJS replaces the iframe <body> and the wrapper component
@@ -78,10 +80,20 @@ export class DataLoader {
             }
         }
 
+        // No project JSON — load HTML + CSS separately.
         if (ed.initialHtml) {
             ed.editor.setComponents(ed.initialHtml);
-            this._applyStylesFromHtml(ed.initialHtml);
-            console.log('[DataLoader] HTML loaded (+styles extracted)');
+
+            // New path: CSS comes from the separate `css` field.
+            const pageCss = (ed.pageData?.css || '').trim();
+            if (pageCss) {
+                this._applyCss(pageCss);
+                console.log('[DataLoader] HTML + separate CSS loaded');
+            } else {
+                // Legacy path: CSS embedded in HTML as <style>.
+                this._applyStylesFromHtml(ed.initialHtml);
+                console.log('[DataLoader] HTML loaded (+styles extracted from HTML)');
+            }
         } else {
             console.log('[DataLoader] No data — setting empty paragraph');
             ed.editor.setComponents('<p></p>');
@@ -99,7 +111,7 @@ export class DataLoader {
      * from the rolled-back snapshot.
      *
      * Called after the user confirms rollback in the history modal.
-     * data = { id, title, content, content_json, updated_at }
+     * data = { id, title, content, content_json, css, updated_at }
      */
     applyRollback(data) {
         console.log('[DataLoader] Applying rollback result');
@@ -110,6 +122,7 @@ export class DataLoader {
         if (ed.pageData) {
             ed.pageData.content = data.content;
             ed.pageData.content_json = data.content_json;
+            ed.pageData.css = data.css;
         }
 
         // Reload editor state from the rolled-back snapshot
@@ -120,8 +133,16 @@ export class DataLoader {
                 console.log('[DataLoader] Project reloaded from rollback');
             } else if (data.content) {
                 ed.editor.setComponents(data.content);
-                this._applyStylesFromHtml(data.content);
-                console.log('[DataLoader] HTML reloaded from rollback');
+
+                const snapshotCss = (data.css || '').trim();
+                if (snapshotCss) {
+                    this._applyCss(snapshotCss);
+                    console.log('[DataLoader] HTML + separate CSS reloaded from rollback');
+                } else {
+                    // Legacy snapshot: CSS embedded in HTML as <style>.
+                    this._applyStylesFromHtml(data.content);
+                    console.log('[DataLoader] HTML reloaded from rollback (+styles extracted)');
+                }
             }
 
             // GrapesJS replaced <body> and wrapper — re-apply post-load state.
@@ -197,8 +218,27 @@ export class DataLoader {
     }
 
     /**
+     * Apply a CSS string to GrapesJS CssComposer.
+     *
+     * Used for the new separate `css` field (page.css / snapshot.css).
+     */
+    _applyCss(css) {
+        if (!css) return;
+
+        try {
+            this.editor.editor.setStyle(css);
+            console.log('[DataLoader] CSS applied to CssComposer (separate field)');
+        } catch (e) {
+            console.warn('[DataLoader] setStyle failed:', e);
+        }
+    }
+
+    /**
      * Extract <style>...</style> blocks from an HTML string and apply the
      * combined CSS to GrapesJS CssComposer.
+     *
+     * Legacy path — kept for old snapshots where CSS is still embedded
+     * in the HTML.
      */
     _applyStylesFromHtml(html) {
         const matches = [...(html || '').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];

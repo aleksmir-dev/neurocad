@@ -3,7 +3,7 @@
 """
 Pydantic schemas for LLM editor (presets, chat, history).
 
-At this stage — presets and chat.
+Namespace: CoreEngineLibWordLlm*
 """
 
 from pydantic import BaseModel, Field
@@ -15,7 +15,7 @@ from datetime import datetime as dt
 # PRESETS (page_pres)
 # ============================================
 
-class LLMPresetBase(BaseModel):
+class CoreEngineLibWordLlmPresetBase(BaseModel):
     """Base preset fields"""
     name: str = Field(..., min_length=1, max_length=255, description="Название")
     description: Optional[str] = Field(None, description="Описание")
@@ -23,12 +23,12 @@ class LLMPresetBase(BaseModel):
     css: Optional[str] = Field(None, description="CSS пресета")
 
 
-class LLMPresetCreate(LLMPresetBase):
+class CoreEngineLibWordLlmPresetCreate(CoreEngineLibWordLlmPresetBase):
     """Create preset"""
     pass
 
 
-class LLMPresetUpdate(BaseModel):
+class CoreEngineLibWordLlmPresetUpdate(BaseModel):
     """Update preset — all fields optional"""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
@@ -36,7 +36,7 @@ class LLMPresetUpdate(BaseModel):
     css: Optional[str] = None
 
 
-class LLMPresetItem(BaseModel):
+class CoreEngineLibWordLlmPresetItem(BaseModel):
     """Preset for response"""
     id: int
     name: str
@@ -52,24 +52,24 @@ class LLMPresetItem(BaseModel):
         from_attributes = True
 
 
-class LLMPresetListResponse(BaseModel):
+class CoreEngineLibWordLlmPresetListResponse(BaseModel):
     """Response with preset list"""
     success: bool = True
-    data: List[LLMPresetItem]
+    data: List[CoreEngineLibWordLlmPresetItem]
     total: int = 0
 
 
-class LLMPresetItemResponse(BaseModel):
+class CoreEngineLibWordLlmPresetItemResponse(BaseModel):
     """Response with a single preset"""
     success: bool = True
-    data: LLMPresetItem
+    data: CoreEngineLibWordLlmPresetItem
 
 
 # ============================================
 # THUMBNAIL UPLOAD
 # ============================================
 
-class LLMPresetThumbnailResponse(BaseModel):
+class CoreEngineLibWordLlmPresetThumbnailResponse(BaseModel):
     """Response for thumbnail upload"""
     success: bool = True
     data: dict  # {"thumbnail_path": "presets/1.png"}
@@ -79,12 +79,31 @@ class LLMPresetThumbnailResponse(BaseModel):
 # CHAT
 # ============================================
 
-class LLMChatMessageCreate(BaseModel):
+class CoreEngineLibWordLlmBlockItem(BaseModel):
+    """
+    One block in the catalog sent from the frontend.
+
+    The catalog is assembled by chat.js from the currently registered
+    GrapesJS blocks and sent with every chat message. The backend embeds
+    it into the system prompt, so the model assembles pages from the
+    existing blocks instead of inventing markup.
+    """
+    id: str = Field(..., description="GrapesJS block id, e.g. 'core-hero'")
+    label: str = Field(..., description="Human-readable name, e.g. 'Hero (баннер)'")
+    category: str = Field(..., description="Category name, e.g. 'Секции'")
+    html: str = Field("", description="Ready-to-use HTML fragment")
+
+
+class CoreEngineLibWordLlmChatMessageCreate(BaseModel):
     """Request to send a chat message"""
     message: str = Field(..., min_length=1, description="Текст сообщения пользователя")
+    block_catalog: Optional[List[CoreEngineLibWordLlmBlockItem]] = Field(
+        None,
+        description="Каталог блоков, собранный на фронте. Передаётся в системный промпт.",
+    )
 
 
-class LLMChatMessage(BaseModel):
+class CoreEngineLibWordLlmChatMessage(BaseModel):
     """Single chat message"""
     id: Optional[int] = None
     role: str = Field(..., description="'user' | 'assistant' | 'system'")
@@ -98,13 +117,13 @@ class LLMChatMessage(BaseModel):
         from_attributes = True
 
 
-class LLMChatHistoryResponse(BaseModel):
+class CoreEngineLibWordLlmChatHistoryResponse(BaseModel):
     """Response with chat history"""
     success: bool = True
-    data: List[LLMChatMessage]
+    data: List[CoreEngineLibWordLlmChatMessage]
 
 
-class LLMChatSendResponse(BaseModel):
+class CoreEngineLibWordLlmChatSendResponse(BaseModel):
     """Response to send message"""
     success: bool = True
     data: dict   # { user_message, assistant_message, html, css }
