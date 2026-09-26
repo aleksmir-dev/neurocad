@@ -5,6 +5,12 @@
  *
  * Only GETs for history and active run; one DELETE for clearing
  * the chat history of a page.
+ *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ *
+ * Note: this module is defensive — it returns null on any error
+ * instead of throwing, so the chat UI can degrade gracefully.
  */
 export class LLMChatAPI {
     constructor(apiBase) {
@@ -20,15 +26,12 @@ export class LLMChatAPI {
         console.log('[LLMChatAPI] GET', url);
 
         try {
-            const r = await fetch(url, {
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' },
-            });
-            console.log('[LLMChatAPI] history status:', r.status);
-            if (!r.ok) return null;
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson(url);
 
-            const data = await r.json();
-            if (data.success && Array.isArray(data.data)) return data.data;
+            if (data && data.success && Array.isArray(data.data)) {
+                return data.data;
+            }
 
             console.warn('[LLMChatAPI] history: unexpected payload', data);
             return null;
@@ -43,15 +46,8 @@ export class LLMChatAPI {
         console.log('[LLMChatAPI] DELETE', url);
 
         try {
-            const r = await fetch(url, {
-                method: 'DELETE',
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' },
-            });
-            console.log('[LLMChatAPI] clear status:', r.status);
-            if (!r.ok) return null;
-
-            const data = await r.json();
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson(url, { method: 'DELETE' });
             return data?.deleted ?? 0;
         } catch (e) {
             console.error('[LLMChatAPI] clear error:', e);
@@ -68,14 +64,8 @@ export class LLMChatAPI {
         console.log('[LLMChatAPI] GET', url);
 
         try {
-            const r = await fetch(url, {
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' },
-            });
-            console.log('[LLMChatAPI] active run status:', r.status);
-            if (!r.ok) return null;
-
-            const data = await r.json();
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson(url);
             return data?.data || null;
         } catch (e) {
             console.warn('[LLMChatAPI] active run error:', e);

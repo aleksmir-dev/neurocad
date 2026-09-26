@@ -6,10 +6,18 @@
  *
  * If items are not passed in props, loads the list from the server.
  *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ *
  * Template system:
  *   - is_template: page can be used as a base template by other pages.
  *   - template_id: this page inherits layout from that template page;
  *     its own `content` is inserted into [data-slot="content"] slot.
+ *
+ * Caption: on _init() we pick up the shared caption helpers from
+ * window.coreEngine.base (_setCaption / _restoreCaption). They are
+ * used to set the header/tab title to "Каталог статей" while the
+ * catalog is on screen, and restore it on destroy.
  */
 
 export class Pages {
@@ -26,6 +34,11 @@ export class Pages {
         // Cached list of templates (is_template=1), for the dropdown
         this._templates = [];
 
+        // Caption helpers — filled from window.coreEngine.base in _init().
+        this._setCaption = null;
+        this._restoreCaption = null;
+        this._savedCaption = null;
+
         this._loadCSS();
 
         this._initPromise = this._init();
@@ -40,6 +53,11 @@ export class Pages {
     async _init() {
         console.log('[Pages] _init() START');
         try {
+            // Pick up caption helpers from Base (loaded before Pages).
+            const base = window.coreEngine?.base;
+            this._setCaption = base?._setCaption || null;
+            this._restoreCaption = base?._restoreCaption || null;
+
             const version = window.coreEngine?.static_version || Date.now();
             const { BaseCards } = await import(`../base/cards/cards.js?v=${version}`);
 
@@ -54,6 +72,11 @@ export class Pages {
             // Load templates list (for "Наследовать от" dropdown)
             if (isAdmin) {
                 await this._loadTemplates();
+            }
+
+            // Set header/tab title.
+            if (this._setCaption && !this._savedCaption) {
+                this._savedCaption = this._setCaption('Каталог статей', 'Каталог статей');
             }
 
             this.cardsInstance = new BaseCards(this.container, {
@@ -276,16 +299,8 @@ export class Pages {
 
         const url = `/core/engine/lib/pages/list`;
         try {
-            const response = await fetch(url, {
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Load error: ${response.status}`);
-            }
-
-            const result = await response.json();
+            const fetchJson = window.coreEngine?.fetchJson;
+            const result = await fetchJson(url);
 
             if (result.success) {
                 this.props.items = result.data || [];
@@ -309,16 +324,8 @@ export class Pages {
 
         try {
             const url = `/core/engine/lib/pages/list?is_template=1`;
-            const response = await fetch(url, {
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Templates load error: ${response.status}`);
-            }
-
-            const result = await response.json();
+            const fetchJson = window.coreEngine?.fetchJson;
+            const result = await fetchJson(url);
 
             if (result.success) {
                 this._templates = result.data || [];
@@ -517,6 +524,13 @@ export class Pages {
 
     destroy() {
         console.log('[Pages] destroy()');
+
+        // Restore the title that was on screen before Pages opened.
+        if (this._restoreCaption) {
+            this._restoreCaption(this._savedCaption);
+        }
+        this._savedCaption = null;
+
         if (this.cardsInstance?.destroy) {
             this.cardsInstance.destroy();
         }

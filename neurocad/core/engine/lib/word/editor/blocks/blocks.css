@@ -1,0 +1,788 @@
+/* app/core/engine/lib/word/editor/blocks/blocks.css */
+
+/**
+ * Blocks — editor left panel (BlockManager) UI.
+ *
+ * Lives next to the block modules (elements.js, layout.js, ready.js)
+ * because it only styles the panel where those blocks are shown.
+ * Loaded once, from editor/grapes/index.js — NOT part of the shared
+ * cssFiles array (that array is for editor/css/*.css).
+ *
+ * ONLY editor UI styles:
+ *   - block cards in the panel
+ *   - categories
+ *   - grid layout
+ *   - effect service buttons: rename (fx-rename-btn),
+ *     cancel-edit (fx-edit-cancel-btn), edit/save (fx-edit-btn)
+ *   - effect header actions: clear-all (fx-clear-btn) + create (fx-create-btn)
+ *   - effect pending block: save + close buttons (fx-save-btn, fx-close-btn)
+ *   - inline error under the category header (fx-create-error)
+ *
+ * Prefixes:
+ *   .gjs-block*                            — standard GrapesJS
+ *   .core-engine-lib-word-editor-blocks-*  — our editor wrapper
+ *   .fx-rename-btn                         — rename button on active effect
+ *   .fx-rename-btn__icon                   — its SVG icon
+ *   .fx-edit-cancel-btn                    — cancel-edit button (while editing)
+ *   .fx-edit-cancel-btn__icon              — its SVG icon
+ *   .fx-edit-btn                           — edit button on active effect
+ *   .fx-edit-btn__icon                     — its SVG icon
+ *   .fx-header-actions                     — container for the header buttons
+ *   .fx-clear-btn                          — "×" button (clear all effects)
+ *   .fx-clear-btn__icon                    — its SVG icon
+ *   .fx-create-btn                         — "+" button in the header
+ *   .fx-save-btn / .fx-close-btn           — service buttons on a
+ *                                            pending (not yet saved) effect
+ *   .fx-create-error                       — inline red error message
+ *                                            under the category header
+ *
+ * Content classes (.core-btn, .core-card, ...) live in content.css.
+ * They are loaded BOTH in editor and on public pages.
+ *
+ * Collapse behaviour:
+ *   Category visibility is toggled via the `.gjs-open` class on
+ *   `.gjs-block-category`. Collapsed categories are pre-created with
+ *   `open: false` in BlocksRegistry; GrapesJS re-renders the DOM
+ *   from that model flag. So all rules for `.gjs-blocks-c` are scoped
+ *   to `.gjs-block-category.gjs-open` — the collapsed state stays
+ *   under GrapesJS control.
+ *
+ * Header layout note:
+ *   The category header (.gjs-title) stays a plain block. The action
+ *   buttons (fx-clear-btn, fx-create-btn) are grouped into a single
+ *   absolutely positioned container (.fx-header-actions) in the
+ *   top-right corner — so the title text always starts at the left
+ *   edge, no matter what DOM node GrapesJS puts inside. Do NOT switch
+ *   the header to display: flex — it breaks the alignment of
+ *   categories that have no buttons.
+ *
+ * Rule: no !important. Two classes on our side
+ * (.core-engine-lib-word-editor-blocks-content .gjs-block)
+ * are enough to override GrapesJS builtin rules (.gjs-block = 1 class).
+ */
+
+/* ============================================
+   BLOCK CARD
+   ============================================ */
+
+.core-engine-lib-word-editor-blocks-content .gjs-block {
+    /* Reset GrapesJS default (2 per row). Our selector wins. */
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    flex: 0 0 auto;
+    margin: 0;
+    float: none;
+    box-sizing: border-box;
+
+    /* Our design */
+    border: 1px solid var(--border-light, #e2e8f0);
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    border-radius: 8px;
+    padding: 12px 8px;
+    transition: all 0.15s ease;
+    min-height: 70px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+
+    /* Center content */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: grab;
+
+    /* Needed for the service button positioning */
+    position: relative;
+}
+
+.core-engine-lib-word-editor-blocks-content .gjs-block:active {
+    cursor: grabbing;
+}
+
+.core-engine-lib-word-editor-blocks-content .gjs-block:hover {
+    border-color: #3b82f6;
+    background: #f0f9ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.core-engine-lib-word-editor-blocks-content .gjs-block-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #475569;
+    margin-top: 6px;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.core-engine-lib-word-editor-blocks-content .gjs-block svg {
+    fill: #3b82f6;
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+/* Media container (block icon) */
+.core-engine-lib-word-editor-blocks-content .gjs-block__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+/* ============================================
+   BLOCK CATEGORIES
+   ============================================ */
+
+.core-engine-lib-word-editor-blocks-content .gjs-block-category {
+    border: none;
+    margin-bottom: 8px;
+}
+
+/*
+ * .gjs-title — the category header.
+ *
+ * Plain block layout (no flex). The title text is naturally aligned
+ * to the left. `position: relative` is required so the absolutely
+ * positioned actions container (fx-header-actions) can be anchored
+ * to this box.
+ */
+.core-engine-lib-word-editor-blocks-content .gjs-block-category .gjs-title {
+    background: transparent;
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 10px 62px 6px 6px;   /* extra right padding — room for buttons */
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+    margin-bottom: 8px;
+    cursor: pointer;
+
+    position: relative;
+    box-sizing: border-box;
+}
+
+.core-engine-lib-word-editor-blocks-content .gjs-block-category .gjs-title:hover {
+    color: #3b82f6;
+}
+
+/* ============================================
+   BLOCKS GRID INSIDE CATEGORY
+   ============================================ */
+
+/*
+ * display: grid — scoped to the OPEN category only.
+ *
+ * Why .gjs-block-category.gjs-open:
+ *   Collapsed categories are hidden by grapes.min.css
+ *   (display: none on .gjs-blocks-c). Our blocks.css loads AFTER
+ *   grapes.min.css, so an unscoped rule like
+ *     .core-engine-lib-... .gjs-blocks-c { display: grid }
+ *   would override the collapsed state and every category would
+ *   always be open. Scoping to `.gjs-block-category.gjs-open`
+ *   keeps the collapsed state under GrapesJS control.
+ *
+ * No !important anywhere — the extra class on .gjs-open is enough
+ * to beat the base .gjs-blocks-c rule.
+ */
+.core-engine-lib-word-editor-blocks-content
+.gjs-block-category.gjs-open .gjs-blocks-c {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 0 6px 8px;
+}
+
+/* ============================================
+   EFFECT SERVICE BUTTONS — edit / save / cancel / rename
+   ============================================ */
+
+/*
+ * Three buttons sit in the top-right corner of an effect block.
+ * Right to left:
+ *
+ *     [ rename ] [ cancel ] [ edit/save ]
+ *       48px      26px        4px
+ *
+ *   .fx-rename-btn      — visible whenever the block is is-active.
+ *                         Emits `word:effect-edit-rename`.
+ *
+ *   .fx-edit-cancel-btn — visible only while the block is is-editing.
+ *                         Emits `word:effect-edit-cancel`.
+ *
+ *   .fx-edit-btn        — visible whenever the block is is-active.
+ *                         Not editing: tool-inline.svg → starts edit.
+ *                         Editing:     save-inline.svg → saves edit.
+ *
+ * All three share the same look: icon-only, transparent background,
+ * colour driven by stroke="currentColor" inside the SVG.
+ */
+
+/* --------------------------------------------
+   EDIT / SAVE button (rightmost)
+   -------------------------------------------- */
+
+.core-engine-lib-word-editor-blocks-content .fx-edit-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+
+    line-height: 1;
+    cursor: pointer;
+
+    transition: color 0.12s ease, transform 0.12s ease;
+
+    /* Never start a drag when the user clicks the icon. */
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+}
+
+/* The <img> icon inside the button. */
+.core-engine-lib-word-editor-blocks-content .fx-edit-btn__icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+
+    /* Let clicks land on the button, not on the image itself. */
+    pointer-events: none;
+
+    /* No image drag. */
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-edit-btn:hover {
+    color: #3b82f6;
+    transform: scale(1.15);
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-edit-btn:active {
+    transform: scale(0.95);
+}
+
+/* While editing, the button turns green (save icon). */
+.core-engine-lib-word-editor-blocks-content .gjs-block.is-editing .fx-edit-btn {
+    color: #16a34a;
+}
+
+.core-engine-lib-word-editor-blocks-content .gjs-block.is-editing .fx-edit-btn:hover {
+    color: #15803d;
+}
+
+/* --------------------------------------------
+   CANCEL-EDIT button (middle)
+   -------------------------------------------- */
+
+/*
+ * Visible ONLY while the block is is-editing. Sits to the LEFT of
+ * the edit/save button with a small gap. Shows close-inline.svg and
+ * emits `word:effect-edit-cancel` — the user abandons the edit
+ * without saving.
+ */
+
+.core-engine-lib-word-editor-blocks-content .fx-edit-cancel-btn {
+    position: absolute;
+    top: 4px;
+    right: 26px;                   /* 4px + 20px + 2px gap */
+
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+
+    line-height: 1;
+    cursor: pointer;
+
+    transition: color 0.12s ease, transform 0.12s ease;
+
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-edit-cancel-btn__icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-edit-cancel-btn:hover {
+    color: #dc2626;                /* red — cancel */
+    transform: scale(1.15);
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-edit-cancel-btn:active {
+    transform: scale(0.95);
+}
+
+/* --------------------------------------------
+   RENAME button (leftmost)
+   -------------------------------------------- */
+
+/*
+ * Visible whenever the block is is-active. Sits to the LEFT of the
+ * cancel/save buttons. Shows tag-inline.svg (or another icon set in
+ * panel.js) and emits `word:effect-edit-rename` — the chat then
+ * asks the LLM for a new id/label, and on save a POST+DELETE pair
+ * creates the renamed effect and drops the old one.
+ */
+
+.core-engine-lib-word-editor-blocks-content .fx-rename-btn {
+    position: absolute;
+    top: 4px;
+    right: 48px;                   /* 4 + 20 + 2 + 20 + 2 */
+
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+
+    line-height: 1;
+    cursor: pointer;
+
+    transition: color 0.12s ease, transform 0.12s ease;
+
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-rename-btn__icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-rename-btn:hover {
+    color: #7c3aed;                /* purple — rename */
+    transform: scale(1.15);
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-rename-btn:active {
+    transform: scale(0.95);
+}
+
+/* The block being edited gets a soft green outline. */
+.core-engine-lib-word-editor-blocks-content .gjs-block.is-editing {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15);
+}
+
+/* Active (applied to selection) — blue outline, so the user
+   sees which effect is on the selected element at a glance. */
+.core-engine-lib-word-editor-blocks-content .gjs-block.is-active {
+    border-color: #3b82f6;
+    background: #f0f9ff;
+}
+
+/* Editing wins over active when both are set. */
+.core-engine-lib-word-editor-blocks-content .gjs-block.is-active.is-editing {
+    border-color: #22c55e;
+    background: #f0fdf4;
+}
+
+/* ============================================
+   EFFECT HEADER ACTIONS — clear-all + create
+   ============================================ */
+
+/*
+ * Container for the two header buttons in the "Эффекты" category.
+ * Positioned absolutely in the top-right corner of .gjs-title
+ * (which is position: relative). This keeps the title text
+ * left-aligned for every category, whether or not buttons are
+ * present.
+ *
+ * Layout (left → right):
+ *
+ *     [ × ]  [+]      ← clear-all, create
+ *
+ * Clicking either button stops propagation so the category does
+ * not toggle.
+ */
+
+.core-engine-lib-word-editor-blocks-content .fx-header-actions {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    /* Do not let the buttons participate in any text selection
+       or drag from the header. */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* --------------------------------------------
+   CLEAR-ALL button (×)
+   -------------------------------------------- */
+
+.core-engine-lib-word-editor-blocks-content .fx-clear-btn {
+    /* Reset browser defaults for <button>. */
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 4px;
+
+    transition: color 0.12s ease, background 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
+
+    /* Never select or drag the icon. */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-clear-btn__icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+
+    /* Clicks land on the button, not the image. */
+    pointer-events: none;
+
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-clear-btn:hover:not(:disabled):not(.is-disabled) {
+    color: #dc2626;                /* red — destructive action */
+    background: #fef2f2;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-clear-btn:active:not(:disabled):not(.is-disabled) {
+    transform: scale(0.95);
+}
+
+/* Disabled state — nothing to clear on the current selection. */
+.core-engine-lib-word-editor-blocks-content .fx-clear-btn:disabled,
+.core-engine-lib-word-editor-blocks-content .fx-clear-btn.is-disabled {
+    color: #cbd5e1;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* --------------------------------------------
+   CREATE button (+)
+   -------------------------------------------- */
+
+.core-engine-lib-word-editor-blocks-content .fx-create-btn {
+    /* Reset browser defaults for <button>. */
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1;
+
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+
+    /* Never select the symbol or start a drag from it. */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-create-btn:hover {
+    color: #3b82f6;
+    background: #eff6ff;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-create-btn:active {
+    transform: scale(0.95);
+}
+
+/* ============================================
+   EFFECT CREATE — pending block (save + close)
+   ============================================ */
+
+/*
+ * A PENDING block is created by the "+" button (see
+ * editor/effects/index.js → _onCreateClick). It represents an
+ * effect that does not exist on the server yet. While the user is
+ * iterating on the draft in the chat, this block stays in the
+ * palette with two service buttons:
+ *
+ *   save  (fx-save-btn)   — POST the draft, convert this block
+ *                            into a normal effect block.
+ *                            DISABLED until the first draft arrives.
+ *   close (fx-close-btn)  — cancel creation: remove this block,
+ *                            revert the draft CSS on the element.
+ *
+ * Both buttons are pinned to the top-right corner of the block card,
+ * like the edit button on a normal effect block. Save is slightly
+ * to the left of close so the two do not overlap.
+ *
+ * The block itself gets a dashed border so the user sees it is not
+ * yet a real effect.
+ */
+
+/* Pending block outline */
+.core-engine-lib-word-editor-blocks-content .gjs-block.is-pending {
+    border-style: dashed;
+    border-color: #cbd5e1;
+    background: #fafbfc;
+}
+
+/* Hover on a pending block does NOT apply the usual blue highlight. */
+.core-engine-lib-word-editor-blocks-content .gjs-block.is-pending:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+    transform: none;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+/* Icon placeholder in a pending block (before the draft arrives). */
+.core-engine-lib-word-editor-blocks-content
+.gjs-block.is-pending .gjs-block__media svg {
+    fill: none;
+    stroke: #cbd5e1;
+}
+
+/* --------------------------------------------
+   SAVE button
+   -------------------------------------------- */
+
+.core-engine-lib-word-editor-blocks-content .fx-save-btn {
+    position: absolute;
+    top: 4px;
+    right: 26px;                   /* to the left of close */
+
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    background: transparent;
+    color: #16a34a;                /* green — "save" */
+
+    line-height: 1;
+    cursor: pointer;
+
+    transition: color 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
+
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-save-btn__icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-save-btn:hover:not(:disabled) {
+    color: #15803d;
+    transform: scale(1.15);
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-save-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+/* Disabled state — before the first draft arrives. */
+.core-engine-lib-word-editor-blocks-content .fx-save-btn:disabled,
+.core-engine-lib-word-editor-blocks-content .fx-save-btn.is-disabled {
+    color: #cbd5e1;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* --------------------------------------------
+   CLOSE button
+   -------------------------------------------- */
+
+.core-engine-lib-word-editor-blocks-content .fx-close-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    background: transparent;
+    color: #94a3b8;                /* neutral grey */
+
+    line-height: 1;
+    cursor: pointer;
+
+    transition: color 0.12s ease, transform 0.12s ease;
+
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-close-btn__icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-close-btn:hover {
+    color: #dc2626;                /* red — "cancel" */
+    transform: scale(1.15);
+}
+
+.core-engine-lib-word-editor-blocks-content .fx-close-btn:active {
+    transform: scale(0.95);
+}
+
+/* ============================================
+   EFFECT CREATE — inline error under the header
+   ============================================ */
+
+/*
+ * A small red error message shown under the "Эффекты" category
+ * header when the user clicks "+" without selecting an element.
+ *
+ * Rationale: the user just clicked "+" in the header, so their eyes
+ * are on the header — a toast at the bottom of the screen would be
+ * missed. This message appears exactly where they are looking.
+ *
+ * Inserted between the header (.gjs-title) and the block grid
+ * (.gjs-blocks-c). Self-removes after 2 seconds (see
+ * EffectBlocks._showCategoryError).
+ */
+
+.core-engine-lib-word-editor-blocks-content .fx-create-error {
+    /* Slight negative top margin to sit closer to the header's
+       bottom border, which has margin-bottom: 8px by default. */
+    margin: -4px 6px 8px;
+    padding: 4px 8px;
+
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.3;
+
+    color: #dc2626;               /* red-600 */
+    background: #fef2f2;          /* red-50 */
+    border: 1px solid #fecaca;    /* red-200 */
+    border-radius: 4px;
+
+    /* Prevent text selection on a transient message. */
+    user-select: none;
+    -webkit-user-select: none;
+
+    animation: fx-create-error-fade-in 0.15s ease;
+}
+
+@keyframes fx-create-error-fade-in {
+    from { opacity: 0; transform: translateY(-2px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

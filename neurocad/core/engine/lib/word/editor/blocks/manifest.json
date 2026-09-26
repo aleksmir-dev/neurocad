@@ -1,0 +1,34 @@
+{
+  "blocks": [
+    {
+      "name": "ElementBlocks",
+      "js": "elements.js",
+      "css": "elements.css",
+      "classes": []
+    },
+    {
+      "name": "ReadyBlocks",
+      "js": "ready.js",
+      "css": "ready.css",
+      "classes": [
+        "hero",
+        "features",
+        "steps",
+        "text-image",
+        "image-text",
+        "gallery",
+        "faq",
+        "cta",
+        "contacts",
+        "footer"
+      ]
+    },
+    {
+      "name": "LayoutBlocks",
+      "js": "layout.js",
+      "css": "layout.css",
+      "classes": ["flex-shell"]
+    }
+  ],
+  "legacy_css": []
+}

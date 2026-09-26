@@ -1,0 +1,75 @@
+.core-engine-lib-word-blocks .fx-rotating-globe {
+  position: relative;
+  overflow: hidden;
+}
+.core-engine-lib-word-blocks .fx-rotating-globe::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      24deg,
+      rgba(148, 163, 184, 0.38) 0 1px,
+      transparent 1px 9px
+    ),
+    repeating-linear-gradient(
+      -18deg,
+      rgba(148, 163, 184, 0.22) 0 1px,
+      transparent 1px 14px
+    ),
+    repeating-linear-gradient(
+      68deg,
+      rgba(148, 163, 184, 0.14) 0 1px,
+      transparent 1px 22px
+    );
+  background-size: 100% 100%;
+  opacity: 0.9;
+  animation: fx-rotating-globe-drift 22s linear infinite;
+}
+.core-engine-lib-word-blocks .fx-rotating-globe::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      12deg,
+      rgba(148, 163, 184, 0.16) 0 1px,
+      transparent 1px 17px
+    ),
+    repeating-linear-gradient(
+      -52deg,
+      rgba(148, 163, 184, 0.10) 0 1px,
+      transparent 1px 28px
+    );
+  mix-blend-mode: multiply;
+  animation: fx-rotating-globe-drift-alt 34s linear infinite;
+  pointer-events: none;
+}
+.core-engine-lib-word-blocks .fx-rotating-globe:hover::before {
+  animation-duration: 12s;
+}
+.core-engine-lib-word-blocks .fx-rotating-globe:hover::after {
+  animation-duration: 20s;
+}
+@keyframes fx-rotating-globe-drift {
+  from {
+    background-position: 0 0, 0 0, 0 0;
+  }
+  to {
+    background-position: 180px 0, -140px 0, 90px 0;
+  }
+}
+@keyframes fx-rotating-globe-drift-alt {
+  from {
+    background-position: 0 0, 0 0;
+  }
+  to {
+    background-position: -220px 0, 160px 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .core-engine-lib-word-blocks .fx-rotating-globe::before,
+  .core-engine-lib-word-blocks .fx-rotating-globe::after {
+    animation: none;
+  }
+}

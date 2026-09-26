@@ -1,26 +1,47 @@
 // app/core/engine/lib/base/auth/login.js
 
+/**
+ * BaseAuthLogin — login page.
+ *
+ * 401 here means "wrong username or password", NOT "session expired".
+ * So we use fetchJson with skipAuthRedirect: true — do NOT emit
+ * auth:unauthorized on 401 (the login form is already open).
+ *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ *
+ * Caption: saves the current header/tab title on open and restores it
+ * on destroy.
+ */
 export class BaseAuthLogin {
     constructor(options = {}) {
-        console.log('[BaseAuthLogin] Конструктор вызван');
+        console.log('[BaseAuthLogin] Constructor called');
         this.options = options;
         this.onSuccess = options.onSuccess || null;
         this.onSwitchToRegister = options.onSwitchToRegister || null;
         this.onSwitchToRestore = options.onSwitchToRestore || null;
+
+        // Caption helpers — provided by BaseAuth via _renderForm().
+        this.setCaption = options.setCaption || null;
+        this.restoreCaption = options.restoreCaption || null;
+
         this.element = null;
         this.captcha = null;
         this.Captcha = null;
 
-        // Состояние инициализации
+        // Saved caption state — filled in render(), used in destroy().
+        this._savedCaption = null;
+
+        // Init state
         this._initialized = false;
         this._initPromise = null;
 
-        // Загружаем CSS
+        // Load CSS
         if (window.coreEngine && typeof window.coreEngine.loadCSS === 'function') {
             window.coreEngine.loadCSS('core/engine/lib/base/auth/login.css');
         }
 
-        // Запускаем асинхронную инициализацию
+        // Start async init
         this._initPromise = this._init();
     }
 
@@ -31,18 +52,23 @@ export class BaseAuthLogin {
             this._initialized = true;
             console.log('[BaseAuthLogin] _init() COMPLETE');
         } catch (error) {
-            console.error('[BaseAuthLogin] Ошибка инициализации:', error);
+            console.error('[BaseAuthLogin] Init error:', error);
             this._initialized = false;
             throw error;
         }
     }
 
     async render() {
-        console.log('[BaseAuthLogin] render() начат');
-        
-        // Ждем инициализацию
+        console.log('[BaseAuthLogin] render() START');
+
+        // Wait for init
         if (this._initPromise) {
             await this._initPromise;
+        }
+
+        // Save current title, set our own.
+        if (this.setCaption && !this._savedCaption) {
+            this._savedCaption = this.setCaption('Вход', 'Вход');
         }
 
         const wrapper = document.createElement('div');
@@ -63,7 +89,7 @@ export class BaseAuthLogin {
                         </div>
                     </div>
                     <div class="auth-group" data-js="captcha-container">
-                        <!-- Капча будет вставлена сюда -->
+                        <!-- Captcha will be inserted here -->
                     </div>
                     <button type="submit" class="auth-submit" data-js="login-submit">Войти</button>
                 </form>
@@ -75,19 +101,19 @@ export class BaseAuthLogin {
         `;
         this.element = wrapper;
 
-        console.log('[BaseAuthLogin] после рендера, вызываю _renderCaptcha()');
+        console.log('[BaseAuthLogin] after render, calling _renderCaptcha()');
         this._renderCaptcha();
-        console.log('[BaseAuthLogin] render() завершён, captcha:', this.captcha);
+        console.log('[BaseAuthLogin] render() done, captcha:', this.captcha);
 
         return wrapper;
     }
 
     async _loadCaptcha() {
-        console.log('[BaseAuthLogin] _loadCaptcha() вызван');
+        console.log('[BaseAuthLogin] _loadCaptcha()');
         try {
             const module = await import('./captcha.js');
             this.Captcha = module.BaseAuthCaptcha;
-            console.log('[BaseAuthLogin] captcha.js загружен, this.Captcha:', !!this.Captcha);
+            console.log('[BaseAuthLogin] captcha.js loaded, this.Captcha:', !!this.Captcha);
         } catch (error) {
             console.error('[BaseAuthLogin] Error loading captcha:', error);
             throw error;
@@ -95,32 +121,32 @@ export class BaseAuthLogin {
     }
 
     _renderCaptcha() {
-        console.log('[BaseAuthLogin] _renderCaptcha() вызван');
+        console.log('[BaseAuthLogin] _renderCaptcha()');
         const container = this.element?.querySelector('[data-js="captcha-container"]');
         console.log('[BaseAuthLogin] container:', container);
         console.log('[BaseAuthLogin] this.Captcha:', !!this.Captcha);
 
         if (!container) {
-            console.warn('[BaseAuthLogin] Контейнер для капчи не найден');
+            console.warn('[BaseAuthLogin] Captcha container not found');
             return;
         }
         if (!this.Captcha) {
-            console.warn('[BaseAuthLogin] this.Captcha не загружен');
+            console.warn('[BaseAuthLogin] this.Captcha not loaded');
             return;
         }
 
         this.captcha = new this.Captcha({
             onRefresh: () => {
-                console.log('[BaseAuthLogin] Капча обновлена');
+                console.log('[BaseAuthLogin] Captcha refreshed');
             }
         });
-        console.log('[BaseAuthLogin] Экземпляр капчи создан:', !!this.captcha);
+        console.log('[BaseAuthLogin] Captcha instance created:', !!this.captcha);
 
         const captchaElement = this.captcha.render();
         console.log('[BaseAuthLogin] captchaElement:', captchaElement);
         container.appendChild(captchaElement);
         this.captcha.bindEvents(container);
-        console.log('[BaseAuthLogin] Капча добавлена в DOM');
+        console.log('[BaseAuthLogin] Captcha added to DOM');
     }
 
     bindEvents(container) {
@@ -227,21 +253,12 @@ export class BaseAuthLogin {
         }
 
         try {
-            const response = await fetch('/core/auth/login', {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson('/core/auth/login', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({ login, password })
+                body: { login, password },
+                skipAuthRedirect: true,   // wrong credentials ≠ session expired
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Ошибка входа');
-            }
 
             if (data.success) {
                 const user = data.data?.user || data.data;
@@ -253,7 +270,7 @@ export class BaseAuthLogin {
             }
 
         } catch (error) {
-            console.error('[BaseAuthLogin] Ошибка входа:', error);
+            console.error('[BaseAuthLogin] Login error:', error);
             if (errorEl) {
                 errorEl.textContent = error.message || 'Неверный логин или пароль';
                 errorEl.style.display = 'block';
@@ -270,14 +287,14 @@ export class BaseAuthLogin {
     }
 
     /**
-     * Проверяет, инициализирован ли компонент
+     * Whether the component is initialized.
      */
     isInitialized() {
         return this._initialized;
     }
 
     /**
-     * Ожидает завершения инициализации
+     * Wait for init to complete.
      */
     async waitForInit() {
         if (this._initPromise) {
@@ -288,6 +305,13 @@ export class BaseAuthLogin {
 
     destroy() {
         console.log('[BaseAuthLogin] destroy()');
+
+        // Restore the title that was on screen before we opened.
+        if (this.restoreCaption) {
+            this.restoreCaption(this._savedCaption);
+        }
+        this._savedCaption = null;
+
         if (this.captcha && typeof this.captcha.destroy === 'function') {
             this.captcha.destroy();
             this.captcha = null;

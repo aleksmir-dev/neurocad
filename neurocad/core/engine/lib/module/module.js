@@ -1,57 +1,61 @@
 // app/core/engine/lib/module/module.js
 
 /**
- * Компонент модуля
- * Рендерит готовую страницу, полученную от бэкенда
+ * Module component.
+ * Renders a ready page config received from the backend.
+ *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
  */
 export class Module {
     constructor(container, props = {}) {
-        console.log('[Module] Конструктор вызван');
+        console.log('[Module] Constructor called');
         console.log('[Module] props:', props);
-        
+
         this.container = container;
         this.props = props;
 
-        // Бэкенд уже собрал всё: default_page + extend
-        // Поэтому props уже содержит готовый конфиг страницы
+        // The backend has already assembled everything:
+        // default_page + extend. So props already contains
+        // the complete page config.
         this.pageConfig = props;
         this.isLoading = false;
         this.error = null;
 
-        // Состояние инициализации
+        // Init state
         this._initialized = false;
         this._initPromise = null;
 
-        // Запускаем асинхронную инициализацию
+        // Start async init
         this._initPromise = this._init();
     }
 
     async _init() {
         console.log('[Module] _init() START');
         try {
-            // Загружаем CSS
+            // Load CSS
             await this._loadCSS();
-            
-            // Проверяем авторизацию, если требуется
+
+            // Check auth if required
             if (this.pageConfig.auth_required) {
                 await this._checkAuth();
             }
-            
-            // Загружаем данные модуля, если есть API
+
+            // Load module data if there is an API URL
             if (this.pageConfig.apiUrl) {
                 await this._loadData();
             }
-            
-            // Рендерим страницу
+
+            // Render the page
             await this.render();
-            
+
             this._initialized = true;
             console.log('[Module] _init() COMPLETE');
         } catch (error) {
-            console.error('[Module] Ошибка инициализации:', error);
+            console.error('[Module] Init error:', error);
             this._initialized = false;
-            // Показываем ошибку
-            this._showError(error.message || 'Ошибка загрузки модуля');
+            // Show error
+            this._showError(error.message || 'Module load error');
         }
     }
 
@@ -66,22 +70,22 @@ export class Module {
         console.log('[Module] _checkAuth()');
         const auth = window.coreEngine?.auth;
         if (!auth) {
-            console.warn('[Module] Auth не найден');
+            console.warn('[Module] Auth not found');
             return;
         }
 
-        // Ждем инициализацию Auth
+        // Wait for Auth init
         if (auth._initPromise) {
             await auth._initPromise;
         }
 
         if (!auth.isAuth()) {
-            console.log('[Module] Требуется авторизация');
+            console.log('[Module] Auth required');
             this.error = 'Для доступа к этому модулю необходимо войти';
             if (typeof auth.showLogin === 'function') {
                 auth.showLogin();
             }
-            throw new Error('Требуется авторизация');
+            throw new Error('Auth required');
         }
     }
 
@@ -91,27 +95,16 @@ export class Module {
         this.error = null;
 
         try {
-            const response = await fetch(this.pageConfig.apiUrl, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                },
-                credentials: 'include'
-            });
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson(this.pageConfig.apiUrl);
 
-            if (!response.ok) {
-                throw new Error(`Ошибка загрузки: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
             if (data.success && data.data) {
-                // Обновляем конфиг страницы данными с сервера
+                // Merge server data into page config
                 this.pageConfig = { ...this.pageConfig, ...data.data };
-                console.log('[Module] Данные модуля загружены');
+                console.log('[Module] Module data loaded');
             }
         } catch (error) {
-            console.error('[Module] Ошибка загрузки данных:', error);
+            console.error('[Module] Data load error:', error);
             this.error = error.message;
         } finally {
             this.isLoading = false;
@@ -119,16 +112,16 @@ export class Module {
     }
 
     async render() {
-        console.log('[Module] render() вызван');
+        console.log('[Module] render() called');
         console.log('[Module] pageConfig:', this.pageConfig);
 
-        // Если есть ошибка, показываем её
+        // If there is an error — show it
         if (this.error) {
             this._showError(this.error);
             return;
         }
 
-        // Если загрузка
+        // If loading
         if (this.isLoading) {
             this.container.innerHTML = `
                 <div class="core-engine-lib-module-loading">
@@ -141,7 +134,7 @@ export class Module {
 
         const renderer = window.coreEngine?.renderer;
         if (!renderer) {
-            console.error('[Module] Renderer не найден');
+            console.error('[Module] Renderer not found');
             this.container.innerHTML = `
                 <div class="core-engine-lib-module-error">
                     <div class="core-engine-lib-module-error-icon">❌</div>
@@ -153,11 +146,11 @@ export class Module {
         }
 
         try {
-            // Ждем рендеринг страницы
+            // Wait for the page render
             await renderer.renderToContainer(this.pageConfig, this.container);
-            console.log('[Module] Страница отрендерена');
+            console.log('[Module] Page rendered');
         } catch (error) {
-            console.error('[Module] Ошибка рендеринга:', error);
+            console.error('[Module] Render error:', error);
             this._showError('Ошибка рендеринга страницы');
         }
     }
@@ -189,7 +182,7 @@ export class Module {
     }
 
     /**
-     * Обновить конфиг модуля
+     * Update module config.
      */
     update(props) {
         console.log('[Module] update()', props);
@@ -198,7 +191,7 @@ export class Module {
     }
 
     /**
-     * Перезагрузить модуль
+     * Reload the module.
      */
     async reload() {
         console.log('[Module] reload()');
@@ -209,14 +202,14 @@ export class Module {
     }
 
     /**
-     * Проверяет, инициализирован ли компонент
+     * Whether the component is initialized.
      */
     isInitialized() {
         return this._initialized;
     }
 
     /**
-     * Ожидает завершения инициализации
+     * Wait for init to complete.
      */
     async waitForInit() {
         if (this._initPromise) {

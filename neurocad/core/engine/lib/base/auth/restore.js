@@ -1,12 +1,33 @@
 // app/core/engine/lib/base/auth/restore.js
 
+/**
+ * BaseAuthRestore — password restore page.
+ *
+ * Two steps:
+ *   1. request: POST /core/auth/restore/request
+ *   2. confirm: POST /core/auth/restore/confirm
+ *
+ * 401 here means "bad request" (unknown user, invalid token), NOT
+ * "session expired". So both calls use skipAuthRedirect: true.
+ *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ *
+ * Caption: saves the current header/tab title on open and restores it
+ * on destroy.
+ */
 export class BaseAuthRestore {
     constructor(options = {}) {
-        console.log('[BaseAuthRestore] Конструктор вызван');
+        console.log('[BaseAuthRestore] Constructor called');
         this.options = options;
         this.onSuccess = options.onSuccess || null;
         this.onCancel = options.onCancel || null;
         this.onSwitchToLogin = options.onSwitchToLogin || null;
+
+        // Caption helpers — provided by BaseAuth via _renderForm().
+        this.setCaption = options.setCaption || null;
+        this.restoreCaption = options.restoreCaption || null;
+
         this.element = null;
         this.isLoading = false;
         this.isConfirmStep = false;
@@ -14,13 +35,16 @@ export class BaseAuthRestore {
         this.captcha = null;
         this.Captcha = null;
 
-        // Состояние инициализации
+        // Saved caption state — filled in render(), used in destroy().
+        this._savedCaption = null;
+
+        // Init state
         this._initialized = false;
         this._initPromise = null;
 
         this._loadCSS();
 
-        // Запускаем асинхронную инициализацию
+        // Start async init
         this._initPromise = this._init();
     }
 
@@ -31,7 +55,7 @@ export class BaseAuthRestore {
             this._initialized = true;
             console.log('[BaseAuthRestore] _init() COMPLETE');
         } catch (error) {
-            console.error('[BaseAuthRestore] Ошибка инициализации:', error);
+            console.error('[BaseAuthRestore] Init error:', error);
             this._initialized = false;
             throw error;
         }
@@ -45,11 +69,16 @@ export class BaseAuthRestore {
     }
 
     async render() {
-        console.log('[BaseAuthRestore] render() начат');
-        
-        // Ждем инициализацию
+        console.log('[BaseAuthRestore] render() START');
+
+        // Wait for init
         if (this._initPromise) {
             await this._initPromise;
+        }
+
+        // Save current title, set our own.
+        if (this.setCaption && !this._savedCaption) {
+            this._savedCaption = this.setCaption('Восстановление пароля', 'Восстановление пароля');
         }
 
         const wrapper = document.createElement('div');
@@ -59,19 +88,19 @@ export class BaseAuthRestore {
                 <div class="auth-error" data-js="restore-error" style="display:none;"></div>
                 <div class="auth-success" data-js="restore-success" style="display:none;"></div>
 
-                <!-- Шаг 1: Запрос восстановления -->
+                <!-- Step 1: request restore -->
                 <form class="auth-form" data-js="restore-request-form">
                     <div class="auth-group">
                         <label class="auth-label">Email или логин</label>
                         <input type="text" class="auth-input" data-js="restore-email" placeholder="Введите email или логин" autofocus>
                     </div>
                     <div class="auth-group" data-js="captcha-container">
-                        <!-- Капча будет вставлена сюда -->
+                        <!-- Captcha will be inserted here -->
                     </div>
                     <button type="submit" class="auth-submit" data-js="restore-request-submit">Отправить</button>
                 </form>
 
-                <!-- Шаг 2: Установка нового пароля -->
+                <!-- Step 2: set new password -->
                 <form class="auth-form" data-js="restore-confirm-form" style="display:none;">
                     <div class="auth-group">
                         <label class="auth-label">Новый пароль</label>
@@ -99,16 +128,16 @@ export class BaseAuthRestore {
 
         this._renderCaptcha();
 
-        console.log('[BaseAuthRestore] render() завершён');
+        console.log('[BaseAuthRestore] render() done');
         return wrapper;
     }
 
     async _loadCaptcha() {
-        console.log('[BaseAuthRestore] _loadCaptcha() вызван');
+        console.log('[BaseAuthRestore] _loadCaptcha()');
         try {
             const module = await import('./captcha.js');
             this.Captcha = module.BaseAuthCaptcha;
-            console.log('[BaseAuthRestore] captcha.js загружен, this.Captcha:', !!this.Captcha);
+            console.log('[BaseAuthRestore] captcha.js loaded, this.Captcha:', !!this.Captcha);
         } catch (error) {
             console.error('[BaseAuthRestore] Error loading captcha:', error);
             throw error;
@@ -116,22 +145,22 @@ export class BaseAuthRestore {
     }
 
     _renderCaptcha() {
-        console.log('[BaseAuthRestore] _renderCaptcha() вызван');
+        console.log('[BaseAuthRestore] _renderCaptcha()');
         const container = this.element?.querySelector('[data-js="captcha-container"]');
         if (!container || !this.Captcha) return;
 
         this.captcha = new this.Captcha({
             onRefresh: () => {
-                console.log('[BaseAuthRestore] Капча обновлена');
+                console.log('[BaseAuthRestore] Captcha refreshed');
             }
         });
         container.appendChild(this.captcha.render());
         this.captcha.bindEvents(container);
-        console.log('[BaseAuthRestore] Капча добавлена в DOM');
+        console.log('[BaseAuthRestore] Captcha added to DOM');
     }
 
     bindEvents(container) {
-        console.log('[BaseAuthRestore] bindEvents() вызван');
+        console.log('[BaseAuthRestore] bindEvents()');
         const root = container || this.element;
         if (!root) return;
 
@@ -271,27 +300,16 @@ export class BaseAuthRestore {
         this._hideSuccess();
 
         try {
-            const response = await fetch('/core/auth/restore/request', {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson('/core/auth/restore/request', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    login_or_email: email
-                })
+                body: { login_or_email: email },
+                skipAuthRedirect: true,   // bad request ≠ session expired
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Ошибка восстановления');
-            }
 
             if (data.success) {
                 this._showSuccess(data.message || 'Инструкция отправлена на email');
-                
+
                 if (data.data && data.data.token) {
                     this.token = data.data.token;
                     setTimeout(() => {
@@ -303,7 +321,7 @@ export class BaseAuthRestore {
             }
 
         } catch (error) {
-            console.error('[BaseAuthRestore] Ошибка запроса восстановления:', error);
+            console.error('[BaseAuthRestore] Restore request error:', error);
             this._showError(error.message || 'Ошибка соединения. Попробуйте позже.');
             if (this.captcha && typeof this.captcha.refresh === 'function') {
                 this.captcha.refresh();
@@ -343,25 +361,16 @@ export class BaseAuthRestore {
         this._hideSuccess();
 
         try {
-            const response = await fetch('/core/auth/restore/confirm', {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson('/core/auth/restore/confirm', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
+                body: {
                     token: this.token,
                     new_password: password,
-                    new_password_confirm: passwordConfirm
-                })
+                    new_password_confirm: passwordConfirm,
+                },
+                skipAuthRedirect: true,   // invalid token ≠ session expired
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Ошибка восстановления');
-            }
 
             if (data.success) {
                 if (this.onSuccess) {
@@ -376,7 +385,7 @@ export class BaseAuthRestore {
             }
 
         } catch (error) {
-            console.error('[BaseAuthRestore] Ошибка подтверждения восстановления:', error);
+            console.error('[BaseAuthRestore] Restore confirm error:', error);
             this._showError(error.message || 'Ошибка восстановления. Попробуйте позже.');
         }
 
@@ -442,14 +451,14 @@ export class BaseAuthRestore {
     }
 
     /**
-     * Проверяет, инициализирован ли компонент
+     * Whether the component is initialized.
      */
     isInitialized() {
         return this._initialized;
     }
 
     /**
-     * Ожидает завершения инициализации
+     * Wait for init to complete.
      */
     async waitForInit() {
         if (this._initPromise) {
@@ -460,6 +469,13 @@ export class BaseAuthRestore {
 
     destroy() {
         console.log('[BaseAuthRestore] destroy()');
+
+        // Restore the title that was on screen before we opened.
+        if (this.restoreCaption) {
+            this.restoreCaption(this._savedCaption);
+        }
+        this._savedCaption = null;
+
         if (this.captcha && typeof this.captcha.destroy === 'function') {
             this.captcha.destroy();
             this.captcha = null;

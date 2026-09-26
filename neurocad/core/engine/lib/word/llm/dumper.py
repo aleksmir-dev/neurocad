@@ -18,6 +18,10 @@ Layout:
 `agent` is the agent name: router, help, create, fill, effect, none.
 A running counter `NN` keeps the files ordered.
 
+meta.txt also records the provider and model that handled the run,
+so a dumped run is self-describing (useful when switching providers
+from the admin UI).
+
 If `run_id` is None, dumping is skipped.
 """
 
@@ -80,8 +84,16 @@ class CoreEngineLibWordLlmDumper:
         page_id: int,
         user_message: str,
         block_catalog: Optional[List[Dict[str, Any]]] = None,
+        provider_name: Optional[str] = None,
+        model: Optional[str] = None,
     ) -> None:
-        """Dump a short summary of the run."""
+        """
+        Dump a short summary of the run.
+
+        provider_name / model — the LLM that handled this run.
+        Both are optional: if the provider could not be resolved
+        (or is the mock), they are written as '—'.
+        """
         if run_id is None:
             return
         # reset counter for a new run
@@ -89,12 +101,18 @@ class CoreEngineLibWordLlmDumper:
 
         catalog_size = len(block_catalog or [])
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        provider_str = provider_name or "—"
+        model_str = model or "—"
+
         content = (
             f"run_id       = {run_id}\n"
             f"page_id      = {page_id}\n"
             f"user_message = {user_message!r}\n"
             f"catalog_size = {catalog_size}\n"
             f"created_at   = {now}\n"
+            f"provider     = {provider_str}\n"
+            f"model        = {model_str}\n"
         )
         CoreEngineLibWordLlmDumper._write(run_id, "meta.txt", content)
 

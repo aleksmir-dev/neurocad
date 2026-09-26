@@ -211,6 +211,17 @@
     display: none;
 }
 
+/* ===== Provider header (title + test button) ===== */
+
+.core-engine-lib-base-setup-llm .llm-provider-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+}
+
 .core-engine-lib-base-setup-llm .llm-provider-title {
     font-size: 12px;
     font-weight: 600;
@@ -218,8 +229,68 @@
     text-align: right;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin: 0 0 4px 0;
+    margin: 0;
     padding: 0;
+}
+
+/* ===== Test button ("Проверить") ===== */
+
+.core-engine-lib-base-setup-llm .llm-test-btn {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border: 1px solid #3b82f6;
+    border-radius: var(--radius-md, 8px);
+    background: transparent;
+    color: #3b82f6;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.core-engine-lib-base-setup-llm .llm-test-btn:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.core-engine-lib-base-setup-llm .llm-test-btn:active:not(:disabled) {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.core-engine-lib-base-setup-llm .llm-test-btn:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+/* ===== Test status (inline, right under the test button) ===== */
+/*
+ * Plain text — no background, no border. Only the text color
+ * changes with the result type. Sits directly under the
+ * .llm-provider-header inside each provider block.
+ */
+
+.core-engine-lib-base-setup-llm .llm-test-status {
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #475569;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.core-engine-lib-base-setup-llm .llm-test-status-info {
+    color: #2563eb;
+}
+
+.core-engine-lib-base-setup-llm .llm-test-status-success {
+    color: #16a34a;
+}
+
+.core-engine-lib-base-setup-llm .llm-test-status-error {
+    color: #dc2626;
 }
 
 /* ===== Field ===== */
@@ -259,6 +330,30 @@
 
 .core-engine-lib-base-setup-llm .llm-select {
     cursor: pointer;
+}
+
+/* ===== Textarea (PEM / long text) ===== */
+
+.core-engine-lib-base-setup-llm .llm-textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    font-size: 12px;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+    line-height: 1.4;
+    outline: none;
+    resize: vertical;
+    min-height: 120px;
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.core-engine-lib-base-setup-llm .llm-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* ===== Buttons (error state only) ===== */
@@ -317,5 +412,11 @@
 
     .core-engine-lib-base-setup-llm .llm-titlebar-title {
         font-size: 15px;
+    }
+
+    .core-engine-lib-base-setup-llm .llm-provider-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
 }

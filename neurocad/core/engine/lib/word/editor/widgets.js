@@ -198,6 +198,14 @@ export class WidgetsBuilder {
             e.chatEl = e.rightArea.querySelector('[data-js="editor-chat"]');
         }
 
+        // ===== Restore side areas visibility =====
+        // Base may have hidden them earlier (e.g. when the user switched
+        // to Settings — Base.showSetup() calls _clearSideAreas() and sets
+        // display: none). Without this, the editor would open with the
+        // left/right panels empty and hidden.
+        if (e.leftArea) e.leftArea.style.display = 'flex';
+        if (e.rightArea) e.rightArea.style.display = 'flex';
+
         console.log('[WidgetsBuilder] DOM built', {
             blocksEl: !!e.blocksEl,
             presetsEl: !!e.presetsEl,

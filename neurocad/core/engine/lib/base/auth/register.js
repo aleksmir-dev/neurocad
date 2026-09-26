@@ -1,18 +1,39 @@
 // app/core/engine/lib/base/auth/register.js
 
+/**
+ * BaseAuthRegister — registration page.
+ *
+ * 401 here means "wrong credentials on auto-login", NOT "session expired".
+ * So both fetchJson calls use skipAuthRedirect: true — do NOT emit
+ * auth:unauthorized on 401.
+ *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ *
+ * Caption: saves the current header/tab title on open and restores it
+ * on destroy.
+ */
 export class BaseAuthRegister {
     constructor(options = {}) {
-        console.log('[BaseAuthRegister] Конструктор вызван');
+        console.log('[BaseAuthRegister] Constructor called');
         this.options = options;
         this.onSuccess = options.onSuccess || null;
         this.onCancel = options.onCancel || null;
         this.onSwitchToLogin = options.onSwitchToLogin || null;
+
+        // Caption helpers — provided by BaseAuth via _renderForm().
+        this.setCaption = options.setCaption || null;
+        this.restoreCaption = options.restoreCaption || null;
+
         this.element = null;
         this.isLoading = false;
         this.captcha = null;
         this.Captcha = null;
 
-        // Состояние инициализации
+        // Saved caption state — filled in render(), used in destroy().
+        this._savedCaption = null;
+
+        // Init state
         this._initialized = false;
         this._initPromise = null;
 
@@ -20,7 +41,7 @@ export class BaseAuthRegister {
 
         this._loadCSS();
 
-        // Запускаем асинхронную инициализацию
+        // Start async init
         this._initPromise = this._init();
     }
 
@@ -31,7 +52,7 @@ export class BaseAuthRegister {
             this._initialized = true;
             console.log('[BaseAuthRegister] _init() COMPLETE');
         } catch (error) {
-            console.error('[BaseAuthRegister] Ошибка инициализации:', error);
+            console.error('[BaseAuthRegister] Init error:', error);
             this._initialized = false;
             throw error;
         }
@@ -45,11 +66,16 @@ export class BaseAuthRegister {
     }
 
     async render() {
-        console.log('[BaseAuthRegister] render() начат');
-        
-        // Ждем инициализацию
+        console.log('[BaseAuthRegister] render() START');
+
+        // Wait for init
         if (this._initPromise) {
             await this._initPromise;
+        }
+
+        // Save current title, set our own.
+        if (this.setCaption && !this._savedCaption) {
+            this._savedCaption = this.setCaption('Регистрация', 'Регистрация');
         }
 
         const wrapper = document.createElement('div');
@@ -85,7 +111,7 @@ export class BaseAuthRegister {
                         </div>
                     </div>
                     <div class="auth-group" data-js="captcha-container">
-                        <!-- Капча будет вставлена сюда -->
+                        <!-- Captcha will be inserted here -->
                     </div>
                     <button type="submit" class="auth-submit" data-js="register-submit">Зарегистрироваться</button>
                 </form>
@@ -98,17 +124,17 @@ export class BaseAuthRegister {
 
         this._renderCaptcha();
 
-        console.log('[BaseAuthRegister] render() завершён, onSwitchToLogin:', this.onSwitchToLogin);
+        console.log('[BaseAuthRegister] render() done, onSwitchToLogin:', this.onSwitchToLogin);
 
         return wrapper;
     }
 
     async _loadCaptcha() {
-        console.log('[BaseAuthRegister] _loadCaptcha() вызван');
+        console.log('[BaseAuthRegister] _loadCaptcha()');
         try {
             const module = await import('./captcha.js');
             this.Captcha = module.BaseAuthCaptcha;
-            console.log('[BaseAuthRegister] captcha.js загружен, this.Captcha:', !!this.Captcha);
+            console.log('[BaseAuthRegister] captcha.js loaded, this.Captcha:', !!this.Captcha);
         } catch (error) {
             console.error('[BaseAuthRegister] Error loading captcha:', error);
             throw error;
@@ -116,26 +142,24 @@ export class BaseAuthRegister {
     }
 
     _renderCaptcha() {
-        console.log('[BaseAuthRegister] _renderCaptcha() вызван');
+        console.log('[BaseAuthRegister] _renderCaptcha()');
         const container = this.element?.querySelector('[data-js="captcha-container"]');
         if (!container || !this.Captcha) return;
 
         this.captcha = new this.Captcha({
             onRefresh: () => {
-                console.log('[BaseAuthRegister] Капча обновлена');
+                console.log('[BaseAuthRegister] Captcha refreshed');
             }
         });
         container.appendChild(this.captcha.render());
         this.captcha.bindEvents(container);
-        console.log('[BaseAuthRegister] Капча добавлена в DOM');
+        console.log('[BaseAuthRegister] Captcha added to DOM');
     }
 
     bindEvents(container) {
-        console.log('[BaseAuthRegister] bindEvents() вызван');
+        console.log('[BaseAuthRegister] bindEvents()');
         const root = container || this.element;
         if (!root) return;
-
-        console.log('[BaseAuthRegister] bindEvents() вызван');
 
         this.form = root.querySelector('[data-js="register-form"]');
         this.errorEl = root.querySelector('[data-js="register-error"]');
@@ -149,7 +173,7 @@ export class BaseAuthRegister {
         this.toggleBtn = root.querySelector('[data-js="toggle-password"]');
         this.toggleConfirmBtn = root.querySelector('[data-js="toggle-password-confirm"]');
 
-        console.log('[BaseAuthRegister] loginLink найден:', !!this.loginLink);
+        console.log('[BaseAuthRegister] loginLink found:', !!this.loginLink);
 
         if (this.form) {
             this.form.addEventListener('submit', (e) => {
@@ -161,13 +185,11 @@ export class BaseAuthRegister {
         if (this.loginLink) {
             this.loginLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                console.log('[BaseAuthRegister] Клик по ссылке "Уже есть аккаунт?"');
-                console.log('[BaseAuthRegister] this.onSwitchToLogin:', !!this.onSwitchToLogin);
+                console.log('[BaseAuthRegister] Click on "Already have an account?"');
                 if (this.onSwitchToLogin) {
-                    console.log('[BaseAuthRegister] Вызываю this.onSwitchToLogin()');
                     this.onSwitchToLogin();
                 } else {
-                    console.warn('[BaseAuthRegister] this.onSwitchToLogin не определён');
+                    console.warn('[BaseAuthRegister] onSwitchToLogin not defined');
                 }
             });
         }
@@ -276,46 +298,29 @@ export class BaseAuthRegister {
         this._hideError();
 
         try {
-            const response = await fetch('/core/auth/register', {
+            const fetchJson = window.coreEngine?.fetchJson;
+
+            const data = await fetchJson('/core/auth/register', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
+                body: {
                     login: login,
                     password: password,
                     password_confirm: passwordConfirm,
                     name: name || undefined,
-                    email: email || undefined
-                })
+                    email: email || undefined,
+                },
+                skipAuthRedirect: true,   // registration errors ≠ session expired
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Ошибка регистрации');
-            }
-
             if (data.success) {
-                // После успешной регистрации автоматически входим
-                const loginResponse = await fetch('/core/auth/login', {
+                // After successful registration — auto-login
+                const loginData = await fetchJson('/core/auth/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        login: login,
-                        password: password
-                    })
+                    body: { login, password },
+                    skipAuthRedirect: true,   // wrong credentials ≠ session expired
                 });
 
-                const loginData = await loginResponse.json();
-
-                if (loginResponse.ok && loginData.success) {
+                if (loginData.success) {
                     const user = loginData.data?.user || loginData.data;
                     if (this.onSuccess) {
                         this.onSuccess(user);
@@ -331,7 +336,7 @@ export class BaseAuthRegister {
             }
 
         } catch (error) {
-            console.error('[BaseAuthRegister] Ошибка регистрации:', error);
+            console.error('[BaseAuthRegister] Register error:', error);
             this._showError(error.message || 'Ошибка регистрации');
             if (this.captcha && typeof this.captcha.refresh === 'function') {
                 this.captcha.refresh();
@@ -373,14 +378,14 @@ export class BaseAuthRegister {
     }
 
     /**
-     * Проверяет, инициализирован ли компонент
+     * Whether the component is initialized.
      */
     isInitialized() {
         return this._initialized;
     }
 
     /**
-     * Ожидает завершения инициализации
+     * Wait for init to complete.
      */
     async waitForInit() {
         if (this._initPromise) {
@@ -391,6 +396,13 @@ export class BaseAuthRegister {
 
     destroy() {
         console.log('[BaseAuthRegister] destroy()');
+
+        // Restore the title that was on screen before we opened.
+        if (this.restoreCaption) {
+            this.restoreCaption(this._savedCaption);
+        }
+        this._savedCaption = null;
+
         if (this.captcha && typeof this.captcha.destroy === 'function') {
             this.captcha.destroy();
             this.captcha = null;

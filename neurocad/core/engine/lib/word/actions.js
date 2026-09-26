@@ -1,12 +1,19 @@
-// app/core/engine/lib/word/actions.js
+// neurocad/core/engine/lib/word/actions.js
 
 /**
  * Word actions — high-level operations.
  * All utilities via word._utils.
+ *
+ * Uses window.coreEngine.fetchJson — loaded once by CoreEngine.loadApi().
  */
 
 /**
- * Write page title into the app header (.core-engine-lib-base-title).
+ * Write page title into the app header (.core-engine-lib-base-title)
+ * and into document.title.
+ *
+ * Uses the shared caption helper (word._setCaption) if available —
+ * it saves the previous title, so the page can restore it on destroy.
+ * Falls back to direct DOM write if the helper is not available.
  */
 export function setHeaderTitle(word, retries = 5) {
     const el = document.querySelector('.core-engine-lib-base-title');
@@ -20,11 +27,19 @@ export function setHeaderTitle(word, retries = 5) {
         return;
     }
 
+    const title = word.pageData?.title || '';
+
+    // Preferred path — shared caption helper.
+    if (word._setCaption) {
+        word._savedCaption = word._setCaption(title, title);
+        return;
+    }
+
+    // Fallback — direct write, save the previous title on the word instance.
     if (word._originalHeaderTitle === null) {
         word._originalHeaderTitle = el.textContent;
     }
-
-    el.textContent = word.pageData?.title || '';
+    el.textContent = title;
 }
 
 /**
@@ -66,69 +81,88 @@ export function openPublicPage(word) {
     window.open(url, '_blank', 'noopener,noreferrer');
 }
 
+// ============================================
+// SAVE (manual + auto)
+// ============================================
+
 /**
- * Save content from the editor.
+ * Persist page content to the server.
  *
  * HTML and CSS are sent as separate fields:
  *   content      = HTML (no <style>)
  *   content_json = GrapesJS project JSON (string)
  *   css          = CSS from editor.getCss()
  *
+ * Also updates local word.pageData so the next render uses
+ * the fresh values without an extra GET.
+ *
  * Throws an Error with `.status` set to the HTTP status code —
  * so callers can distinguish 401 (session expired) from other errors.
+ *
+ * @param {Object} word
+ * @param {Object} data  — { html, css, project }
  */
-export async function saveContent(word, data) {
-    console.log('[Word] Saving content for id:', word.pageId);
-
+async function _persistContent(word, data) {
     if (!word.pageId) {
         throw new Error('Unknown page id');
     }
 
     const html = data.html || '';
     const css = (data.css || '').trim();
+    const projectJson = JSON.stringify(data.project);
 
     const url = `/core/engine/lib/word/${word.pageId}${word._qs}`;
-    const response = await fetch(url, {
+    const fetchJson = window.coreEngine?.fetchJson;
+
+    await fetchJson(url, {
         method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
+        body: {
             content: html,
-            content_json: JSON.stringify(data.project),
+            content_json: projectJson,
             css: css,
-        }),
+        },
     });
 
-    if (!response.ok) {
-        let detail = '';
-        try {
-            const errorData = await response.json();
-            detail = errorData.detail || '';
-        } catch (e) {
-            // не JSON — игнорим
-        }
-
-        const err = new Error(detail || `HTTP ${response.status}`);
-        err.status = response.status;
-        err.data = detail;
-        throw err;
-    }
-
-    // Update local state so next render uses fresh values
+    // Update local state so the next render uses fresh values.
     word.pageData.content = html;
-    word.pageData.content_json = JSON.stringify(data.project);
+    word.pageData.content_json = projectJson;
     word.pageData.css = css;
 
     console.log('[Word] Content saved (HTML + CSS separate)');
+}
+
+/**
+ * Manual save — called from the editor toolbar / Ctrl+S.
+ *
+ * Persists, then closes the editor.
+ */
+export async function saveContent(word, data) {
+    console.log('[Word] Saving content for id:', word.pageId);
+
+    await _persistContent(word, data);
 
     // Close editor
     const version = window.coreEngine?.static_version || Date.now();
     const mod = await import(`./bridge.js?v=${version}`);
     await mod.closeEditor(word);
 }
+
+/**
+ * Auto-save — called from the editor's background auto-save.
+ *
+ * Persists only. The editor stays open and untouched.
+ */
+export async function autoSaveContent(word, data) {
+    console.log('[Word] Auto-saving content for id:', word.pageId);
+
+    await _persistContent(word, data);
+
+    console.log('[Word] Auto-save done');
+}
+
+// ============================================
+// HISTORY
+// ============================================
 
 /**
  * List snapshots for the current page (metadata only, no html/content_json/css).
@@ -146,26 +180,9 @@ export async function listHistory(word) {
     }
 
     const url = `/core/engine/lib/word/${word.pageId}/history${word._qs}`;
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include',
-    });
+    const fetchJson = window.coreEngine?.fetchJson;
+    const json = await fetchJson(url);
 
-    if (!response.ok) {
-        let detail = '';
-        try {
-            const errorData = await response.json();
-            detail = errorData.detail || '';
-        } catch (e) {
-            // не JSON
-        }
-        const err = new Error(detail || `HTTP ${response.status}`);
-        err.status = response.status;
-        throw err;
-    }
-
-    const json = await response.json();
     return json.data || [];
 }
 
@@ -186,26 +203,9 @@ export async function getHistoryItem(word, histId) {
     }
 
     const url = `/core/engine/lib/word/${word.pageId}/history/${histId}${word._qs}`;
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include',
-    });
+    const fetchJson = window.coreEngine?.fetchJson;
+    const json = await fetchJson(url);
 
-    if (!response.ok) {
-        let detail = '';
-        try {
-            const errorData = await response.json();
-            detail = errorData.detail || '';
-        } catch (e) {
-            // не JSON
-        }
-        const err = new Error(detail || `HTTP ${response.status}`);
-        err.status = response.status;
-        throw err;
-    }
-
-    const json = await response.json();
     return json.data;
 }
 
@@ -229,29 +229,9 @@ export async function rollback(word, histId) {
     }
 
     const url = `/core/engine/lib/word/${word.pageId}/rollback/${histId}${word._qs}`;
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        },
-        credentials: 'include',
-    });
+    const fetchJson = window.coreEngine?.fetchJson;
 
-    if (!response.ok) {
-        let detail = '';
-        try {
-            const errorData = await response.json();
-            detail = errorData.detail || '';
-        } catch (e) {
-            // не JSON
-        }
-        const err = new Error(detail || `HTTP ${response.status}`);
-        err.status = response.status;
-        throw err;
-    }
-
-    const json = await response.json();
+    const json = await fetchJson(url, { method: 'POST' });
     const data = json.data;
 
     // Update local state so next render uses restored values

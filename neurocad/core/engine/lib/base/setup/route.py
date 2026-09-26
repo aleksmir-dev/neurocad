@@ -4,15 +4,17 @@
 Setup routes.
 
 Endpoints:
-    GET  /core/engine/lib/base/setup/llm — read LLM settings
-    PUT  /core/engine/lib/base/setup/llm — save LLM settings
+    GET  /core/engine/lib/base/setup/llm       — read LLM settings
+    PUT  /core/engine/lib/base/setup/llm       — save LLM settings
+    POST /core/engine/lib/base/setup/llm/test  — test one provider
 
-Both endpoints require superadmin.
+All endpoints require superadmin.
 
 Included by base/route.py with prefix "/setup".
 Full URLs (with parent prefixes /core/engine/lib/base):
     GET  /core/engine/lib/base/setup/llm
     PUT  /core/engine/lib/base/setup/llm
+    POST /core/engine/lib/base/setup/llm/test
 
 Namespace: CoreEngineLibBaseSetup*
 """
@@ -24,6 +26,7 @@ from neurocad.core.auth.dependencies import get_current_user
 from .schema import (
     CoreEngineLibBaseSetupLlmSettings,
     CoreEngineLibBaseSetupLlmUpdateRequest,
+    CoreEngineLibBaseSetupLlmTestRequest,
 )
 from .service import CoreEngineLibBaseSetupLlmService
 
@@ -61,7 +64,9 @@ async def get_llm_settings(
     """
     _require_superadmin(current_user)
 
-    settings_obj = await CoreEngineLibBaseSetupLlmService.get()
+    settings_obj = await CoreEngineLibBaseSetupLlmService.get(
+        log=request.app.state.log,
+    )
 
     return JSONResponse({
         "success": True,
@@ -97,7 +102,10 @@ async def save_llm_settings(
         providers=data.providers,
     )
 
-    saved = await CoreEngineLibBaseSetupLlmService.save(payload)
+    saved = await CoreEngineLibBaseSetupLlmService.save(
+        payload,
+        log=request.app.state.log,
+    )
 
     crypto_ok = CoreEngineLibBaseSetupLlmService.is_crypto_available()
     message = None
@@ -113,3 +121,46 @@ async def save_llm_settings(
         "crypto_available": crypto_ok,
         "message": message,
     })
+
+
+# ============================================
+# LLM — TEST
+# ============================================
+
+@router.post("/llm/test")
+async def test_llm_provider(
+    data: CoreEngineLibBaseSetupLlmTestRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Test one LLM provider with the current form values.
+
+    The client sends the *current* form values for one provider —
+    not the saved ones. This lets the user check a new API key
+    before committing it.
+
+    Body:
+      {
+        "provider": "gemini",
+        "config":   { "api_key": "...", "model": "...", ... }
+      }
+
+    Response:
+      {
+        "success": true,
+        "message": "OK",
+        "detail":  "pong" | "<error body>"
+      }
+
+    Available only to superadmin.
+    """
+    _require_superadmin(current_user)
+
+    result = await CoreEngineLibBaseSetupLlmService.test_provider(
+        provider_name=data.provider,
+        config=data.config,
+        log=request.app.state.log,
+    )
+
+    return JSONResponse(result)

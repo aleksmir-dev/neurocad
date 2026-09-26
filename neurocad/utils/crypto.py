@@ -14,14 +14,11 @@ Not to be confused with app/utils/hash.py — that's one-way password
 hashing, not reversible encryption.
 """
 
-import logging
 from typing import Optional
 
 from cryptography.fernet import Fernet, InvalidToken
 
 from neurocad.config import settings
-
-logger = logging.getLogger(__name__)
 
 
 _fernet: Optional[object] = None
@@ -37,24 +34,17 @@ def _get_fernet():
     key = getattr(settings, "NEUROCAD_SECRET_KEY", None)
 
     if not key:
-        logger.warning(
-            "NEUROCAD_SECRET_KEY is not set — encryption is disabled. "
-            "Add NEUROCAD_SECRET_KEY to .env to enable encryption."
-        )
+        # No key — encryption disabled. Callers can check via
+        # is_crypto_available() to warn the user.
         _fernet = False
         return None
 
     try:
         _fernet = Fernet(key.encode("utf-8") if isinstance(key, str) else key)
-        logger.info("Fernet encryption enabled.")
         return _fernet
-    except Exception as e:
-        logger.warning(
-            "NEUROCAD_SECRET_KEY is invalid (%s) — encryption is disabled. "
-            "Generate a valid key with: python -c \"from cryptography.fernet "
-            "import Fernet; print(Fernet.generate_key().decode())\"",
-            e,
-        )
+    except Exception:
+        # Invalid key — encryption disabled. Callers can check via
+        # is_crypto_available().
         _fernet = False
         return None
 
@@ -71,7 +61,7 @@ def encrypt(plaintext: Optional[str]) -> Optional[str]:
     - None  → None
     - ''    → ''
     - If crypto is disabled → returns plaintext unchanged.
-    - On any error → logs and returns plaintext unchanged.
+    - On any error → returns plaintext unchanged.
     """
     if plaintext is None:
         return None
@@ -84,8 +74,7 @@ def encrypt(plaintext: Optional[str]) -> Optional[str]:
 
     try:
         return f.encrypt(plaintext.encode("utf-8")).decode("ascii")
-    except Exception as e:
-        logger.error("Encryption failed: %s — returning plaintext", e)
+    except Exception:
         return plaintext
 
 
@@ -113,11 +102,7 @@ def decrypt(ciphertext: Optional[str]) -> Optional[str]:
     try:
         return f.decrypt(ciphertext.encode("ascii")).decode("utf-8")
     except InvalidToken:
-        logger.warning(
-            "Failed to decrypt a value — returning it as-is "
-            "(key rotated, or value was stored in plaintext)."
-        )
+        # Key rotated, or the value was stored in plaintext.
         return ciphertext
-    except Exception as e:
-        logger.error("Decryption failed: %s — returning input as-is", e)
+    except Exception:
         return ciphertext

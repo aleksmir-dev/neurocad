@@ -1,4 +1,4 @@
-# app/utils/mysql.py
+# neurocad/utils/mysql.py
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import text
@@ -10,20 +10,12 @@ AsyncSessionLocal = None
 
 
 async def init_mysql(log=None):
-    """Инициализация MySQL (проверка подключения и создание engine)"""
+    """Инициализация MySQL (проверка подключения и создание engine).
+
+    log — app.state.log from lifespan. If None — silent.
+    """
     global engine, AsyncSessionLocal
-    
-    # Проверяем, нужно ли подключаться
-    '''
-    if not settings.has_mysql:
-        msg = "MySQL не настроен (DATABASE_URL отсутствует или не MySQL)"
-        if log:
-            await log.log_info(target="mysql", message=msg)
-        else:
-            print(f"ℹ️ {msg}")
-        return False
-    '''
-    
+
     try:
         # Создаём engine ТОЛЬКО сейчас
         engine = create_async_engine(
@@ -33,29 +25,25 @@ async def init_mysql(log=None):
             max_overflow=20,
             pool_pre_ping=True
         )
-        
+
         AsyncSessionLocal = async_sessionmaker(
             engine,
             class_=AsyncSession,
             expire_on_commit=False
         )
-        
+
         # Проверяем подключение
         async with engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
-        
-        if log:
-            await log.log_info(target="mysql", message="Подключение к MySQL успешно")
-        else:
-            print("✅ MySQL connected")
+
+        if log is not None:
+            await log.log_info(target="mysql", message="MySQL connected")
         return True
-        
+
     except Exception as e:
-        error_msg = f"Ошибка подключения к MySQL: {e}"
-        if log:
+        error_msg = f"MySQL connection error: {e}"
+        if log is not None:
             await log.log_error(target="mysql", message=error_msg)
-        else:
-            print(f"❌ {error_msg}")
         raise
 
 
@@ -63,23 +51,27 @@ async def get_db():
     """Генератор сессий для Dependency Injection"""
     if AsyncSessionLocal is None:
         raise RuntimeError("MySQL не инициализирован. Вызовите init_mysql() сначала.")
-    
+
     async with AsyncSessionLocal() as session:
         yield session
 
 
-async def close_mysql():
-    """Закрытие соединения с MySQL"""
+async def close_mysql(log=None):
+    """Закрытие соединения с MySQL.
+
+    log — app.state.log from lifespan. If None — silent.
+    """
     global engine, AsyncSessionLocal
-    
+
     if engine is not None:
         try:
             await engine.dispose()
-            print("✅ MySQL disconnected")
+            if log is not None:
+                await log.log_info(target="mysql", message="MySQL disconnected")
         except Exception as e:
-            print(f"❌ Error closing MySQL: {e}")
+            if log is not None:
+                await log.log_error(target="mysql", message=f"close error: {e}")
         finally:
             engine = None
             AsyncSessionLocal = None
-    else:
-        print("ℹ️ MySQL не был инициализирован, закрывать нечего")
+    # engine is None → nothing to close, stay silent.

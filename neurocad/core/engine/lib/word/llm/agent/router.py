@@ -23,13 +23,27 @@ The client sends `selection` in one of two shapes:
 
 The router trusts `selector` first. `block_id` is treated as a
 fallback and only used if `selector` is absent.
+
+Image requests
+--------------
+The `effect` agent handles TWO kinds of requests:
+
+  - visual effects — backgrounds, gradients, animations, shadows,
+    hover states (writes a <style> block);
+  - image generation — "нарисуй картинку", "сгенерируй иллюстрацию",
+    "сделай svg", "замени картинку" (replaces a placeholder <img>
+    with a generated inline <svg>).
+
+The `effect` agent picks the right mode itself (by looking at the
+user message), so the router does not have to distinguish between
+the two. It only has to route BOTH to `effect`, NOT to `fill`.
+That is what rule 7 in SYSTEM_PROMPT enforces.
+
+Logging: uses provider.log (app.state.log, passed via the provider).
 """
 
 import json
-import logging
 from typing import Any, Dict, Optional
-
-logger = logging.getLogger(__name__)
 
 
 class CoreEngineLibWordLlmRouter:
@@ -38,8 +52,8 @@ class CoreEngineLibWordLlmRouter:
     #: Available agents with short descriptions for the prompt.
     AGENTS = {
         "create": "Создать новую страницу с нуля или полностью пересобрать её",
-        "fill":   "Заполнить выделенный элемент текстом, alt'ами, ссылками",
-        "effect": "Добавить фон, анимацию или визуальные эффекты выделенному элементу",
+        "fill":   "Заполнить выделенный элемент текстом, alt'ами, ссылками (НЕ картинками)",
+        "effect": "Добавить визуальные эффекты ИЛИ сгенерировать картинку/SVG для выделенного элемента",
         "help":   "Вопрос про сам редактор NeuroCad (как работает, что умеет)",
         "none":   "Запрос не связан с редактором NeuroCad",
     }
@@ -67,15 +81,41 @@ class CoreEngineLibWordLlmRouter:
 5. Если пользователь просит изменить/дополнить существующую страницу
    (а не собрать заново) — используй соответствующий агент, не create.
 6. Если непонятно — верни "help".
+7. Если пользователь просит НАРИСОВАТЬ / СГЕНЕРИРОВАТЬ / СДЕЛАТЬ
+   картинку, изображение, иллюстрацию, SVG, "заменить плейсхолдер на
+   картинку" — верни agent="effect", даже если в запросе есть слово
+   "заполни" или "сделай". Это НЕ fill.
 
 ПРИМЕРЫ:
 - "Сделай лендинг для салона" → {{"agent": "create", "target": null}}
 - "Заполни выделенный блок" → {{"agent": "fill", "target": "sel-abc12345"}}
+- "Заполни блок текстом про компанию" → {{"agent": "fill", "target": "sel-abc12345"}}
 - "Сделай анимацию внутри этого блока" → {{"agent": "effect", "target": "sel-abc12345"}}
 - "Добавь градиентный фон выделенному" → {{"agent": "effect", "target": "sel-abc12345"}}
+- "Нарисуй картинку вместо плейсхолдера" → {{"agent": "effect", "target": "sel-abc12345"}}
+- "Сгенерируй иллюстрацию для этой картинки" → {{"agent": "effect", "target": "sel-abc12345"}}
+- "Замени эту картинку на SVG" → {{"agent": "effect", "target": "sel-abc12345"}}
 - "Как сохранить пресет?" → {{"agent": "help", "target": null}}
 - "Расскажи анекдот" → {{"agent": "none", "target": null}}
 """
+
+    # ============================================
+    # LOG HELPER
+    # ============================================
+
+    @staticmethod
+    def _log(provider, level: str, message: str) -> None:
+        """Write through provider.log if available, else silently."""
+        log = getattr(provider, "log", None)
+        if log is None:
+            return
+        fn = getattr(log, f"log_{level}_sync", None)
+        if fn is None:
+            return
+        try:
+            fn(target="router", message=message)
+        except Exception:
+            pass
 
     # ============================================
     # STATE
@@ -171,12 +211,12 @@ class CoreEngineLibWordLlmRouter:
                 user_content=user_message,
             )
         except Exception as e:
-            logger.warning(f"[router] dump request failed: {e}")
+            CoreEngineLibWordLlmRouter._log(provider, "warning", f"dump request failed: {e}")
 
         try:
             raw = await provider.generate_completion(messages)
         except Exception as e:
-            logger.error(f"[router] LLM error: {e}")
+            CoreEngineLibWordLlmRouter._log(provider, "error", f"LLM error: {e}")
             return {"agent": "help", "target": None}
 
         # ---- dump router response ----
@@ -188,12 +228,12 @@ class CoreEngineLibWordLlmRouter:
                 raw_response=raw,
             )
         except Exception as e:
-            logger.warning(f"[router] dump response failed: {e}")
+            CoreEngineLibWordLlmRouter._log(provider, "warning", f"dump response failed: {e}")
 
         # ---- parse ----
         data = CoreEngineLibWordLlmRouter._extract_json(raw)
         if not data:
-            logger.warning(f"[router] failed to parse response: {raw!r}")
+            CoreEngineLibWordLlmRouter._log(provider, "warning", f"failed to parse response: {raw!r}")
             return {"agent": "help", "target": None}
 
         agent = str(data.get("agent", "help")).strip()
@@ -203,12 +243,12 @@ class CoreEngineLibWordLlmRouter:
 
         # ---- validate agent name ----
         if agent not in CoreEngineLibWordLlmRouter.AGENTS:
-            logger.warning(f"[router] unknown agent {agent!r}, falling back to help")
+            CoreEngineLibWordLlmRouter._log(provider, "warning", f"unknown agent {agent!r}, falling back to help")
             agent = "help"
             target = None
 
         result = {"agent": agent, "target": target}
-        print(f"[ROUTER] {user_message!r} -> {result}", flush=True)
+        CoreEngineLibWordLlmRouter._log(provider, "info", f"{user_message!r} -> {result}")
         return result
 
     # ============================================

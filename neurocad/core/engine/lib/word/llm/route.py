@@ -30,6 +30,22 @@ agent dispatcher in ws.py.
 All HTTP endpoints except GET-list, GET-one and GET-history require
 superadmin. The WebSocket endpoint also requires superadmin (checked
 inside the handler).
+
+WebSocket handler binding
+-------------------------
+`llm_ws_endpoint` is a regular async method on EndpointMixin (see
+llm/websocket/), not a @staticmethod. The module `llm/ws.py`
+instantiates CoreEngineLibWordLlmWS once and exports the bound
+method:
+
+    _ws_instance = CoreEngineLibWordLlmWS()
+    llm_ws_endpoint = _ws_instance.llm_ws_endpoint
+
+We import that bound method here. Do NOT pass
+`CoreEngineLibWordLlmWS.llm_ws_endpoint` — that would be an unbound
+function with a stray `self` parameter, and FastAPI would silently
+refuse to register the route (WebSocket would then fail with 1006,
+because the path is not mounted).
 """
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
@@ -43,7 +59,7 @@ from .schema import (
     CoreEngineLibWordLlmPresetCreate,
     CoreEngineLibWordLlmPresetUpdate,
 )
-from .ws import CoreEngineLibWordLlmWS
+from .ws import llm_ws_endpoint
 
 
 router = APIRouter(prefix="/llm", tags=["core/engine/lib/word/llm"])
@@ -320,5 +336,9 @@ async def get_active_run(page_id: int) -> JSONResponse:
 #
 # Mounted on the same router, so the final path is:
 #   /core/engine/lib/word/llm/ws/{page_id}
+#
+# `llm_ws_endpoint` is a bound method of an instance of
+# CoreEngineLibWordLlmWS, exported by llm/ws.py. See the module
+# docstring for why we cannot use the unbound class attribute.
 
-router.add_api_websocket_route("/ws/{page_id}", CoreEngineLibWordLlmWS.llm_ws_endpoint)
+router.add_api_websocket_route("/ws/{page_id}", llm_ws_endpoint)

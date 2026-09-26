@@ -6,11 +6,13 @@ Public pages service.
 Read-only access to Page records for public HTML rendering.
 No admin fields (content_json, is_active, is_delete, etc.).
 
-Also provides block CSS discovery — scans the blocks directory
-and returns the list of CSS files for the public page.
-
 CSS handling:
-  - Page.css is the source of truth (new pages).
+  - Page.css is the source of truth for the page's content CSS.
+    It is assembled at save time by word/css_builder.py:
+        content.css + used blocks/*.css + used fx/*.css + custom CSS
+    and frozen into Page.css. The public page loads ONLY this file
+    (plus the wrapper public.css) — it does not scan the editor
+    directory for CSS anymore.
   - For legacy pages (css is NULL, CSS embedded in content as <style>)
     the CSS is extracted on the fly via split_style_from_html.
     This is read-only — nothing is written back to the DB here.
@@ -24,7 +26,7 @@ Namespace: CoreEngineLibPagesPublicService
 
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy import select
 
@@ -58,24 +60,6 @@ _MODULE_STATIC_URL = "/static/core/engine/lib/pages/public"
 # Written on demand by ensure_css_file(), served by Nginx directly.
 PAGES_CSS_DIR = _MODULE_STATIC_DIR / "pages"
 PAGES_CSS_URL = _MODULE_STATIC_URL + "/pages"
-
-
-# ============================================
-# BLOCKS — GrapesJS block CSS discovery
-# ============================================
-
-# Blocks directory — where GrapesJS block CSS files live.
-# __file__ = .../pages/public/service.py
-# blocks/  = .../word/editor/blocks/
-_THIS_DIR = Path(__file__).resolve().parent
-BLOCKS_DIR = (
-    _THIS_DIR.parent.parent          # up to lib/
-    / "word" / "editor" / "blocks"
-).resolve()
-
-# Path prefix used in <link> tags on the public page.
-# Matches the `|static` Jinja2 filter convention.
-STATIC_PREFIX = "core/engine/lib/word/editor/blocks"
 
 
 class CoreEngineLibPagesPublicService:
@@ -214,44 +198,6 @@ class CoreEngineLibPagesPublicService:
             return CoreEngineLibPagesPublicService._page_to_public(page)
 
         return None
-
-    # ========================================
-    # BLOCK CSS
-    # ========================================
-
-    @staticmethod
-    def get_block_css_urls() -> List[str]:
-        """
-        Scan the blocks directory for *.css files.
-
-        Returns paths relative to /static/ (no leading slash):
-            [
-                'core/engine/lib/word/editor/blocks/aleksmir.ru.css',
-                'core/engine/lib/word/editor/blocks/elements.css',
-                'core/engine/lib/word/editor/blocks/layout.css',
-                'core/engine/lib/word/editor/blocks/ready.css',
-            ]
-
-        In the template, apply the |static filter:
-            {% for css in block_css_urls %}
-            <link rel="stylesheet" href="{{ css|static }}">
-            {% endfor %}
-
-        Order is alphabetical. For the public page the order does not
-        matter — block CSS just needs to be present.
-
-        Returns [] if the directory does not exist (safe fallback —
-        the public page just renders without block CSS).
-        """
-        if not BLOCKS_DIR.is_dir():
-            return []
-
-        names = sorted(
-            f.name for f in BLOCKS_DIR.iterdir()
-            if f.is_file() and f.suffix == ".css"
-        )
-
-        return [f"{STATIC_PREFIX}/{name}" for name in names]
 
     # ========================================
     # HELPERS

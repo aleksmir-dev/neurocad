@@ -1,19 +1,30 @@
 // app/core/engine/lib/word/word.js
 
-import { blockCssUrls } from './editor/blocks/manifest.js';
-
 /**
  * Word — page content display component.
  *
  * Orchestrator. Delegates work to submodules:
  *   data.js     — loadById, loadByParams, loadTemplateById
  *   view.js     — render, buildArticle, buildToolbarButtons, renderError
- *   actions.js  — setHeaderTitle, goBack, openPublicPage, saveContent
+ *   actions.js  — setHeaderTitle, goBack, openPublicPage, saveContent, autoSaveContent
  *   bridge.js   — openEditor, closeEditor (GrapesJS editor)
  *   utils.js    — date formatting, safe JSON parse
  *
  * All submodules are loaded dynamically with a version to avoid
  * browser cache issues on updates.
+ *
+ * Caption: on _init() we pick up the shared caption helpers from
+ * window.coreEngine.base (_setCaption / _restoreCaption). They are
+ * used by actions.setHeaderTitle() to swap the header/tab title to the
+ * page title, and by destroy() to restore whatever was there before.
+ *
+ * Effects: each effect is its own file under editor/effects/fx/,
+ * loaded on every page — so that effects applied in the editor
+ * (classes like .fx-shadow-top-n) render on the public page as well.
+ * The list is fetched from GET /editor/effects (single source of
+ * truth — effects/registry.json on the backend, served by the API).
+ * Loading order matches the editor canvas:
+ *   content.css → fx/*.css → blocks/*.css.
  *
  * Public API (to Renderer / Word):
  *   - waitForInit()
@@ -51,7 +62,12 @@ export class Word {
         this.toolbarEl = null;
         this.widgetContentEl = null;
 
-        // Original header title
+        // Caption helpers — filled from window.coreEngine.base in _init().
+        this._setCaption = null;
+        this._restoreCaption = null;
+        this._savedCaption = null;
+
+        // Fallback header title (used only if caption helpers are unavailable).
         this._originalHeaderTitle = null;
 
         // Path to Base icons
@@ -63,7 +79,10 @@ export class Word {
         this._actions = null;
         this._utils = null;
 
-        this._loadCSS();
+        // CSS is loaded async — errors do not block Word creation.
+        this._loadCSS().catch(e => {
+            console.warn('[Word] _loadCSS() error:', e);
+        });
 
         this._initPromise = this._init();
     }
@@ -72,15 +91,20 @@ export class Word {
      * Load page-level CSS into the main document.
      *
      * Shared CSS (word.css, llm.css, content.css) — hardcoded.
-     * Block CSS (elements, layout, ready, ...) — taken from
-     * blocks/manifest.js, so adding a new block = one entry in the
-     * manifest, nothing to change here.
+     * Effect CSS (fx/*.css) — fetched from GET /editor/effects
+     * (single source of truth). Block CSS (elements, layout, ready, ...)
+     * — taken from blocks/manifest.js (dynamic import, versioned).
      *
      * ORDER MATTERS:
      *   content.css — shared atoms (.btn, .card, .grid, .h1, .text, ...)
      *                 AND --theme-* variables (they are defined at the
      *                 top of content.css, scoped under
      *                 .core-engine-lib-word-blocks).
+     *   fx/*.css    — effect classes (.fx-shadow-top-n, ...).
+     *                 Must load AFTER content.css (needs the theme vars),
+     *                 BEFORE blocks/*.css (blocks may override).
+     *                 One file per effect, matching the editor canvas
+     *                 (see editor/grapes/index.js → canvasCss).
      *   blocks/*.css — block-specific classes (.hero, .flex-shell, ...).
      *                  Must load AFTER content.css so block rules can
      *                  override shared rules at equal specificity.
@@ -91,10 +115,9 @@ export class Word {
      * grapes.js → cssFiles when the editor opens.
      *
      * coreEngine.loadCSS() expects a path relative to /static/
-     * (no leading slash, no /static/ prefix). blockCssUrls() returns
-     * full /static/... URLs, so we strip the prefix before passing.
+     * (no leading slash, no /static/ prefix).
      */
-    _loadCSS() {
+    async _loadCSS() {
         if (!window.coreEngine?.loadCSS) return;
 
         window.coreEngine.loadCSS('core/engine/lib/word/word.css');
@@ -105,17 +128,68 @@ export class Word {
         // Scoped under .core-engine-lib-word-blocks.
         window.coreEngine.loadCSS('core/engine/lib/word/editor/css/content.css');
 
+        // Effect classes — one file per effect.
+        // Same order as in the editor canvas: after content.css
+        // (theme vars), before blocks/*.css.
+        const version = window.coreEngine?.static_version || Date.now();
+        const effectIds = await this._loadEffectIds(version);
+
+        for (const id of effectIds) {
+            window.coreEngine.loadCSS(
+                `core/engine/lib/word/editor/effects/fx/${id}.css`
+            );
+        }
+
         // Block-specific classes — must load AFTER content.css,
         // so block rules can override shared rules at equal specificity.
-        // List comes from the manifest, in order.
-        const version = window.coreEngine?.static_version || Date.now();
-        blockCssUrls(version).forEach((url) => {
-            // '/static/core/...?v=123' → 'core/...'
-            const path = url
-                .replace(/^\/static\//, '')
-                .replace(/\?.*$/, '');
-            window.coreEngine.loadCSS(path);
-        });
+        // List comes from blocks/manifest.js — dynamic, versioned
+        // import (same rule as every other module here).
+        try {
+            const mod = await import(`./editor/blocks/manifest.js?v=${version}`);
+            const blockCss = mod.blockCssUrls ? mod.blockCssUrls(version) : [];
+
+            blockCss.forEach((url) => {
+                // '/static/core/...?v=123' → 'core/...'
+                const path = url
+                    .replace(/^\/static\//, '')
+                    .replace(/\?.*$/, '');
+                window.coreEngine.loadCSS(path);
+            });
+        } catch (e) {
+            console.warn('[Word] blocks/manifest.js not loaded:', e);
+        }
+    }
+
+    /**
+     * Fetch the list of effect ids from GET /editor/effects.
+     *
+     * The API is the single source of truth (backed by
+     * editor/effects/registry.json on the backend). There is no
+     * bundled fallback: on failure we return an empty list, and
+     * the page just renders without effect CSS.
+     *
+     * @param {string|number} version — cache-busting version
+     * @returns {Promise<string[]>}
+     */
+    async _loadEffectIds(version) {
+        try {
+            const url = `/core/engine/lib/word/editor/effects${this._qs}`;
+            console.log('[Word] GET', url);
+
+            const fetchJson = window.coreEngine?.fetchJson;
+            if (!fetchJson) throw new Error('coreEngine.fetchJson not available');
+
+            const data = await fetchJson(url);
+            if (data && data.success && Array.isArray(data.data)) {
+                const ids = data.data.map(e => e.id).filter(Boolean);
+                console.log('[Word] effects loaded from API:', ids.length);
+                return ids;
+            }
+            throw new Error('unexpected payload');
+        } catch (e) {
+            console.warn('[Word] effects API failed:', e);
+            return [];
+        }
     }
 
     async _init() {
@@ -123,6 +197,11 @@ export class Word {
         const version = window.coreEngine?.static_version || Date.now();
 
         try {
+            // Pick up caption helpers from Base (loaded before Word).
+            const base = window.coreEngine?.base;
+            this._setCaption = base?._setCaption || null;
+            this._restoreCaption = base?._restoreCaption || null;
+
             // Load all submodules in parallel
             const [data, view, actions, utils] = await Promise.all([
                 import(`./data.js?v=${version}`),
@@ -178,8 +257,20 @@ export class Word {
         this._actions?.openPublicPage(this);
     }
 
+    /**
+     * Manual save — delegated to actions.saveContent.
+     * Persists AND closes the editor.
+     */
     async _saveContent(data) {
         await this._actions?.saveContent(this, data);
+    }
+
+    /**
+     * Auto-save — delegated to actions.autoSaveContent.
+     * Persists only; the editor stays open.
+     */
+    async _autoSaveContent(data) {
+        await this._actions?.autoSaveContent(this, data);
     }
 
     _setHeaderTitle() {
@@ -244,8 +335,14 @@ export class Word {
     destroy() {
         console.log('[Word] destroy()');
 
-        // Restore original header title
-        if (this._originalHeaderTitle !== null) {
+        // Restore the title that was on screen before Word opened.
+        if (this._restoreCaption) {
+            this._restoreCaption(this._savedCaption);
+        }
+        this._savedCaption = null;
+
+        // Fallback — if caption helpers were unavailable, use the old path.
+        if (!this._restoreCaption && this._originalHeaderTitle !== null) {
             const el = document.querySelector('.core-engine-lib-base-title');
             if (el) el.textContent = this._originalHeaderTitle;
             this._originalHeaderTitle = null;

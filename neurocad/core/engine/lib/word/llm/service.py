@@ -289,13 +289,15 @@ class CoreEngineLibWordLlmService:
             final_name = f"{preset_id}{ext}"
             save_path = CoreEngineLibWordLlmService.PRESETS_DIR / final_name
 
+            # Remove stale thumbnails with other extensions.
+            # Failures are ignored — the new file overwrites the same name.
             for old_ext in CoreEngineLibWordLlmService.THUMBNAIL_EXTENSIONS:
                 old_file = CoreEngineLibWordLlmService.PRESETS_DIR / f"{preset_id}{old_ext}"
                 if old_file.exists() and old_file != save_path:
                     try:
                         old_file.unlink()
-                    except Exception as e:
-                        print(f"[LLM] Failed to remove old thumbnail {old_file}: {e}")
+                    except Exception:
+                        pass
 
             with open(save_path, "wb") as buffer:
                 while True:
@@ -341,8 +343,8 @@ class CoreEngineLibWordLlmService:
                 if file_path.exists():
                     try:
                         file_path.unlink()
-                    except Exception as e:
-                        print(f"[LLM] Failed to remove file {file_path}: {e}")
+                    except Exception:
+                        pass
 
             preset.thumbnail_path = None
             preset.updated_at = datetime.now()

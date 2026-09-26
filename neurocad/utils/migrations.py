@@ -2,7 +2,6 @@
 
 """Apply Alembic migrations from package and user directories."""
 
-import logging
 from pathlib import Path
 from alembic.config import Config
 from alembic import command
@@ -13,7 +12,18 @@ from .paths import (
     user_alembic_versions_dir,
 )
 
-logger = logging.getLogger(__name__)
+
+def _log_sync(log, level: str, message: str) -> None:
+    """Write through app.state.log if available, else silently."""
+    if log is None:
+        return
+    fn = getattr(log, f"log_{level}_sync", None)
+    if fn is None:
+        return
+    try:
+        fn(target="migrations", message=message)
+    except Exception:
+        pass
 
 
 def _collect_version_locations(root: Path) -> list[str]:
@@ -38,7 +48,7 @@ def _collect_version_locations(root: Path) -> list[str]:
     return locations
 
 
-def apply_migrations(sync_url: str | None = None):
+def apply_migrations(sync_url: str | None = None, log=None):
     """
     Apply Alembic migrations.
 
@@ -47,6 +57,7 @@ def apply_migrations(sync_url: str | None = None):
       2. User:    <cwd>/alembic/versions/ (if exists)
 
     sync_url — optional, overrides sqlalchemy.url from alembic.ini.
+    log      — app.state.log from init_sqlite. If None — silent.
     """
     from ..config import settings
 
@@ -66,13 +77,13 @@ def apply_migrations(sync_url: str | None = None):
         user_locations = _collect_version_locations(user_versions)
         if user_locations:
             locations.extend(user_locations)
-            logger.info(f"User migrations dirs: {user_locations}")
+            _log_sync(log, "info", f"User migrations dirs: {user_locations}")
 
     if not locations:
-        logger.warning("No migration directories found.")
+        _log_sync(log, "warning", "No migration directories found.")
 
     cfg.set_main_option("version_locations", " ".join(locations))
 
-    logger.info("Applying Alembic migrations...")
+    _log_sync(log, "info", "Applying Alembic migrations...")
     command.upgrade(cfg, "head")
-    logger.info("Migrations applied.")
+    _log_sync(log, "info", "Migrations applied.")

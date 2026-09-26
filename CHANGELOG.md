@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.21] - 2026-09-27
+
+### Added
+- Effect library — a full effects palette for the GrapesJS editor, backed by `editor/effects/registry.json` and served through `GET /editor/effects`. Effects are applied as plain CSS classes (`fx-*`) on the selected element; no CSS is generated on the client.
+- LLM-generated effects — the "create effect" flow asks the model for a draft (`id`, `label`, `hint`, `css`, `media`), the editor previews it live, and the user confirms to save. The new effect is written to both the model tree and the static mirror.
+- Images palette — a new "Изображения" category in the block panel, backed by `editor/images/registry.json` and served through `GET /editor/images`. Clicking an image inserts it into the canvas as an `<img>` block.
+- LLM-generated illustrations — step 4 of the create flow (`step_svg_illustrations`) now saves every generated SVG into the images registry, so illustrations accumulate in the palette across runs.
+- One-off importer — `test/import_svgs_from_db.py` extracts large inline SVGs from all pages in `neurocad.db` and adds them to the images registry, skipping icons (< 2 KB), duplicates (by content hash), and unsafe SVGs (`<script>`, event handlers, external hrefs).
+- Page-level CSS builder — `word/css_builder.py` assembles the full CSS of a page at save time: `content.css` + used `blocks/*.css` + used `fx/*.css` + custom CSS. The result is frozen in `Page.css` and served as `pages/<id>.css`.
+- Blocks manifest as JSON — `editor/blocks/manifest.json` is now the single source of truth (blocks + their root classes); `manifest.js` is a thin wrapper over it.
+- `removeEmptyPlaceholder()` in `DataLoader` — removes the empty `<p></p>` placeholder right after the initial data load (and after rollback), so a freshly opened page has no stray paragraph.
+
+### Changed
+- Public page CSS — the public page no longer loads `content.css`, `fx/*.css`, or `blocks/*.css` from the editor at runtime. It loads only `public.css` + `pages/<id>.css`. Updating an effect or a block in a future version of the constructor cannot change an already-published page.
+- Effects/Images services — all editor sub-APIs are mounted under the parent `editor` router (`/core/engine/lib/word/editor/effects`, `.../images`).
+- `BlocksRegistry` — pre-creates five categories (`Элементы`, `Секции`, `Разметка`, `Эффекты`, `Изображения`) with `open: false`, then registers `EffectBlocks` and `ImageBlocks`.
+- Planner prompt (`build_plan_prompt`) — layout blocks (category "Разметка") are excluded both on the client (`catalog.js`) and on the server (belt-and-suspenders), so the model composes pages from ready-made sections and elements only.
+
+### Removed
+- `effects/manifest.js` — legacy fallback for the effects list. The API (`GET /editor/effects`) is the single source of truth; `registry.js` no longer keeps a bundled fallback.
+- Static `import { blockCssUrls } from './editor/blocks/manifest.js'` in `word.js` — replaced with a dynamic, versioned `import(...)` inside `_loadCSS()`.
+
+### Fixed
+- `DataLoader` — `child.removed` is now called as a method (`child.removed()`), not used as a boolean property. The old check silently skipped every component, so the placeholder `<p></p>` was never removed.
+- Empty placeholder cleanup — deferred by two `requestAnimationFrame`s, because GrapesJS fills the wrapper asynchronously after `setComponents` / `loadProjectData`. A synchronous check found nothing.
+- SVG save path — `step.py` imports `save_generated_svg` via `from ...editor.images.store import ...` (three dots, into `word/editor/images/`), not `...images.store`. The wrong path silently dropped every generated SVG.
+
+[0.1.21]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.20...v0.1.21
+
 ## [0.1.20] - 2026-09-24
 
 ### Added

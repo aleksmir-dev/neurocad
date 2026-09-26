@@ -1,23 +1,55 @@
 // app/core/engine/lib/base/auth/auth.js
 
 /**
- * Базовый класс авторизации
- * Управляет состоянием пользователя и формами
+ * BaseAuth — core auth state manager.
+ *
+ * Holds the current user, exposes auth pages (login / register /
+ * restore / password / profile), and listens to auth events:
+ *
+ *   auth:login         → set user, save session, emit auth:changed
+ *   auth:logout        → run the full logout flow (with confirm)
+ *   auth:update        → update user, save session, emit auth:changed
+ *   auth:unauthorized  → clear user, clear session, emit auth:changed,
+ *                        show login form
+ *   auth:show-password → open password-change page
+ *
+ * The `auth:unauthorized` event is emitted by fetchJson on 401
+ * (see base/auth/api.js) — this is how session expiry propagates
+ * through the app without every module knowing about auth.
+ *
+ * Caption: Base passes setCaption / restoreCaption down to every auth
+ * form via _renderForm() options, so that forms can change the header /
+ * tab title while they are on screen and restore it when destroyed.
+ *
+ * Logout vs 401
+ * -------------
+ * logout() — user-initiated. It first calls Base.teardownAreas(), which
+ * may prompt the user via Word.confirmClose() if the editor has
+ * unsaved changes. If the user cancels — logout is aborted: no server
+ * call, session stays alive, editor stays open.
+ *
+ * 401 (auth:unauthorized) — session is already dead on the server.
+ * We cannot save anything, so we tear down the active page directly
+ * (no dialog) and show the login form.
  */
 export class BaseAuth {
     constructor(props = {}) {
-        console.log('[BaseAuth] Конструктор вызван');
+        console.log('[BaseAuth] Constructor called');
         this.props = props;
 
         this.user = null;
         this.isAuthenticated = false;
         this.container = null;
 
-        // Состояние инициализации
+        // Caption helpers — set by Base in _initAuth().
+        this.setCaption = null;
+        this.restoreCaption = null;
+
+        // Init state
         this._initialized = false;
         this._initPromise = null;
 
-        // Запускаем асинхронную инициализацию
+        // Start async init
         this._initPromise = this._init();
     }
 
@@ -29,7 +61,7 @@ export class BaseAuth {
             this._initialized = true;
             console.log('[BaseAuth] _init() COMPLETE, isAuthenticated:', this.isAuthenticated);
         } catch (error) {
-            console.error('[BaseAuth] Ошибка инициализации:', error);
+            console.error('[BaseAuth] Init error:', error);
             this._initialized = false;
             throw error;
         }
@@ -42,9 +74,9 @@ export class BaseAuth {
             if (saved) {
                 this.user = JSON.parse(saved);
                 this.isAuthenticated = true;
-                console.log('[BaseAuth] Сессия восстановлена из sessionStorage');
+                console.log('[BaseAuth] Session restored from sessionStorage');
             } else {
-                console.log('[BaseAuth] Сессия не найдена в sessionStorage');
+                console.log('[BaseAuth] No session in sessionStorage');
             }
         } catch (error) {
             console.error('[BaseAuth] Error restoring session:', error);
@@ -82,8 +114,11 @@ export class BaseAuth {
             this._handleLogin(e.detail);
         });
 
+        // auth:logout — run the full logout flow (with confirm dialog
+        // for unsaved changes). logout() is async, so we don't await
+        // it here — the flow handles itself.
         document.addEventListener('auth:logout', () => {
-            this._handleLogout();
+            this.logout();
         });
 
         document.addEventListener('auth:update', (e) => {
@@ -112,8 +147,43 @@ export class BaseAuth {
         this._emit('auth:changed', { user: this.user, isAuthenticated: true });
     }
 
-    _handleLogout() {
-        console.log('[BaseAuth] _handleLogout()');
+    /**
+     * Forced teardown of the active area-center page — no confirm.
+     *
+     * Used by 401 only. The session is already dead on the server,
+     * so there is nothing to save.
+     *
+     * Calls Base's low-level destroy helpers directly — NOT
+     * teardownAreas(), which would prompt via confirmClose().
+     */
+    _forceTearDownAreas() {
+        const base = window.coreEngine?.base;
+        if (!base) return;
+
+        try {
+            if (typeof base._destroyAreaInstance === 'function') {
+                base._destroyAreaInstance();
+            }
+        } catch (e) {
+            console.warn('[BaseAuth] _destroyAreaInstance error:', e);
+        }
+
+        try {
+            if (typeof base._clearSideAreas === 'function') {
+                base._clearSideAreas();
+            }
+        } catch (e) {
+            console.warn('[BaseAuth] _clearSideAreas error:', e);
+        }
+    }
+
+    /**
+     * Local cleanup after a successful logout (server call already done
+     * or not needed). Does NOT touch area-center / side panels — that
+     * has already been done by teardownAreas() before this point.
+     */
+    _handleLogoutLocal() {
+        console.log('[BaseAuth] _handleLogoutLocal()');
         this.user = null;
         this.isAuthenticated = false;
         this._clearSession();
@@ -121,16 +191,22 @@ export class BaseAuth {
         this._emit('auth:changed', { user: null, isAuthenticated: false });
     }
 
+    /**
+     * 401 — session expired. Forced teardown, no dialog (cannot save
+     * anyway), then show login form.
+     */
     _handleUnauthorized() {
         console.log('[BaseAuth] _handleUnauthorized()');
-        
-        // Сбрасываем состояние авторизации
+
+        // Forced teardown — no confirm dialog. Session is dead.
+        this._forceTearDownAreas();
+
         this.user = null;
         this.isAuthenticated = false;
         this._clearSession();
         this._emit('auth:changed', { user: null, isAuthenticated: false });
-        
-        // Показываем форму входа
+
+        // Show the login form
         this.showLogin();
     }
 
@@ -147,7 +223,7 @@ export class BaseAuth {
         document.dispatchEvent(customEvent);
     }
 
-    // ===== ИСПРАВЛЕНО: правильный селектор =====
+    // ===== Correct selector =====
     _getContainer() {
         if (!this.container) {
             this.container = document.querySelector('.core-engine-lib-base-area-center');
@@ -162,26 +238,62 @@ export class BaseAuth {
         }
     }
 
+    /**
+     * Render an auth form into area-center.
+     *
+     * Before rendering, ask Base to tear down the previous page.
+     * Base's teardownAreas() is async — if the previous page is the
+     * Word editor with unsaved changes, it will prompt the user via
+     * Word.confirmClose(). If the user cancels — we abort and do NOT
+     * render the new form.
+     *
+     * @returns {Promise<Object|null>} — form instance, or null if the
+     *                                   user cancelled the previous
+     *                                   page's close.
+     */
     async _renderForm(component, options = {}) {
         console.log('[BaseAuth] _renderForm()');
         const container = this._getContainer();
 
         if (!container) {
-            console.error('[BaseAuth] Контейнер area-center не найден');
+            console.error('[BaseAuth] area-center container not found');
             return null;
         }
+
+        // Ask Base to tear down the previous area-center page and
+        // clear area-left / area-right. This may show the "save before
+        // close?" dialog if the previous page is the Word editor with
+        // unsaved changes — if the user cancels, we abort.
+        const base = window.coreEngine?.base;
+        if (base && typeof base.teardownAreas === 'function') {
+            try {
+                const proceed = await base.teardownAreas();
+                if (!proceed) {
+                    console.log('[BaseAuth] _renderForm cancelled by user');
+                    return null;
+                }
+            } catch (e) {
+                console.warn('[BaseAuth] teardownAreas error:', e);
+            }
+        }
+
+        // Pass caption helpers down to the form. Forms use them to
+        // swap the header/tab title while on screen and restore it
+        // when destroyed.
+        options.setCaption = this.setCaption;
+        options.restoreCaption = this.restoreCaption;
 
         container.innerHTML = '';
 
         const instance = new component(options);
-        
+
         if (instance._initPromise) {
             await instance._initPromise;
         }
-        
+
         const element = await instance.render();
         container.appendChild(element);
-        
+
         if (typeof instance.bindEvents === 'function') {
             instance.bindEvents(container);
         }
@@ -206,7 +318,7 @@ export class BaseAuth {
                 }
             });
         } catch (err) {
-            console.error('[BaseAuth] Ошибка загрузки login.js:', err);
+            console.error('[BaseAuth] login.js load error:', err);
         }
     }
 
@@ -224,7 +336,7 @@ export class BaseAuth {
                 }
             });
         } catch (err) {
-            console.error('[BaseAuth] Ошибка загрузки register.js:', err);
+            console.error('[BaseAuth] register.js load error:', err);
         }
     }
 
@@ -242,7 +354,7 @@ export class BaseAuth {
                 }
             });
         } catch (err) {
-            console.error('[BaseAuth] Ошибка загрузки restore.js:', err);
+            console.error('[BaseAuth] restore.js load error:', err);
         }
     }
 
@@ -263,7 +375,7 @@ export class BaseAuth {
                 }
             });
         } catch (err) {
-            console.error('[BaseAuth] Ошибка загрузки password.js:', err);
+            console.error('[BaseAuth] password.js load error:', err);
         }
     }
 
@@ -287,7 +399,7 @@ export class BaseAuth {
                 }
             });
         } catch (err) {
-            console.error('[BaseAuth] Ошибка загрузки profile.js:', err);
+            console.error('[BaseAuth] profile.js load error:', err);
         }
     }
 
@@ -316,20 +428,48 @@ export class BaseAuth {
         return this._initialized;
     }
 
+    /**
+     * User-initiated logout.
+     *
+     * 1. Ask Base to tear down the active page (async). If the editor
+     *    has unsaved changes — the user is prompted via confirmClose().
+     *    If the user cancels — abort: no server call, session stays
+     *    alive, editor stays open.
+     * 2. POST /core/auth/logout to kill the server-side session.
+     * 3. Local cleanup: clear user, clear session, emit auth:changed.
+     * 4. Reload the page (so the app boots fresh on the login form).
+     */
     async logout() {
         console.log('[BaseAuth] logout()');
-        try {
-            await fetch('/core/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
+
+        // First — ask about unsaved changes and tear down the active
+        // page. If the user cancels — abort without hitting the server.
+        const base = window.coreEngine?.base;
+        if (base && typeof base.teardownAreas === 'function') {
+            try {
+                const proceed = await base.teardownAreas();
+                if (!proceed) {
+                    console.log('[BaseAuth] Logout cancelled by user');
+                    return;   // abort — no server call, session stays
                 }
+            } catch (e) {
+                console.warn('[BaseAuth] teardownAreas error:', e);
+            }
+        }
+
+        // Now it's safe to kill the session.
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            await fetchJson('/core/auth/logout', {
+                method: 'POST',
+                skipAuthRedirect: true,   // logging out is not an auth failure
             });
         } catch (error) {
             console.error('[BaseAuth] Logout error:', error);
         }
-        this._handleLogout();
+
+        this._handleLogoutLocal();
+
         setTimeout(() => {
             window.location.reload();
         }, 100);
@@ -341,6 +481,8 @@ export class BaseAuth {
         this.container = null;
         this.user = null;
         this.isAuthenticated = false;
+        this.setCaption = null;
+        this.restoreCaption = null;
         this._initialized = false;
         this._initPromise = null;
     }

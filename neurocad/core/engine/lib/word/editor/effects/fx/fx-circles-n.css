@@ -1,0 +1,108 @@
+/* neurocad/core/engine/lib/word/editor/effects/fx/fx-circles-n.css */
+
+/**
+ * Effect: fx-circles-n — soft concentric rings, now in several places
+ * (centre + four off-centre anchors).
+ *
+ * Scope: .core-engine-lib-word-blocks .fx-circles-n
+ *
+ * Each ring set is a single radial-gradient with hard colour stops:
+ *   transparent up to 14px, ring (2px), transparent, ring, transparent.
+ * Every layer is clipped to a 92x92px tile via background-size, so the
+ * 14/28/42px stops stay local to their own circle instead of growing to
+ * fill the whole element.
+ *
+ * Ring positions and ring sizes are hard-coded. Ask the LLM in
+ * "edit effect" mode to move the anchors or make the rings denser.
+ */
+
+.core-engine-lib-word-blocks .fx-circles-n {
+    background-image: radial-gradient(
+            circle at center,
+            transparent 0,
+            transparent 14px,
+            #cbd5e1 14px,
+            #cbd5e1 15px,
+            transparent 15px,
+            transparent 28px,
+            #cbd5e1 28px,
+            #cbd5e1 29px,
+            transparent 29px,
+            transparent 42px,
+            #cbd5e1 42px,
+            #cbd5e1 43px,
+            transparent 43px
+        ),
+        radial-gradient(
+            circle at center,
+            transparent 0,
+            transparent 14px,
+            #cbd5e1 14px,
+            #cbd5e1 15px,
+            transparent 15px,
+            transparent 28px,
+            #cbd5e1 28px,
+            #cbd5e1 29px,
+            transparent 29px,
+            transparent 42px,
+            #cbd5e1 42px,
+            #cbd5e1 43px,
+            transparent 43px
+        ),
+        radial-gradient(
+            circle at center,
+            transparent 0,
+            transparent 14px,
+            #cbd5e1 14px,
+            #cbd5e1 15px,
+            transparent 15px,
+            transparent 28px,
+            #cbd5e1 28px,
+            #cbd5e1 29px,
+            transparent 29px,
+            transparent 42px,
+            #cbd5e1 42px,
+            #cbd5e1 43px,
+            transparent 43px
+        ),
+        radial-gradient(
+            circle at center,
+            transparent 0,
+            transparent 14px,
+            #cbd5e1 14px,
+            #cbd5e1 15px,
+            transparent 15px,
+            transparent 28px,
+            #cbd5e1 28px,
+            #cbd5e1 29px,
+            transparent 29px,
+            transparent 42px,
+            #cbd5e1 42px,
+            #cbd5e1 43px,
+            transparent 43px
+        ),
+        radial-gradient(
+            circle at center,
+            transparent 0,
+            transparent 14px,
+            #cbd5e1 14px,
+            #cbd5e1 15px,
+            transparent 15px,
+            transparent 28px,
+            #cbd5e1 28px,
+            #cbd5e1 29px,
+            transparent 29px,
+            transparent 42px,
+            #cbd5e1 42px,
+            #cbd5e1 43px,
+            transparent 43px
+        );
+    background-repeat: no-repeat;
+    background-size: 92px 92px;
+    background-position:
+        50% 50%,
+        12% 16%,
+        88% 20%,
+        18% 84%,
+        82% 82%;
+}

@@ -6,6 +6,7 @@
  * Category: "Секции" (sections).
  *
  * Blocks:
+ *   - Section        — empty section with .section > .container wrapper
  *   - Hero           — big intro: heading + lead + button
  *   - Features       — 3 cards with titles and text
  *   - Steps          — 3 numbered steps
@@ -22,16 +23,28 @@
  *   - in the editor — added to the iframe <body> (GrapesLoader)
  *   - on public pages — added to <article> (public.html)
  *
+ * Every block's root element carries data-block="<id>". This is used by:
+ *   - the backend — to detect which block CSS files are needed on a page;
+ *   - analytics / navigation — to know which blocks are on the page.
+ *
  * Sections use atoms from editor/css/content.css (.h1, .h2, .text,
  * .lead, .btn, .card, .image, ...) and section-specific classes
  * from editor/blocks/ready.css (.hero, .features, .cta, ...).
  *
  * All section HTML uses the standard structure:
- *   <section class="section">
- *       <div class="container">
+ *   <section class="section">       ← .section, vertical rhythm
+ *       <div class="container">     ← .container, horizontal rhythm
  *           ...
  *       </div>
  *   </section>
+ *
+ * Placeholder image
+ * -----------------
+ * Blocks that show an <img> (text-image, image-text, gallery) ship
+ * with a placeholder src so the user sees a real image in the canvas,
+ * not an empty box. The placeholder lives next to the editor code:
+ *   /static/core/engine/lib/word/editor/placeholder.svg
+ * Do not move it without updating this file (and elements.js).
  *
  * Rules:
  *   - Never change existing class names after release.
@@ -49,6 +62,34 @@ export class ReadyBlocks {
     register() {
         console.log('[ReadyBlocks] Регистрация');
 
+        // ===== SECTION =====
+
+        /*
+         * Generic section — a bare .section > .container wrapper with a
+         * default H2 + paragraph inside. Use it when none of the ready
+         * sections (hero, features, faq, ...) fits: drop this, then drop
+         * any atoms inside (h1, h2, text, btn, image, grid, ...).
+         *
+         * Why it exists: atoms (.h1, .text, .btn) are leaf blocks — they
+         * don't bring vertical rhythm or horizontal padding. On an empty
+         * page a bare <h1 class="h1"> sticks to the top-left corner.
+         * Wrapping atoms in .section > .container gives them the standard
+         * 4rem vertical spacing and centered max-width with side gutters.
+         */
+        this.bm.add('core-section', {
+            label: 'Секция',
+            category: this.category,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="2" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="5" y="5" width="14" height="14" fill="currentColor" opacity="0.2"/></svg>',
+            content: `
+                <section class="section" data-block="core-section" data-gjs-droppable="true">
+                    <div class="container" data-gjs-droppable="true">
+                        <h2 class="h2">Заголовок секции</h2>
+                        <p class="text">Текст секции. Замените на любой контент.</p>
+                    </div>
+                </section>
+            `,
+        });
+
         // ===== HERO =====
 
         /*
@@ -60,7 +101,7 @@ export class ReadyBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="6" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="2"/><line x1="6" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <section class="section hero">
+                <section class="section hero" data-block="core-hero">
                     <div class="container hero__inner">
                         <h1 class="h1 hero__title">Заголовок страницы</h1>
                         <p class="lead hero__lead">Короткое вводное описание. Расскажите, чем вы полезны.</p>
@@ -80,7 +121,7 @@ export class ReadyBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="6" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9" y="4" width="6" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16" y="4" width="6" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <section class="section features">
+                <section class="section features" data-block="core-features">
                     <div class="container">
                         <h2 class="h2 features__title">Преимущества</h2>
                         <div class="grid grid--3 features__grid">
@@ -112,7 +153,7 @@ export class ReadyBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="6" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="18" cy="12" r="2" fill="currentColor"/><line x1="8" y1="12" x2="10" y2="12" stroke="currentColor" stroke-width="2"/><line x1="14" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <section class="section steps">
+                <section class="section steps" data-block="core-steps">
                     <div class="container">
                         <h2 class="h2 steps__title">Как это работает</h2>
                         <div class="grid grid--3 steps__grid">
@@ -147,7 +188,7 @@ export class ReadyBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="10" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="6" width="8" height="12" rx="1" fill="currentColor" opacity="0.3"/></svg>',
             content: `
-                <section class="section text-image">
+                <section class="section text-image" data-block="core-text-image">
                     <div class="container">
                         <div class="grid grid--2 text-image__grid">
                             <div class="text-image__text">
@@ -156,7 +197,7 @@ export class ReadyBlocks {
                                 <p class="text text--muted">Дополнительный абзац.</p>
                             </div>
                             <div class="text-image__media">
-                                <img class="image" src="/static/core/engine/lib/base/images/placeholder.svg" alt="">
+                                <img class="image" src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
                             </div>
                         </div>
                     </div>
@@ -174,11 +215,11 @@ export class ReadyBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="6" width="8" height="12" rx="1" fill="currentColor" opacity="0.3"/><rect x="12" y="4" width="10" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <section class="section image-text">
+                <section class="section image-text" data-block="core-image-text">
                     <div class="container">
                         <div class="grid grid--2 image-text__grid">
                             <div class="image-text__media">
-                                <img class="image" src="/static/core/engine/lib/base/images/placeholder.svg" alt="">
+                                <img class="image" src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
                             </div>
                             <div class="image-text__text">
                                 <h2 class="h2">Заголовок блока</h2>
@@ -201,16 +242,16 @@ export class ReadyBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="6" height="6" rx="1" fill="currentColor" opacity="0.3"/><rect x="9" y="4" width="6" height="6" rx="1" fill="currentColor" opacity="0.3"/><rect x="16" y="4" width="6" height="6" rx="1" fill="currentColor" opacity="0.3"/><rect x="2" y="12" width="6" height="6" rx="1" fill="currentColor" opacity="0.3"/><rect x="9" y="12" width="6" height="6" rx="1" fill="currentColor" opacity="0.3"/><rect x="16" y="12" width="6" height="6" rx="1" fill="currentColor" opacity="0.3"/></svg>',
             content: `
-                <section class="section gallery">
+                <section class="section gallery" data-block="core-gallery">
                     <div class="container">
                         <h2 class="h2 gallery__title">Галерея</h2>
                         <div class="grid grid--auto gallery__grid">
-                            <img class="image gallery__item" src="/static/core/engine/lib/base/images/placeholder.svg" alt="">
-                            <img class="image gallery__item" src="/static/core/engine/lib/base/images/placeholder.svg" alt="">
-                            <img class="image gallery__item" src="/static/core/engine/lib/base/images/placeholder.svg" alt="">
-                            <img class="image gallery__item" src="/static/core/engine/lib/base/images/placeholder.svg" alt="">
-                            <img class="image gallery__item" src="/static/core/engine/lib/base/images/placeholder.svg" alt="">
-                            <img class="image gallery__item" src="/static/core/engine/lib/base/images/placeholder.svg" alt="">
+                            <img class="image gallery__item" src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
+                            <img class="image gallery__item" src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
+                            <img class="image gallery__item" src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
+                            <img class="image gallery__item" src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
+                            <img class="image gallery__item" src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
+                            <img class="image gallery__item" src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
                         </div>
                     </div>
                 </section>
@@ -227,7 +268,7 @@ export class ReadyBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>',
             content: `
-                <section class="section faq">
+                <section class="section faq" data-block="core-faq">
                     <div class="container">
                         <h2 class="h2 faq__title">Частые вопросы</h2>
                         <div class="faq__list">
@@ -259,7 +300,7 @@ export class ReadyBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="20" height="16" rx="2" fill="#0f172a"/><line x1="6" y1="10" x2="18" y2="10" stroke="#ffffff" stroke-width="2"/><line x1="6" y1="14" x2="14" y2="14" stroke="#ffffff" stroke-width="2" opacity="0.6"/></svg>',
             content: `
-                <section class="section cta">
+                <section class="section cta" data-block="core-cta">
                     <div class="container cta__inner">
                         <h2 class="h2 cta__title">Готовы начать?</h2>
                         <p class="text cta__text">Короткое описание призыва к действию.</p>
@@ -279,7 +320,7 @@ export class ReadyBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9" r="2" fill="currentColor"/></svg>',
             content: `
-                <section class="section contacts">
+                <section class="section contacts" data-block="core-contacts">
                     <div class="container">
                         <h2 class="h2 contacts__title">Контакты</h2>
                         <div class="grid grid--3 contacts__grid">
@@ -311,7 +352,7 @@ export class ReadyBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="18" width="20" height="4" fill="currentColor"/><line x1="2" y1="20" x2="8" y2="20" stroke="#ffffff" stroke-width="1"/><line x1="16" y1="20" x2="22" y2="20" stroke="#ffffff" stroke-width="1"/></svg>',
             content: `
-                <footer class="section footer">
+                <footer class="section footer" data-block="core-footer">
                     <div class="container footer__inner">
                         <div class="footer__brand">© Компания</div>
                         <nav class="footer__nav">

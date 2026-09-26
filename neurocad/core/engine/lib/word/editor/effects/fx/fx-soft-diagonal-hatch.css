@@ -1,0 +1,64 @@
+/* neurocad/core/engine/lib/word/editor/effects/fx/fx-soft-diagonal-hatch.css */
+
+/* Мягкие диагональные штрихи по фону с лёгким размытием.
+   Извлечено из pages/11.css (эффекты effect-a7k3 + effect-b9q2). */
+
+.core-engine-lib-word-blocks .fx-soft-diagonal-hatch {
+    position: relative;
+    overflow: hidden;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cg stroke='%23808080' stroke-width='1.6' stroke-linecap='round' opacity='0.14'%3E%3Cline x1='10' y1='13' x2='25' y2='19'/%3E%3Cline x1='48' y1='30' x2='63' y2='35'/%3E%3Cline x1='16' y1='56' x2='31' y2='62'/%3E%3Cline x1='60' y1='70' x2='76' y2='63'/%3E%3Cline x1='40' y1='8' x2='52' y2='15'/%3E%3Cline x1='70' y1='44' x2='82' y2='50'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 90px 90px;
+}
+
+.core-engine-lib-word-blocks .fx-soft-diagonal-hatch::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.14;
+    filter: blur(2.5px);
+    background-repeat: repeat;
+    background-image: repeating-linear-gradient(
+        24deg,
+        rgba(148, 163, 184, 0.38) 0 1px,
+        transparent 1px 9px
+    ),
+    repeating-linear-gradient(
+        -18deg,
+        rgba(148, 163, 184, 0.22) 0 1px,
+        transparent 1px 14px
+    ),
+    repeating-linear-gradient(
+        68deg,
+        rgba(148, 163, 184, 0.14) 0 1px,
+        transparent 1px 22px
+    ),
+    repeating-linear-gradient(
+        -52deg,
+        rgba(148, 163, 184, 0.10) 0 1px,
+        transparent 1px 28px
+    );
+    background-size: 220px 120px, 340px 160px, 180px 140px, 420px 200px;
+    background-position-x: 0px, 70px, 130px, 40px;
+    background-position-y: 0px, 60px, 30px, 120px;
+    mask-image: repeating-linear-gradient(
+        -45deg,
+        #000 0px, #000 9px,
+        transparent 9px, transparent 26px
+    );
+    -webkit-mask-image: repeating-linear-gradient(
+        -45deg,
+        #000 0px, #000 9px,
+        transparent 9px, transparent 26px
+    );
+}
+
+.core-engine-lib-word-blocks .fx-soft-diagonal-hatch > * {
+    position: relative;
+    z-index: 1;
+}

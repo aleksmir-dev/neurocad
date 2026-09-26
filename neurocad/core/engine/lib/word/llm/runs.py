@@ -17,7 +17,6 @@ or an empty list instead, matching the style of the LLMService.
 """
 
 import json
-import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -25,8 +24,6 @@ from sqlalchemy import select, desc
 
 from .....models.base import Run
 from ......utils.sqlite import get_db_sqlite
-
-logger = logging.getLogger(__name__)
 
 
 class CoreEngineLibWordLlmRuns:
@@ -43,8 +40,7 @@ class CoreEngineLibWordLlmRuns:
             return None
         try:
             return json.dumps(value, ensure_ascii=False)
-        except (TypeError, ValueError) as e:
-            logger.warning(f"[runs] JSON encode failed: {e}")
+        except (TypeError, ValueError):
             return None
 
     @staticmethod
@@ -54,8 +50,7 @@ class CoreEngineLibWordLlmRuns:
             return None
         try:
             return json.loads(text)
-        except json.JSONDecodeError as e:
-            logger.warning(f"[runs] JSON decode failed: {e}")
+        except json.JSONDecodeError:
             return None
 
     @staticmethod

@@ -1,4 +1,4 @@
-// app/core/engine/lib/word/editor/history.js
+// neurocad/core/engine/lib/word/editor/history.js
 
 /**
  * History — page history modal (list, preview, rollback).
@@ -20,6 +20,9 @@
  *      On success — call onRollback(data) and close the modal.
  *
  * CSS is loaded from ./history.css on module load.
+ *
+ * HTTP requests go through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
  *
  * The modal DOM follows Base Modal conventions:
  *   .core-engine-lib-word-editor-history
@@ -76,28 +79,6 @@ function _apiPath(pageId, suffix = '') {
  */
 function _withQs(url, qs) {
     return qs ? `${url}${qs}` : url;
-}
-
-async function _fetchJson(url, options = {}) {
-    const response = await fetch(url, {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json', ...(options.headers || {}) },
-        ...options,
-    });
-
-    if (!response.ok) {
-        let detail = '';
-        try {
-            const data = await response.json();
-            detail = data.detail || '';
-        } catch (e) { /* not JSON */ }
-
-        const err = new Error(detail || `HTTP ${response.status}`);
-        err.status = response.status;
-        throw err;
-    }
-
-    return response.json();
 }
 
 /* ============================================
@@ -259,7 +240,8 @@ class HistoryModal {
     async _loadList() {
         try {
             const url = _withQs(_apiPath(this.pageId, '/history'), this.qs);
-            const json = await _fetchJson(url);
+            const fetchJson = window.coreEngine?.fetchJson;
+            const json = await fetchJson(url);
             this.items = json.data || [];
 
             this._renderList();
@@ -358,7 +340,8 @@ class HistoryModal {
 
         try {
             const url = _withQs(_apiPath(this.pageId, `/history/${histId}`), this.qs);
-            const json = await _fetchJson(url);
+            const fetchJson = window.coreEngine?.fetchJson;
+            const json = await fetchJson(url);
             this.previewData = json.data;
 
             this._renderPreview(this.previewData);
@@ -470,7 +453,8 @@ ${snapshotStyle}
 
         try {
             const url = _withQs(_apiPath(this.pageId, `/rollback/${this.selectedId}`), this.qs);
-            const json = await _fetchJson(url, { method: 'POST' });
+            const fetchJson = window.coreEngine?.fetchJson;
+            const json = await fetchJson(url, { method: 'POST' });
             const data = json.data;
 
             this._setStatus('Откат выполнен');

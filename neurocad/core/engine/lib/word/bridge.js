@@ -16,6 +16,12 @@
  *   If the page has no template, GrapesJS mounts into .editor-canvas
  *   directly — same as before.
  *
+ * Save vs auto-save:
+ *   - onSave      — manual save (toolbar / Ctrl+S). Persists and
+ *                   closes the editor.
+ *   - onAutoSave  — background auto-save. Persists only; the editor
+ *                   stays open and untouched.
+ *
  * Race protection:
  *   Editor init is async (dynamic imports, GrapesJS init). If the user
  *   cancels while init is still running, we must NOT create a new Editor
@@ -99,9 +105,16 @@ export async function openEditor(word) {
         // GrapesJS init, and mounts into .editor-slot.
         templateHtml: templateHtml,
 
+        // Manual save: persist AND close the editor.
         onSave: async (data) => {
             await word._saveContent(data);
         },
+
+        // Auto-save: persist only. Do NOT close the editor.
+        onAutoSave: async (data) => {
+            await word._autoSaveContent(data);
+        },
+
         onCancel: () => {
             closeEditor(word);
         },

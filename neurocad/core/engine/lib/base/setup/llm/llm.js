@@ -7,20 +7,43 @@
  * Loads LLM settings via GET /core/engine/lib/base/setup/llm
  * and saves them via PUT.
  *
+ * Test button:
+ *   Each provider block has a "Проверить" button next to its title.
+ *   Clicking it POSTs the current form values for that provider to
+ *   /core/engine/lib/base/setup/llm/test. The result (success or
+ *   error with a human-readable detail) is shown inline inside the
+ *   same provider block, right below the header row.
+ *
+ *   /test returns HTTP 200 with { success: false, message, detail }
+ *   on failure. fetchJson() throws on success:false and stores the
+ *   full server response in err.data — _handleTest() reads both
+ *   message and detail from there.
+ *
  * Layout:
  *   - titlebar        — fixed at the top (save, close)
  *   - status / warning — fixed, just below the titlebar
  *   - active-provider row + <hr> — fixed, below the status
  *   - providers list  — scrollable; only the active provider is visible
+ *     Each provider block contains:
+ *       .llm-provider-header  — title + "Проверить" button
+ *       .llm-test-status      — inline test result (hidden by default)
+ *       ...fields...
  *
  * All provider blocks are kept in the DOM (with the `hidden` attribute
  * on the inactive ones) so that switching the select is instant and
  * the form payload always includes every provider's values.
  *
+ * Uses window.coreEngine.fetchJson — loaded once by CoreEngine.loadApi().
+ *
  * Props:
- *   - section    {string}   — 'llm'
- *   - user       {object}   — current user (from auth)
- *   - onNavigate {Function} — (section) => void, switches back to 'main'
+ *   - section        {string}   — 'llm'
+ *   - user           {object}   — current user (from auth)
+ *   - setCaption     {Function} — (title, headerText) => saved; sets the caption
+ *   - restoreCaption {Function} — (saved) => void; restores the caption
+ *   - onNavigate     {Function} — (section) => void, switches back to 'main'
+ *
+ * Caption: BaseSetupLlm saves the current header/tab title on open and
+ * restores it on destroy.
  */
 export class BaseSetupLlm {
     constructor(options = {}) {
@@ -31,7 +54,14 @@ export class BaseSetupLlm {
         this.user = options.user || null;
         this.onNavigate = options.onNavigate || null;
 
+        // Caption helpers — provided by Base via options.
+        this.setCaption = options.setCaption || null;
+        this.restoreCaption = options.restoreCaption || null;
+
         this.element = null;
+
+        // Saved caption state — filled in render(), used in destroy().
+        this._savedCaption = null;
 
         // Loaded from the server.
         this.settings = null;
@@ -81,22 +111,9 @@ export class BaseSetupLlm {
     async _loadSettings() {
         console.log('[BaseSetupLlm] _loadSettings()');
 
-        const response = await fetch(this._apiBase, {
-            method: 'GET',
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' },
-        });
+        const fetchJson = window.coreEngine?.fetchJson;
+        const json = await fetchJson(this._apiBase);
 
-        if (!response.ok) {
-            let detail = '';
-            try {
-                const err = await response.json();
-                detail = err.detail || '';
-            } catch (e) { /* not JSON */ }
-            throw new Error(detail || `HTTP ${response.status}`);
-        }
-
-        const json = await response.json();
         this.settings = json.data || { active_provider: 'deepseek', providers: {} };
         this.cryptoAvailable = json.crypto_available === true;
 
@@ -108,30 +125,44 @@ export class BaseSetupLlm {
 
         const payload = this._collectFormData();
 
-        const response = await fetch(this._apiBase, {
+        const fetchJson = window.coreEngine?.fetchJson;
+        const json = await fetchJson(this._apiBase, {
             method: 'PUT',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify(payload),
+            body: payload,
         });
-
-        const json = await response.json();
-
-        if (!response.ok) {
-            throw new Error(json.detail || `HTTP ${response.status}`);
-        }
-
-        if (!json.success) {
-            throw new Error(json.message || 'Не удалось сохранить настройки');
-        }
 
         this.settings = json.data;
         this.cryptoAvailable = json.crypto_available === true;
 
         return json.message || null;
+    }
+
+    /**
+     * Test one provider with the current form values (not the saved ones).
+     *
+     * POST /core/engine/lib/base/setup/llm/test
+     *   { "provider": "gemini", "config": { ... } }
+     *
+     * Response (HTTP 200):
+     *   { "success": true,  "message": "OK", "detail": "..." }
+     *   { "success": false, "message": "Ошибка Gemini (400)", "detail": "..." }
+     *
+     * NOTE: fetchJson throws on success:false. Callers should catch
+     * the error and read err.data (which contains the full response).
+     */
+    async _testProvider(providerName, providerConfig) {
+        console.log('[BaseSetupLlm] _testProvider()', providerName);
+
+        const fetchJson = window.coreEngine?.fetchJson;
+        const json = await fetchJson(`${this._apiBase}/test`, {
+            method: 'POST',
+            body: {
+                provider: providerName,
+                config: providerConfig,
+            },
+        });
+
+        return json;
     }
 
     // ============================================
@@ -140,6 +171,11 @@ export class BaseSetupLlm {
 
     render() {
         console.log('[BaseSetupLlm] render()');
+
+        // Save current title, set our own.
+        if (this.setCaption && !this._savedCaption) {
+            this._savedCaption = this.setCaption('Настройки LLM', 'Настройки LLM');
+        }
 
         const wrapper = document.createElement('div');
         wrapper.className = 'core-engine-lib-base-setup-llm';
@@ -170,7 +206,7 @@ export class BaseSetupLlm {
                                  class="llm-icon-img">
                         </button>
                     </div>
-                    <div class="llm-titlebar-title">Настройки LLM</div>
+                    <div class="llm-titlebar-title"></div>
                     <div class="llm-titlebar-right">
                         <button type="button" class="llm-icon-btn" data-action="close" title="Закрыть">
                             <span aria-hidden="true">✕</span>
@@ -228,7 +264,18 @@ export class BaseSetupLlm {
             const hidden = name === active ? '' : 'hidden';
             return `
                 <div class="llm-provider" data-provider="${name}" ${hidden}>
-                    <div class="llm-provider-title">${this._providerLabel(name)}</div>
+                    <div class="llm-provider-header">
+                        <div class="llm-provider-title">${this._providerLabel(name)}</div>
+                        <button type="button"
+                                class="llm-test-btn"
+                                data-action="test"
+                                data-provider="${name}">
+                            Проверить
+                        </button>
+                    </div>
+                    <div class="llm-test-status"
+                         data-js="llm-test-status-${name}"
+                         style="display:none;"></div>
                     ${fields.map(field => this._renderField(name, field, config[field])).join('')}
                 </div>
             `;
@@ -241,12 +288,25 @@ export class BaseSetupLlm {
         const v = value == null ? '' : String(value);
 
         const isNumber = field === 'max_output_tokens' || field === 'timeout';
-        const inputType = isNumber ? 'number' : 'text';
-        const extraAttrs = isNumber ? 'min="1" step="1"' : '';
+        const isTextarea = field === 'ca_pem';
 
-        return `
-            <div class="llm-field">
-                <label class="llm-label" for="${inputId}">${label}</label>
+        let inputHtml;
+        if (isTextarea) {
+            inputHtml = `
+                <textarea
+                    id="${inputId}"
+                    class="llm-input llm-textarea"
+                    data-provider="${providerName}"
+                    data-field="${field}"
+                    rows="8"
+                    spellcheck="false"
+                    placeholder="-----BEGIN CERTIFICATE----- ..."
+                >${this._escapeAttr(v)}</textarea>
+            `;
+        } else {
+            const inputType = isNumber ? 'number' : 'text';
+            const extraAttrs = isNumber ? 'min="1" step="1"' : '';
+            inputHtml = `
                 <input
                     type="${inputType}"
                     id="${inputId}"
@@ -255,6 +315,13 @@ export class BaseSetupLlm {
                     data-field="${field}"
                     value="${this._escapeAttr(v)}"
                     ${extraAttrs}>
+            `;
+        }
+
+        return `
+            <div class="llm-field">
+                <label class="llm-label" for="${inputId}">${label}</label>
+                ${inputHtml}
             </div>
         `;
     }
@@ -292,8 +359,9 @@ export class BaseSetupLlm {
     _fieldLabel(field) {
         const labels = {
             api_key: 'API key',
-            auth_key: 'Auth key',
+            auth_key: 'Authorization Key',
             base_url: 'Base URL',
+            proxy_url: 'Прокси (URL, необязательно)',
             model: 'Модель',
             max_output_tokens: 'Макс. выходных токенов',
             timeout: 'Таймаут (сек)',
@@ -315,26 +383,39 @@ export class BaseSetupLlm {
 
         const providers = {};
         for (const name of this._knownProviders()) {
-            const config = {};
-            const fields = this._providerFields(name);
-            for (const field of fields) {
-                const input = root.querySelector(
-                    `[data-provider="${name}"][data-field="${field}"]`
-                );
-                if (!input) continue;
-                const raw = input.value;
-                if (raw === '') continue;
-                if (field === 'max_output_tokens' || field === 'timeout') {
-                    const n = parseInt(raw, 10);
-                    if (!isNaN(n)) config[field] = n;
-                } else {
-                    config[field] = raw;
-                }
-            }
-            providers[name] = config;
+            providers[name] = this._collectProviderData(name);
         }
 
         return { active_provider: activeProvider, providers };
+    }
+
+    /**
+     * Collect values for one provider's fields from the form.
+     * Used both by _collectFormData() and by _handleTest().
+     */
+    _collectProviderData(providerName) {
+        const root = this.element || document;
+        const config = {};
+        const fields = this._providerFields(providerName);
+
+        for (const field of fields) {
+            const input = root.querySelector(
+                `[data-provider="${providerName}"][data-field="${field}"]`
+            );
+            if (!input) continue;
+
+            const raw = input.value;
+            if (raw === '') continue;
+
+            if (field === 'max_output_tokens' || field === 'timeout') {
+                const n = parseInt(raw, 10);
+                if (!isNaN(n)) config[field] = n;
+            } else {
+                config[field] = raw;
+            }
+        }
+
+        return config;
     }
 
     // ============================================
@@ -375,6 +456,14 @@ export class BaseSetupLlm {
         root.querySelectorAll('[data-action="back"], [data-action="close"]').forEach(btn => {
             btn.addEventListener('click', () => this._handleBack());
         });
+
+        // Test buttons — one per provider.
+        root.querySelectorAll('[data-action="test"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const providerName = btn.dataset.provider;
+                this._handleTest(providerName, btn);
+            });
+        });
     }
 
     _showProvider(name) {
@@ -405,6 +494,74 @@ export class BaseSetupLlm {
         }
 
         this._setLoading(false);
+    }
+
+    /**
+     * Test one provider with the current form values.
+     * Shows the result inline in the provider block, right under the header.
+     *
+     * fetchJson throws on success:false — the full server response
+     * (message + detail) is available in err.data, so we read both
+     * from there in the catch branch.
+     */
+    async _handleTest(providerName, btn) {
+        console.log('[BaseSetupLlm] _handleTest()', providerName);
+
+        const config = this._collectProviderData(providerName);
+
+        // Disable the button while testing.
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Проверяю...';
+        }
+
+        this._showTestStatus(
+            providerName,
+            `Проверяю ${this._providerLabel(providerName)}...`,
+            'info'
+        );
+
+        try {
+            const json = await this._testProvider(providerName, config);
+
+            if (json.success) {
+                const detail = json.detail ? ` (${json.detail})` : '';
+                this._showTestStatus(
+                    providerName,
+                    `✅ ${this._providerLabel(providerName)}: OK${detail}`,
+                    'success'
+                );
+            } else {
+                // Safety net for backends that return success:false
+                // with HTTP 200 and don't trip fetchJson.
+                const message = json.message || 'Неизвестная ошибка';
+                const detail = json.detail ? `: ${json.detail}` : '';
+                this._showTestStatus(
+                    providerName,
+                    `❌ ${this._providerLabel(providerName)}: ${message}${detail}`,
+                    'error'
+                );
+            }
+        } catch (err) {
+            console.error('[BaseSetupLlm] Test error:', err);
+
+            // fetchJson throws on success:false — the full server
+            // response is in err.data. Read message + detail from there.
+            const data = err?.data || {};
+            const message = data.message || err.message || 'Неизвестная ошибка';
+            const detail = data.detail ? `: ${data.detail}` : '';
+
+            this._showTestStatus(
+                providerName,
+                `❌ ${this._providerLabel(providerName)}: ${message}${detail}`,
+                'error'
+            );
+        }
+
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Проверить';
+        }
     }
 
     _handleBack() {
@@ -441,6 +598,42 @@ export class BaseSetupLlm {
         this.statusEl.className = 'llm-status';
     }
 
+    /**
+     * Show the test result for one provider.
+     * The status element lives inside the provider block
+     * ([data-js="llm-test-status-<provider>"]).
+     */
+    _showTestStatus(providerName, text, type = 'info') {
+        const root = this.element;
+        if (!root) return;
+
+        const el = root.querySelector(
+            `[data-js="llm-test-status-${providerName}"]`
+        );
+        if (!el) return;
+
+        el.textContent = text;
+        el.className = `llm-test-status llm-test-status-${type}`;
+        el.style.display = 'block';
+    }
+
+    /**
+     * Hide the test result for one provider.
+     */
+    _hideTestStatus(providerName) {
+        const root = this.element;
+        if (!root) return;
+
+        const el = root.querySelector(
+            `[data-js="llm-test-status-${providerName}"]`
+        );
+        if (!el) return;
+
+        el.textContent = '';
+        el.style.display = 'none';
+        el.className = 'llm-test-status';
+    }
+
     _escapeAttr(text) {
         return String(text)
             .replace(/&/g, '&amp;')
@@ -466,6 +659,13 @@ export class BaseSetupLlm {
 
     destroy() {
         console.log('[BaseSetupLlm] destroy()');
+
+        // Restore the title that was on screen before we opened.
+        if (this.restoreCaption) {
+            this.restoreCaption(this._savedCaption);
+        }
+        this._savedCaption = null;
+
         if (this.element) {
             this.element.remove();
             this.element = null;

@@ -1,13 +1,34 @@
 // app/core/engine/lib/base/auth/password.js
 
+/**
+ * BaseAuthPassword — password change page.
+ *
+ * 401 here means "wrong current password", NOT "session expired".
+ * So we use fetchJson with skipAuthRedirect: true — do NOT emit
+ * auth:unauthorized on 401.
+ *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ *
+ * Caption: saves the current header/tab title on open and restores it
+ * on destroy.
+ */
 export class BaseAuthPassword {
     constructor(options = {}) {
         this.options = options;
         this.user = options.user || null;
         this.onSuccess = options.onSuccess || null;
         this.onCancel = options.onCancel || null;
+
+        // Caption helpers — provided by BaseAuth via _renderForm().
+        this.setCaption = options.setCaption || null;
+        this.restoreCaption = options.restoreCaption || null;
+
         this.element = null;
         this.isLoading = false;
+
+        // Saved caption state — filled in render(), used in destroy().
+        this._savedCaption = null;
 
         this._loadCSS();
     }
@@ -19,6 +40,11 @@ export class BaseAuthPassword {
     }
 
     render() {
+        // Save current title, set our own.
+        if (this.setCaption && !this._savedCaption) {
+            this._savedCaption = this.setCaption('Изменение пароля', 'Изменение пароля');
+        }
+
         const wrapper = document.createElement('div');
         wrapper.className = 'core-engine-lib-base-auth-password';
         wrapper.innerHTML = `
@@ -154,24 +180,16 @@ export class BaseAuthPassword {
         this._hideSuccess();
 
         try {
-            const response = await fetch('/core/auth/password/change', {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson('/core/auth/password/change', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
+                body: {
                     current_password: current,
                     new_password: newPassword,
-                    new_password_confirm: confirm
-                })
+                    new_password_confirm: confirm,
+                },
+                skipAuthRedirect: true,   // wrong current password ≠ session expired
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Ошибка изменения пароля');
-            }
 
             if (data.success) {
                 if (this.onSuccess) {
@@ -242,6 +260,12 @@ export class BaseAuthPassword {
     }
 
     destroy() {
+        // Restore the title that was on screen before we opened.
+        if (this.restoreCaption) {
+            this.restoreCaption(this._savedCaption);
+        }
+        this._savedCaption = null;
+
         if (this.element) {
             this.element.remove();
             this.element = null;

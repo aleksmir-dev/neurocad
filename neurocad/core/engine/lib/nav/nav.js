@@ -1,20 +1,23 @@
 // app/core/engine/lib/nav/nav.js
 
 /**
- * Компонент навигации (проводник)
- * Загружает данные и передаёт их в BaseCards
+ * Nav — navigation component (file explorer).
+ * Loads data and passes it to BaseCards.
  *
- * НЕ занимается иконками — они встроены в lib/base/images
+ * Does NOT deal with icons — they live in lib/base/images.
+ *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
  */
 export class Nav {
     constructor(container, props = {}) {
-        console.log('[Nav] Конструктор вызван', { container, props });
+        console.log('[Nav] Constructor called', { container, props });
 
         this.container = container;
         this.props = props;
 
         this.parentId = props.parent_id || null;
-        this.section = props.section || 2;  // 1 - общий, 2 - личный
+        this.section = props.section || 2;  // 1 — public, 2 — personal
 
         this.items = [];
         this.isLoading = false;
@@ -23,42 +26,42 @@ export class Nav {
         this.CardsClass = null;
         this.parentHistory = [];
 
-        // Состояние инициализации
+        // Init state
         this._initialized = false;
         this._initPromise = null;
         this._isContainerReady = false;
 
-        console.log('[Nav] Начало загрузки CSS');
+        console.log('[Nav] Loading CSS');
         this._loadCSS();
-        console.log('[Nav] Вызов _init()');
+        console.log('[Nav] Calling _init()');
         this._initPromise = this._init();
     }
 
     _loadCSS() {
         console.log('[Nav] _loadCSS()');
         if (window.coreEngine && typeof window.coreEngine.loadCSS === 'function') {
-            console.log('[Nav] Загрузка CSS через coreEngine');
+            console.log('[Nav] Loading CSS via coreEngine');
             window.coreEngine.loadCSS('core/engine/lib/nav/nav.css');
         } else {
-            console.warn('[Nav] coreEngine.loadCSS не найден');
+            console.warn('[Nav] coreEngine.loadCSS not found');
         }
     }
 
     async _init() {
         console.log('[Nav] _init() START');
         try {
-            console.log('[Nav] Загрузка Cards...');
+            console.log('[Nav] Loading Cards...');
             await this._loadCards();
-            console.log('[Nav] Cards загружен:', !!this.CardsClass);
+            console.log('[Nav] Cards loaded:', !!this.CardsClass);
 
-            console.log('[Nav] Загрузка Items...');
+            console.log('[Nav] Loading Items...');
             await this._loadItems();
-            console.log('[Nav] Items загружены:', this.items.length);
+            console.log('[Nav] Items loaded:', this.items.length);
 
             this._initialized = true;
             console.log('[Nav] _init() COMPLETE');
         } catch (error) {
-            console.error('[Nav] Ошибка в _init():', error);
+            console.error('[Nav] _init() error:', error);
             this._initialized = false;
             throw error;
         }
@@ -69,23 +72,23 @@ export class Nav {
         console.log('[Nav] _loadCards() START');
         try {
             const version = window.coreEngine?.static_version || Date.now();
-            console.log('[Nav] Версия для cards.js:', version);
-            console.log('[Nav] Попытка импорта cards.js...');
+            console.log('[Nav] Cards version:', version);
+            console.log('[Nav] Importing cards.js...');
 
             const module = await import(`../base/cards/cards.js?v=${version}`);
-            console.log('[Nav] Модуль cards загружен:', module);
+            console.log('[Nav] Cards module loaded:', module);
 
             this.CardsClass = module.BaseCards;
-            console.log('[Nav] CardsClass установлен:', !!this.CardsClass);
+            console.log('[Nav] CardsClass set:', !!this.CardsClass);
 
             if (!this.CardsClass) {
-                console.error('[Nav] BaseCards не найден в модуле');
-                console.log('[Nav] Доступные экспорты:', Object.keys(module));
+                console.error('[Nav] BaseCards not found in module');
+                console.log('[Nav] Available exports:', Object.keys(module));
             }
         } catch (error) {
-            console.error('[Nav] Ошибка загрузки Cards:', error);
-            console.error('[Nav] Ошибка детали:', error.message);
-            console.error('[Nav] Стек ошибки:', error.stack);
+            console.error('[Nav] Cards load error:', error);
+            console.error('[Nav] Error message:', error.message);
+            console.error('[Nav] Error stack:', error.stack);
             throw error;
         }
         console.log('[Nav] _loadCards() END');
@@ -94,13 +97,13 @@ export class Nav {
     async _loadItems() {
         console.log('[Nav] _loadItems() START');
 
-        // Проверяем авторизацию перед загрузкой
+        // Check auth before loading
         const auth = window.coreEngine?.auth;
         console.log('[Nav] auth:', !!auth);
 
-        // ===== ЕСЛИ НЕ АВТОРИЗОВАН — СРАЗУ ФОРМА ВХОДА, БЕЗ CARDS =====
+        // ===== NOT AUTHORIZED — SHOW LOGIN FORM, NO CARDS =====
         if (!auth || !auth.isAuth()) {
-            console.log('[Nav] Пользователь не авторизован, показываем форму входа');
+            console.log('[Nav] Not authorized, showing login form');
             this.isLoading = false;
             this.error = null;
 
@@ -122,56 +125,40 @@ export class Nav {
                 params.push(`parent_id=${this.parentId}`);
             }
 
-            // section — обязательный параметр
+            // section is required
             params.push(`section=${this.section}`);
 
             if (params.length > 0) {
                 url += '?' + params.join('&');
             }
 
-            console.log('[Nav] Загрузка данных по URL:', url);
+            console.log('[Nav] Loading data from URL:', url);
 
-            const response = await fetch(url, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson(url);
 
-            console.log('[Nav] Ответ получен, статус:', response.status);
-
-            // 401 — сессия истекла или пользователь не авторизован
-            if (response.status === 401) {
-                console.log('[Nav] 401 - сессия истекла, показываем форму входа');
-
-                sessionStorage.setItem('auth_redirect_url', window.location.pathname);
-
-                this.isLoading = false;
-                this.error = null;
-
-                document.dispatchEvent(new CustomEvent('auth:unauthorized'));
-
-                console.log('[Nav] 401 обработан, Cards не обновляем');
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error(`Ошибка загрузки: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log('[Nav] Данные получены:', data);
+            console.log('[Nav] Data received:', data);
 
             if (data.success) {
                 this.items = data.data || [];
-                console.log('[Nav] Items обновлены:', this.items.length);
+                console.log('[Nav] Items updated:', this.items.length);
                 this.isLoading = false;
                 await this._updateCards();
             } else {
-                throw new Error(data.message || 'Ошибка загрузки данных');
+                throw new Error(data.message || 'Data load error');
             }
         } catch (error) {
-            console.error('[Nav] Ошибка загрузки:', error);
+            console.error('[Nav] Load error:', error);
+
+            // 401 is already handled by fetchJson (auth:unauthorized was emitted).
+            // Here we just stop loading and let the auth layer take over.
+            if (error.status === 401) {
+                console.log('[Nav] 401 — session expired, auth layer handles it');
+                this.isLoading = false;
+                this.error = null;
+                return;
+            }
+
             this.error = error.message;
             this.isLoading = false;
             await this._updateCards();
@@ -187,10 +174,10 @@ export class Nav {
         console.log('[Nav] error:', this.error);
 
         const cardsData = this._prepareCardsData();
-        console.log('[Nav] cardsData подготовлено:', cardsData.length);
+        console.log('[Nav] cardsData prepared:', cardsData.length);
 
         if (this.cardsInstance) {
-            console.log('[Nav] Обновление существующего экземпляра Cards');
+            console.log('[Nav] Updating existing Cards instance');
             await this.cardsInstance.updateProps({
                 items: cardsData,
                 isLoading: this.isLoading,
@@ -202,10 +189,10 @@ export class Nav {
                 onRetry: () => this._loadItems()
             });
         } else if (this.CardsClass) {
-            console.log('[Nav] Создание нового экземпляра Cards');
+            console.log('[Nav] Creating new Cards instance');
             console.log('[Nav] Container:', this.container);
-            console.log('[Nav] Container дочерние элементы:', this.container.children);
-            console.log('[Nav] Container в DOM?', document.body.contains(this.container));
+            console.log('[Nav] Container children:', this.container.children);
+            console.log('[Nav] Container in DOM?', document.body.contains(this.container));
 
             try {
                 this.cardsInstance = new this.CardsClass(this.container, {
@@ -213,7 +200,7 @@ export class Nav {
                     isLoading: this.isLoading,
                     error: this.error,
 
-                    // Поля для формы редактирования
+                    // Fields for the edit form
                     fields: [
                         {
                             key: 'name',
@@ -251,7 +238,7 @@ export class Nav {
                         }
                     ],
 
-                    // Поля для отображения в стандартном режиме
+                    // Fields for the standard view
                     listFields: ['name', 'description'],
                     statusField: 'card_type',
                     icon: '📂',
@@ -267,11 +254,11 @@ export class Nav {
                         restore: '/item/{id}/restore'
                     },
 
-                    // Section и parentId
+                    // Section and parentId
                     section: this.section,
                     parentId: this.parentId,
 
-                    // Кастомный рендер карточек для Nav
+                    // Custom card render for Nav
                     renderCard: (item) => {
                         const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({
                             '&': '&amp;',
@@ -281,7 +268,7 @@ export class Nav {
                             "'": '&#39;'
                         }[c]));
 
-                        // Кнопка "Наверх"
+                        // "Up" button
                         if (item.is_up) {
                             return `
                                 <div class="nav-folder">
@@ -292,7 +279,7 @@ export class Nav {
                             `;
                         }
 
-                        // Папка
+                        // Folder
                         if (item.card_type === 'folder') {
                             return `
                                 <div class="nav-folder">
@@ -303,7 +290,7 @@ export class Nav {
                             `;
                         }
 
-                        // Модуль
+                        // Module
                         if (item.card_type === 'module') {
                             return `
                                 <div class="nav-module">
@@ -323,25 +310,25 @@ export class Nav {
                     onReload: () => this._loadItems(),
                     onRetry: () => this._loadItems()
                 });
-                console.log('[Nav] Cards создан:', !!this.cardsInstance);
+                console.log('[Nav] Cards created:', !!this.cardsInstance);
                 console.log('[Nav] Cards container:', this.cardsInstance?.container);
                 console.log('[Nav] Cards grid:', this.cardsInstance?.grid);
 
-                // Ждём инициализации Cards.
-                // Внутри BaseCards._init() уже выполняется await this.render(),
-                // поэтому дополнительный вызов render() здесь НЕ нужен.
+                // Wait for Cards init.
+                // BaseCards._init() already calls await this.render(),
+                // so an extra render() call is NOT needed here.
                 if (this.cardsInstance && this.cardsInstance._initPromise) {
-                    console.log('[Nav] Ожидание инициализации Cards...');
+                    console.log('[Nav] Waiting for Cards init...');
                     try {
                         await this.cardsInstance._initPromise;
-                        console.log('[Nav] Cards инициализирован');
+                        console.log('[Nav] Cards initialized');
                     } catch (error) {
-                        console.error('[Nav] Ошибка инициализации Cards:', error);
+                        console.error('[Nav] Cards init error:', error);
                     }
                 }
 
             } catch (error) {
-                console.error('[Nav] Ошибка создания Cards:', error);
+                console.error('[Nav] Cards create error:', error);
                 if (this.container) {
                     this.container.innerHTML = `
                         <div class="core-engine-lib-nav-error">
@@ -352,7 +339,7 @@ export class Nav {
                 }
             }
         } else {
-            console.error('[Nav] CardsClass не загружен, невозможно создать Cards');
+            console.error('[Nav] CardsClass not loaded, cannot create Cards');
             if (this.container) {
                 this.container.innerHTML = `
                     <div class="core-engine-lib-nav-error">
@@ -369,7 +356,7 @@ export class Nav {
         console.log('[Nav] _prepareCardsData() START');
         let items = [...this.items];
 
-        // Добавляем кнопку "Наверх" если есть parentId
+        // Add "Up" button if there is a parentId
         if (this.parentId !== null && this.parentId !== undefined) {
             items.unshift({
                 id: 0,
@@ -382,12 +369,12 @@ export class Nav {
             });
         }
 
-        // Разделяем на папки и модули
+        // Split into folders and modules
         const folders = items.filter(item => item.card_type === 'folder' && !item.is_up);
         const modules = items.filter(item => item.card_type === 'module' && !item.is_up);
         const upItem = items.find(item => item.is_up === true);
 
-        // Сортировка
+        // Sort
         const sortFn = (a, b) => {
             if (a.sort_order !== b.sort_order) {
                 return (a.sort_order || 0) - (b.sort_order || 0);
@@ -398,46 +385,46 @@ export class Nav {
         folders.sort(sortFn);
         modules.sort(sortFn);
 
-        // Собираем в правильном порядке
+        // Assemble in the right order
         const allItems = [];
         if (upItem) allItems.push(upItem);
         allItems.push(...folders);
         allItems.push(...modules);
 
-        console.log('[Nav] _prepareCardsData() END, результат:', allItems.length);
+        console.log('[Nav] _prepareCardsData() END, result:', allItems.length);
         return allItems;
     }
 
     _handleCardClick(id) {
         console.log('[Nav] _handleCardClick()', id);
 
-        // id === 0 — псевдокарточка "Наверх" (её нет в this.items)
+        // id === 0 — pseudo-card "Up" (not present in this.items)
         if (id === 0) {
-            console.log('[Nav] Переход вверх');
+            console.log('[Nav] Going up');
             this._goUp();
             return;
         }
 
         const item = this.items.find(i => i.id === id);
         if (!item) {
-            console.warn('[Nav] Элемент не найден:', id);
+            console.warn('[Nav] Item not found:', id);
             return;
         }
 
         if (item.is_up) {
-            console.log('[Nav] Переход вверх');
+            console.log('[Nav] Going up');
             this._goUp();
             return;
         }
 
         if (item.card_type === 'folder') {
-            console.log('[Nav] Открытие папки:', item.id);
+            console.log('[Nav] Opening folder:', item.id);
             this._openFolder(item.id);
             return;
         }
 
         if (item.card_type === 'module') {
-            console.log('[Nav] Открытие модуля:', item.id);
+            console.log('[Nav] Opening module:', item.id);
             this._openModule(item.id);
             return;
         }
@@ -475,14 +462,14 @@ export class Nav {
     }
 
     /**
-     * Проверяет, инициализирован ли Nav
+     * Whether Nav is initialized.
      */
     isInitialized() {
         return this._initialized;
     }
 
     /**
-     * Ожидает завершения инициализации Nav
+     * Wait for Nav init to complete.
      */
     async waitForInit() {
         if (this._initPromise) {
@@ -492,28 +479,28 @@ export class Nav {
     }
 
     /**
-     * Получить текущие элементы
+     * Get current items.
      */
     getItems() {
         return this.items;
     }
 
     /**
-     * Получить текущий parentId
+     * Get current parentId.
      */
     getParentId() {
         return this.parentId;
     }
 
     /**
-     * Получить текущий section
+     * Get current section.
      */
     getSection() {
         return this.section;
     }
 
     /**
-     * Установить parentId и перезагрузить
+     * Set parentId and reload.
      */
     async setParentId(parentId) {
         this.parentId = parentId;
@@ -521,7 +508,7 @@ export class Nav {
     }
 
     /**
-     * Установить section и перезагрузить
+     * Set section and reload.
      */
     async setSection(section) {
         this.section = section;

@@ -18,6 +18,9 @@
  *   POST   /core/engine/lib/base/assets/upload
  *   DELETE /core/engine/lib/base/assets/{filename}
  *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ *
  * The module name is resolved from window.coreEngine.moduleName
  * (or document.body.dataset.module) — same pattern as elsewhere.
  */
@@ -46,7 +49,7 @@ export class BaseAssets {
             ? `?module=${encodeURIComponent(this.moduleName)}`
             : '';
 
-        // API base URLs
+        // API base URL
         this._apiBase = '/core/engine/lib/base/assets';
 
         // DOM refs (filled in _createDOM)
@@ -237,18 +240,9 @@ export class BaseAssets {
 
     async _loadAssets() {
         try {
-            const res = await fetch(`${this._apiBase}${this._qs}`, {
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' },
-            });
-
-            if (!res.ok) {
-                console.warn('[BaseAssets] list error:', res.status);
-                this.items = [];
-            } else {
-                const json = await res.json();
-                this.items = json?.data || [];
-            }
+            const fetchJson = window.coreEngine?.fetchJson;
+            const json = await fetchJson(`${this._apiBase}${this._qs}`);
+            this.items = json?.data || [];
         } catch (e) {
             console.warn('[BaseAssets] list failed:', e);
             this.items = [];
@@ -316,19 +310,12 @@ export class BaseAssets {
         files.forEach(f => formData.append('files', f));
 
         try {
-            const res = await fetch(`${this._apiBase}/upload${this._qs}`, {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const json = await fetchJson(`${this._apiBase}/upload${this._qs}`, {
                 method: 'POST',
-                credentials: 'include',
                 body: formData,
             });
 
-            if (!res.ok) {
-                console.warn('[BaseAssets] upload error:', res.status);
-                this._showError('Не удалось загрузить файлы');
-                return;
-            }
-
-            const json = await res.json();
             const uploaded = json?.data || [];
 
             // Append uploaded to items
@@ -353,17 +340,8 @@ export class BaseAssets {
 
         try {
             const url = `${this._apiBase}/${encodeURIComponent(filename)}${this._qs}`;
-            const res = await fetch(url, {
-                method: 'DELETE',
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' },
-            });
-
-            if (!res.ok) {
-                console.warn('[BaseAssets] delete error:', res.status);
-                this._showError('Не удалось удалить файл');
-                return;
-            }
+            const fetchJson = window.coreEngine?.fetchJson;
+            await fetchJson(url, { method: 'DELETE' });
 
             this.items = this.items.filter(i => i.name !== filename);
             this._renderGrid();

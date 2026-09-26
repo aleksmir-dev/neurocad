@@ -11,6 +11,9 @@
  *   - delete preset (DELETE /presets/{id});
  *   - upload PNG thumbnail (POST /presets/{id}/thumbnail).
  *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ *
  * Container:
  *   editor.presetsEl — [data-js="editor-presets"]
  *   Toolbar with "+" button is built by editor/widgets.js
@@ -159,16 +162,8 @@ export class LLMPresets {
         console.log('[LLMPresets] _loadPresets()');
 
         try {
-            const response = await fetch(this._apiBase, {
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Load error: ${response.status}`);
-            }
-
-            const result = await response.json();
+            const fetchJson = window.coreEngine?.fetchJson;
+            const result = await fetchJson(this._apiBase);
 
             if (result.success) {
                 this.presets = result.data || [];
@@ -200,22 +195,12 @@ export class LLMPresets {
             cssLen: (css || '').length,
         });
 
-        const response = await fetch(this._apiBase, {
+        const fetchJson = window.coreEngine?.fetchJson;
+        const result = await fetchJson(this._apiBase, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ name, description, html, css }),
+            body: { name, description, html, css },
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Preset create error');
-        }
-
-        const result = await response.json();
         console.log('[LLMPresets] _createPreset() result:', {
             id: result.data?.id,
             htmlLen: (result.data?.html || '').length,
@@ -226,16 +211,10 @@ export class LLMPresets {
     }
 
     async _deletePreset(id) {
-        const response = await fetch(`${this._apiBase}/${id}`, {
+        const fetchJson = window.coreEngine?.fetchJson;
+        await fetchJson(`${this._apiBase}/${id}`, {
             method: 'DELETE',
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' },
         });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Preset delete error');
-        }
     }
 
     async _updatePreset(id, data) {
@@ -245,22 +224,12 @@ export class LLMPresets {
             cssLen: (data.css || '').length,
         });
 
-        const response = await fetch(`${this._apiBase}/${id}`, {
+        const fetchJson = window.coreEngine?.fetchJson;
+        const result = await fetchJson(`${this._apiBase}/${id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(data),
+            body: data,
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Preset update error');
-        }
-
-        const result = await response.json();
         return result.data;
     }
 
@@ -268,18 +237,12 @@ export class LLMPresets {
         const formData = new FormData();
         formData.append('file', blob, `preset-${id}.png`);
 
-        const response = await fetch(`${this._apiBase}/${id}/thumbnail`, {
+        const fetchJson = window.coreEngine?.fetchJson;
+        const result = await fetchJson(`${this._apiBase}/${id}/thumbnail`, {
             method: 'POST',
-            credentials: 'include',
             body: formData,
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || 'Thumbnail upload error');
-        }
-
-        const result = await response.json();
         return result.data;
     }
 

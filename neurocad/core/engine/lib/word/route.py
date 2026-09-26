@@ -19,11 +19,17 @@ from .schema import (
 # LLM router (presets, chat, history)
 from .llm.route import router as llm_router
 
+# Editor router (effects, and future editor sub-APIs)
+from .editor.route import router as editor_router
+
 
 router = APIRouter(prefix="/word", tags=["core/engine/lib/word"])
 
 # Include LLM router (all /llm/* endpoints)
 router.include_router(llm_router)
+
+# Include editor router (all /editor/* endpoints)
+router.include_router(editor_router)
 
 
 # ============================================

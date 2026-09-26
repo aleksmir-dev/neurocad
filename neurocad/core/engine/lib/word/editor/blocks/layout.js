@@ -18,6 +18,10 @@
  *   - in the editor — added to the iframe <body> (GrapesLoader)
  *   - on public pages — added to <article> (public.html)
  *
+ * Every block's root element carries data-block="<id>". This is used by:
+ *   - the backend — to detect which block CSS files are needed on a page;
+ *   - analytics / navigation — to know which blocks are on the page.
+ *
  * Layout classes:
  *   Generic (.section, .container, .grid, .grid--2/3/4/auto, .col)
  *     — live in editor/css/content.css (shared, loaded globally).
@@ -62,7 +66,7 @@ export class LayoutBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="6" y="4" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div class="container" data-gjs-droppable="true">
+                <div class="container" data-block="core-container" data-gjs-droppable="true">
                     <p class="text text--center text--muted">Содержимое контейнера</p>
                 </div>
             `,
@@ -75,7 +79,7 @@ export class LayoutBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="9" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="4" width="9" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div class="grid grid--2" data-gjs-droppable="true">
+                <div class="grid grid--2" data-block="core-grid-2" data-gjs-droppable="true">
                     <div class="col" data-gjs-droppable="true">
                         <h3 class="h3">Колонка 1</h3>
                         <p class="text text--muted">Описание первой колонки</p>
@@ -93,7 +97,7 @@ export class LayoutBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="5.5" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9.25" y="4" width="5.5" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16.5" y="4" width="5.5" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div class="grid grid--3" data-gjs-droppable="true">
+                <div class="grid grid--3" data-block="core-grid-3" data-gjs-droppable="true">
                     <div class="col" data-gjs-droppable="true">
                         <h3 class="h3">Колонка 1</h3>
                         <p class="text text--muted">Описание</p>
@@ -115,7 +119,7 @@ export class LayoutBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="4" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="7.3" y="4" width="4" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="12.6" y="4" width="4" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="18" y="4" width="4" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div class="grid grid--4" data-gjs-droppable="true">
+                <div class="grid grid--4" data-block="core-grid-4" data-gjs-droppable="true">
                     <div class="col" data-gjs-droppable="true">Колонка 1</div>
                     <div class="col" data-gjs-droppable="true">Колонка 2</div>
                     <div class="col" data-gjs-droppable="true">Колонка 3</div>
@@ -129,7 +133,7 @@ export class LayoutBlocks {
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9" y="4" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16" y="4" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="2" y="13" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9" y="13" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16" y="13" width="6" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
             content: `
-                <div class="grid grid--auto" data-gjs-droppable="true">
+                <div class="grid grid--auto" data-block="core-grid-auto" data-gjs-droppable="true">
                     <div class="col" data-gjs-droppable="true">Карточка 1</div>
                     <div class="col" data-gjs-droppable="true">Карточка 2</div>
                     <div class="col" data-gjs-droppable="true">Карточка 3</div>
@@ -181,7 +185,7 @@ export class LayoutBlocks {
                 + '<rect x="2" y="20" width="20" height="2" fill="#0f172a"/>'
                 + '</svg>',
             content: `
-                <div class="flex-shell">
+                <div class="flex-shell" data-block="core-flex-shell">
                     <nav class="flex-shell__nav"
                          data-gjs-droppable="true">Nav</nav>
                     <main class="flex-shell__main">

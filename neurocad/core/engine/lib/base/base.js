@@ -45,6 +45,12 @@ export class Base {
         // Flag: authentication in progress (blocks renderContent)
         this._isAuthenticating = false;
 
+        // Caption helpers (loaded in _loadModules).
+        // Used by pages rendered into area-center (setup, profile, ...)
+        // to swap the header title while they are on screen.
+        this._setCaption = null;
+        this._restoreCaption = null;
+
         document.body.style.display = 'none';
 
         this._loadBaseCSS();
@@ -82,11 +88,6 @@ export class Base {
     async _init() {
         console.log('[Base] _init() START');
         try {
-            // Set page title from props (if provided)
-            if (this.props.title) {
-                document.title = this.props.title;
-            }
-
             await this._loadModules();
             this._initialized = true;
             console.log('[Base] _init() COMPLETE');
@@ -105,16 +106,23 @@ export class Base {
             const [
                 { Header },
                 { BaseAuth },
-                { createModal }
+                { createModal },
+                { setCaption, restoreCaption },
             ] = await Promise.all([
                 import(`./header.js?v=${version}`),
                 import(`./auth/auth.js?v=${version}`),
-                import(`./modal/index.js?v=${version}`)
+                import(`./modal/index.js?v=${version}`),
+                import(`./caption.js?v=${version}`),
             ]);
 
             this.modules.Header = Header;
             this.modules.BaseAuth = BaseAuth;
             this.modules.createModal = createModal;
+            this.modules.setCaption = setCaption;
+            this.modules.restoreCaption = restoreCaption;
+
+            this._setCaption = setCaption;
+            this._restoreCaption = restoreCaption;
 
             this.header = new Header({
                 logoText: this.props.logoText || '⚡ Нейрокад',
@@ -141,6 +149,11 @@ export class Base {
         }
 
         this.auth = new BaseAuth();
+
+        // Pass caption helpers down to auth — auth forms (login /
+        // register / restore / password / profile) need them too.
+        this.auth.setCaption = this._setCaption;
+        this.auth.restoreCaption = this._restoreCaption;
 
         if (window.coreEngine) {
             window.coreEngine.auth = this.auth;
@@ -175,10 +188,26 @@ export class Base {
         });
 
         // ===== React to unauthorized access (401) =====
+        //
+        // 401 means the session is gone — we cannot save anything,
+        // so we tear down the active page immediately, without the
+        // confirmClose() dialog.
         document.addEventListener('auth:unauthorized', () => {
-            console.log('[Base] auth:unauthorized — blocking renderContent');
-            // Block renderContent so Nav/Cards don't render over the login form
+            console.log('[Base] auth:unauthorized — tearing down the active page');
+
+            // Block renderContent so Nav/Cards don't render over the login form.
             this._isAuthenticating = true;
+
+            try {
+                this._destroyAreaInstance();
+            } catch (e) {
+                console.warn('[Base] auth:unauthorized: _destroyAreaInstance error:', e);
+            }
+            try {
+                this._clearSideAreas();
+            } catch (e) {
+                console.warn('[Base] auth:unauthorized: _clearSideAreas error:', e);
+            }
         });
 
         if (this.auth._initPromise) {
@@ -280,6 +309,98 @@ export class Base {
         }
     }
 
+    /**
+     * Destroy the active area-center page (Word, Setup, etc.).
+     *
+     * Called when the user is unauthorized — the page no longer makes
+     * sense, and any editor it holds must be shut down (this is what
+     * actually clears area-left / area-right for Word).
+     */
+    _destroyAreaInstance() {
+        if (!this.areaInstance) return;
+
+        try {
+            if (typeof this.areaInstance.destroy === 'function') {
+                this.areaInstance.destroy();
+            }
+        } catch (e) {
+            console.warn('[Base] areaInstance destroy error:', e);
+        }
+
+        this.areaInstance = null;
+    }
+
+    /**
+     * Hide and clear area-left / area-right.
+     *
+     * Safety net for pages that don't clean up after themselves.
+     * For Word, Editor.destroy() already clears them — this is a no-op.
+     */
+    _clearSideAreas() {
+        if (this.leftEl) {
+            this.leftEl.innerHTML = '';
+            this.leftEl.style.display = 'none';
+        }
+        if (this.rightEl) {
+            this.rightEl.innerHTML = '';
+            this.rightEl.style.display = 'none';
+        }
+    }
+
+    /**
+     * Restore side areas visibility (they may have been hidden on 401).
+     */
+    _restoreSideAreas() {
+        if (this.leftEl) {
+            this.leftEl.style.display = this.showLeft ? 'flex' : 'none';
+        }
+        if (this.rightEl) {
+            this.rightEl.style.display = this.showRight ? 'flex' : 'none';
+        }
+    }
+
+    /**
+     * Public teardown for area-left / area-right + active area-center page.
+     *
+     * Called by auth (showLogin / showProfile / ...) and by showSetup
+     * when they replace area-center with their own content. Without this,
+     * the previous page's side panels (Word editor: styles / blocks /
+     * presets / chat) stay visible behind the new page.
+     *
+     * ASYNC: if the active page (Word) has unsaved changes, it may ask
+     * the user via confirmClose(). Returns:
+     *   true  — proceed with the teardown (page destroyed).
+     *   false — user cancelled; the active page was NOT destroyed and
+     *           the caller must abort the navigation.
+     */
+    async teardownAreas() {
+        // If the active page wants to confirm before closing — ask.
+        if (this.areaInstance?.confirmClose) {
+            try {
+                const choice = await this.areaInstance.confirmClose();
+                if (choice === 'cancel') {
+                    console.log('[Base] teardownAreas cancelled by user');
+                    return false;
+                }
+            } catch (e) {
+                console.warn('[Base] confirmClose error:', e);
+            }
+        }
+
+        try {
+            this._destroyAreaInstance();
+        } catch (e) {
+            console.warn('[Base] teardownAreas: _destroyAreaInstance error:', e);
+        }
+        try {
+            this._clearSideAreas();
+        } catch (e) {
+            console.warn('[Base] teardownAreas: _clearSideAreas error:', e);
+        }
+
+        return true;
+    }
+
     async renderContent() {
         console.log('[Base] renderContent()');
 
@@ -287,6 +408,9 @@ export class Base {
             console.log('[Base] Auth in progress, skipping renderContent');
             return;
         }
+
+        // Restore side areas visibility (they may have been hidden on 401).
+        this._restoreSideAreas();
 
         const center = document.querySelector('.core-engine-lib-base-area-center');
         if (!center) {
@@ -526,9 +650,15 @@ export class Base {
      * childComponents (which come from the config and are destroyed in
      * renderContent()).
      *
+     * ASYNC: teardownAreas() may ask the user (confirmClose) before
+     * destroying the previous page. If the user cancels — returns null
+     * and does NOT render the new component.
+     *
      * @param {Function} ComponentClass — component constructor
      * @param {Object} options          — props passed to the constructor
-     * @returns {Promise<Object|null>}  — component instance or null on failure
+     * @returns {Promise<Object|null>}  — component instance, or null
+     *                                    if the user cancelled the
+     *                                    previous page's close.
      */
     async renderInArea(ComponentClass, options = {}) {
         console.log('[Base] renderInArea()');
@@ -539,16 +669,16 @@ export class Base {
             return null;
         }
 
-        // Destroy previous page instance
-        if (this.areaInstance) {
-            try {
-                if (typeof this.areaInstance.destroy === 'function') {
-                    this.areaInstance.destroy();
-                }
-            } catch (e) {
-                console.warn('[Base] areaInstance destroy error:', e);
-            }
-            this.areaInstance = null;
+        // Destroy previous page instance and clear side areas.
+        // Some pages (auth profile, setup) replace the whole area-center
+        // and don't want the previous page's panels (Word editor) visible.
+        //
+        // This may show the "save before close?" dialog — if the user
+        // cancels, we abort and do NOT render the new component.
+        const proceed = await this.teardownAreas();
+        if (!proceed) {
+            console.log('[Base] renderInArea cancelled by user');
+            return null;
         }
 
         center.innerHTML = '';
@@ -594,6 +724,10 @@ export class Base {
      *
      * Each component navigates back via onNavigate(section).
      *
+     * ASYNC: if the active page (Word) has unsaved changes, the user
+     * is asked via teardownAreas() → confirmClose(). If the user
+     * cancels — nothing is rendered and the editor stays open.
+     *
      * @param {string} section — 'main' (default) or 'llm'
      */
     async showSetup(section = 'main') {
@@ -603,6 +737,20 @@ export class Base {
         const isSuperadmin = user?.is_superadmin === true;
         if (!isSuperadmin) {
             console.warn('[Base] showSetup: access denied (not superadmin)');
+            return;
+        }
+
+        // Tear down area-center + area-left / area-right.
+        // Note: renderInArea() also calls teardownAreas(), but we do it
+        // here too because the import below may fail — in that case the
+        // editor panels must already be gone.
+        //
+        // If the user cancels the confirmClose() dialog, we must abort
+        // before touching the setup import — otherwise the editor would
+        // already be gone but no setup page is shown.
+        const proceed = await this.teardownAreas();
+        if (!proceed) {
+            console.log('[Base] showSetup cancelled by user');
             return;
         }
 
@@ -630,6 +778,8 @@ export class Base {
         await this.renderInArea(ComponentClass, {
             section,
             user,
+            setCaption: this._setCaption,
+            restoreCaption: this._restoreCaption,
             onNavigate: (nextSection) => this.showSetup(nextSection),
         });
     }

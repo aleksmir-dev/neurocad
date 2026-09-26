@@ -238,6 +238,60 @@
 }
 
 /* ============================================ */
+/* CONNECTION BANNER                            */
+/* ============================================ */
+/*
+ * Thin status line between the message list and the input form.
+ * Shown only when the WebSocket is not in the "open" state:
+ *
+ *   .is-info  — neutral  (connecting for the first time)
+ *   .is-warn  — yellow   (reconnecting after a drop)
+ *   .is-error — red      (auth failure, no retry)
+ *
+ * Uses the same palette as the rest of the panel:
+ *   --theme-primary / --theme-accent — from content.css
+ *   --border-light, --text-muted — shared atoms
+ */
+
+.core-engine-lib-word-llm-chat-banner {
+    display: block;
+    flex-shrink: 0;
+    margin: 0 12px 6px 12px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1.35;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: #f1f5f9;
+    color: var(--text-muted, #64748b);
+}
+
+.core-engine-lib-word-llm-chat-banner[hidden] {
+    display: none;
+}
+
+/* Info — connecting for the first time. Neutral, low-contrast. */
+.core-engine-lib-word-llm-chat-banner.is-info {
+    background: #eef4ff;
+    color: #1a3d7c;
+    border-color: #c9d8f5;
+}
+
+/* Warn — reconnecting after a drop. Yellow, attention-grabbing. */
+.core-engine-lib-word-llm-chat-banner.is-warn {
+    background: #fff7e6;
+    color: #8a5a00;
+    border-color: #f0dca0;
+}
+
+/* Error — auth failure (4403). Red, terminal. */
+.core-engine-lib-word-llm-chat-banner.is-error {
+    background: #fdecec;
+    color: #8a1a1a;
+    border-color: #f0b8b8;
+}
+
+/* ============================================ */
 /* MESSAGES                                     */
 /* ============================================ */
 
@@ -292,6 +346,29 @@
 .core-engine-lib-word-llm-chat-msg-assistant .core-engine-lib-word-llm-chat-bubble {
     background: #f1f5f9;
     color: #1e293b;
+    border-bottom-left-radius: 4px;
+}
+
+/* ============================================ */
+/* ERROR MESSAGE (role="error")                 */
+/* ============================================ */
+/*
+ * Rendered when an LLM provider returns an error — invalid API key,
+ * quota exceeded, model not found, location blocked, ...
+ *
+ * Distinct from assistant messages: red background, red border,
+ * dark red text. Sits in the assistant column (left-aligned) so
+ * it reads as an incoming notification, not as a user message.
+ */
+
+.core-engine-lib-word-llm-chat-msg-error {
+    justify-content: flex-start;
+}
+
+.core-engine-lib-word-llm-chat-msg-error .core-engine-lib-word-llm-chat-bubble {
+    background: #fdecec;
+    color: #8a1a1a;
+    border: 1px solid #f0b8b8;
     border-bottom-left-radius: 4px;
 }
 

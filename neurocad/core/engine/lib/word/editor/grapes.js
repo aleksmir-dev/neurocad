@@ -10,8 +10,9 @@
  *   3. Load grapesjs-blocks-basic plugin.
  *   4. Inside canvas (GrapesJS iframe) load, in order:
  *        canvas.css        — canvas layout baseline
- *        theme.css         — content theme variables (--theme-*)
  *        content.css       — shared atoms (.btn, .card, .grid, ...)
+ *                            AND --theme-* variables
+ *        effects.css       — reusable effect classes (.effect-pulse, ...)
  *        blocks/*.css      — block-specific classes (.hero, .flex-shell, ...)
  *      All are scoped under .core-engine-lib-word-blocks.
  *      Without them, block content looks "naked" in the editor.
@@ -31,6 +32,8 @@
  *      working items, replace the broken built-in "Link" with our own
  *      command that wraps the selected component in <a> and selects it
  *      (so the traits panel with href/target opens).
+ *  12. Filter UndoManager: record only real changes (add/remove/style/
+ *      rte exit), skip selection-only updates.
  *
  * Block categories (collapse behaviour):
  *   Categories are pre-created in BlocksRegistry.register() with the
@@ -88,17 +91,21 @@ export class GrapesLoader {
         // specificity. Block-specific rules (blocks/*.css) come last,
         // so they can override shared classes (content.css).
         //
-        // theme.css MUST come first: it defines the --theme-* variables
-        // used by content.css and blocks/*.css.
+        // content.css — shared atoms AND --theme-* variables. Must come
+        // first, so blocks and effects can use the theme vars.
+        // effects.css — reusable effect classes (.effect-*). After
+        // content.css, before blocks/*.css (blocks may override).
         //
         // Block CSS list is appended in load() — from the dynamic
         // import of blocks/manifest.js (versioned import).
         this.cssCanvasBase = '/static/core/engine/lib/word/editor/css';
+        this.effectsBase = '/static/core/engine/lib/word/editor/effects';
         this.blocksBase = '/static/core/engine/lib/word/editor/blocks';
 
         this.canvasCss = [
             `${this.cssCanvasBase}/canvas.css`,
             `${this.cssCanvasBase}/content.css`,
+            `${this.effectsBase}/effects.css`,
             // block CSS appended in load()
         ];
 
@@ -113,6 +120,9 @@ export class GrapesLoader {
         // Keep reference to the empty <p> cleanup handler so we can detach
         // on destroy.
         this._emptyPHandler = null;
+
+        // Keep reference to the undo filter handler so we can detach on destroy.
+        this._undoFilterHandler = null;
     }
 
     // ============================================
@@ -153,7 +163,7 @@ export class GrapesLoader {
 
         // 5. Load blocks manifest (dynamic, versioned) and append
         //    block CSS to canvasCss. If manifest fails — canvasCss
-        //    stays with canvas.css + theme.css + content.css only
+        //    stays with canvas.css + content.css + effects.css only
         //    (graceful degrade).
         try {
             const mod = await import(`./blocks/manifest.js?v=${version}`);
@@ -444,6 +454,9 @@ export class GrapesLoader {
         // ===== Auto-remove empty <p> placeholder =====
         this._bindEmptyPCleanup(instance);
 
+        // ===== Undo filter: record only real changes =====
+        this._bindUndoFilter(instance);
+
         return instance;
     }
 
@@ -472,6 +485,106 @@ export class GrapesLoader {
             console.log('[GrapesLoader] scope class added to iframe body:', this.scopeClass);
         } catch (e) {
             console.warn('[GrapesLoader] failed to add scope class:', e);
+        }
+    }
+
+    /**
+     * Filter UndoManager: record only "real" changes.
+     *
+     * Problem:
+     *   By default GrapesJS records every `component:update` in the undo
+     *   stack — including pure selection changes (`selected` flag). So
+     *   Ctrl+Z after just clicking different elements "undoes" the
+     *   selection, which is useless and confusing.
+     *
+     * Solution:
+     *   1. Save the original `um.track` (bound to the instance) and
+     *      replace it with a no-op — kills automatic recording.
+     *   2. Manually call the saved `originalTrack` only for events that
+     *      represent real edits:
+     *        - component:add / component:remove
+     *        - component:update, unless the only changed attributes are
+     *          `selected` / `status` / `hover`
+     *        - styleable:change
+     *        - rte:disable (exit from text editing)
+     *
+     * Why `um.track.bind(um)` and not `um.constructor.prototype.track`:
+     *   The prototype approach breaks across GrapesJS versions if the
+     *   internal method name changes. The instance-bound approach only
+     *   needs `um.track` to exist as a function — stable across 0.21.x.
+     *
+     * Idempotent: if called twice on the same UndoManager, the second
+     * call is ignored (guarded by `um._undoFilterBound`).
+     */
+    _bindUndoFilter(instance) {
+        try {
+            const um = instance.UndoManager;
+            if (!um) {
+                console.warn('[GrapesLoader] UndoManager not available — undo filter not bound');
+                return;
+            }
+
+            // Guard against double-binding (hot reload, re-init, etc.)
+            if (um._undoFilterBound) {
+                console.log('[GrapesLoader] Undo filter already bound — skip');
+                return;
+            }
+            um._undoFilterBound = true;
+
+            // Save original track (bound to the instance) before replacing.
+            const originalTrack = um.track.bind(um);
+
+            // Replace with no-op — kills automatic recording.
+            um.track = () => {};
+
+            // Manual recording — only for real changes.
+            const record = () => {
+                try {
+                    originalTrack();
+                } catch (err) {
+                    console.warn('[GrapesLoader] Undo record failed:', err);
+                }
+            };
+
+            // 1. Add / remove components.
+            instance.on('component:add', record);
+            instance.on('component:remove', record);
+
+            // 2. Component updates — skip selection-only changes.
+            instance.on('component:update', (comp) => {
+                try {
+                    const changed = (comp && typeof comp.changedAttributes === 'function')
+                        ? comp.changedAttributes()
+                        : null;
+
+                    if (changed) {
+                        const keys = Object.keys(changed);
+                        const onlySelection = keys.length > 0 && keys.every(
+                            (k) => k === 'selected' || k === 'status' || k === 'hover'
+                        );
+                        if (onlySelection) return;
+                    }
+
+                    record();
+                } catch (err) {
+                    // Never let the filter break the editor — record anyway.
+                    console.warn('[GrapesLoader] component:update undo filter failed:', err);
+                    record();
+                }
+            });
+
+            // 3. Styles.
+            instance.on('styleable:change', record);
+
+            // 4. Text editing — record only on exit.
+            instance.on('rte:disable', record);
+
+            // Save record reference for destroy().
+            this._undoFilterHandler = record;
+
+            console.log('[GrapesLoader] Undo filter bound');
+        } catch (err) {
+            console.warn('[GrapesLoader] failed to bind undo filter:', err);
         }
     }
 
@@ -816,6 +929,21 @@ export class GrapesLoader {
             }
         }
         this._emptyPHandler = null;
+
+        if (this._undoFilterHandler && instance) {
+            try {
+                instance.off('component:add', this._undoFilterHandler);
+                instance.off('component:remove', this._undoFilterHandler);
+                instance.off('styleable:change', this._undoFilterHandler);
+                instance.off('rte:disable', this._undoFilterHandler);
+                // component:update listener is anonymous — cannot detach
+                // it by reference. If a full detach is required, refactor
+                // to store the handler in a field.
+            } catch (e) {
+                // ignore
+            }
+        }
+        this._undoFilterHandler = null;
     }
 
     /**

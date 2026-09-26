@@ -49,7 +49,7 @@ def get_lifespan():
             await close_mysql()
 
         # Shutdown SQLite
-        await close_sqlite()
+        await close_sqlite(log=app.state.log)
 
         # Shutdown log
         await app.state.log.log_info(

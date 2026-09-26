@@ -1,0 +1,120 @@
+/* neurocad/core/engine/lib/word/editor/effects/fx/fx-equalizer-bars.css */
+
+/*
+ * Пульсирующий эквалайзер по низу блока.
+ *
+ * Два слоя полосок (::before — узкие, ::after — широкие), оба
+ * «пружинят» по высоте через transform: scaleY(...) с разными
+ * duration (9s / 14s), чтобы фазы не совпадали и картинка жила.
+ *
+ * Цвета берутся из темы: --theme-primary, --theme-accent,
+ * --theme-secondary, с fallback, если переменные не заданы.
+ *
+ * Полоски крепятся к низу блока (bottom: 0), высота 72%, поверх
+ * фона — opacity 0.45 / 0.3. Контент поднимается на z-index: 1
+ * через `> *`, слои идут на z-index: 0.
+ */
+
+.core-engine-lib-word-blocks .fx-equalizer-bars {
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    isolation: isolate;
+}
+
+.core-engine-lib-word-blocks .fx-equalizer-bars > * {
+    position: relative;
+    z-index: 1;
+}
+
+.core-engine-lib-word-blocks .fx-equalizer-bars::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 72%;
+    z-index: 0;
+    pointer-events: none;
+    transform-origin: center bottom;
+    mask-repeat: repeat;
+    opacity: 0.45;
+    background-image: linear-gradient(
+        90deg,
+        var(--theme-primary, #cfe0ff) 0%,
+        var(--theme-accent, #ffe4f3) 50%,
+        var(--theme-primary, #cfe0ff) 100%
+    );
+    mask-image: repeating-linear-gradient(
+        90deg,
+        rgb(0, 0, 0) 0px,
+        rgb(0, 0, 0) 36px,
+        transparent 36px,
+        transparent 52px
+    );
+    -webkit-mask-image: repeating-linear-gradient(
+        90deg,
+        rgb(0, 0, 0) 0px,
+        rgb(0, 0, 0) 36px,
+        transparent 36px,
+        transparent 52px
+    );
+    animation: fx-equalizer-bars-a 9s ease-in-out infinite;
+}
+
+.core-engine-lib-word-blocks .fx-equalizer-bars::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 72%;
+    z-index: 0;
+    pointer-events: none;
+    transform-origin: center bottom;
+    mask-repeat: repeat;
+    opacity: 0.3;
+    background-image: linear-gradient(
+        90deg,
+        var(--theme-accent, #e7f6ff) 0%,
+        var(--theme-secondary, #ffffff) 50%,
+        var(--theme-accent, #e7f6ff) 100%
+    );
+    mask-image: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 26px,
+        rgb(0, 0, 0) 26px,
+        rgb(0, 0, 0) 64px,
+        transparent 64px,
+        transparent 80px
+    );
+    -webkit-mask-image: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 26px,
+        rgb(0, 0, 0) 26px,
+        rgb(0, 0, 0) 64px,
+        transparent 64px,
+        transparent 80px
+    );
+    animation: fx-equalizer-bars-b 14s ease-in-out infinite;
+}
+
+@keyframes fx-equalizer-bars-a {
+    0%,   100% { transform: scaleY(0.22); }
+    18%        { transform: scaleY(0.68); }
+    34%        { transform: scaleY(0.38); }
+    52%        { transform: scaleY(0.92); }
+    70%        { transform: scaleY(0.30); }
+    86%        { transform: scaleY(0.58); }
+}
+
+@keyframes fx-equalizer-bars-b {
+    0%,   100% { transform: scaleY(0.85); }
+    22%        { transform: scaleY(0.28); }
+    40%        { transform: scaleY(0.62); }
+    58%        { transform: scaleY(0.20); }
+    76%        { transform: scaleY(0.74); }
+    90%        { transform: scaleY(0.42); }
+}

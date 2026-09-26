@@ -4,50 +4,124 @@
 Google Gemini provider.
 
 Uses the Gemini API (v1beta, generateContent).
+All parameters come from the `config` dict passed by the factory.
+
 Messages are converted from OpenAI-style to Gemini format:
   - system  → systemInstruction
   - user    → {role: "user", parts: [...]}
   - assistant → {role: "model", parts: [...]}
 
-Settings (all optional):
-  GEMINI_API_KEY
-  GEMINI_MODEL               (default: gemini-1.5-flash)
-  GEMINI_MAX_OUTPUT_TOKENS   (default: 8192)
-  GEMINI_TIMEOUT             (default: 120)
+Logging: `log` is passed explicitly (app.state.log from the endpoint).
+If None — provider works silently (CLI, tests).
+
+Error reporting:
+  On a non-200 response the provider yields a human-readable message
+  built from the response body (extracted via _extract_error_detail),
+  not just the status code. This is what the user sees in the chat.
 """
 
-import logging
 import httpx
 from typing import AsyncGenerator
 
-from neurocad.config import settings
 from .base import LLMProvider
 
-logger = logging.getLogger(__name__)
 
 DEFAULT_TEMPERATURE = 0.3
 
 
 class GeminiProvider(LLMProvider):
-    """Google Gemini client."""
+    """
+    Google Gemini client.
+
+    Config keys (all optional, fallback to hardcoded defaults):
+      api_key, model, max_output_tokens, timeout
+
+    log — app.state.log from the endpoint (Request / WebSocket).
+    """
 
     name = "gemini"
 
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
-    def __init__(self):
-        self.api_key = getattr(settings, "GEMINI_API_KEY", None) or ""
-        self.model = (
-            getattr(settings, "GEMINI_MODEL", None) or "gemini-1.5-flash"
-        )
-        self.max_output_tokens = (
-            getattr(settings, "GEMINI_MAX_OUTPUT_TOKENS", None) or 8192
-        )
-        self.timeout = getattr(settings, "GEMINI_TIMEOUT", None) or 120
+    def __init__(self, config: dict, log=None):
+        self.api_key = config.get("api_key") or ""
+        self.model = config.get("model") or "gemini-1.5-flash"
+        self.max_output_tokens = config.get("max_output_tokens") or 8192
+        self.timeout = config.get("timeout") or 120
+
+        # app.state.log — приходит из эндпоинта.
+        self.log = log
+
+    # ============================================
+    # LOG HELPERS
+    # ============================================
+
+    def _log_info(self, message: str) -> None:
+        if self.log is not None:
+            self.log.log_info_sync(target="gemini", message=message)
+
+    def _log_error(self, message: str) -> None:
+        if self.log is not None:
+            self.log.log_error_sync(target="gemini", message=message)
+
+    def _log_warning(self, message: str) -> None:
+        if self.log is not None:
+            self.log.log_warning_sync(target="gemini", message=message)
+
+    # ============================================
+    # ERROR EXTRACTION
+    # ============================================
+
+    def _extract_error_detail(self, response) -> str:
+        """
+        Pull a human-readable message out of an API error response.
+
+        Tries, in order:
+          - JSON: {"error": {"message": "..."}}   ← Gemini / Google format
+          - JSON: {"error": "..."}
+          - JSON: {"message": "..."}
+          - JSON: {"detail": "..."}
+          - fallback: raw text, truncated to ~400 chars
+
+        Never raises.
+        """
+        try:
+            data = response.json()
+
+            err = data.get("error")
+            # {"error": {"message": "...", "code": 400, "status": "..."}}
+            if isinstance(err, dict) and err.get("message"):
+                return str(err["message"])
+            # {"error": "..."}
+            if isinstance(err, str):
+                return err
+
+            if data.get("message"):
+                return str(data["message"])
+            if data.get("detail"):
+                return str(data["detail"])
+
+        except Exception:
+            pass
+
+        text = (response.text or "").strip()
+        if not text:
+            return "нет деталей"
+        if len(text) > 400:
+            text = text[:400] + "…"
+        return text
+
+    # ============================================
+    # CONFIG
+    # ============================================
 
     @property
     def is_configured(self) -> bool:
         return bool(self.api_key)
+
+    # ============================================
+    # CHAT
+    # ============================================
 
     async def get_response(
         self,
@@ -57,7 +131,7 @@ class GeminiProvider(LLMProvider):
         stream: bool = False,
     ) -> AsyncGenerator[str, None]:
         if not self.is_configured:
-            yield "Ошибка: Gemini API ключ не настроен. Добавьте GEMINI_API_KEY в .env"
+            yield "Ошибка: Gemini API ключ не настроен."
             return
 
         if temperature is None:
@@ -65,7 +139,6 @@ class GeminiProvider(LLMProvider):
         if max_tokens is None:
             max_tokens = self.max_output_tokens
 
-        # Convert OpenAI-style messages to Gemini format
         system_text = ""
         contents = []
         for m in messages_list:
@@ -88,22 +161,19 @@ class GeminiProvider(LLMProvider):
         if system_text:
             payload["systemInstruction"] = {"parts": [{"text": system_text}]}
 
-        url = (
-            f"{self.BASE_URL}/models/{self.model}:generateContent"
-            f"?key={self.api_key}"
-        )
+        url = f"{self.BASE_URL}/models/{self.model}:generateContent?key={self.api_key}"
         headers = {"Content-Type": "application/json"}
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
                 response = await client.post(url, headers=headers, json=payload)
                 if response.status_code != 200:
-                    logger.error(
-                        f"Gemini error: {response.status_code} - {response.text}"
+                    detail = self._extract_error_detail(response)
+                    self._log_error(
+                        f"API error: {response.status_code} - {response.text}"
                     )
-                    yield f"\n⚠️ Ошибка: API вернул статус {response.status_code}\n"
+                    yield f"\n⚠️ Ошибка Gemini ({response.status_code}): {detail}\n"
                     return
-
                 result = response.json()
                 candidates = result.get("candidates") or []
                 if candidates:
@@ -111,10 +181,9 @@ class GeminiProvider(LLMProvider):
                     text = "".join(p.get("text", "") for p in parts)
                     if text:
                         yield text
-
             except httpx.TimeoutException:
-                logger.error("Gemini: timeout")
+                self._log_error("timeout")
                 yield "\n⚠️ Ошибка: Превышено время ожидания ответа\n"
             except Exception as e:
-                logger.error(f"Gemini: {e}")
+                self._log_error(str(e))
                 yield f"\n⚠️ Ошибка: {str(e)}\n"

@@ -168,20 +168,31 @@ class Settings(BaseSettings):
     # LLM — GIGACHAT
     # ============================================
 
-    # GigaChat authorization key (Basic auth, from Sber).
+    # GigaChat Authorization Key (from Sber Studio).
+    #
+    # Can be either:
+    #   - "client_id:client_secret" (plain)
+    #   - base64("client_id:client_secret") — what Sber Studio gives you
+    #
+    # The provider detects the format and uses the appropriate endpoint.
     GIGACHAT_AUTH_KEY: Optional[str] = None
 
     # OAuth scope: GIGACHAT_API_PERS | GIGACHAT_API_B2B | GIGACHAT_API_CORP
     GIGACHAT_SCOPE: str = "GIGACHAT_API_PERS"
 
     # Model name.
-    GIGACHAT_MODEL: str = "GigaChat"
+    GIGACHAT_MODEL: str = "GigaChat-2-Lite"
 
     # Max output tokens.
-    GIGACHAT_MAX_OUTPUT_TOKENS: int = 4096
+    GIGACHAT_MAX_OUTPUT_TOKENS: int = 8192
 
     # Request timeout (seconds).
     GIGACHAT_TIMEOUT: int = 120
+
+    # Russian Trusted Root CA (PEM text). Optional — only needed
+    # if the system trust store does not include the Ministry of
+    # Digital Development root CA.
+    GIGACHAT_CA_PEM: Optional[str] = None
 
     # ============================================
     # LLM — GOOGLE GEMINI

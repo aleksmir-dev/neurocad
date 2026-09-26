@@ -1,8 +1,18 @@
 // app/core/engine/lib/base/chat/chat.js
 
+/**
+ * BaseChat — floating chat widget.
+ *
+ * Two modes:
+ *   - modal (mobile / no sidebar) — opened by a floating button;
+ *   - sidebar (desktop) — attached into the right area via attach().
+ *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ */
 export class BaseChat {
     constructor(options = {}) {
-        console.log('[Chat] Конструктор вызван');
+        console.log('[Chat] Constructor called');
         this.options = options;
         this.container = null;
         this.messages = [];
@@ -13,74 +23,66 @@ export class BaseChat {
         this.apiUrl = options.apiUrl || '/core/chat/send';
         this.isLoading = false;
 
-        // Состояние инициализации
+        // Init state
         this._initialized = false;
         this._initPromise = null;
 
-        // Загружаем CSS при создании объекта
+        // Load CSS on creation
         this._loadCSS();
 
-        // Создаём DOM
+        // Build DOM
         this._createDOM();
         this._bindEvents();
         this._createFloatingButton();
 
-        // Запускаем асинхронную инициализацию
+        // Start async init
         this._initPromise = this._init();
     }
 
     async _init() {
         console.log('[Chat] _init() START');
         try {
-            // Загружаем историю сообщений, если есть API
+            // Load message history (if API is available)
             await this._loadHistory();
             this._initialized = true;
-            console.log('[Chat] _init() COMPLETE, сообщений:', this.messages.length);
+            console.log('[Chat] _init() COMPLETE, messages:', this.messages.length);
         } catch (error) {
-            console.error('[Chat] Ошибка инициализации:', error);
+            console.error('[Chat] Init error:', error);
             this._initialized = false;
-            // Не выбрасываем ошибку, чтобы чат работал даже без истории
+            // Do not rethrow — chat should work even without history
         }
     }
 
     /**
-     * Загрузить историю сообщений с сервера
+     * Load message history from the server.
      */
     async _loadHistory() {
         console.log('[Chat] _loadHistory()');
         try {
-            const response = await fetch('/core/chat/history', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                },
-                credentials: 'include'
-            });
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson('/core/chat/history');
 
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success && data.data) {
-                    this.messages = data.data.map(msg => ({
-                        id: msg.id || Date.now() + Math.random(),
-                        text: msg.text || msg.message || '',
-                        isUser: msg.is_user || msg.role === 'user',
-                        timestamp: msg.created_at || msg.timestamp || new Date()
-                    }));
-                    // Перерендериваем сообщения
-                    if (this.messagesContainer) {
-                        this._renderMessages();
-                        this._scrollToBottom();
-                    }
-                    console.log('[Chat] История загружена:', this.messages.length);
+            if (data.success && data.data) {
+                this.messages = data.data.map(msg => ({
+                    id: msg.id || Date.now() + Math.random(),
+                    text: msg.text || msg.message || '',
+                    isUser: msg.is_user || msg.role === 'user',
+                    timestamp: msg.created_at || msg.timestamp || new Date()
+                }));
+                // Re-render messages
+                if (this.messagesContainer) {
+                    this._renderMessages();
+                    this._scrollToBottom();
                 }
+                console.log('[Chat] History loaded:', this.messages.length);
             }
         } catch (error) {
-            console.warn('[Chat] Не удалось загрузить историю:', error);
+            console.warn('[Chat] Failed to load history:', error);
         }
     }
 
     /**
-     * Загрузить CSS для чата
+     * Load CSS for the chat.
      */
     _loadCSS() {
         console.log('[Chat] _loadCSS()');
@@ -90,7 +92,7 @@ export class BaseChat {
     }
 
     /**
-     * Создать DOM структуру чата
+     * Build the chat DOM structure.
      */
     _createDOM() {
         console.log('[Chat] _createDOM()');
@@ -121,7 +123,7 @@ export class BaseChat {
         this.container = container;
         this._cacheElements();
 
-        // По умолчанию скрыт
+        // Hidden by default
         this.container.classList.add('hidden');
     }
 
@@ -135,15 +137,15 @@ export class BaseChat {
 
     _bindEvents() {
         console.log('[Chat] _bindEvents()');
-        
-        // Отправка по клику
+
+        // Send on click
         if (this.sendBtn) {
             this.sendBtn.addEventListener('click', () => {
                 this._handleSend();
             });
         }
 
-        // Отправка по Enter (без Shift)
+        // Send on Enter (without Shift)
         if (this.inputField) {
             this.inputField.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -152,21 +154,21 @@ export class BaseChat {
                 }
             });
 
-            // Авто-высота textarea
+            // Auto-height for textarea
             this.inputField.addEventListener('input', () => {
                 this.inputField.style.height = 'auto';
                 this.inputField.style.height = this.inputField.scrollHeight + 'px';
             });
         }
 
-        // Закрытие по крестику
+        // Close on ×
         if (this.closeBtn) {
             this.closeBtn.addEventListener('click', () => {
                 this.close();
             });
         }
 
-        // Закрытие по клику на оверлей (только в модальном режиме)
+        // Close on overlay click (modal mode only)
         if (this.container) {
             this.container.addEventListener('click', (e) => {
                 if (e.target === this.container && this.isModalOpen) {
@@ -175,14 +177,14 @@ export class BaseChat {
             });
         }
 
-        // Закрытие по Escape
+        // Close on Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isModalOpen) {
                 this.close();
             }
         });
 
-        // Клик по плавающей кнопке
+        // Floating button click
         if (this.floatingBtn) {
             this.floatingBtn.addEventListener('click', () => {
                 if (this.isModalOpen || this.isSidebarMode) {
@@ -195,7 +197,7 @@ export class BaseChat {
     }
 
     /**
-     * Создать плавающую кнопку для мобильных
+     * Create the floating button (for mobile).
      */
     _createFloatingButton() {
         console.log('[Chat] _createFloatingButton()');
@@ -214,66 +216,55 @@ export class BaseChat {
     }
 
     /**
-     * Обработка отправки сообщения
+     * Handle message send.
      */
     async _handleSend() {
         if (!this.inputField) return;
-        
+
         const text = this.inputField.value.trim();
         if (!text || this.isLoading) return;
 
-        // Добавляем сообщение пользователя
+        // Add user message
         this.addMessage(text, true);
         this.inputField.value = '';
         this.inputField.style.height = 'auto';
 
-        // Показываем индикатор загрузки
+        // Show loading indicator
         const loadingId = this._addLoadingIndicator();
         this.isLoading = true;
 
         try {
-            // Отправляем запрос к API
+            // Send request to API
             const response = await this._sendToAPI(text);
-            
-            // Удаляем индикатор загрузки
+
+            // Remove loading indicator
             this._removeLoadingIndicator(loadingId);
-            // Добавляем ответ AI
+            // Add AI response
             this.addMessage(response, false);
         } catch (error) {
             this._removeLoadingIndicator(loadingId);
             this.addMessage('❌ Ошибка: ' + (error.message || 'Не удалось получить ответ'), false);
-            console.error('[Chat] Ошибка API:', error);
+            console.error('[Chat] API error:', error);
         } finally {
             this.isLoading = false;
         }
     }
 
     /**
-     * Отправка запроса к API
+     * Send request to the API.
      */
     async _sendToAPI(message) {
         console.log('[Chat] _sendToAPI()', message);
-        
-        const response = await fetch(this.apiUrl, {
+
+        const fetchJson = window.coreEngine?.fetchJson;
+        const data = await fetchJson(this.apiUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({
+            body: {
                 message: message,
-                history: this.messages.slice(-10)
-            })
+                history: this.messages.slice(-10),
+            },
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
         if (data.success) {
             return data.data?.response || data.data?.message || 'Получен пустой ответ';
         } else {
@@ -282,7 +273,7 @@ export class BaseChat {
     }
 
     /**
-     * Добавить сообщение в историю
+     * Add a message to the history.
      */
     addMessage(text, isUser) {
         console.log('[Chat] addMessage()', text, isUser);
@@ -298,7 +289,7 @@ export class BaseChat {
     }
 
     /**
-     * Добавить индикатор загрузки
+     * Add loading indicator.
      */
     _addLoadingIndicator() {
         const id = 'loading-' + Date.now();
@@ -314,7 +305,7 @@ export class BaseChat {
     }
 
     /**
-     * Удалить индикатор загрузки
+     * Remove loading indicator.
      */
     _removeLoadingIndicator(id) {
         const el = document.getElementById(id);
@@ -324,11 +315,11 @@ export class BaseChat {
     }
 
     /**
-     * Рендер всех сообщений
+     * Render all messages.
      */
     _renderMessages() {
         if (!this.messagesContainer) return;
-        
+
         this.messagesContainer.innerHTML = '';
         this.messages.forEach(msg => {
             const div = document.createElement('div');
@@ -339,7 +330,7 @@ export class BaseChat {
     }
 
     /**
-     * Скролл вниз
+     * Scroll to bottom.
      */
     _scrollToBottom() {
         setTimeout(() => {
@@ -349,10 +340,10 @@ export class BaseChat {
         }, 50);
     }
 
-    // ========== Публичные методы ==========
+    // ========== Public methods ==========
 
     /**
-     * Встроить чат в боковую панель (десктоп)
+     * Attach the chat into a sidebar container (desktop).
      */
     attach(container) {
         console.log('[Chat] attach()');
@@ -365,26 +356,26 @@ export class BaseChat {
 
         container.appendChild(this.container);
 
-        // Скрываем плавающую кнопку в десктопном режиме
+        // Hide the floating button in desktop mode
         if (this.floatingBtn) {
             this.floatingBtn.style.display = 'none';
         }
 
-        // Показываем сообщение-приветствие, если пусто
+        // Show welcome message if empty
         if (this.messages.length === 0) {
             this.addMessage('Привет! Я AI-ассистент. Задайте мне вопрос.', false);
         }
 
-        console.log('[Chat] Встроен в боковую панель');
+        console.log('[Chat] Attached to sidebar');
     }
 
     /**
-     * Открыть чат как модальное окно (мобильные)
+     * Open the chat as a modal (mobile).
      */
     open() {
         console.log('[Chat] open()');
         if (!this.container) return;
-        
+
         this.isModalOpen = true;
         this.container.classList.remove('hidden');
         this.container.classList.add('modal-mode');
@@ -405,11 +396,11 @@ export class BaseChat {
             }
         }, 300);
 
-        console.log('[Chat] Открыт в модальном режиме');
+        console.log('[Chat] Opened in modal mode');
     }
 
     /**
-     * Закрыть чат (только модальный режим)
+     * Close the chat (modal mode only).
      */
     close() {
         console.log('[Chat] close()');
@@ -423,18 +414,18 @@ export class BaseChat {
             this.container.style.display = 'none';
         }, 300);
 
-        console.log('[Chat] Закрыт');
+        console.log('[Chat] Closed');
     }
 
     /**
-     * Установить обработчик отправки (для кастомной логики)
+     * Set a custom send handler.
      */
     setOnSend(callback) {
         this.onSend = callback;
     }
 
     /**
-     * Очистить историю сообщений
+     * Clear the message history.
      */
     clearHistory() {
         console.log('[Chat] clearHistory()');
@@ -443,14 +434,14 @@ export class BaseChat {
     }
 
     /**
-     * Проверяет, инициализирован ли компонент
+     * Whether the component is initialized.
      */
     isInitialized() {
         return this._initialized;
     }
 
     /**
-     * Ожидает завершения инициализации
+     * Wait for init to complete.
      */
     async waitForInit() {
         if (this._initPromise) {
@@ -460,7 +451,7 @@ export class BaseChat {
     }
 
     /**
-     * Уничтожить компонент
+     * Destroy the component.
      */
     destroy() {
         console.log('[Chat] destroy()');

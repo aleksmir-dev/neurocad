@@ -9,6 +9,11 @@
  * Knows nothing about WebSocket or HTTP — the caller wires up the
  * onClear callback to whatever API method is appropriate.
  *
+ * Message roles:
+ *   user      — user message (right-aligned, blue bubble)
+ *   assistant — assistant message (left-aligned, gray bubble)
+ *   error     — error message (left-aligned, red bubble)
+ *
  * User-facing strings are in Russian.
  */
 export class LLMChatUI {
@@ -25,6 +30,9 @@ export class LLMChatUI {
         this._progressText = '';
 
         this._typingEl = null;
+
+        // Connection banner (shown between messages and the form).
+        this._bannerEl = null;
     }
 
     // ============================================
@@ -41,6 +49,16 @@ export class LLMChatUI {
         messages.setAttribute('data-js', 'llm-chat-messages');
         this.messagesEl = messages;
         this.rootEl.appendChild(messages);
+
+        // Connection banner slot — created here, shown/hidden later via
+        // setConnectionBanner(). Sits between messages and the form so it
+        // never overlaps the scrollable message list.
+        const banner = document.createElement('div');
+        banner.className = 'core-engine-lib-word-llm-chat-banner';
+        banner.setAttribute('data-js', 'llm-chat-banner');
+        banner.hidden = true;
+        this._bannerEl = banner;
+        this.rootEl.appendChild(banner);
 
         const form = document.createElement('form');
         form.className = 'core-engine-lib-word-llm-chat-form';
@@ -131,12 +149,65 @@ export class LLMChatUI {
     }
 
     // ============================================
+    // CONNECTION BANNER
+    // ============================================
+    //
+    // Called from LLMChat._setConnectionBanner(spec).
+    //
+    //   spec = null                                  → hide
+    //   spec = { kind: 'info'|'warn'|'error', text } → show
+    //
+    // The banner is a single line above the form. It uses the same
+    // palette as the rest of the chat via CSS classes:
+    //   .is-info  — neutral (connecting)
+    //   .is-warn  — yellow (reconnecting)
+    //   .is-error — red (auth failure)
+    //
+    // Hidden (not removed) so repeated show/hide does not cause
+    // layout thrash or re-create the DOM node.
+
+    setConnectionBanner(spec) {
+        if (!this._bannerEl) return;
+
+        if (!spec || !spec.text) {
+            this._bannerEl.hidden = true;
+            this._bannerEl.textContent = '';
+            this._bannerEl.className = 'core-engine-lib-word-llm-chat-banner';
+            return;
+        }
+
+        const kind = spec.kind || 'info';
+        this._bannerEl.textContent = spec.text;
+        this._bannerEl.className =
+            `core-engine-lib-word-llm-chat-banner is-${kind}`;
+        this._bannerEl.hidden = false;
+    }
+
+    // ============================================
     // MESSAGES
     // ============================================
 
+    /**
+     * Add a message bubble.
+     *
+     * msg = { role, content, created_at? }
+     *   role = 'user' | 'assistant' | 'error'
+     */
     addMessage(msg) {
         this._render(msg);
         this._scroll();
+    }
+
+    /**
+     * Convenience: add an error message.
+     * Renders as a red bubble in the assistant column.
+     */
+    addError(text) {
+        this.addMessage({
+            role: 'error',
+            content: text || 'Неизвестная ошибка',
+            created_at: new Date().toISOString(),
+        });
     }
 
     setMessages(rows) {
@@ -293,5 +364,6 @@ export class LLMChatUI {
         this._progressEl = null;
         this._progressText = '';
         this._typingEl = null;
+        this._bannerEl = null;
     }
 }

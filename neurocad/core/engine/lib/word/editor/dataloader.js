@@ -1,4 +1,4 @@
-// app/core/engine/lib/word/editor/dataloader.js
+// neurocad/core/engine/lib/word/editor/dataloader.js
 
 /**
  * DataLoader — load initial data into GrapesJS and re-apply
@@ -15,6 +15,11 @@
  *          applied to CssComposer manually, because GrapesJS ignores
  *          <style> in setComponents(html).
  *
+ *      After a successful load the UndoManager is cleared — so
+ *      hasUndo() reflects only user-driven changes, not the initial
+ *      load itself. This is what makes the auto-save "dirty check"
+ *      in Editor._hasUnsavedChanges() reliable.
+ *
  *   2. applyRollback(data) — called from the history modal after a
  *      successful rollback. Reloads the project from the rolled-back
  *      snapshot (JSON or HTML + css) and re-applies post-load state.
@@ -28,6 +33,37 @@
  *     - re-apply the body-style traits — otherwise the Traits panel
  *       is empty when the wrapper is selected.
  *
+ * Empty placeholder:
+ *   A freshly created page is stored as <body><p></p></body>. This
+ *   <p> is a GrapesJS canvas placeholder — it has no text, no
+ *   children, and just takes vertical space. We remove it once,
+ *   shortly after the data has been loaded — because component:add
+ *   does NOT fire for content that comes in via setComponents /
+ *   loadProjectData, only for content added by the user afterwards.
+ *   The runtime cleanup in grapes/empty.js handles the latter case.
+ *
+ *   WHY DEFERRED (requestAnimationFrame):
+ *     GrapesJS fills the wrapper asynchronously after setComponents.
+ *     Immediately after the call, wrapper.components() may still be
+ *     empty — the <p> placeholder appears on the next frame. A
+ *     synchronous check would find nothing. We therefore defer the
+ *     cleanup by two animation frames, which gives GrapesJS time to
+ *     paint the new body.
+ *
+ *   Only DIRECT children of the wrapper (i.e. of <body>) are
+ *   inspected. A nested <p></p> inside a .card or .hero is left
+ *   alone — it may be intentional.
+ *
+ *   An empty placeholder can be <p></p>, <p> </p>, <p>&nbsp;</p> or
+ *   <p><br></p> — all four are treated as empty.
+ *
+ * IMPORTANT — GrapesJS 0.21.x API:
+ *   `component.removed` is a METHOD, not a boolean property. Writing
+ *   `if (child.removed) return;` evaluates the function object itself
+ *   — always truthy — and silently skips every component. Always call
+ *   it: `child.removed()`. This applies to both the collection scan
+ *   and the final removal loop below.
+ *
  * Usage from Editor:
  *   this._dataLoader = new DataLoader(this);
  *   this._dataLoader.loadInitial();
@@ -39,7 +75,7 @@
  *   - initialHtml   {string}
  *   - initialProject {Object|null}
  *   - pageData      {Object|null}  — updated after rollback
- *   - _grapes       {GrapesLoader} — for _registerBodyStyleTraits
+ *   - _grapes       {GrapesLoader} — for registerBodyTraits (via _mod)
  *   - _scopeClass   {string}
  */
 export class DataLoader {
@@ -74,6 +110,8 @@ export class DataLoader {
                 ed.editor.loadProjectData(proj);
                 console.log('[DataLoader] JSON project loaded');
                 this._reapplyPostLoad();
+                this._scheduleRemoveEmptyPlaceholder();
+                this._clearUndoHistory();
                 return;
             } catch (e) {
                 console.warn('[DataLoader] loadProjectData failed, falling back to HTML:', e);
@@ -100,6 +138,8 @@ export class DataLoader {
         }
 
         this._reapplyPostLoad();
+        this._scheduleRemoveEmptyPlaceholder();
+        this._clearUndoHistory();
     }
 
     // ============================================
@@ -147,6 +187,14 @@ export class DataLoader {
 
             // GrapesJS replaced <body> and wrapper — re-apply post-load state.
             this._reapplyPostLoad();
+
+            // Remove the empty <p></p> placeholder that GrapesJS may
+            // have left in the freshly loaded body.
+            this._scheduleRemoveEmptyPlaceholder();
+
+            // Clear undo history — the rollback itself is not a
+            // "user change" for auto-save purposes.
+            this._clearUndoHistory();
         } catch (e) {
             console.error('[DataLoader] rollback reload error:', e);
         }
@@ -163,6 +211,170 @@ export class DataLoader {
     _reapplyPostLoad() {
         this._reapplyScopeClass();
         this._reapplyBodyTraits();
+    }
+
+    /**
+     * Schedule the empty <p> cleanup on the next two animation frames.
+     *
+     * GrapesJS fills the wrapper asynchronously after setComponents /
+     * loadProjectData. Right after the call, wrapper.components() may
+     * still be empty — the <p> placeholder appears on the next frame.
+     * Two rAFs give GrapesJS enough time to paint the new body.
+     *
+     * Safe to call multiple times — each call schedules an independent
+     * check, and the underlying _removeEmptyPlaceholder() is idempotent
+     * (it removes only empty <p>s, and there are none left after the
+     * first successful run).
+     */
+    _scheduleRemoveEmptyPlaceholder() {
+        if (typeof requestAnimationFrame !== 'function') {
+            // No rAF (very old browser / test env) — fall back to a
+            // single setTimeout so the call still happens eventually.
+            setTimeout(() => this._removeEmptyPlaceholder(), 0);
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                this._removeEmptyPlaceholder();
+            });
+        });
+    }
+
+    /**
+     * Remove an empty <p></p> placeholder from the wrapper (<body>).
+     *
+     * A freshly created page is stored as <body><p></p></body>. That
+     * <p> is a GrapesJS canvas placeholder — no text, no children.
+     * It takes vertical space and breaks full-height layouts, so we
+     * drop it once, shortly after the data has been loaded.
+     *
+     * Why here and not only in grapes/empty.js:
+     *   The runtime cleanup in grapes/empty.js listens to
+     *   `component:add`, which fires only for content the user (or
+     *   the LLM) adds interactively. Content that arrives via
+     *   setComponents / loadProjectData does NOT trigger
+     *   `component:add` for the placeholder — so the placeholder
+     *   survives the initial load and only disappears when the user
+     *   adds the first real block.
+     *
+     *   This method runs after the load — so the placeholder is gone
+     *   from the very first user-visible render.
+     *
+     * Safety:
+     *   - only DIRECT children of the wrapper are inspected;
+     *   - only <p> tags with no text and no child components are
+     *     removed;
+     *   - <p> </p>, <p>&nbsp;</p>, <p><br></p> also count as empty;
+     *   - everything else is left untouched, including nested
+     *     <p></p> inside sections (they might be intentional).
+     *
+     * IMPORTANT — GrapesJS 0.21.x API:
+     *   `child.removed` is a METHOD. Calling `child.removed` (without
+     *   parens) evaluates the function object itself — always truthy —
+     *   and skips every component. Always call it: `child.removed()`.
+     */
+    _removeEmptyPlaceholder() {
+        const ed = this.editor;
+
+        try {
+            const instance = ed.editor;
+            if (!instance) return;
+
+            const wrapper = instance.getWrapper?.();
+            if (!wrapper) return;
+
+            const children = wrapper.components?.();
+            if (!children || typeof children.each !== 'function') return;
+
+            // Collect first, then remove — mutating the collection
+            // while iterating can skip items.
+            const toRemove = [];
+
+            children.each((child) => {
+                if (!child || typeof child.get !== 'function') return;
+
+                // `removed` is a METHOD in GrapesJS 0.21.x — call it.
+                const isRemoved = typeof child.removed === 'function'
+                    ? child.removed()
+                    : !!child.removed;
+                if (isRemoved || !child.collection) return;
+
+                const tag = String(child.get('tagName') || '').toLowerCase();
+                if (tag !== 'p') return;
+
+                const raw = String(child.get('content') || '');
+                if (!this._isEmptyContent(raw)) return;
+
+                const comps = child.components && child.components();
+                const hasChildren = comps
+                    && typeof comps.length === 'number'
+                    && comps.length > 0;
+                if (hasChildren) return;
+
+                toRemove.push(child);
+            });
+
+            toRemove.forEach((child) => {
+                if (!child) return;
+                const isRemoved = typeof child.removed === 'function'
+                    ? child.removed()
+                    : !!child.removed;
+                if (!isRemoved) {
+                    child.remove();
+                }
+            });
+
+            if (toRemove.length) {
+                console.log('[DataLoader] removed empty <p> placeholder:', toRemove.length);
+            }
+        } catch (e) {
+            console.warn('[DataLoader] empty <p> cleanup failed:', e);
+        }
+    }
+
+    /**
+     * Return true if the given raw content string represents an empty
+     * paragraph — no visible text, no images, no elements.
+     *
+     * Recognises:
+     *   ""                — bare <p></p>
+     *   "   "             — whitespace only
+     *   "&nbsp;"          — non-breaking space
+     *   "<br>" / "<br/>"  — line break only
+     *   combinations of the above
+     *
+     * @param {string} raw — raw content of the component
+     * @returns {boolean}
+     */
+    _isEmptyContent(raw) {
+        if (!raw) return true;
+
+        const stripped = raw
+            .replace(/&nbsp;/gi, '')
+            .replace(/<br\s*\/?>/gi, '')
+            .trim();
+
+        return stripped === '';
+    }
+
+    /**
+     * Clear the UndoManager history.
+     *
+     * Called after a successful load (initial or rollback) so that
+     * hasUndo() returns false — the load itself should not be treated
+     * as an unsaved change by the auto-save dirty check.
+     */
+    _clearUndoHistory() {
+        try {
+            const um = this.editor.editor?.UndoManager;
+            if (um && typeof um.clear === 'function') {
+                um.clear();
+                console.log('[DataLoader] UndoManager cleared');
+            }
+        } catch (e) {
+            console.warn('[DataLoader] UndoManager.clear failed:', e);
+        }
     }
 
     /**
@@ -194,9 +406,14 @@ export class DataLoader {
      *
      * GrapesJS replaces the wrapper component during loadProjectData /
      * setComponents, so the body-style traits registered in
-     * GrapesLoader._registerBodyStyleTraits are lost. Re-invoke it.
+     * editor/grapes/traits.js are lost. Re-invoke the module function.
      *
-     * GrapesLoader._registerBodyStyleTraits is idempotent:
+     * GrapesLoader splits its helpers into grapes/*.js modules, loaded
+     * lazily and kept on `_grapes._mod`. The old method name
+     * `_registerBodyStyleTraits` no longer exists on GrapesLoader — the
+     * equivalent is `_mod.registerBodyTraits(instance)`.
+     *
+     * registerBodyTraits is idempotent:
      *   - it registers trait types only once (checks getType);
      *   - it always re-assigns traits on the current wrapper.
      */
@@ -204,13 +421,15 @@ export class DataLoader {
         const ed = this.editor;
 
         try {
-            if (!ed._grapes) return;
+            const grapes = ed._grapes;
+            if (!grapes) return;
 
-            if (typeof ed._grapes._registerBodyStyleTraits === 'function') {
-                ed._grapes._registerBodyStyleTraits(ed.editor);
+            const mod = grapes._mod;
+            if (mod && typeof mod.registerBodyTraits === 'function') {
+                mod.registerBodyTraits(ed.editor);
                 console.log('[DataLoader] body traits re-applied after data load');
             } else {
-                console.warn('[DataLoader] _registerBodyStyleTraits not found on GrapesLoader');
+                console.warn('[DataLoader] registerBodyTraits not available on GrapesLoader._mod');
             }
         } catch (e) {
             console.warn('[DataLoader] body traits re-apply failed:', e);

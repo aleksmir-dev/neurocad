@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "images": [
+    {
+      "id": "img-c3126d52",
+      "alt": "Звёздное небо",
+      "file": "files/img-c3126d52.svg",
+      "source": "import",
+      "builtin": false,
+      "order": 10
+    },
+    {
+      "id": "img-7b13da99",
+      "alt": "Воспитатель занимается с детьми в светлой игровой комнате детского сада",
+      "file": "files/img-7b13da99.svg",
+      "source": "import",
+      "builtin": false,
+      "order": 20
+    },
+    {
+      "id": "img-7cc7a337",
+      "alt": "Прогулка детей на игровой площадке детского сада",
+      "file": "files/img-7cc7a337.svg",
+      "source": "import",
+      "builtin": false,
+      "order": 30
+    },
+    {
+      "id": "img-4291bf09",
+      "alt": "Музыкальное занятие с детьми в зале",
+      "file": "files/img-4291bf09.svg",
+      "source": "import",
+      "builtin": false,
+      "order": 40
+    },
+    {
+      "id": "img-cafbd2d1",
+      "alt": "Физкультурное занятие в спортивном зале детского сада",
+      "file": "files/img-cafbd2d1.svg",
+      "source": "import",
+      "builtin": false,
+      "order": 50
+    },
+    {
+      "id": "img-77bb2dd2",
+      "alt": "Утренник с участием детей и воспитателей",
+      "file": "files/img-77bb2dd2.svg",
+      "source": "import",
+      "builtin": false,
+      "order": 60
+    },
+    {
+      "id": "img-435c9fe2",
+      "alt": "Зона отдыха с травяным чаем",
+      "file": "files/img-435c9fe2.svg",
+      "source": "import",
+      "builtin": false,
+      "order": 70
+    },
+    {
+      "id": "img-77954977",
+      "alt": "Общая территория родового поместья с дорогами и зелёными насаждениями",
+      "file": "files/img-77954977.svg",
+      "source": "import",
+      "builtin": false,
+      "order": 80
+    },
+    {
+      "id": "img-ac766417",
+      "alt": "Строительство дома в родовом поместье",
+      "file": "files/img-ac766417.svg",
+      "source": "import",
+      "builtin": false,
+      "order": 90
+    },
+    {
+      "id": "img-32bdd6ce",
+      "alt": "Сад и плодовые деревья на территории поместья",
+      "file": "files/img-32bdd6ce.svg",
+      "source": "import",
+      "builtin": false,
+      "order": 100
+    },
+    {
+      "id": "img-c9a3b46a",
+      "alt": "Коля Герасимов и Алиса Селезнёва рядом с машиной времени",
+      "file": "files/img-c9a3b46a.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 110
+    },
+    {
+      "id": "img-cd3149a1",
+      "alt": "Алиса Селезнёва — гостья из будущего",
+      "file": "files/img-cd3149a1.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 120
+    },
+    {
+      "id": "img-2b6e4f8e",
+      "alt": "Коля Герасимов в Москве 1984 года",
+      "file": "files/img-2b6e4f8e.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 130
+    },
+    {
+      "id": "img-eaf937f7",
+      "alt": "Робот Вертер из 2084 года",
+      "file": "files/img-eaf937f7.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 140
+    },
+    {
+      "id": "img-c0443c43",
+      "alt": "Космический пират Весельчак У",
+      "file": "files/img-c0443c43.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 150
+    },
+    {
+      "id": "img-55a2a92d",
+      "alt": "Миелофон — прибор для чтения мыслей",
+      "file": "files/img-55a2a92d.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 160
+    },
+    {
+      "id": "img-77251502",
+      "alt": "Флип — летающий аппарат из будущего",
+      "file": "files/img-77251502.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 170
+    }
+  ]
+}

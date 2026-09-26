@@ -12,6 +12,11 @@ Generated on demand from page.css (see neurocad/utils/css.py).
 For legacy pages (CSS embedded in content as <style>) the CSS is
 extracted by the service before rendering.
 
+The public page no longer loads any CSS from the editor/ directory.
+All content CSS (content.css + used blocks/*.css + used fx/*.css
++ custom CSS) is assembled at save time and frozen into Page.css —
+which is served as pages/<id>.css. See word/css_builder.py.
+
 Namespace: CoreEngineLibPagesPublic*
 """
 
@@ -86,6 +91,11 @@ async def _render_public_page(
     The directory / URL prefix pair comes from the service
     (PAGES_CSS_DIR / PAGES_CSS_URL) — this module owns its own static
     namespace, and ensure_css_file() just writes where it's told.
+
+    The single source of content CSS is Page.css — assembled at
+    save time by word/css_builder.py (content.css + used blocks/*.css
+    + used fx/*.css + custom CSS) and frozen. The public page does
+    NOT scan the editor/ directory for CSS.
     """
     # Format datetime for display
     dt_display = None
@@ -101,11 +111,6 @@ async def _render_public_page(
 
     # Apply base template if set
     final_content = await _resolve_content(page)
-
-    # Block CSS — scanned from the blocks directory by the service.
-    # Same list is used by the editor (via JS manifest) and here,
-    # so public page and editor render identically.
-    block_css_urls = CoreEngineLibPagesPublicService.get_block_css_urls()
 
     # Page CSS — write derivative file (if needed) and get URL with ?v=<hash>.
     # Returns None if page.css is empty (legacy pages without CSS at all).
@@ -126,7 +131,6 @@ async def _render_public_page(
             "datetime": dt_display,
             "logo": page.logo,
             "module_name": "default",
-            "block_css_urls": block_css_urls,
             "page_css_url": page_css_url,
         },
     )

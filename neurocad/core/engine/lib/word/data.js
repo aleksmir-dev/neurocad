@@ -1,8 +1,10 @@
-// app/core/engine/lib/word/data.js
+// neurocad/core/engine/lib/word/data.js
 
 /**
  * Word data loading — fetch page by id or by date/time.
  * Pure functions, take `word` instance for context (qs, pageId).
+ *
+ * Uses window.coreEngine.fetchJson — loaded once by CoreEngine.loadApi().
  */
 
 /**
@@ -14,6 +16,7 @@
 export async function loadByParams(word) {
     const engine = window.coreEngine;
     const params = engine?.paramsList || [];
+    const fetchJson = engine?.fetchJson;
 
     const date = params[0] || null;
     const time = params[1] || null;
@@ -26,20 +29,17 @@ export async function loadByParams(word) {
     console.log(`[Word] Loading by date/time: ${date} ${time}`);
 
     const url = `/core/engine/lib/word/bydatetime/${date}/${time}${word._qs}`;
-    const response = await fetch(url, {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' },
-    });
 
-    if (response.status === 404) {
-        throw new Error('Page not found');
+    let result;
+    try {
+        result = await fetchJson(url);
+    } catch (err) {
+        if (err.status === 404) {
+            throw new Error('Page not found');
+        }
+        throw err;
     }
 
-    if (!response.ok) {
-        throw new Error(`Load error: ${response.status}`);
-    }
-
-    const result = await response.json();
     if (!result.success) {
         throw new Error(result.message || 'Page load error');
     }
@@ -56,21 +56,19 @@ export async function loadByParams(word) {
 export async function loadById(word) {
     console.log(`[Word] Loading by id: ${word.pageId}`);
 
+    const fetchJson = window.coreEngine?.fetchJson;
     const url = `/core/engine/lib/word/item/${word.pageId}${word._qs}`;
-    const response = await fetch(url, {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' },
-    });
 
-    if (response.status === 404) {
-        throw new Error('Page not found');
+    let result;
+    try {
+        result = await fetchJson(url);
+    } catch (err) {
+        if (err.status === 404) {
+            throw new Error('Page not found');
+        }
+        throw err;
     }
 
-    if (!response.ok) {
-        throw new Error(`Load error: ${response.status}`);
-    }
-
-    const result = await response.json();
     if (!result.success) {
         throw new Error(result.message || 'Page load error');
     }
@@ -92,23 +90,21 @@ export async function loadTemplateById(word, id) {
 
     console.log(`[Word] Loading template id: ${id}`);
 
+    const fetchJson = window.coreEngine?.fetchJson;
     const url = `/core/engine/lib/word/item/${id}${word._qs}`;
-    const response = await fetch(url, {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' },
-    });
 
-    if (response.status === 404) {
-        console.warn(`[Word] Template ${id} not found`);
+    let result;
+    try {
+        result = await fetchJson(url);
+    } catch (err) {
+        if (err.status === 404) {
+            console.warn(`[Word] Template ${id} not found`);
+            return null;
+        }
+        console.warn(`[Word] Template load error:`, err.message);
         return null;
     }
 
-    if (!response.ok) {
-        console.warn(`[Word] Template load error: ${response.status}`);
-        return null;
-    }
-
-    const result = await response.json();
     if (!result.success || !result.data) {
         console.warn(`[Word] Template ${id} — bad response`);
         return null;

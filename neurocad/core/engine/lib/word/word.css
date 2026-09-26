@@ -36,8 +36,8 @@
  * article. With the flex chain it must stretch to fill the widget,
  * so the article (and its content) can fill the area.
  *
- * overflow: hidden — scrolling happens INSIDE .aleksmir-layout__main
- * (or any other block with overflow: auto), not here.
+ * overflow: hidden — scrolling happens INSIDE .core-engine-lib-word-content
+ * (see below), not here.
  */
 .core-engine-lib-word-widget-content {
     display: flex;
@@ -155,13 +155,22 @@
  * With the flex chain it must stretch to fill .core-engine-lib-word,
  * and its child (.core-engine-lib-word-blocks) gets its height from it.
  *
- * overflow: hidden — scrolling happens INSIDE .aleksmir-layout__main
- * (or any other block with overflow: auto), not here.
+ * overflow-y: auto — THIS is where vertical scrolling happens for
+ * ordinary (non-flex-shell) pages. Content taller than the viewport
+ * scrolls inside this box. The parent flex chain
+ * (.word-widget-content → .word → .word-content) keeps the height
+ * bounded by .area-center, so the scrollbar appears here.
+ *
+ * For pages that use .flex-shell (position: absolute; inset: 0),
+ * the shell itself manages scrolling inside its areas — this rule
+ * does not interfere: the shell fills its parent, and any overflow
+ * is handled internally by the shell's own overflow: auto.
  */
 .core-engine-lib-word-content {
     flex: 1 1 auto;
     min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;             /* vertical scroll */
+    overflow-x: hidden;           /* no horizontal scroll */
 
     font-size: 16px;
     line-height: 1.75;
@@ -172,6 +181,20 @@
     /* Inner layout: vertical stack of content. */
     display: flex;
     flex-direction: column;
+}
+
+/* Slim scrollbar for the content area */
+.core-engine-lib-word-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.core-engine-lib-word-content::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.core-engine-lib-word-content::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 /* ============================================
@@ -190,19 +213,19 @@
  * The same class is also used on the public page (on <article>) —
  * see public.css for the matching rule.
  *
- * overflow: hidden — scrolling happens INSIDE child blocks
- * (e.g. .aleksmir-layout__main), not here.
- *
  * NOT display: flex — so its children (.card, .grid, .hero, ...)
  * stay ordinary block-level elements, matching the editor canvas
  * behavior (body there is also a plain block container).
+ *
+ * NO overflow: hidden here — .word-content above is the scroll
+ * container. If we set overflow: hidden here, ordinary pages would
+ * be clipped instead of scrolled (that was the bug).
  */
 .core-engine-lib-word-blocks {
     position: relative;
     flex: 1 1 auto;
     min-height: 0;
     width: 100%;
-    overflow: hidden;
 }
 
 /* Empty state */

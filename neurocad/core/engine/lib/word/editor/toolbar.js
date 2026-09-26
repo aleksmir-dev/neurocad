@@ -6,14 +6,16 @@
  * Renders the toolbar HTML and wires up:
  *   - click handlers for toolbar buttons;
  *   - global hotkeys (Ctrl+S, Ctrl+Z, Ctrl+Y, Escape);
- *   - device switching (desktop / tablet / mobile) with template toggle.
+ *   - device switching (desktop / tablet / mobile) with template toggle;
+ *   - auto-save status indicator ("Сохранение…", "Сохранено", "Не сохранено").
  *
  * Two modes:
  *   - Full toolbar (GrapesJS instance exists) — save, undo, redo,
- *     device switcher, html, css, history, clear, cancel.
+ *     device switcher, html, css, history, clear, cancel,
+ *     plus the auto-save status indicator.
  *   - Preview mode (GrapesJS instance is null — template without
  *     [data-slot="content"]): only the "Close" button is rendered.
- *     No hotkeys are bound.
+ *     No hotkeys are bound, no status indicator.
  *
  * Usage from Editor._init():
  *   this._toolbarMgr = new ToolbarManager(this);
@@ -29,6 +31,12 @@
  *   - _openHtmlModal() {Function}
  *   - _openCssModal()  {Function}
  *   - _openHistoryModal() {Function}
+ *
+ * Auto-save status:
+ *   Listens to editor:autosave-pending / editor:autosaved /
+ *   editor:autosave-failed events (dispatched by Editor._autoSave).
+ *   The status element lives in the toolbar right side, before the
+ *   "Cancel" button.
  */
 export class ToolbarManager {
     /**
@@ -39,6 +47,17 @@ export class ToolbarManager {
 
         // Global keydown handler reference (for detach on destroy)
         this._onKeyDown = null;
+
+        // Auto-save status element
+        this._statusEl = null;
+
+        // Bound event handlers (for detach on destroy)
+        this._onAutoSavePending = null;
+        this._onAutoSaved = null;
+        this._onAutoSaveFailed = null;
+
+        // Status reset timer — clears "Сохранено" after a while.
+        this._statusResetTimer = null;
     }
 
     // ============================================
@@ -50,7 +69,7 @@ export class ToolbarManager {
      *
      * If the parent Editor has no GrapesJS instance (preview mode),
      * the toolbar shows only the "Close" button and does NOT bind
-     * global hotkeys.
+     * global hotkeys or the auto-save status.
      */
     build() {
         console.log('[ToolbarManager] build()');
@@ -136,10 +155,17 @@ export class ToolbarManager {
 
             <div class="core-engine-lib-word-editor-toolbar-spacer"></div>
 
+            <span class="core-engine-lib-word-editor-autosave-status"
+                  data-js="autosave-status"
+                  aria-live="polite"></span>
+
             <button type="button" data-action="cancel" title="Выход без сохранения" class="core-engine-lib-word-editor-btn">
                 <span class="core-engine-lib-word-editor-btn-icon">✕</span>
             </button>
         `;
+
+        // Cache status element
+        this._statusEl = toolbarEl.querySelector('[data-js="autosave-status"]');
 
         // Click handlers on toolbar buttons
         toolbarEl.addEventListener('click', (e) => {
@@ -151,6 +177,69 @@ export class ToolbarManager {
         // Global hotkeys — only in full mode
         this._onKeyDown = (e) => this._handleKeyDown(e);
         document.addEventListener('keydown', this._onKeyDown);
+
+        // Auto-save status events
+        this._bindAutoSaveStatus();
+    }
+
+    // ============================================
+    // AUTO-SAVE STATUS
+    // ============================================
+
+    /**
+     * Subscribe to editor:autosave-* events and update the status text.
+     */
+    _bindAutoSaveStatus() {
+        this._onAutoSavePending = () => this._setStatus('pending', 'Сохранение…');
+        this._onAutoSaved = () => this._setStatus('saved', 'Сохранено');
+        this._onAutoSaveFailed = () => this._setStatus('failed', 'Не сохранено');
+
+        document.addEventListener('editor:autosave-pending', this._onAutoSavePending);
+        document.addEventListener('editor:autosaved', this._onAutoSaved);
+        document.addEventListener('editor:autosave-failed', this._onAutoSaveFailed);
+
+        // Cancel any previous reset timer
+        if (this._statusResetTimer) {
+            clearTimeout(this._statusResetTimer);
+            this._statusResetTimer = null;
+        }
+
+        // Initial state — empty (nothing saved yet).
+        if (this._statusEl) {
+            this._statusEl.textContent = '';
+            this._statusEl.className = 'core-engine-lib-word-editor-autosave-status';
+        }
+    }
+
+    /**
+     * Set the status text and style.
+     *
+     * @param {string} kind — 'pending' | 'saved' | 'failed'
+     * @param {string} text — display text
+     */
+    _setStatus(kind, text) {
+        if (!this._statusEl) return;
+
+        this._statusEl.textContent = text || '';
+        this._statusEl.className =
+            `core-engine-lib-word-editor-autosave-status core-engine-lib-word-editor-autosave-status-${kind}`;
+
+        // Auto-clear "Сохранено" after a few seconds.
+        if (this._statusResetTimer) {
+            clearTimeout(this._statusResetTimer);
+            this._statusResetTimer = null;
+        }
+
+        if (kind === 'saved') {
+            this._statusResetTimer = setTimeout(() => {
+                if (this._statusEl) {
+                    this._statusEl.textContent = '';
+                    this._statusEl.className =
+                        'core-engine-lib-word-editor-autosave-status';
+                }
+                this._statusResetTimer = null;
+            }, 3000);
+        }
     }
 
     // ============================================
@@ -330,12 +419,33 @@ export class ToolbarManager {
     // ============================================
 
     /**
-     * Detach global keydown handler. Called from Editor.destroy().
+     * Detach global keydown handler and auto-save status listeners.
+     * Called from Editor.destroy().
      */
     destroy() {
         if (this._onKeyDown) {
             document.removeEventListener('keydown', this._onKeyDown);
             this._onKeyDown = null;
         }
+
+        if (this._onAutoSavePending) {
+            document.removeEventListener('editor:autosave-pending', this._onAutoSavePending);
+            this._onAutoSavePending = null;
+        }
+        if (this._onAutoSaved) {
+            document.removeEventListener('editor:autosaved', this._onAutoSaved);
+            this._onAutoSaved = null;
+        }
+        if (this._onAutoSaveFailed) {
+            document.removeEventListener('editor:autosave-failed', this._onAutoSaveFailed);
+            this._onAutoSaveFailed = null;
+        }
+
+        if (this._statusResetTimer) {
+            clearTimeout(this._statusResetTimer);
+            this._statusResetTimer = null;
+        }
+
+        this._statusEl = null;
     }
 }

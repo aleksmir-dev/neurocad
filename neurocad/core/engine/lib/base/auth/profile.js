@@ -1,36 +1,57 @@
 // app/core/engine/lib/base/auth/profile.js
 
+/**
+ * BaseAuthProfile — user profile page.
+ *
+ * Loads user data (if not passed in options), renders a form,
+ * saves changes via PUT /core/auth/profile.
+ *
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ *
+ * Caption: saves the current header/tab title on open and restores it
+ * on destroy, so navigating to the profile does not permanently
+ * overwrite the title of the page the user came from.
+ */
 export class BaseAuthProfile {
     constructor(options = {}) {
-        console.log('[BaseAuthProfile] Конструктор вызван');
+        console.log('[BaseAuthProfile] Constructor called');
         this.options = options;
         this.user = options.user || null;
         this.onSuccess = options.onSuccess || null;
         this.onCancel = options.onCancel || null;
+
+        // Caption helpers — provided by BaseAuth via _renderForm().
+        this.setCaption = options.setCaption || null;
+        this.restoreCaption = options.restoreCaption || null;
+
         this.element = null;
         this.isLoading = false;
 
-        // Состояние инициализации
+        // Saved caption state — filled in render(), used in destroy().
+        this._savedCaption = null;
+
+        // Init state
         this._initialized = false;
         this._initPromise = null;
 
         this._loadCSS();
 
-        // Запускаем асинхронную инициализацию
+        // Start async init
         this._initPromise = this._init();
     }
 
     async _init() {
         console.log('[BaseAuthProfile] _init() START');
         try {
-            // Если нужно загрузить данные профиля с сервера
+            // Load profile data from the server if not provided
             if (!this.user) {
                 await this._loadUserData();
             }
             this._initialized = true;
             console.log('[BaseAuthProfile] _init() COMPLETE');
         } catch (error) {
-            console.error('[BaseAuthProfile] Ошибка инициализации:', error);
+            console.error('[BaseAuthProfile] Init error:', error);
             this._initialized = false;
             throw error;
         }
@@ -39,23 +60,15 @@ export class BaseAuthProfile {
     async _loadUserData() {
         console.log('[BaseAuthProfile] _loadUserData()');
         try {
-            const response = await fetch('/core/auth/profile', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                },
-                credentials: 'include'
-            });
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson('/core/auth/profile');
 
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success && data.data) {
-                    this.user = data.data.user || data.data;
-                    console.log('[BaseAuthProfile] Данные пользователя загружены');
-                }
+            if (data.success && data.data) {
+                this.user = data.data.user || data.data;
+                console.log('[BaseAuthProfile] User data loaded');
             }
         } catch (error) {
-            console.error('[BaseAuthProfile] Ошибка загрузки данных пользователя:', error);
+            console.error('[BaseAuthProfile] User data load error:', error);
         }
     }
 
@@ -68,8 +81,13 @@ export class BaseAuthProfile {
 
     render() {
         console.log('[BaseAuthProfile] render()');
-        
-        // Экранируем значения для безопасности
+
+        // Save current title, set our own.
+        if (this.setCaption && !this._savedCaption) {
+            this._savedCaption = this.setCaption('Профиль', 'Профиль');
+        }
+
+        // Escape values for safety
         const login = this._escapeHtml(this.user?.login || '');
         const name = this._escapeHtml(this.user?.name || '');
         const email = this._escapeHtml(this.user?.email || '');
@@ -120,7 +138,7 @@ export class BaseAuthProfile {
     }
 
     bindEvents(container) {
-        console.log('[BaseAuthProfile] bindEvents() вызван');
+        console.log('[BaseAuthProfile] bindEvents()');
         const root = container || this.element;
         if (!root) return;
 
@@ -172,10 +190,10 @@ export class BaseAuthProfile {
         const name = this.nameInput?.value?.trim() || '';
         const email = this.emailInput?.value?.trim() || '';
 
-        // Проверяем, есть ли изменения
+        // Check if anything changed
         const currentName = this.user?.name || '';
         const currentEmail = this.user?.email || '';
-        
+
         if (name === currentName && email === currentEmail) {
             this._showError('Нет изменений для сохранения');
             return;
@@ -186,24 +204,14 @@ export class BaseAuthProfile {
         this._hideSuccess();
 
         try {
-            const response = await fetch('/core/auth/profile', {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson('/core/auth/profile', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
+                body: {
                     name: name || undefined,
-                    email: email || undefined
-                })
+                    email: email || undefined,
+                },
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Ошибка обновления профиля');
-            }
 
             if (data.success) {
                 const updatedUser = data.data?.user || data.data;
@@ -223,7 +231,7 @@ export class BaseAuthProfile {
             }
 
         } catch (error) {
-            console.error('[BaseAuthProfile] Ошибка обновления профиля:', error);
+            console.error('[BaseAuthProfile] Profile update error:', error);
             this._showError(error.message || 'Ошибка обновления профиля');
         }
 
@@ -283,14 +291,14 @@ export class BaseAuthProfile {
     }
 
     /**
-     * Проверяет, инициализирован ли компонент
+     * Whether the component is initialized.
      */
     isInitialized() {
         return this._initialized;
     }
 
     /**
-     * Ожидает завершения инициализации
+     * Wait for init to complete.
      */
     async waitForInit() {
         if (this._initPromise) {
@@ -301,6 +309,13 @@ export class BaseAuthProfile {
 
     destroy() {
         console.log('[BaseAuthProfile] destroy()');
+
+        // Restore the title that was on screen before we opened.
+        if (this.restoreCaption) {
+            this.restoreCaption(this._savedCaption);
+        }
+        this._savedCaption = null;
+
         if (this.element) {
             this.element.remove();
             this.element = null;

@@ -229,8 +229,8 @@
    ============================================ */
 
 .core-engine-lib-word-blocks .cta {
-    background: var(--theme-bg-dark);
-    color: var(--theme-text-invert);
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
 }
 
 .core-engine-lib-word-blocks .cta__inner {
@@ -243,14 +243,13 @@
 
 .core-engine-lib-word-blocks .cta__title {
     margin: 0;
-    color: var(--theme-text-invert);
+    color: var(--theme-text, #1e293b);
     max-width: 48rem;
 }
 
 .core-engine-lib-word-blocks .cta__text {
     margin: 0;
-    color: var(--theme-text-invert);
-    opacity: 0.85;
+    color: var(--theme-text-muted, #64748b);
     max-width: 40rem;
 }
 
@@ -300,8 +299,8 @@
    ============================================ */
 
 .core-engine-lib-word-blocks .footer {
-    background: var(--theme-bg-dark);
-    color: var(--theme-text-invert);
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
     padding-top: var(--theme-space-6);
     padding-bottom: var(--theme-space-6);
 }
@@ -317,7 +316,7 @@
 .core-engine-lib-word-blocks .footer__brand {
     font-family: var(--theme-font-family);
     font-size: var(--theme-font-size-sm);
-    color: var(--theme-text-invert);
+    color: var(--theme-text, #1e293b);
     opacity: 0.75;
 }
 
@@ -330,7 +329,7 @@
 .core-engine-lib-word-blocks .footer__link {
     font-family: var(--theme-font-family);
     font-size: var(--theme-font-size-sm);
-    color: var(--theme-text-invert);
+    color: var(--theme-text, #1e293b);
     opacity: 0.75;
     text-decoration: none;
     transition: opacity 0.15s ease;

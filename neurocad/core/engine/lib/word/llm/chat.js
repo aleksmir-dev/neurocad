@@ -14,6 +14,64 @@
  *   createLLMChatHandler (./chat/handler.js) — incoming WS message handler
  *   getLLMChatSelection (./chat/selection.js) — current selection from GrapesJS
  *   applyLLMChatElementUpdate (./chat/apply.js) — replace a single element on canvas
+ *   EditSession      (./chat/edit.js)    — effect edit mode
+ *   CreateSession    (./chat/create.js)  — effect create mode
+ *
+ * What stays here
+ * ---------------
+ * This file is the ORCHESTRATOR. It owns:
+ *
+ *   - the WS transport (connect / reconnect / state banners);
+ *   - chat history + active run (HTTP);
+ *   - the two sub-sessions (EditSession / CreateSession):
+ *     * created in _loadModules();
+ *     * bind() / unbind() called here;
+ *     * _onSend delegates to session.send(text) when a session is active.
+ *
+ * Everything specific to "edit effect" or "create effect" lives in the
+ * respective session file. This file only routes.
+ *
+ * Effect edit mode
+ * ----------------
+ *   The palette emits `word:effect-edit-start`. EditSession._onStart
+ *   fetches the current CSS, stores it, greets the user.
+ *
+ *   LLMChat._onSend: if EditSession.isActive() — session.send(text).
+ *
+ *   The server replies with `css_update`. handler.js calls the
+ *   chat's `applyCss` callback with (effectId, css, opts), which
+ *   delegates to EditSession.handleCss(effectId, css, opts).
+ *   `opts` may carry `{ newId, newLabel }` if the server proposes to
+ *   rename the effect on save.
+ *
+ *   The user clicks the save icon (in the palette). The palette emits
+ *   `word:effect-edit-save`. EditSession either PUTs the CSS in place
+ *   (no rename) or POSTs a new effect + DELETEs the old one (rename),
+ *   commits the draft, clears state.
+ *
+ * Effect create mode
+ * ------------------
+ *   The palette "+" button creates a PENDING block and emits
+ *   `word:effect-create-session-started`. CreateSession._onStart resets
+ *   state and greets the user.
+ *
+ *   LLMChat._onSend: if CreateSession.isActive() — session.send(text).
+ *   The session forwards `{ type: "create_effect", ... }` with the
+ *   previous draft (if any) for iteration.
+ *
+ *   The server replies with `effect_draft`. handler.js calls the
+ *   chat's `applyEffectDraft` callback, which delegates to
+ *   CreateSession.handleDraft(draft). Session applies CSS + class +
+ *   updates the pending block in the palette.
+ *
+ *   The user clicks the save icon (on the pending block). The palette
+ *   emits `word:effect-create-save`. CreateSession POSTs the effect,
+ *   injects the <link>, commits the draft, converts the pending
+ *   block into a normal one.
+ *
+ *   The user clicks the close icon. The palette emits
+ *   `word:effect-create-cancel`. CreateSession reverts the draft,
+ *   removes the class, removes the pending block.
  */
 export class LLMChat {
     constructor(editor) {
@@ -21,6 +79,10 @@ export class LLMChat {
         this.editor = editor;
 
         this._apiBase = '/core/engine/lib/word/llm';
+
+        // Base for the effects editor API:
+        //   /core/engine/lib/word/editor/effects
+        this._effectsApiBase = '/core/engine/lib/word/editor/effects';
 
         // Sub-modules — created in _loadModules()
         this.ws = null;
@@ -31,6 +93,17 @@ export class LLMChat {
         this._buildBlockCatalog = null;
         this._getSelection = null;
         this._applyElementUpdate = null;
+
+        // Effects live-edit helpers (loaded in _loadModules)
+        this._applyEffectDraft = null;
+        this._commitEffectDraft = null;
+        this._revertEffectDraft = null;
+        this._addEffectLink = null;
+        this._removeEffectLink = null;
+
+        // Sessions (created in _loadModules after their modules load)
+        this._editSession = null;
+        this._createSession = null;
 
         // Run state
         this._running = false;
@@ -67,6 +140,10 @@ export class LLMChat {
             });
         }
 
+        // Wire up the sessions (they subscribe to editor events).
+        this._editSession?.bind();
+        this._createSession?.bind();
+
         this.ws.connect();
         await this._checkActiveRun();
 
@@ -89,6 +166,15 @@ export class LLMChat {
             { createLLMChatHandler },
             { getLLMChatSelection },
             { applyLLMChatElementUpdate },
+            {
+                applyDraft,
+                commitDraft,
+                revertDraft,
+                addEffectLink,
+                removeEffectLink,
+            },
+            { EditSession },
+            { CreateSession },
         ] = await Promise.all([
             import(`./chat/ws.js?v=${v}`),
             import(`./chat/ui.js?v=${v}`),
@@ -98,6 +184,9 @@ export class LLMChat {
             import(`./chat/handler.js?v=${v}`),
             import(`./chat/selection.js?v=${v}`),
             import(`./chat/apply.js?v=${v}`),
+            import(`../editor/effects/live.js?v=${v}`),
+            import(`./chat/edit.js?v=${v}`),
+            import(`./chat/create.js?v=${v}`),
         ]);
 
         this.debug = new LLMChatDebug(this.editor);
@@ -107,11 +196,24 @@ export class LLMChat {
         this._getSelection = getLLMChatSelection;
         this._applyElementUpdate = applyLLMChatElementUpdate;
 
+        this._applyEffectDraft = applyDraft;
+        this._commitEffectDraft = commitDraft;
+        this._revertEffectDraft = revertDraft;
+        this._addEffectLink = addEffectLink;
+        this._removeEffectLink = removeEffectLink;
+
+        // Sessions — created after their modules and the UI/WS are ready.
+        // They do NOT subscribe to editor events yet — bind() is called
+        // from init() (so that the editor is fully initialized first).
+        this._editSession = new EditSession(this);
+        this._createSession = new CreateSession(this);
+
         this.ws = new LLMChatWS({
             urlProvider: () => this._getWsUrl(),
             onOpen: () => this._onWsOpen(),
             onMessage: (m) => this._onWsMessage(m),
-            onClose: () => this._onWsClose(),
+            onClose: (info) => this._onWsClose(info),
+            onState: (state) => this._onWsState(state),
         });
 
         this._onWsMessage = createLLMChatHandler({
@@ -120,6 +222,12 @@ export class LLMChat {
             onRunEnd: () => { this._currentRunId = null; this._running = false; },
             applyHtml: (html) => this._applyHtml(html),
             applyElement: (selector, html) => this._applyElement(selector, html),
+            // NOTE: handler.js now passes a third `opts` argument that
+            // may carry { newId, newLabel } for effect renames. Forward
+            // it to EditSession.handleCss unchanged.
+            applyCss: (effectId, css, opts) =>
+                this._editSession?.handleCss(effectId, css, opts),
+            applyEffectDraft: (draft) => this._createSession?.handleDraft(draft),
         });
     }
 
@@ -134,6 +242,18 @@ export class LLMChat {
         const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.host;
         return `${proto}//${host}${this._apiBase}/ws/${pageId}`;
+    }
+
+    /**
+     * ?module=<name> for the effects editor API.
+     */
+    _qsForEffects() {
+        const moduleName = window.coreEngine?.moduleName
+            || document.body.dataset.module
+            || '';
+        return moduleName
+            ? `?module=${encodeURIComponent(moduleName)}`
+            : '';
     }
 
     // ============================================
@@ -208,6 +328,9 @@ export class LLMChat {
 
     _onWsOpen() {
         console.log('[LLMChat] WS open — readyState:', this.ws.readyState);
+
+        this._setConnectionBanner(null);
+
         if (this._pendingStart) {
             const p = this._pendingStart;
             this._pendingStart = null;
@@ -216,11 +339,145 @@ export class LLMChat {
         }
     }
 
-    _onWsClose() {
+    _onWsClose(info = {}) {
+        console.log('[LLMChat] WS close', info);
+
+        if (info.auth) {
+            this._setConnectionBanner({
+                kind: 'error',
+                text: 'Нет доступа к чату. Войдите как супер-администратор.',
+            });
+            this.ui.setSendingState(false);
+            this.ui.hideTyping();
+            return;
+        }
+
         if (this._running) {
             this.ui.setProgressText('Соединение потеряно. Переподключаюсь...');
         }
+
         setTimeout(() => this._checkActiveRun(), 3500);
+    }
+
+    _onWsState(state) {
+        switch (state) {
+            case 'connecting':
+                this._setConnectionBanner({ kind: 'info', text: 'Подключение к чату...' });
+                break;
+            case 'open':
+                this._setConnectionBanner(null);
+                break;
+            case 'closed':
+                this._setConnectionBanner({ kind: 'warn', text: 'Соединение потеряно. Переподключаюсь...' });
+                break;
+            case 'auth':
+                this._setConnectionBanner({ kind: 'error', text: 'Нет доступа к чату. Войдите как супер-администратор.' });
+                break;
+            case 'dead':
+                this._setConnectionBanner(null);
+                break;
+        }
+    }
+
+    _setConnectionBanner(spec) {
+        if (typeof this.ui?.setConnectionBanner === 'function') {
+            this.ui.setConnectionBanner(spec);
+        } else if (spec) {
+            console.log('[LLMChat] connection state:', spec.kind, spec.text);
+        }
+    }
+
+    // ============================================
+    // HELPERS USED BY SESSIONS
+    // ============================================
+
+    /**
+     * Access the EffectBlocks instance.
+     *
+     * The instance is registered by word/editor/index.js (BlocksRegistry
+     * → register EffectBlocks) and stored somewhere on the editor /
+     * word component. The exact field depends on which object holds it:
+     *
+     *   - this.editor._effectBlocks             — Word component
+     *   - this.editor.editor._effectBlocks      — GrapesJS editor
+     *   - this.editor.blocks._effectBlocks      — BlocksRegistry module
+     *   - this.editor.editor.effectBlocks       — alternative field name
+     *   - window._effectBlocks                  — last-resort global
+     *
+     * We probe all of them and log which one hit, so a missing
+     * registration is visible in the console instead of silently
+     * producing null.
+     *
+     * NOTE: this method is intentionally verbose on the console — it
+     * is the single point where the "save button stays disabled" bug
+     * manifests, and we want the exact hit / miss in the log.
+     */
+    _effectBlocks() {
+        const candidates = [
+            ['this.editor._effectBlocks',        this.editor?._effectBlocks],
+            ['this.editor.editor._effectBlocks', this.editor?.editor?._effectBlocks],
+            ['this.editor.blocks._effectBlocks', this.editor?.blocks?._effectBlocks],
+            ['this.editor.editor.effectBlocks',  this.editor?.editor?.effectBlocks],
+            ['this.editor.effectBlocks',         this.editor?.effectBlocks],
+            ['window._effectBlocks',             window._effectBlocks],
+        ];
+
+        for (const [where, value] of candidates) {
+            if (value) {
+                console.log('[LLMChat] _effectBlocks() found at:', where);
+                return value;
+            }
+        }
+
+        console.warn(
+            '[LLMChat] _effectBlocks() NOT FOUND. Probed:',
+            candidates.map(([where, v]) => `${where}=${v ? 'set' : 'null'}`)
+        );
+        return null;
+    }
+
+    /**
+     * Load the current CSS of an effect from the server.
+     * Used by EditSession._handleStart.
+     */
+    async _loadEffectCss(effectId) {
+        const url = `${this._effectsApiBase}/${effectId}.css${this._qsForEffects()}`;
+        console.log('[LLMChat] GET', url);
+
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson(url);
+            if (data && data.success && data.data && typeof data.data.css === 'string') {
+                return data.data.css;
+            }
+            console.warn('[LLMChat] loadEffectCss: unexpected payload', data);
+            return null;
+        } catch (e) {
+            console.error('[LLMChat] loadEffectCss error:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Save the given effect CSS to the server (PUT).
+     * Used by EditSession._handleSave.
+     */
+    async _saveEffectCss(effectId, css) {
+        const url = `${this._effectsApiBase}/${effectId}${this._qsForEffects()}`;
+        console.log('[LLMChat] PUT', url, `${css.length} bytes`);
+
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const data = await fetchJson(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ css }),
+            });
+            return !!(data && data.success);
+        } catch (e) {
+            console.error('[LLMChat] saveEffectCss error:', e);
+            return false;
+        }
     }
 
     // ============================================
@@ -253,6 +510,32 @@ export class LLMChat {
             created_at: new Date().toISOString(),
         });
         this.ui.clearInput();
+
+        // ---- EFFECT CREATE MODE ----
+        // While a create session is active, every message goes to the
+        // create_effect agent. Saving is NOT done via chat — it is
+        // triggered by clicking the save icon on the pending block.
+        if (this._createSession?.isActive()) {
+            console.log('[LLMChat] create-effect: draft request');
+            this.ui.showTyping();
+            this._running = true;
+            this.ui.setSendingState(true);
+
+            this._createSession.send(text);
+            return;
+        }
+
+        // ---- EFFECT EDIT MODE ----
+        if (this._editSession?.isActive()) {
+            this.ui.showTyping();
+            this._running = true;
+            this.ui.setSendingState(true);
+
+            this._editSession.send(text);
+            return;
+        }
+
+        // ---- REGULAR PAGE FLOW ----
         this.ui.showTyping();
         this._running = true;
         this.ui.setSendingState(true);
@@ -346,8 +629,20 @@ export class LLMChat {
 
     destroy() {
         console.log('[LLMChat] destroy()');
+
+        // Sessions — detach from editor events.
+        if (this._editSession) {
+            try { this._editSession.unbind(); } catch (_) {}
+            this._editSession = null;
+        }
+        if (this._createSession) {
+            try { this._createSession.unbind(); } catch (_) {}
+            this._createSession = null;
+        }
+
         if (this.ws) this.ws.destroy();
         if (this.ui) this.ui.destroy();
+
         this.messages = [];
         this._running = false;
         this._currentRunId = null;

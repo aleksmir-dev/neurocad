@@ -6,10 +6,13 @@
  * All functions take `cards` (a BaseCards instance) as first argument.
  * All network functions are async.
  *
- * Error shape:
+ * HTTP goes through window.coreEngine.fetchJson
+ * (loaded once by CoreEngine.loadApi()).
+ *
+ * Error shape (thrown by fetchJson):
  *   err.status  — HTTP status code (401, 403, 404, 500, ...)
- *   err.detail  — raw detail object from server (if JSON)
- *   err.message — human-readable message (server's detail.message / detail / fallback)
+ *   err.data    — raw JSON body from server (if any)
+ *   err.message — human-readable message
  *
  * This lets callers (selection.js, cards.js) handle 401 centrally
  * — e.g. redirect to login — instead of crashing with a raw Error.
@@ -35,57 +38,16 @@ export function buildUrl(cards, endpoint, params = {}) {
 }
 
 /**
- * Parse a failed Response into a rich Error.
- *
- * Tries to read JSON body:
- *   - { detail: { message: "..." } }  — new format
- *   - { detail: "..." }               — FastAPI style
- *   - { message: "..." }              — fallback
- *   - otherwise                        — "HTTP <status>"
- *
- * @param {Response} response
- * @param {string} fallbackMessage
- * @returns {Promise<Error>}
- */
-async function _errorFromResponse(response, fallbackMessage) {
-    let detail = null;
-    let message = `HTTP ${response.status}`;
-
-    try {
-        const data = await response.json();
-        detail = data?.detail ?? data;
-
-        if (data?.detail?.message) {
-            message = data.detail.message;
-        } else if (typeof data?.detail === 'string') {
-            message = data.detail;
-        } else if (data?.message) {
-            message = data.message;
-        }
-    } catch (e) {
-        // no JSON body — keep fallback
-    }
-
-    const err = new Error(message || fallbackMessage);
-    err.status = response.status;
-    err.detail = detail;
-    return err;
-}
-
-/**
  * Create item.
  */
 export async function addItem(cards, data) {
     const url = buildUrl(cards, cards.apiEndpoints.create);
-    const response = await fetch(url, {
+    const fetchJson = window.coreEngine?.fetchJson;
+
+    await fetchJson(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(data)
+        body: data,
     });
-    if (!response.ok) {
-        throw await _errorFromResponse(response, 'Failed to create item');
-    }
 }
 
 /**
@@ -93,15 +55,12 @@ export async function addItem(cards, data) {
  */
 export async function updateItem(cards, id, data) {
     const url = buildUrl(cards, cards.apiEndpoints.update, { id });
-    const response = await fetch(url, {
+    const fetchJson = window.coreEngine?.fetchJson;
+
+    await fetchJson(url, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(data)
+        body: data,
     });
-    if (!response.ok) {
-        throw await _errorFromResponse(response, 'Failed to update item');
-    }
 }
 
 /**
@@ -109,14 +68,11 @@ export async function updateItem(cards, id, data) {
  */
 export async function deleteItem(cards, id) {
     const url = buildUrl(cards, cards.apiEndpoints.delete, { id });
-    const response = await fetch(url, {
+    const fetchJson = window.coreEngine?.fetchJson;
+
+    await fetchJson(url, {
         method: 'DELETE',
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
     });
-    if (!response.ok) {
-        throw await _errorFromResponse(response, 'Failed to delete item');
-    }
 }
 
 /**
@@ -124,12 +80,9 @@ export async function deleteItem(cards, id) {
  */
 export async function restoreItem(cards, id) {
     const url = buildUrl(cards, cards.apiEndpoints.restore, { id });
-    const response = await fetch(url, {
+    const fetchJson = window.coreEngine?.fetchJson;
+
+    await fetchJson(url, {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
     });
-    if (!response.ok) {
-        throw await _errorFromResponse(response, 'Failed to restore item');
-    }
 }

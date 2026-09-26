@@ -15,6 +15,15 @@ from ....models.module import Module
 from ....models.page_hist import PageHist
 from .....utils.sqlite import get_db_sqlite
 
+# Public pages module — provides the static namespace for page CSS files.
+# The URL prefix is what view.js uses for the <link> tag.
+from ..pages.public.service import PAGES_CSS_DIR, PAGES_CSS_URL
+from .....utils.css import ensure_css_file
+
+# Full-CSS builder — assembles content.css + used blocks/*.css +
+# used fx/*.css + custom page CSS, at every save.
+from .css_builder import build_full_page_css
+
 
 # ============================================
 # URLS
@@ -118,11 +127,17 @@ class CoreEngineLibWordService:
 
         Flow:
           1. Find page.
-          2. If content / content_json / css actually changed — write a
+          2. Rebuild the full page CSS from scratch:
+               content.css + used blocks/*.css + used fx/*.css + custom.
+             (see css_builder.build_full_page_css)
+          3. If html / content_json / css actually changed — write a
              snapshot of the CURRENT (pre-save) state to page_hist
              with action='user_edit'. Duplicates are skipped.
-          3. Update Page.content / Page.content_json / Page.css.
-          4. Commit.
+          4. Update Page.content / Page.content_json / Page.css.
+          5. Commit.
+          6. Write the page's CSS to a static file under
+             PAGES_CSS_DIR / PAGES_CSS_URL so the public page can
+             <link> to it (see word/view.js → buildArticle).
 
         user_note — optional comment for the snapshot (e.g. username).
 
@@ -148,7 +163,16 @@ class CoreEngineLibWordService:
             # Determine new values (fallback to old if None)
             new_html = content if content is not None else old_html
             new_json = content_json if content_json is not None else old_json
-            new_css = css if css is not None else old_css
+
+            # Custom CSS from the editor (Style Manager). May be None
+            # for callers that only save HTML.
+            custom_css = css if css is not None else ""
+
+            # Rebuild the full page CSS from scratch on EVERY save.
+            # content.css + used blocks/*.css + used fx/*.css + custom.
+            # This freezes the CSS at save time: the result is written
+            # to page.css and no longer depends on the editor runtime.
+            new_css = build_full_page_css(new_html, custom_css)
 
             # Only snapshot if something actually changed
             changed = (
@@ -178,12 +202,19 @@ class CoreEngineLibWordService:
                 page.content = content
             if content_json is not None:
                 page.content_json = content_json
-            if css is not None:
-                page.css = css
+
+            # Always write the rebuilt CSS — even when custom_css is
+            # empty, content.css + blocks + effects still need to be
+            # frozen into page.css.
+            page.css = new_css
 
             page.updated_at = datetime.now()
             await session.commit()
             await session.refresh(page)
+
+            # ===== Write static CSS file for the public page =====
+            # Non-fatal: if the write fails, the DB save is still valid.
+            _write_page_css_file(page.id, page.css)
 
             return {
                 "id": page.id,
@@ -313,6 +344,12 @@ class CoreEngineLibWordService:
              snapshot values.
           4. Write a new record with action='rollback' — audit trail.
           5. Commit.
+          6. Overwrite the static CSS file so the public page picks up
+             the rolled-back CSS (see word/view.js → buildArticle).
+
+        NOTE: we do NOT rebuild the CSS here. The snapshot already
+        holds the frozen CSS that was in effect when it was taken —
+        restoring it as-is is exactly what "rollback" should do.
 
         Returns updated data or None if page / snapshot not found.
         """
@@ -375,6 +412,9 @@ class CoreEngineLibWordService:
 
             await session.commit()
             await session.refresh(page)
+
+            # ===== Overwrite static CSS file with the rolled-back CSS =====
+            _write_page_css_file(page.id, page.css)
 
             return {
                 "id": page.id,
@@ -481,6 +521,35 @@ class CoreEngineLibWordService:
 # ============================================
 # HELPERS
 # ============================================
+
+def _write_page_css_file(page_id: int, css: Optional[str]) -> None:
+    """
+    Write the page's CSS to a static file under PAGES_CSS_DIR and
+    return the URL — but we do not return it here; the public page
+    builds the URL itself (see word/view.js → buildArticle).
+
+    Non-fatal: if the write fails (permissions, disk full), the DB
+    save is still valid — the public page will just miss the CSS
+    until the next save.
+
+    Empty CSS → no file written. Existing file is left on disk; it
+    will simply not be requested by the public page (view.js falls
+    back to the embedded <style> path).
+    """
+    if not css or not css.strip():
+        return
+    try:
+        url = ensure_css_file(
+            page_id=page_id,
+            css=css,
+            directory=PAGES_CSS_DIR,
+            url_prefix=PAGES_CSS_URL,
+        )
+        if url:
+            print(f"[Word] page CSS file written: {url}", flush=True)
+    except Exception as e:
+        print(f"[Word] failed to write page CSS file for page {page_id}: {e}", flush=True)
+
 
 def _page_to_dict(page) -> Dict[str, Any]:
     """Serialize Page model to dict."""
