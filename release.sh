@@ -10,7 +10,7 @@
 
 set -e  # stop on any error
 
-VERSION="0.1.22"
+VERSION="0.1.23"
 TAG="v${VERSION}"
 
 # Папки, которые не должны лежать в корне проекта.

@@ -130,6 +130,11 @@ async def _execute_sql_file(path: Path) -> None:
     so PRAGMA statements take effect. session.execute(text("PRAGMA"))
     is unreliable — SQLAlchemy treats PRAGMA as a SELECT and may
     not apply the side effect.
+
+    NOTE: `run_sync` passes a `sqlalchemy.engine.Connection`, NOT a
+    raw `sqlite3.Connection`. That object has no `.cursor()` method.
+    The raw DBAPI connection is obtained via
+    `sync_conn.connection.driver_connection`.
     """
     from ..sqlite import engine
 
@@ -143,7 +148,10 @@ async def _execute_sql_file(path: Path) -> None:
         statements.append(line)
 
     def _run(sync_conn):
-        cur = sync_conn.cursor()
+        # sync_conn is a sqlalchemy.engine.Connection.
+        # Get the underlying DBAPI (sqlite3) connection.
+        raw = sync_conn.connection.driver_connection
+        cur = raw.cursor()
         try:
             for stmt in statements:
                 cur.execute(stmt)
