@@ -292,7 +292,11 @@ async def engine_module(request: Request, module_path: str):
       2. Ищем файл конфига по path_parts.
       3. Если не найден → 404.
       4. Читаем конфиг (auth_required, auth_redirect).
-      5. Передаём в шаблон module_name, config_path, params_list.
+      5. Вычисляем nav_id:
+         - если URL вида /core/engine/pages/<nav_id>/... — берём из URL;
+         - иначе — резолвим из сессии (первый nav текущего пользователя);
+         - если ничего не нашли — None.
+      6. Передаём в шаблон module_name, config_path, params_list, nav_id.
     """
     path_parts, params_list = _parse_path(module_path)
 
@@ -318,6 +322,47 @@ async def engine_module(request: Request, module_path: str):
     except Exception as e:
         print(f"[Engine] Error loading config for {module_path}: {e}")
 
+    # ===== nav_id =====
+    # Priority:
+    #   1. URL form /core/engine/pages/<nav_id>/... — nav_id is params_list[0]
+    #      when path_parts[0] == "pages".
+    #   2. Session — first nav of the authenticated user (by id ASC).
+    #      This is what makes admin pages carry a nav_id, so the frontend
+    #      can build /core/engine/pages/<nav_id>/<date>/<time> links.
+    nav_id = None
+
+    if path_parts and path_parts[0] == "pages" and len(params_list) > 0:
+        try:
+            nav_id = int(params_list[0])
+        except (TypeError, ValueError):
+            nav_id = None
+
+    if nav_id is None:
+        # Fall back to the current user's first nav.
+        try:
+            from sqlalchemy import select
+            from neurocad.core.auth.dependencies import get_current_user
+            from neurocad.core.models.nav import Nav
+            from neurocad.utils.sqlite import get_db_sqlite
+
+            current_user = await get_current_user(request)
+            user_id = current_user.get("id") if isinstance(current_user, dict) else None
+            if user_id:
+                async for session in get_db_sqlite():
+                    stmt = (
+                        select(Nav)
+                        .where(Nav.user_id == user_id, Nav.is_delete == False)
+                        .order_by(Nav.id.asc())
+                        .limit(1)
+                    )
+                    nav = (await session.execute(stmt)).scalar_one_or_none()
+                    if nav:
+                        nav_id = nav.id
+                    break
+        except Exception as e:
+            print(f"[Engine] nav_id resolution failed: {e}")
+            nav_id = None
+
     return templates.TemplateResponse(
         request=request,
         name="core/engine/engine.html",
@@ -325,6 +370,7 @@ async def engine_module(request: Request, module_path: str):
             "module_name": module_name,
             "config_path": config_path,
             "params_list": params_list,
+            "nav_id": nav_id,
             "static_version": STATIC_VERSION,
             "is_authenticated": True,
             "username": "Гость",

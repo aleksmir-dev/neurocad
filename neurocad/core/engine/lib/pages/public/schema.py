@@ -6,6 +6,10 @@ Public pages schemas.
 Pydantic models for public page rendering.
 Read-only — no input validation needed for now.
 
+Scoping:
+  Pages are scoped to a nav instance (nav_id), not to a module.
+  A nav is the object that owns pages; the module is just its class.
+
 Namespace: CoreEngineLibPagesPublic*
 """
 
@@ -22,7 +26,7 @@ class CoreEngineLibPagesPublicItemBase(BaseModel):
     """Base fields for public page rendering"""
 
     id: int = Field(..., description="Page ID")
-    mod_id: int = Field(..., description="Module ID this page belongs to")
+    nav_id: int = Field(..., description="Nav instance ID this page belongs to")
 
     datetime: Optional[dt] = Field(
         None,

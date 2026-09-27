@@ -6,38 +6,38 @@ from datetime import datetime as dt
 
 
 # ============================================
-# БАЗОВАЯ СХЕМА
+# BASE SCHEMA
 # ============================================
 
 class CoreEngineLibPagesItemBase(BaseModel):
-    """Базовые поля статьи"""
-    datetime: Optional[dt] = Field(None, description="Дата и время публикации. Если не указана — ставится автоматически.")
-    title: str = Field(..., min_length=1, max_length=255, description="Заголовок")
-    description: Optional[str] = Field(None, description="Краткое описание")
-    logo: Optional[str] = Field(None, description="Логотип (URL или emoji)")
-    is_active: int = Field(1, description="Активна: 1 — да, 0 — нет")
+    """Base article fields"""
+    datetime: Optional[dt] = Field(None, description="Publication date and time. If omitted, set automatically.")
+    title: str = Field(..., min_length=1, max_length=255, description="Title")
+    description: Optional[str] = Field(None, description="Short description")
+    logo: Optional[str] = Field(None, description="Logo (URL or emoji)")
+    is_active: int = Field(1, description="Active: 1 — yes, 0 — no")
 
     # Template system
-    is_template: int = Field(0, description="Базовый шаблон: 1 — да, 0 — нет")
-    template_id: Optional[int] = Field(None, description="ID базового шаблона (наследование)")
+    is_template: int = Field(0, description="Base template: 1 — yes, 0 — no")
+    template_id: Optional[int] = Field(None, description="Base template ID (inheritance)")
 
 
 # ============================================
-# СОЗДАНИЕ
+# CREATE
 # ============================================
 
 class CoreEngineLibPagesItemCreate(CoreEngineLibPagesItemBase):
-    """Создание статьи"""
-    content: Optional[str] = Field(None, description="HTML для показа")
-    content_json: Optional[str] = Field(None, description="JSON GrapesJS для редактора")
+    """Article creation"""
+    content: Optional[str] = Field(None, description="HTML for display")
+    content_json: Optional[str] = Field(None, description="GrapesJS JSON for the editor")
 
 
 # ============================================
-# ОБНОВЛЕНИЕ
+# UPDATE
 # ============================================
 
 class CoreEngineLibPagesItemUpdate(BaseModel):
-    """Обновление статьи — все поля опциональны"""
+    """Article update — all fields optional"""
     datetime: Optional[dt] = None
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
@@ -52,11 +52,11 @@ class CoreEngineLibPagesItemUpdate(BaseModel):
 
 
 # ============================================
-# СПИСОК (без content/content_json)
+# LIST ITEM (without content/content_json)
 # ============================================
 
 class CoreEngineLibPagesItemListItem(BaseModel):
-    """Статья для списка — без тяжёлых полей"""
+    """Article for list view — without heavy fields"""
     id: int
     datetime: dt
     title: str
@@ -77,21 +77,21 @@ class CoreEngineLibPagesItemListItem(BaseModel):
 
 
 # ============================================
-# ПОЛНАЯ СТАТЬЯ (с content/content_json)
+# FULL ARTICLE (with content/content_json)
 # ============================================
 
 class CoreEngineLibPagesItemResponse(CoreEngineLibPagesItemListItem):
-    """Полная статья — с content и content_json"""
+    """Full article — with content and content_json"""
     content: Optional[str] = None
     content_json: Optional[str] = None
 
 
 # ============================================
-# СПИСОК СТАТЕЙ (ответ)
+# ARTICLE LIST (response)
 # ============================================
 
 class CoreEngineLibPagesListResponse(BaseModel):
-    """Ответ со списком статей"""
+    """Response with a list of articles"""
     items: list[CoreEngineLibPagesItemListItem]
     total: int = 0
     page: int = 1

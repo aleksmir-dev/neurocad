@@ -1,5 +1,28 @@
 # neurocad/core/engine/lib/word/service.py
 
+"""
+Word service — page content, history, and media.
+
+Read/write access to Page and PageHist records, scoped to a nav
+instance (Page.nav_id). Media lives under media/<nav_id>/.
+
+Main responsibilities:
+    - Load pages by date/time or ID.
+    - Save page content (HTML + GrapesJS JSON + CSS) and write a
+      snapshot of the previous state to page_hist.
+    - List / fetch / roll back snapshots.
+    - List and upload media for a nav.
+
+CSS handling:
+    The full page CSS is rebuilt from scratch on every save
+    (content.css + used blocks/*.css + used fx/*.css + custom CSS)
+    and frozen into Page.css. The public page loads only that file
+    (plus the wrapper public.css) — it never scans the editor
+    directory at runtime.
+
+Namespace: CoreEngineLibWord*
+"""
+
 import os
 import re
 import uuid
@@ -11,7 +34,6 @@ from fastapi import UploadFile
 from sqlalchemy import select
 
 from ....models.base import Page
-from ....models.module import Module
 from ....models.page_hist import PageHist
 from .....utils.sqlite import get_db_sqlite
 
@@ -47,10 +69,10 @@ class CoreEngineLibWordService:
     async def get_by_datetime(
         date: str,
         time: str,
-        mod_id: int,
+        nav_id: int,
     ) -> Optional[Dict[str, Any]]:
         """
-        Find page by date and time within a module.
+        Find page by date and time within a nav instance.
 
         date = "20260914" (YYYYMMDD)
         time = "153910"   (HHMMSS)
@@ -68,7 +90,7 @@ class CoreEngineLibWordService:
 
         async for session in get_db_sqlite():
             stmt = select(Page).where(
-                Page.mod_id == mod_id,
+                Page.nav_id == nav_id,
                 Page.datetime >= dt_start,
                 Page.datetime < dt_end,
                 Page.is_delete == 0,
@@ -90,13 +112,13 @@ class CoreEngineLibWordService:
     @staticmethod
     async def get_by_id(
         page_id: int,
-        mod_id: int,
+        nav_id: int,
     ) -> Optional[Dict[str, Any]]:
-        """Find page by ID within a module."""
+        """Find page by ID within a nav instance."""
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == page_id,
-                Page.mod_id == mod_id,
+                Page.nav_id == nav_id,
                 Page.is_delete == 0,
             )
             result = await session.execute(stmt)
@@ -116,7 +138,7 @@ class CoreEngineLibWordService:
     @staticmethod
     async def save_content(
         page_id: int,
-        mod_id: int,
+        nav_id: int,
         content: Optional[str],
         content_json: Optional[str],
         css: Optional[str] = None,
@@ -146,7 +168,7 @@ class CoreEngineLibWordService:
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == page_id,
-                Page.mod_id == mod_id,
+                Page.nav_id == nav_id,
                 Page.is_delete == 0,
             )
             result = await session.execute(stmt)
@@ -231,7 +253,7 @@ class CoreEngineLibWordService:
     @staticmethod
     async def list_history(
         page_id: int,
-        mod_id: int,
+        nav_id: int,
     ) -> Optional[List[Dict[str, Any]]]:
         """
         List all snapshots for a page, newest first.
@@ -242,10 +264,10 @@ class CoreEngineLibWordService:
         Returns None if page not found, [] if no snapshots.
         """
         async for session in get_db_sqlite():
-            # Verify page belongs to this module
+            # Verify page belongs to this nav
             page_stmt = select(Page).where(
                 Page.id == page_id,
-                Page.mod_id == mod_id,
+                Page.nav_id == nav_id,
                 Page.is_delete == 0,
             )
             page_res = await session.execute(page_stmt)
@@ -281,18 +303,18 @@ class CoreEngineLibWordService:
     async def get_history_item(
         hist_id: int,
         page_id: int,
-        mod_id: int,
+        nav_id: int,
     ) -> Optional[Dict[str, Any]]:
         """
         Get one full snapshot (html + content_json + css).
 
         Returns None if the snapshot does not exist or the page
-        does not belong to this module.
+        does not belong to this nav.
         """
         async for session in get_db_sqlite():
             page_stmt = select(Page).where(
                 Page.id == page_id,
-                Page.mod_id == mod_id,
+                Page.nav_id == nav_id,
                 Page.is_delete == 0,
             )
             page_res = await session.execute(page_stmt)
@@ -329,7 +351,7 @@ class CoreEngineLibWordService:
     @staticmethod
     async def rollback(
         page_id: int,
-        mod_id: int,
+        nav_id: int,
         hist_id: int,
         user_note: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
@@ -357,7 +379,7 @@ class CoreEngineLibWordService:
             # ----- Find page -----
             page_stmt = select(Page).where(
                 Page.id == page_id,
-                Page.mod_id == mod_id,
+                Page.nav_id == nav_id,
                 Page.is_delete == 0,
             )
             page_res = await session.execute(page_stmt)
@@ -428,21 +450,22 @@ class CoreEngineLibWordService:
         return None
 
     # ========================================
-    # LIST ASSETS — media/<module_name>/
+    # LIST ASSETS — media/<nav_id>/
     # ========================================
 
     @staticmethod
-    async def list_assets(mod_id: int) -> List[Dict[str, str]]:
+    async def list_assets(nav_id: int) -> List[Dict[str, str]]:
         """
-        Get list of all images from media/<module_name>/.
+        Get list of all images from media/<nav_id>/.
+
+        Each nav instance owns its own media folder — assets are
+        isolated per nav, not per module. This matches the data
+        model: a nav is the object that owns pages, and media
+        belongs to the object too.
 
         Returns list of dicts: { src, name, type }.
         """
-        module_name = await _get_module_name(mod_id)
-        if not module_name:
-            return []
-
-        media_dir = Path("media") / module_name
+        media_dir = Path("media") / str(nav_id)
         media_dir.mkdir(parents=True, exist_ok=True)
 
         assets: List[Dict[str, str]] = []
@@ -458,7 +481,7 @@ class CoreEngineLibWordService:
             rel = filepath.relative_to(media_dir).as_posix()
 
             assets.append({
-                "src": f"{MEDIA_URL}/{module_name}/{rel}",
+                "src": f"{MEDIA_URL}/{nav_id}/{rel}",
                 "name": filepath.name,
                 "type": "image",
             })
@@ -466,27 +489,26 @@ class CoreEngineLibWordService:
         return assets
 
     # ========================================
-    # UPLOAD ASSETS — media/<module_name>/
+    # UPLOAD ASSETS — media/<nav_id>/
     # ========================================
 
     @staticmethod
     async def upload_assets(
         files: List[UploadFile],
-        mod_id: int,
+        nav_id: int,
     ) -> List[str]:
         """
-        Save uploaded files to media/<module_name>/.
+        Save uploaded files to media/<nav_id>/.
+
+        Each nav instance owns its own media folder — assets are
+        isolated per nav, not per module.
 
         Special names (favicon.ico, robots.txt, sitemap.xml) — kept as-is.
         Other files — get a random 8-hex suffix.
 
         Returns list of URLs of uploaded files.
         """
-        module_name = await _get_module_name(mod_id)
-        if not module_name:
-            raise ValueError(f"Module {mod_id} not found")
-
-        media_dir = Path("media") / module_name
+        media_dir = Path("media") / str(nav_id)
         media_dir.mkdir(parents=True, exist_ok=True)
 
         uploaded_urls: List[str] = []
@@ -513,7 +535,7 @@ class CoreEngineLibWordService:
 
             await uploaded_file.close()
 
-            uploaded_urls.append(f"{MEDIA_URL}/{module_name}/{final_name}")
+            uploaded_urls.append(f"{MEDIA_URL}/{nav_id}/{final_name}")
 
         return uploaded_urls
 
@@ -555,7 +577,7 @@ def _page_to_dict(page) -> Dict[str, Any]:
     """Serialize Page model to dict."""
     return {
         "id": page.id,
-        "mod_id": page.mod_id,
+        "nav_id": page.nav_id,
         "datetime": page.datetime.isoformat() if page.datetime else None,
         "title": page.title,
         "description": page.description,
@@ -571,16 +593,6 @@ def _page_to_dict(page) -> Dict[str, Any]:
         "is_template": int(page.is_template) if page.is_template is not None else 0,
         "template_id": page.template_id,
     }
-
-
-async def _get_module_name(mod_id: int) -> Optional[str]:
-    """Resolve module_name by mod_id."""
-    async for session in get_db_sqlite():
-        stmt = select(Module).where(Module.id == mod_id)
-        result = await session.execute(stmt)
-        module = result.scalar_one_or_none()
-        return module.name if module else None
-    return None
 
 
 async def _is_duplicate_snapshot(

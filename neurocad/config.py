@@ -69,6 +69,17 @@ class Settings(BaseSettings):
     SUPERADMIN_PASSWORD: str = "admin"
 
     # ============================================
+    # USERS
+    # ============================================
+
+    # Auto-create a personal "Каталог статей" nav for every new user.
+    # When True, every registered user gets their own Nav row pointing
+    # at the built-in 'default' module, so they immediately have a
+    # place to create pages.
+    # Set to False (or 0 in .env) to register users without any nav.
+    USER_AUTO_CREATE_NAV: bool = True
+
+    # ============================================
     # PATHS (relative to cwd)
     # ============================================
 

@@ -37,6 +37,11 @@
  *   editor:autosave-failed events (dispatched by Editor._autoSave).
  *   The status element lives in the toolbar right side, before the
  *   "Cancel" button.
+ *
+ * Permissions:
+ *   The toolbar itself does not enforce permissions — it renders
+ *   whenever the editor is opened. Access control lives on the
+ *   backend (word/*, editor/* routes require an authenticated user).
  */
 export class ToolbarManager {
     /**

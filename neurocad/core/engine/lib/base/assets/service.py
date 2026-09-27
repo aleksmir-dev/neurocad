@@ -4,10 +4,14 @@
 Media library service for the base component.
 
 Storage layout:
-    media/<mod_id>/<filename>
+    media/<nav_id>/<filename>
 
 Public URL:
-    /media/<mod_id>/<filename>
+    /media/<nav_id>/<filename>
+
+A nav is the object that owns pages and media. Media is isolated per
+nav instance, not per module — this matches the storage layout used
+by the word editor (see word/service.py).
 
 Special filenames (kept as-is, no random suffix):
     favicon.ico, robots.txt, sitemap.xml
@@ -30,7 +34,6 @@ from typing import List, Dict, Any, Optional
 from fastapi import UploadFile
 
 from .schema import CoreEngineLibBaseAssetsItem
-from ..module.service import get_module_name_by_id
 
 
 # ============================================
@@ -44,7 +47,7 @@ MEDIA_URL = "/media"
 MEDIA_ROOT = Path("media")
 
 # Filenames kept as-is (no random suffix).
-# These live in the module root — favicon, robots, sitemap.
+# These live in the nav root — favicon, robots, sitemap.
 SPECIAL_NAMES = {"favicon.ico", "robots.txt", "sitemap.xml"}
 
 # Allowed image extensions (case-insensitive).
@@ -56,21 +59,21 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp"}
 # ============================================
 
 class CoreEngineLibBaseAssetsService:
-    """Media library for a single module (by mod_id)."""
+    """Media library for a single nav instance (by nav_id)."""
 
     # ----------------------------------------
     # PATHS
     # ----------------------------------------
 
     @staticmethod
-    def _module_dir(mod_id: int) -> Path:
+    def _nav_dir(nav_id: int) -> Path:
         """
-        Return the media directory for a module:
-            media/<mod_id>/
+        Return the media directory for a nav instance:
+            media/<nav_id>/
 
         Creates the directory if it does not exist.
         """
-        media_dir = MEDIA_ROOT / str(mod_id)
+        media_dir = MEDIA_ROOT / str(nav_id)
         media_dir.mkdir(parents=True, exist_ok=True)
         return media_dir
 
@@ -79,13 +82,13 @@ class CoreEngineLibBaseAssetsService:
     # ----------------------------------------
 
     @staticmethod
-    async def list_assets(mod_id: int) -> List[Dict[str, str]]:
+    async def list_assets(nav_id: int) -> List[Dict[str, str]]:
         """
-        List all image files in media/<mod_id>/ (recursive).
+        List all image files in media/<nav_id>/ (recursive).
 
         Returns list of dicts: { src, name, type }.
         """
-        media_dir = CoreEngineLibBaseAssetsService._module_dir(mod_id)
+        media_dir = CoreEngineLibBaseAssetsService._nav_dir(nav_id)
         assets: List[Dict[str, str]] = []
 
         for filepath in sorted(media_dir.rglob("*")):
@@ -99,7 +102,7 @@ class CoreEngineLibBaseAssetsService:
             rel = filepath.relative_to(media_dir).as_posix()
 
             assets.append({
-                "src": f"{MEDIA_URL}/{mod_id}/{rel}",
+                "src": f"{MEDIA_URL}/{nav_id}/{rel}",
                 "name": filepath.name,
                 "type": "image",
             })
@@ -113,17 +116,17 @@ class CoreEngineLibBaseAssetsService:
     @staticmethod
     async def upload_assets(
         files: List[UploadFile],
-        mod_id: int,
+        nav_id: int,
     ) -> List[Dict[str, str]]:
         """
-        Save uploaded files to media/<mod_id>/.
+        Save uploaded files to media/<nav_id>/.
 
         Special names (favicon.ico, robots.txt, sitemap.xml) are kept as-is.
         Other files get an 8-hex random suffix to avoid collisions.
 
         Returns list of dicts: { src, name, type }.
         """
-        media_dir = CoreEngineLibBaseAssetsService._module_dir(mod_id)
+        media_dir = CoreEngineLibBaseAssetsService._nav_dir(nav_id)
         uploaded: List[Dict[str, str]] = []
 
         for uploaded_file in files:
@@ -149,7 +152,7 @@ class CoreEngineLibBaseAssetsService:
             await uploaded_file.close()
 
             uploaded.append({
-                "src": f"{MEDIA_URL}/{mod_id}/{final_name}",
+                "src": f"{MEDIA_URL}/{nav_id}/{final_name}",
                 "name": final_name,
                 "type": "image",
             })
@@ -163,10 +166,10 @@ class CoreEngineLibBaseAssetsService:
     @staticmethod
     async def delete_asset(
         filename: str,
-        mod_id: int,
+        nav_id: int,
     ) -> bool:
         """
-        Delete a single file from media/<mod_id>/.
+        Delete a single file from media/<nav_id>/.
 
         Protects against path traversal:
           - basename() — strips any directory part
@@ -180,7 +183,7 @@ class CoreEngineLibBaseAssetsService:
         if not safe_name or safe_name.startswith("."):
             return False
 
-        media_dir = CoreEngineLibBaseAssetsService._module_dir(mod_id)
+        media_dir = CoreEngineLibBaseAssetsService._nav_dir(nav_id)
         file_path = media_dir / safe_name
 
         # Final safety check: resolved path must stay inside media_dir.

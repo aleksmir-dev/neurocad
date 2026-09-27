@@ -13,6 +13,7 @@ export class Base {
         this.showChat = props.showChat === true;
         this.authRequired = props.authRequired || false;
         this.authRedirect = props.authRedirect || null;
+        this.authForm = props.auth_form || null;
         this.content = props.content || null;
         this.components = props.components || [];
 
@@ -220,6 +221,29 @@ export class Base {
         this._updateAuthUI(user, isAuthenticated);
         if (this.header) {
             this.header.setUser(isAuthenticated ? user : null);
+        }
+
+        // ===== Config asked for a specific auth form =====
+        // If the config (or the route) set auth_form, open that form
+        // instead of the regular page content. `return` is important:
+        // it stops _initAuth() before renderContent() clears area-center.
+        if (this.authForm) {
+            const map = {
+                login:    () => this.auth.showLogin(),
+                register: () => this.auth.showRegister(),
+                restore:  () => this.auth.showRestore(),
+                password: () => this.auth.showPassword(),
+                profile:  () => this.auth.showProfile(),
+            };
+            const fn = map[this.authForm];
+            if (fn) {
+                this._isAuthenticating = true;
+                fn();
+                document.body.style.display = 'flex';
+                document.body.style.flexDirection = 'column';
+                return;
+            }
+            console.warn('[Base] Unknown auth_form:', this.authForm);
         }
 
         if (this.authRequired) {

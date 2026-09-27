@@ -1,17 +1,29 @@
 # app/core/engine/lib/word/schema.py
 
+"""
+Word schemas — page content, history, assets.
+
+Pydantic models for the word API. Read and write shapes for pages,
+history snapshots, and the media library. Pages are scoped to a nav
+instance (nav_id) — that scoping is carried in the URL / query, not
+in the request bodies, so it is not part of these schemas.
+
+Namespace: CoreEngineLibWord*
+"""
+
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime as dt
 
 
 # ============================================
-# ОТВЕТ — одна страница (для bydatetime и item)
+# RESPONSE — single page (for bydatetime and item)
 # ============================================
 
 class CoreEngineLibWordItemResponse(BaseModel):
-    """Одна страница для отображения/редактирования"""
+    """One page for display / editing"""
     id: int
+    nav_id: int
     datetime: dt
     title: str
     description: Optional[str] = None
@@ -30,71 +42,71 @@ class CoreEngineLibWordItemResponse(BaseModel):
 
 
 # ============================================
-# ОТВЕТ — обёртка для одной страницы
+# RESPONSE — wrapper for a single page
 # ============================================
 
 class CoreEngineLibWordPageResponse(BaseModel):
-    """Обёртка ответа для одной страницы"""
+    """Response wrapper for a single page"""
     success: bool = True
     data: CoreEngineLibWordItemResponse
 
 
 # ============================================
-# СОХРАНЕНИЕ КОНТЕНТА
+# SAVE CONTENT
 # ============================================
 
 class CoreEngineLibWordSaveRequest(BaseModel):
     """
-    Запрос на сохранение контента страницы из редактора.
+    Request body for saving page content from the editor.
 
-    content      = HTML для отображения (без <style>).
-    content_json = JSON GrapesJS (строка).
-    css          = CSS страницы (из editor.getCss()).
+    content      = HTML for display (without <style>).
+    content_json = GrapesJS JSON (string).
+    css          = page CSS (from editor.getCss()).
     """
-    content: Optional[str] = Field(None, description="HTML для отображения")
-    content_json: Optional[str] = Field(None, description="JSON GrapesJS")
-    css: Optional[str] = Field(None, description="CSS страницы")
+    content: Optional[str] = Field(None, description="HTML for display")
+    content_json: Optional[str] = Field(None, description="GrapesJS JSON")
+    css: Optional[str] = Field(None, description="Page CSS")
 
 
 class CoreEngineLibWordSaveResponse(BaseModel):
-    """Ответ на сохранение контента"""
+    """Response for saving content"""
     success: bool = True
     data: dict
 
 
 # ============================================
-# АССЕТЫ (МЕДИАТЕКА)
+# ASSETS (MEDIA LIBRARY)
 # ============================================
 
 class CoreEngineLibWordAsset(BaseModel):
-    """Один ассет (изображение)"""
-    src: str = Field(..., description="URL изображения")
-    name: str = Field(..., description="Имя файла")
-    type: str = Field("image", description="Тип ассета")
+    """Single asset (image)"""
+    src: str = Field(..., description="Image URL")
+    name: str = Field(..., description="File name")
+    type: str = Field("image", description="Asset type")
 
 
 class CoreEngineLibWordAssetsResponse(BaseModel):
-    """Ответ со списком ассетов"""
+    """Response with a list of assets"""
     success: bool = True
     data: List[CoreEngineLibWordAsset]
 
 
 class CoreEngineLibWordUploadResponse(BaseModel):
-    """Ответ на загрузку ассетов"""
+    """Response for asset upload"""
     success: bool = True
-    data: List[str] = Field(..., description="URL загруженных файлов")
+    data: List[str] = Field(..., description="URLs of uploaded files")
 
 
 # ============================================
-# ИСТОРИЯ ИЗМЕНЕНИЙ (page_hist)
+# CHANGE HISTORY (page_hist)
 # ============================================
 
 class CoreEngineLibWordHistoryItem(BaseModel):
     """
-    Метаданные одного снимка истории.
+    Metadata for a single history snapshot.
 
-    Не включает html / content_json / css (тяжёлые поля) —
-    для полного снимка используйте GET /{page_id}/history/{hist_id}.
+    Does NOT include html / content_json / css (heavy fields) —
+    for a full snapshot use GET /{page_id}/history/{hist_id}.
     """
     id: int
     action: Optional[str] = Field(
@@ -109,16 +121,16 @@ class CoreEngineLibWordHistoryItem(BaseModel):
 
 
 class CoreEngineLibWordHistoryListResponse(BaseModel):
-    """Ответ со списком снимков (метаданные, без html/content_json/css)"""
+    """Response with a list of snapshots (metadata, no html/content_json/css)"""
     success: bool = True
     data: List[CoreEngineLibWordHistoryItem]
 
 
 class CoreEngineLibWordHistoryItemResponse(BaseModel):
     """
-    Полный снимок истории — html + content_json + css.
+    Full history snapshot — html + content_json + css.
 
-    Используется для превью и для отката.
+    Used for preview and for rollback.
     """
     id: int
     page_id: int
@@ -134,17 +146,17 @@ class CoreEngineLibWordHistoryItemResponse(BaseModel):
 
 
 class CoreEngineLibWordHistoryItemFullResponse(BaseModel):
-    """Обёртка ответа для одного полного снимка"""
+    """Response wrapper for a single full snapshot"""
     success: bool = True
     data: CoreEngineLibWordHistoryItemResponse
 
 
 class CoreEngineLibWordRollbackResponse(BaseModel):
     """
-    Ответ на откат к снимку.
+    Response for a rollback to a snapshot.
 
-    Возвращает обновлённые content / content_json / css / updated_at —
-    чтобы фронтенд мог сразу обновить состояние без повторного GET.
+    Returns updated content / content_json / css / updated_at —
+    so the frontend can refresh its state without a second GET.
     """
     success: bool = True
     data: dict

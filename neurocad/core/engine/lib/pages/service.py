@@ -2,7 +2,7 @@
 
 from sqlalchemy import select, func
 from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict, Any
 from ....models.base import Page
 from .schema import (
     CoreEngineLibPagesItemCreate,
@@ -12,31 +12,36 @@ from neurocad.utils.sqlite import get_db_sqlite
 
 
 class CoreEngineLibPagesService:
-    """Сервис для работы со статьями"""
+    """Service for working with articles."""
 
     # ========================================
-    # СПИСОК
+    # LIST
     # ========================================
 
     @staticmethod
     async def get_list(
+        nav_id: int,
         page: int = 1,
         limit: int = 20,
         is_active: Optional[int] = None,
         is_template: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
-        Получить список статей с пагинацией.
+        Get a paginated list of articles.
 
-        page — номер страницы (1-based)
-        limit — размер страницы
-        is_active — фильтр: 1 (только активные), 0 (только неактивные), None (все)
-        is_template — фильтр: 1 (только шаблоны), 0 (только обычные), None (все)
+        nav_id — nav instance (whose catalog this is)
+        page — page number (1-based)
+        limit — page size
+        is_active — filter: 1 (active only), 0 (inactive only), None (all)
+        is_template — filter: 1 (templates only), 0 (regular only), None (all)
         """
         offset = (page - 1) * limit
 
         async for session in get_db_sqlite():
-            base_stmt = select(Page).where(Page.is_delete == 0)
+            base_stmt = select(Page).where(
+                Page.nav_id == nav_id,
+                Page.is_delete == 0,
+            )
 
             if is_active is not None:
                 base_stmt = base_stmt.where(Page.is_active == is_active)
@@ -84,15 +89,16 @@ class CoreEngineLibPagesService:
         return {"items": [], "total": 0, "page": page, "limit": limit}
 
     # ========================================
-    # ОДНА СТАТЬЯ ПО ID
+    # ONE ITEM BY ID
     # ========================================
 
     @staticmethod
-    async def get_item(item_id: int) -> Optional[Dict[str, Any]]:
-        """Получить одну статью по ID (с content и content_json)"""
+    async def get_item(item_id: int, nav_id: int) -> Optional[Dict[str, Any]]:
+        """Get one article by ID (with content and content_json)."""
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == item_id,
+                Page.nav_id == nav_id,
                 Page.is_delete == 0,
             )
             result = await session.execute(stmt)
@@ -121,30 +127,35 @@ class CoreEngineLibPagesService:
         return None
 
     # ========================================
-    # ОДНА СТАТЬЯ ПО ДАТЕ/ВРЕМЕНИ
+    # ONE ITEM BY DATETIME
     # ========================================
 
     @staticmethod
-    async def get_by_datetime(date: str, time: str) -> Optional[Dict[str, Any]]:
+    async def get_by_datetime(
+        date: str,
+        time: str,
+        nav_id: int,
+    ) -> Optional[Dict[str, Any]]:
         """
-        Найти страницу по дате и времени.
+        Find a page by date and time within a nav.
 
         date = "20260914" (YYYYMMDD)
         time = "153910"   (HHMMSS)
 
-        В БД datetime хранится с микросекундами (15:39:10.666406),
-        поэтому ищем в диапазоне [dt_start, dt_start + 1 сек).
+        datetime in the DB is stored with microseconds (15:39:10.666406),
+        so we search in the range [dt_start, dt_start + 1 sec).
         """
         try:
             dt_start = datetime.strptime(f"{date}{time}", "%Y%m%d%H%M%S")
         except ValueError as e:
-            print(f"[Pages] Некорректная дата/время: {date} {time} — {e}")
+            print(f"[Pages] Invalid date/time: {date} {time} — {e}")
             return None
 
         dt_end = dt_start + timedelta(seconds=1)
 
         async for session in get_db_sqlite():
             stmt = select(Page).where(
+                Page.nav_id == nav_id,
                 Page.datetime >= dt_start,
                 Page.datetime < dt_end,
                 Page.is_delete == 0,
@@ -175,16 +186,17 @@ class CoreEngineLibPagesService:
         return None
 
     # ========================================
-    # СОЗДАНИЕ
+    # CREATE
     # ========================================
 
     @staticmethod
     async def create_item(
         data: CoreEngineLibPagesItemCreate,
+        nav_id: int,
     ) -> Optional[Dict[str, Any]]:
-        """Создать новую статью.
+        """Create a new article in the given nav.
 
-        Если datetime не передан — ставится текущее время.
+        If datetime is not provided, the current time is used.
         """
         item_datetime = data.datetime
         if item_datetime is None:
@@ -192,6 +204,7 @@ class CoreEngineLibPagesService:
 
         async for session in get_db_sqlite():
             new_item = Page(
+                nav_id=nav_id,
                 datetime=item_datetime,
                 title=data.title.strip(),
                 description=data.description,
@@ -228,18 +241,20 @@ class CoreEngineLibPagesService:
         return None
 
     # ========================================
-    # ОБНОВЛЕНИЕ
+    # UPDATE
     # ========================================
 
     @staticmethod
     async def update_item(
         item_id: int,
         data: CoreEngineLibPagesItemUpdate,
+        nav_id: int,
     ) -> Optional[Dict[str, Any]]:
-        """Обновить статью"""
+        """Update an article."""
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == item_id,
+                Page.nav_id == nav_id,
                 Page.is_delete == 0,
             )
             result = await session.execute(stmt)
@@ -281,15 +296,16 @@ class CoreEngineLibPagesService:
         return None
 
     # ========================================
-    # УДАЛЕНИЕ (МЯГКОЕ)
+    # DELETE (SOFT)
     # ========================================
 
     @staticmethod
-    async def delete_item(item_id: int) -> bool:
-        """Мягкое удаление статьи"""
+    async def delete_item(item_id: int, nav_id: int) -> bool:
+        """Soft-delete an article."""
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == item_id,
+                Page.nav_id == nav_id,
                 Page.is_delete == 0,
             )
             result = await session.execute(stmt)
@@ -306,15 +322,16 @@ class CoreEngineLibPagesService:
         return False
 
     # ========================================
-    # ВОССТАНОВЛЕНИЕ
+    # RESTORE
     # ========================================
 
     @staticmethod
-    async def restore_item(item_id: int) -> bool:
-        """Восстановить удалённую статью"""
+    async def restore_item(item_id: int, nav_id: int) -> bool:
+        """Restore a soft-deleted article."""
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == item_id,
+                Page.nav_id == nav_id,
                 Page.is_delete == 1,
             )
             result = await session.execute(stmt)

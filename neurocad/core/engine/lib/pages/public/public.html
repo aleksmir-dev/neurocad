@@ -12,9 +12,9 @@
     <meta name="description" content="{{ description }}">
     {% endif %}
 
-    {# Favicon — module-specific, fallback to default #}
+    {# Favicon — per-nav, fallback to default #}
     <link rel="icon" type="image/x-icon"
-          href="/media/{{ module_name }}/favicon.ico"
+          href="/media/{{ nav_id }}/favicon.ico"
           onerror="this.href='/static/core/engine/lib/base/images/favicon.ico'">
 
     {# Public page CSS — wrapper layout only (content CSS comes from DB) #}

@@ -3,6 +3,9 @@
 """
 Pydantic schemas for the base media library.
 
+Media is stored and served under media/<nav_id>/, where nav_id is
+the nav instance that owns the pages (see word/service.py).
+
 Namespace: CoreEngineLibBaseAssets*
 
 Endpoints:
@@ -21,9 +24,9 @@ from pydantic import BaseModel, Field
 
 class CoreEngineLibBaseAssetsItem(BaseModel):
     """One asset (image) in the media library."""
-    src: str = Field(..., description="URL изображения (/media/<mod_id>/<file>)")
-    name: str = Field(..., description="Имя файла")
-    type: str = Field("image", description="Тип ассета")
+    src: str = Field(..., description="Image URL (/media/<nav_id>/<file>)")
+    name: str = Field(..., description="File name")
+    type: str = Field("image", description="Asset type")
 
 
 # ============================================
@@ -57,4 +60,4 @@ class CoreEngineLibBaseAssetsUploadResponse(BaseModel):
 class CoreEngineLibBaseAssetsDeleteResponse(BaseModel):
     """Response after deleting a file."""
     success: bool = True
-    data: dict = Field(default_factory=dict, description="Информация об удалении")
+    data: dict = Field(default_factory=dict, description="Deletion details")

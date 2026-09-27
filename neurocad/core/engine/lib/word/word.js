@@ -13,6 +13,17 @@
  * All submodules are loaded dynamically with a version to avoid
  * browser cache issues on updates.
  *
+ * Scoping:
+ *   Every word API request carries ?nav_id=<id>, which identifies
+ *   the nav instance this page belongs to. The value comes from
+ *   props.nav_id (injected by CoreEngine from <body data-nav-id>),
+ *   with a fallback to window.coreEngine.navId / body dataset.
+ *
+ * Permissions:
+ *   - Guests: read-only view of the page.
+ *   - Any authenticated user (including superadmin): full toolbar
+ *     (back / edit / public), editor, save.
+ *
  * Caption: on _init() we pick up the shared caption helpers from
  * window.coreEngine.base (_setCaption / _restoreCaption). They are
  * used by actions.setHeaderTitle() to swap the header/tab title to the
@@ -42,12 +53,22 @@ export class Word {
         this.pageId = props.page_id || null;
         this.pageData = props.page_data || null;
 
-        // Module name for multi-site support
-        this.moduleName = window.coreEngine?.moduleName
-            || document.body.dataset.module
-            || '';
-        this._qs = this.moduleName
-            ? `?module=${encodeURIComponent(this.moduleName)}`
+        // Nav instance for multi-tenant scoping.
+        // Priority:
+        //   1. props.nav_id          (injected by CoreEngine)
+        //   2. window.coreEngine.navId (set by CoreEngine constructor)
+        //   3. document.body dataset  (raw data-nav-id attribute)
+        this.navId = props.nav_id
+            || window.coreEngine?.navId
+            || document.body.dataset.navId
+            || null;
+
+        // Query string appended to every word API request.
+        // Empty string when navId is not known — the request will then
+        // fail with 422 (nav_id is required) rather than silently
+        // returning foreign data.
+        this._qs = this.navId != null
+            ? `?nav_id=${encodeURIComponent(this.navId)}`
             : '';
 
         // State
@@ -168,12 +189,16 @@ export class Word {
      * bundled fallback: on failure we return an empty list, and
      * the page just renders without effect CSS.
      *
+     * NOTE: /editor/effects does not care about nav scoping — effects
+     * are global. So we deliberately do NOT append this._qs here.
+     * Effects are shared across all navs.
+     *
      * @param {string|number} version — cache-busting version
      * @returns {Promise<string[]>}
      */
     async _loadEffectIds(version) {
         try {
-            const url = `/core/engine/lib/word/editor/effects${this._qs}`;
+            const url = `/core/engine/lib/word/editor/effects`;
             console.log('[Word] GET', url);
 
             const fetchJson = window.coreEngine?.fetchJson;
@@ -303,20 +328,70 @@ export class Word {
     }
 
     // ============================================
-    // UTILITIES
+    // PERMISSIONS
     // ============================================
 
-    _isAdmin() {
+    /**
+     * Whether the current user can edit pages (open the editor,
+     * save, use the toolbar).
+     *
+     * Any authenticated user qualifies; guests do not.
+     *
+     * The check tries several auth shapes so it works regardless of
+     * how BaseAuth exposes state:
+     *   - auth.isAuth()        → boolean
+     *   - auth.isAuthenticated → boolean
+     *   - auth.getUser()       → user object or null
+     */
+    _canEdit() {
         const auth = window.coreEngine?.auth;
         if (!auth) return false;
+
+        if (typeof auth.isAuth === 'function' && auth.isAuth()) {
+            return true;
+        }
+        if (typeof auth.isAuthenticated === 'boolean' && auth.isAuthenticated) {
+            return true;
+        }
+        if (typeof auth.getUser === 'function') {
+            return auth.getUser() != null;
+        }
+        return false;
+    }
+
+    /**
+     * Whether the current user is a superadmin.
+     *
+     * Kept for callers that specifically need superadmin-only
+     * behaviour. is_superadmin may come from the backend as bool,
+     * int (0/1) or string ("0"/"1"), so all three are accepted.
+     */
+    _isSuperadmin() {
+        const auth = window.coreEngine?.auth;
+        if (!auth) return false;
+
         if (typeof auth.isSuperadmin === 'function') {
-            return auth.isSuperadmin();
+            return !!auth.isSuperadmin();
         }
         if (typeof auth.getUser === 'function') {
             const user = auth.getUser();
-            return user?.is_superadmin === true;
+            if (!user) return false;
+            const v = user.is_superadmin;
+            return v === true || v === 1 || v === "1";
         }
         return false;
+    }
+
+    /**
+     * Deprecated alias for _canEdit().
+     *
+     * Kept temporarily so existing callers (view.js, etc.) don't
+     * break if they still reference _isAdmin(). New code should
+     * call _canEdit() (any authenticated user) or _isSuperadmin()
+     * (superadmin only).
+     */
+    _isAdmin() {
+        return this._canEdit();
     }
 
     // ============================================

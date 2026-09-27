@@ -13,7 +13,9 @@ final paths are:
   GET    /core/engine/lib/word/editor/images/<id>        — read metadata
   DELETE /core/engine/lib/word/editor/images/<id>        — delete
 
-All endpoints require superadmin.
+Permissions:
+  All endpoints require an authenticated user (get_current_user).
+  Guests get 401 from the dependency.
 
 The list is served from the registry (registry.json in the package
 tree, mirrored to static/). The registry is the single source of
@@ -60,7 +62,7 @@ def _module_name(request: Request) -> str:
         if module_name:
             return module_name
 
-    raise HTTPException(status_code=400, detail="Модуль не определён")
+    raise HTTPException(status_code=400, detail="Module not resolved")
 
 
 async def _verify_module(request: Request) -> str:
@@ -77,7 +79,7 @@ async def _verify_module(request: Request) -> str:
         if not module:
             raise HTTPException(
                 status_code=404,
-                detail=f"Модуль {module_name} не найден",
+                detail=f"Module {module_name} not found",
             )
         return module_name
 
@@ -102,11 +104,8 @@ async def list_images(
     Returns entries sorted by `order`, then by `id`. Entries whose
     SVG file is missing on disk are skipped.
 
-    Superadmin only.
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-
     await _verify_module(request)
 
     try:
@@ -116,7 +115,7 @@ async def list_images(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Ошибка чтения реестра изображений: {e}",
+            detail=f"Failed to read images registry: {e}",
         )
 
     return JSONResponse({
@@ -149,11 +148,8 @@ async def create_image(
         "source": "llm"
       }
 
-    Superadmin only.
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-
     await _verify_module(request)
 
     try:
@@ -167,7 +163,7 @@ async def create_image(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Ошибка создания изображения: {e}",
+            detail=f"Failed to create image: {e}",
         )
 
     return JSONResponse({
@@ -212,11 +208,8 @@ async def generate_image(
         "source": "logo"
       }
 
-    Superadmin only.
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-
     await _verify_module(request)
 
     # ---- Resolve the LLM provider ----
@@ -229,7 +222,7 @@ async def generate_image(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Не удалось получить LLM-провайдера: {e}",
+            detail=f"Failed to get LLM provider: {e}",
         )
 
     # ---- Run the agent ----
@@ -251,14 +244,14 @@ async def generate_image(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Ошибка генерации: {e}",
+            detail=f"Generation error: {e}",
         )
 
     svg = result.get("svg")
     if not svg:
         raise HTTPException(
             status_code=400,
-            detail=result.get("error") or "Не удалось сгенерировать SVG",
+            detail=result.get("error") or "Failed to generate SVG",
         )
 
     # ---- Save to the registry ----
@@ -273,7 +266,7 @@ async def generate_image(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Ошибка сохранения изображения: {e}",
+            detail=f"Failed to save image: {e}",
         )
 
     # ---- Public URL ----
@@ -308,18 +301,15 @@ async def get_image(
     Example:
       GET /core/engine/lib/word/editor/images/img-a1b2c3d4?module=aleksmir.ru
 
-    Superadmin only.
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-
     await _verify_module(request)
 
     item = CoreEngineLibWordImagesService.read_image(image_id)
     if not item:
         raise HTTPException(
             status_code=404,
-            detail=f"Изображение {image_id} не найдено",
+            detail=f"Image {image_id} not found",
         )
 
     return JSONResponse({
@@ -347,11 +337,8 @@ async def delete_image(
     Example:
       DELETE /core/engine/lib/word/editor/images/img-a1b2c3d4?module=aleksmir.ru
 
-    Superadmin only.
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-
     await _verify_module(request)
 
     try:
@@ -361,7 +348,7 @@ async def delete_image(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Ошибка удаления изображения: {e}",
+            detail=f"Failed to delete image: {e}",
         )
 
     return JSONResponse({

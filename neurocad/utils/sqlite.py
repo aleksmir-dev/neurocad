@@ -136,7 +136,8 @@ async def init_sqlite(log=None):
       4. import demo data — only if the DB is fresh (no users yet)
          AND `base/demo/` exists in the working directory,
       5. create superadmin,
-      6. register modules from mod/.
+      6. register modules from mod/,
+      7. ensure the admin has a default Nav row (owns demo pages).
 
     log — app.state.log from lifespan. If None — silent.
     """
@@ -190,6 +191,10 @@ async def init_sqlite(log=None):
         from ..core.engine.modules import ensure_modules
         from ..core.engine.route import MOD_ROOT
         await ensure_modules(MOD_ROOT, log)
+
+        # 7. Default nav for admin (the object that owns demo pages).
+        # Idempotent: does nothing if the row already exists.
+        await ensure_default_nav(log=log)
 
     except Exception as e:
         error_msg = f"SQLite connection error: {e}"
@@ -260,3 +265,79 @@ async def ensure_superadmin(log=None):
         await session.commit()
 
         _log_sync(log, "info", f"Superadmin created: {login}")
+
+
+# ============================================
+# DEFAULT NAV
+# ============================================
+
+async def ensure_default_nav(log=None) -> int:
+    """
+    Ensure the admin user (id=1) has at least one Nav row for the
+    'default' module. Called on every startup — idempotent.
+
+    This Nav row is the "object" that owns all the built-in demo
+    pages, so URLs like /core/engine/pages/<nav_id>/<date>/<time>
+    work for the default content.
+
+    Returns the nav.id of the admin's default nav (found or created),
+    or 0 if admin / module not found.
+    """
+    from ..core.models.base import Nav, Module, User
+
+    async with AsyncSessionLocal() as session:
+        # 1. Find admin.
+        admin_stmt = select(User).where(User.id == 1, User.is_delete == False)
+        admin = (await session.execute(admin_stmt)).scalar_one_or_none()
+
+        if not admin:
+            _log_sync(log, "info", "admin (id=1) not found — skip ensure_default_nav")
+            return 0
+
+        # 2. Find the 'default' module by name.
+        mod_stmt = select(Module).where(
+            Module.name == "default",
+            Module.is_delete == False,
+        )
+        module = (await session.execute(mod_stmt)).scalar_one_or_none()
+
+        if not module:
+            _log_sync(log, "info", "module 'default' not found — skip ensure_default_nav")
+            return 0
+
+        # 3. Does admin already have a nav for this module?
+        nav_stmt = select(Nav).where(
+            Nav.user_id == admin.id,
+            Nav.module_id == module.id,
+            Nav.is_delete == False,
+        )
+        existing = (await session.execute(nav_stmt)).scalar_one_or_none()
+
+        if existing:
+            _log_sync(
+                log, "info",
+                f"admin nav for 'default' already exists: id={existing.id}",
+            )
+            return existing.id
+
+        # 4. Create it.
+        nav = Nav(
+            user_id=admin.id,
+            parent_id=None,
+            card_type="link",
+            sort_order=1,
+            name="Каталог статей",
+            description=None,
+            icon=None,
+            module_id=module.id,
+            is_delete=False,
+        )
+        session.add(nav)
+        await session.commit()
+        await session.refresh(nav)
+
+        _log_sync(
+            log, "info",
+            f"created admin nav for 'default': id={nav.id}",
+        )
+        return nav.id

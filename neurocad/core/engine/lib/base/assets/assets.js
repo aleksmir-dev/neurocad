@@ -3,7 +3,7 @@
 /**
  * BaseAssets — media library picker.
  *
- * Opens a modal with a grid of images from media/<mod_id>/.
+ * Opens a modal with a grid of images from media/<nav_id>/.
  * Allows:
  *   - select an existing image (returns its URL via onSelect)
  *   - upload new files (drag & drop or file input)
@@ -13,16 +13,17 @@
  *   BaseAssets.open({ onSelect })  → opens modal
  *   onSelect(src) — callback called with the URL of the selected image
  *
- * Endpoints (all take ?module=<name> from the current module):
+ * Endpoints (all take ?nav_id=<id> from the current nav):
  *   GET    /core/engine/lib/base/assets
  *   POST   /core/engine/lib/base/assets/upload
  *   DELETE /core/engine/lib/base/assets/{filename}
  *
+ * Scoping:
+ *   Media is isolated per nav instance. nav_id is read from
+ *   window.coreEngine.navId (set by CoreEngine from <body data-nav-id>).
+ *
  * HTTP goes through window.coreEngine.fetchJson
  * (loaded once by CoreEngine.loadApi()).
- *
- * The module name is resolved from window.coreEngine.moduleName
- * (or document.body.dataset.module) — same pattern as elsewhere.
  */
 export class BaseAssets {
     /**
@@ -41,12 +42,20 @@ export class BaseAssets {
         this.onSelect = opts.onSelect || null;
         this.onCancel = opts.onCancel || null;
 
-        // Module name for API queries
-        this.moduleName = window.coreEngine?.moduleName
-            || document.body.dataset.module
-            || '';
-        this._qs = this.moduleName
-            ? `?module=${encodeURIComponent(this.moduleName)}`
+        // Nav instance for API queries.
+        // Priority:
+        //   1. window.coreEngine.navId  (set by CoreEngine)
+        //   2. document.body dataset    (raw data-nav-id attribute)
+        this.navId = window.coreEngine?.navId
+            || document.body.dataset.navId
+            || null;
+
+        // Query string appended to every request.
+        // Empty string when navId is not known — the request will then
+        // fail with 422 (nav_id is required) rather than silently
+        // returning foreign data.
+        this._qs = this.navId != null
+            ? `?nav_id=${encodeURIComponent(this.navId)}`
             : '';
 
         // API base URL

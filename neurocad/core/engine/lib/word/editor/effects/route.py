@@ -13,7 +13,9 @@ final paths are:
   PUT    /core/engine/lib/word/editor/effects/<id>          — save CSS
   DELETE /core/engine/lib/word/editor/effects/<id>          — delete
 
-All endpoints require superadmin.
+Permissions:
+  All endpoints require an authenticated user (get_current_user).
+  Guests get 401 from the dependency.
 
 The list is served from the registry (registry.json in the package
 tree, mirrored to static/). The registry is the single source of
@@ -66,7 +68,7 @@ def _module_name(request: Request) -> str:
         if module_name:
             return module_name
 
-    raise HTTPException(status_code=400, detail="Модуль не определён")
+    raise HTTPException(status_code=400, detail="Module not resolved")
 
 
 async def _verify_module(request: Request) -> str:
@@ -88,7 +90,7 @@ async def _verify_module(request: Request) -> str:
         if not module:
             raise HTTPException(
                 status_code=404,
-                detail=f"Модуль {module_name} не найден",
+                detail=f"Module {module_name} not found",
             )
         return module_name
 
@@ -113,11 +115,8 @@ async def list_effects(
     Returns entries sorted by `order`, then by `id`. Entries whose
     CSS file is missing on disk are skipped.
 
-    Superadmin only.
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-
     await _verify_module(request)
 
     try:
@@ -127,7 +126,7 @@ async def list_effects(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Ошибка чтения реестра: {e}",
+            detail=f"Failed to read effects registry: {e}",
         )
 
     return JSONResponse({
@@ -164,11 +163,8 @@ async def create_effect(
 
     Returns 409 if the id already exists.
 
-    Superadmin only.
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-
     module_name = await _verify_module(request)
 
     try:
@@ -185,7 +181,7 @@ async def create_effect(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Ошибка создания эффекта: {e}",
+            detail=f"Failed to create effect: {e}",
         )
 
     return JSONResponse({
@@ -210,11 +206,8 @@ async def get_effect_css(
     Example:
       GET /core/engine/lib/word/editor/effects/fx-shadow-top-n.css?module=aleksmir.ru
 
-    Superadmin only.
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-
     module_name = await _verify_module(request)
 
     try:
@@ -224,13 +217,13 @@ async def get_effect_css(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Ошибка чтения эффекта: {e}",
+            detail=f"Failed to read effect: {e}",
         )
 
     if css is None:
         raise HTTPException(
             status_code=404,
-            detail=f"Эффект {effect_id} не найден",
+            detail=f"Effect {effect_id} not found",
         )
 
     return JSONResponse({
@@ -263,11 +256,8 @@ async def save_effect_css(
       PUT /core/engine/lib/word/editor/effects/fx-shadow-top-n?module=aleksmir.ru
       body: {"css": ".core-engine-lib-word-blocks .fx-shadow-top-n { ... }"}
 
-    Superadmin only.
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-
     module_name = await _verify_module(request)
 
     try:
@@ -281,7 +271,7 @@ async def save_effect_css(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Ошибка сохранения эффекта: {e}",
+            detail=f"Failed to save effect: {e}",
         )
 
     return JSONResponse({
@@ -312,11 +302,8 @@ async def delete_effect(
     Example:
       DELETE /core/engine/lib/word/editor/effects/fx-shimmer-dots?module=aleksmir.ru
 
-    Superadmin only.
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-
     module_name = await _verify_module(request)
 
     try:
@@ -329,7 +316,7 @@ async def delete_effect(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Ошибка удаления эффекта: {e}",
+            detail=f"Failed to delete effect: {e}",
         )
 
     return JSONResponse({

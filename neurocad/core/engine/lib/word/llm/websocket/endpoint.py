@@ -10,9 +10,8 @@ This is the only entry point of the LLM editor over WS:
 One connection per open editor tab. The loop:
 
   1. Authenticates the user (cookie JWT).
-  2. Rejects non-superadmins with close code 4403.
-  3. Accepts the connection.
-  4. Reads messages in a loop and dispatches by `type`:
+  2. Accepts the connection (any authenticated user).
+  3. Reads messages in a loop and dispatches by `type`:
 
        start         — full flow: router → agent (see _run_agent)
        effect_edit   — direct: "edit" agent (see _run_effect_edit)
@@ -24,7 +23,7 @@ One connection per open editor tab. The loop:
 
      Anything else → `error` frame.
 
-  5. On disconnect (client closed tab, network drop): sets the cancel
+  4. On disconnect (client closed tab, network drop): sets the cancel
      flag for the current run, marks it cancelled in the DB, and
      returns. The endpoint does not try to keep the connection alive.
 
@@ -78,9 +77,9 @@ class EndpointMixin:
             await websocket.close(code=4403)
             return
 
-        if not bool(user.get("is_superadmin")):
-            await websocket.close(code=4403)
-            return
+        # Any authenticated user may use the LLM chat.
+        # (Previously this required is_superadmin — removed so that
+        # regular users can also use the editor.)
 
         await websocket.accept()
         await self._log(

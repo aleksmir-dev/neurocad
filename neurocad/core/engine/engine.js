@@ -63,8 +63,13 @@ class CoreEngine {
             this.pathParts = [this.pathParts[0], this.pathParts[0]];
         }
 
-        // Full API path: pathParts + paramsList.
-        this.configPath = [...this.pathParts, ...this.paramsList].join('/');
+        // ===== Config path =====
+        // If the template gave us an explicit config_path via
+        // <body data-config-path="...">, use it. Otherwise fall back
+        // to the path computed from the URL.
+        const configPathOverride = document.body.dataset.configPath || null;
+        this.configPath = configPathOverride
+            || [...this.pathParts, ...this.paramsList].join('/');
 
         // ===== Module base URL =====
         // /core/engine/aleksmir.ru
@@ -79,7 +84,25 @@ class CoreEngine {
         this.authRequired = document.body.dataset.authRequired === 'true';
         this.authRedirect = document.body.dataset.authRedirect || null;
 
+        // ===== Auth form =====
+        // If the template asked for a specific auth form
+        // (login / register / profile / password / restore),
+        // it comes in via <body data-auth-form="...">. It is
+        // forwarded to Base, which opens the right BaseAuth form.
+        this.authForm = document.body.dataset.authForm || null;
+
+        // ===== Nav instance =====
+        // If the template set data-nav-id (e.g. on page-view URLs
+        // like /core/engine/pages/<nav_id>/...), every component
+        // that expects props.nav_id gets it injected below.
+        const navIdRaw = document.body.dataset.navId || null;
+        this.navId = (navIdRaw != null && navIdRaw !== '')
+            ? Number(navIdRaw)
+            : null;
+
         console.log('[CoreEngine] authRequired:', this.authRequired);
+        console.log('[CoreEngine] authForm:', this.authForm);
+        console.log('[CoreEngine] navId:', this.navId);
         console.log('[CoreEngine] Calling init()...');
 
         this.init();
@@ -100,9 +123,9 @@ class CoreEngine {
             await this.loadConfig();
             console.log('[CoreEngine] Config loaded:', this.config);
 
-            if (this.authRequired) {
-                console.log('[CoreEngine] Injecting auth props...');
-                this._injectAuthProps(this.config);
+            if (this.authRequired || this.authForm || this.navId != null) {
+                console.log('[CoreEngine] Injecting runtime props...');
+                this._injectRuntimeProps(this.config);
             }
 
             console.log('[CoreEngine] Resolving refs...');
@@ -150,28 +173,52 @@ class CoreEngine {
         }
     }
 
-    _injectAuthProps(config) {
+    /**
+     * Inject runtime-only props into the config before rendering.
+     *
+     * Runtime props come from <body data-*> attributes and are not
+     * part of the static config on disk:
+     *
+     *   - authRequired   → Base
+     *   - authRedirect   → Base
+     *   - auth_form      → Base (opens a specific auth form)
+     *   - nav_id         → Word, Pages, and any other component
+     *                       that needs to scope API calls to a nav
+     *
+     * The WHOLE component tree is walked (root + every nested
+     * component in `config.components`), so that child components
+     * like `pages` and `word` also receive `nav_id`. Components
+     * that do not understand a given prop simply ignore it.
+     */
+    _injectRuntimeProps(config) {
         if (!config) return;
 
-        if (config.component === 'base') {
-            config.authRequired = this.authRequired;
+        const injectInto = (obj) => {
+            // Auth
+            obj.authRequired = this.authRequired;
             if (this.authRedirect) {
-                config.authRedirect = this.authRedirect;
+                obj.authRedirect = this.authRedirect;
             }
-            return;
-        }
+            if (this.authForm) {
+                obj.auth_form = this.authForm;
+            }
+            // Nav scoping
+            if (this.navId != null) {
+                obj.nav_id = this.navId;
+            }
+        };
 
-        if (config.components && Array.isArray(config.components)) {
-            for (const component of config.components) {
-                if (component.component === 'base') {
-                    component.authRequired = this.authRequired;
-                    if (this.authRedirect) {
-                        component.authRedirect = this.authRedirect;
-                    }
-                    break;
-                }
+        const walk = (obj) => {
+            if (!obj || typeof obj !== 'object') return;
+            if (obj.component) {
+                injectInto(obj);
             }
-        }
+            if (Array.isArray(obj.components)) {
+                obj.components.forEach(walk);
+            }
+        };
+
+        walk(config);
     }
 
     async loadRendererAndBinder() {
@@ -200,8 +247,9 @@ class CoreEngine {
     async loadConfig() {
         console.log('[CoreEngine] loadConfig() START');
 
-        // configPath was computed in the constructor.
-        // URL without .json: /core/engine/api/aleksmir.ru/page/20260809/182504
+        // configPath comes from data-config-path (if set) or from
+        // the URL (computed in the constructor).
+        // URL without .json: /core/engine/api/<configPath>
         const url = `/core/engine/api/${this.configPath}`;
         console.log('[CoreEngine] Loading config:', url);
 

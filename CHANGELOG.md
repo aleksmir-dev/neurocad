@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.25] - 2026-09-27
+
+### Added
+- `Page.nav_id` — pages are scoped to a nav instance (`nav.id`), not to a module; the same `<date>/<time>` can exist under different navs.
+- `?nav_id=<id>` on every write endpoint of `pages`, `word`, `editor` (effects/images) and `llm`; read endpoints accept it optionally.
+- `_resolve_nav_id()` in `pages/route.py`, `word/route.py`, `base/assets/route.py` — falls back to the current user's first nav (`ORDER BY id ASC`).
+- `ensure_default_nav()` in `utils/sqlite.py` — idempotently creates a "Каталог статей" nav for admin after `ensure_modules`.
+- `USER_AUTO_CREATE_NAV` env flag; when true, a new user gets their own nav row pointing at the `default` module.
+- `engine_module` resolves the session's first nav and passes it via `<body data-nav-id>`; `CoreEngine._injectRuntimeProps()` walks the whole tree so `word` and `pages` receive `props.nav_id`.
+
+### Changed
+- `Page.mod_id` → `Page.nav_id` (Alembic migration `dcccfce2b645`); existing pages are migrated to the admin's nav.
+- Media layout is now `media/<nav_id>/` instead of `media/<module_name>/` (`word`, `base/assets`, GrapesJS asset manager).
+- Public page URL stays `/page/<date>/<time>`; admin preview keeps `/core/engine/<module>/page/<date>/<time>`.
+- Permissions relaxed from "superadmin only" to "any authenticated user" in `pages/route.py`, `word/route.py`, `word/editor/effects/route.py`, `word/editor/images/route.py`, `word/llm/route.py`, `base/assets/route.py`; `base/setup/llm/*` remains superadmin-only.
+- Frontend: `Pages._canEdit()` and `Word._canEdit()` replace `_isAdmin()`; toolbar is visible to any authenticated user.
+
+### Fixed
+- "Публичный вид" in the editor opens `/page/<date>/<time>` again (the old project's URL).
+- LLM chat WebSocket (`/core/engine/lib/word/llm/ws/{page_id}`) accepts any authenticated user; the previous `is_superadmin` check caused close code 1006 before `accept()`.
+- `nav_id` is now propagated to child components (`word`, `pages`), not only to the root `base`.
+
 ## [0.1.24] - 2026-09-27
 
 ### Fixed
@@ -88,6 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial public release: FastAPI backend, SQLite storage, BaseCards widgets, GrapesJS Word editor, LLM chat panel, presets, media library, page history.
 
+[0.1.25]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.24...v0.1.25
 [0.1.24]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.23...v0.1.24
 [0.1.23]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.22...v0.1.23
 [0.1.21]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.20...v0.1.21

@@ -9,6 +9,18 @@
  * HTTP goes through window.coreEngine.fetchJson
  * (loaded once by CoreEngine.loadApi()).
  *
+ * NAV_ID:
+ *   Requests may carry ?nav_id=<props.nav_id>. This scopes the
+ *   catalog to a specific nav instance. When omitted, the backend
+ *   resolves the nav from the authenticated user's session
+ *   (first nav by id ASC). So nav_id is optional here — pass it
+ *   only when a specific nav must be targeted.
+ *
+ * Permissions:
+ *   - Guests: read-only catalog view (no toolbar).
+ *   - Authenticated users (including superadmin): full toolbar —
+ *     add, edit, delete, restore.
+ *
  * Template system:
  *   - is_template: page can be used as a base template by other pages.
  *   - template_id: this page inherits layout from that template page;
@@ -45,6 +57,11 @@ export class Pages {
         this.container = container;
         this.props = props;
 
+        // Nav instance this catalog belongs to. Comes from
+        // <body data-nav-id="..."> via CoreEngine. If missing,
+        // the backend resolves it from the session.
+        this.navId = props.nav_id || null;
+
         this.cardsInstance = null;
         this._initialized = false;
         this._initPromise = null;
@@ -68,8 +85,30 @@ export class Pages {
         }
     }
 
+    /**
+     * Build a URL to the pages API with nav_id attached (if known).
+     *
+     * BaseCards appends endpoint paths to `apiBase` as-is, so we
+     * keep `apiBase` clean and put nav_id directly into each
+     * endpoint string. When navId is null, the backend resolves
+     * the nav from the session — no query parameter needed.
+     */
+    _apiUrl(endpoint, extraQuery = '') {
+        const sep = endpoint.includes('?') ? '&' : '?';
+        const navPart = this.navId != null
+            ? `nav_id=${encodeURIComponent(this.navId)}`
+            : '';
+        const extra = extraQuery ? `&${extraQuery}` : '';
+
+        // Avoid trailing "?" / "&" when both parts are empty.
+        if (!navPart && !extra) return endpoint;
+        if (!navPart) return `${endpoint}${sep}${extra}`;
+        if (!extra) return `${endpoint}${sep}${navPart}`;
+        return `${endpoint}${sep}${navPart}${extra}`;
+    }
+
     async _init() {
-        console.log('[Pages] _init() START');
+        console.log('[Pages] _init() START, navId =', this.navId);
         try {
             // Pick up caption helpers from Base (loaded before Pages).
             const base = window.coreEngine?.base;
@@ -85,7 +124,7 @@ export class Pages {
                 `./logo.js?v=${version}`
             );
 
-            const isAdmin = this._isAdmin();
+            const canEdit = this._canEdit();
 
             // If items are not passed in props — load from server
             if (!this.props.items || this.props.items.length === 0) {
@@ -94,7 +133,7 @@ export class Pages {
             }
 
             // Load templates list (for "Наследовать от" dropdown)
-            if (isAdmin) {
+            if (canEdit) {
                 await this._loadTemplates();
             }
 
@@ -109,13 +148,19 @@ export class Pages {
                 error: this.props.error || null,
 
                 // API
+                //
+                // nav_id is put directly into each endpoint, not into
+                // apiBase, because BaseCards appends endpoints to
+                // apiBase and we don't want to guess how it handles
+                // query strings. When navId is null, the backend
+                // resolves the nav from the session.
                 apiBase: '/core/engine/lib/pages',
                 apiEndpoints: {
-                    list: '/list',
-                    create: '/item',
-                    update: '/item/{id}',
-                    delete: '/item/{id}',
-                    restore: '/item/{id}/restore',
+                    list:    this._apiUrl('/list'),
+                    create:  this._apiUrl('/item'),
+                    update:  this._apiUrl('/item/{id}'),
+                    delete:  this._apiUrl('/item/{id}'),
+                    restore: this._apiUrl('/item/{id}/restore'),
                 },
 
                 // ===== FIELDS FOR CREATE/EDIT FORM =====
@@ -174,12 +219,6 @@ export class Pages {
                 ],
 
                 // ===== INITIAL DATA FOR "CREATE" FORM =====
-                // Prefill the title field with "Статья N", where N is max + 1
-                // among existing "Статья X" titles. Called on every "+" click.
-                //
-                // Types match the backend schema:
-                //   is_template → int (0/1)
-                //   template_id → int | null
                 initialData: (cards) => {
                     const nextNum = this._nextArticleNumber(cards.items || []);
                     return {
@@ -195,17 +234,10 @@ export class Pages {
                 // Entity type (used in UI messages)
                 entityType: 'статью',
 
-                // NOTE: `listView.gridColumns` is intentionally NOT set.
-                // The grid is defined in cards.css:
-                //   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))
-                //   grid-auto-rows: 220px
-                // Cards are >= 280px and stretch to fill the row.
-                // An inline grid-template-columns would break the stretch.
-
-                // Buttons — admin only
-                showAddButton: isAdmin,
-                showEditButton: isAdmin,
-                showDeleteButton: isAdmin,
+                // Buttons — any authenticated user
+                showAddButton: canEdit,
+                showEditButton: canEdit,
+                showDeleteButton: canEdit,
                 showTrashButton: false,
                 showSearch: false,
                 showStatusFilter: false,
@@ -247,19 +279,6 @@ export class Pages {
     // PAYLOAD NORMALIZATION
     // ============================================
 
-    /**
-     * Wrap cardsInstance._addItem / _updateItem so that values coming
-     * from BaseCardsEdit are coerced to the types expected by the
-     * backend Pydantic schema:
-     *
-     *   - checkbox        → 0 / 1     (not true / false)
-     *   - select (empty)  → null      (not '')
-     *   - select (number) → Number    (when field.valueType === 'number')
-     *   - number          → Number    (or null when empty)
-     *
-     * Only affects this instance; the original class files are not
-     * modified.
-     */
     _patchPayloadNormalization() {
         const cards = this.cardsInstance;
         if (!cards) return;
@@ -327,7 +346,7 @@ export class Pages {
     async _loadFromServer() {
         console.log('[Pages] _loadFromServer()');
 
-        const url = `/core/engine/lib/pages/list`;
+        const url = this._apiUrl('/core/engine/lib/pages/list');
         try {
             const fetchJson = window.coreEngine?.fetchJson;
             const result = await fetchJson(url);
@@ -347,13 +366,12 @@ export class Pages {
 
     /**
      * Load templates list (pages with is_template=1).
-     * Used to fill the "Наследовать от" dropdown.
      */
     async _loadTemplates() {
         console.log('[Pages] _loadTemplates()');
 
         try {
-            const url = `/core/engine/lib/pages/list?is_template=1`;
+            const url = this._apiUrl('/core/engine/lib/pages/list', 'is_template=1');
             const fetchJson = window.coreEngine?.fetchJson;
             const result = await fetchJson(url);
 
@@ -385,7 +403,6 @@ export class Pages {
               })
             : '';
 
-        // Optional badge for templates
         const templateBadge = item.is_template
             ? `<span class="pages-card-badge">Шаблон</span>`
             : '';
@@ -415,13 +432,26 @@ export class Pages {
     /**
      * Navigate to the article page.
      *
-     * CoreEngine.baseUrl points to the current module URL
-     * (e.g. /core/engine/app). The link is built as:
-     *   {baseUrl}/page/{date}/{time}
-     *   → /core/engine/app/page/20260919/015911
+     * URL form:
+     *   /core/engine/<module>/page/<nav_id>/<date>/<time>
      *
-     * Module segment in URL is required — otherwise route.py
-     * cannot find the config.
+     * Example:
+     *   /core/engine/default/page/2/20260927/084039
+     *
+     * Where:
+     *   - <module>  — the current module (window.coreEngine.baseUrl,
+     *                 e.g. /core/engine/default). Its config lives at
+     *                 app/<module>/<module>.json and
+     *                 app/<module>/page.json.
+     *   - "page"    — the module page (app/<module>/page.json),
+     *                 which renders the "word" component.
+     *   - <nav_id>  — the first numeric segment; _parse_path on the
+     *                 backend puts it into paramsList[0]. Word uses it
+     *                 to scope the page lookup.
+     *   - <date>/<time> — the page's publication date and time.
+     *
+     * When navId is null, we still build the URL — the backend will
+     * resolve the nav from the session. The path shape stays the same.
      */
     _openArticle(id) {
         console.log('[Pages] _openArticle() id =', id, '(type:', typeof id, ')');
@@ -430,29 +460,31 @@ export class Pages {
         const ownItems = this.props.items;
         const items = cardsItems || ownItems || [];
 
-        // Find item with type coercion (id may be number or string)
         const item = items.find(i => String(i.id) === String(id));
 
-        // Base URL — current module, e.g. /core/engine/app
-        const baseUrl = window.coreEngine?.baseUrl || '/core/engine';
-        console.log('[Pages] _openArticle() baseUrl =', baseUrl);
-
         if (!item) {
-            console.warn(`[Pages] item not found, fallback to ${baseUrl}/page/item/${id}`);
-            window.location.href = `${baseUrl}/page/item/${id}`;
+            console.warn('[Pages] item not found');
             return;
         }
-
         if (!item.datetime) {
-            console.warn(`[Pages] item has no datetime, fallback to ${baseUrl}/page/item/${id}`);
-            window.location.href = `${baseUrl}/page/item/${id}`;
+            console.warn('[Pages] item has no datetime');
             return;
         }
 
         const date = this._formatDate(item.datetime);
         const time = this._formatTime(item.datetime);
 
-        const url = `${baseUrl}/page/${date}/${time}`;
+        // Base URL — the current module, e.g. /core/engine/default.
+        const baseUrl = window.coreEngine?.baseUrl || '/core/engine/default';
+
+        // Path: <module>/page/<nav_id>/<date>/<time>
+        // nav_id is optional here; the backend resolves it from the
+        // session when omitted. Keeping it explicit when known makes
+        // the URL self-describing.
+        const url = this.navId != null
+            ? `${baseUrl}/page/${this.navId}/${date}/${time}`
+            : `${baseUrl}/page/${date}/${time}`;
+
         console.log('[Pages] _openArticle() navigating to:', url);
 
         window.location.href = url;
@@ -467,8 +499,7 @@ export class Pages {
 
         await this._loadFromServer();
 
-        // Reload templates too — list might have changed
-        if (this._isAdmin()) {
+        if (this._canEdit()) {
             await this._loadTemplates();
         }
 
@@ -486,9 +517,6 @@ export class Pages {
     // UTILITIES
     // ============================================
 
-    /**
-     * Compute the next article number from existing items.
-     */
     _nextArticleNumber(items) {
         let max = 0;
 
@@ -504,15 +532,51 @@ export class Pages {
         return max + 1;
     }
 
-    _isAdmin() {
+    /**
+     * Whether the current user can edit (add / update / delete / restore)
+     * articles. Any authenticated user qualifies; guests do not.
+     *
+     * The check tries several auth shapes so it works regardless of
+     * how BaseAuth exposes state:
+     *   - auth.isAuth()      → boolean
+     *   - auth.isAuthenticated → boolean
+     *   - auth.getUser()     → user object or null
+     */
+    _canEdit() {
         const auth = window.coreEngine?.auth;
         if (!auth) return false;
+
+        if (typeof auth.isAuth === 'function' && auth.isAuth()) {
+            return true;
+        }
+        if (typeof auth.isAuthenticated === 'boolean' && auth.isAuthenticated) {
+            return true;
+        }
+        if (typeof auth.getUser === 'function') {
+            return auth.getUser() != null;
+        }
+        return false;
+    }
+
+    /**
+     * Whether the current user is a superadmin.
+     * Used only where superadmin-only behaviour is required.
+     *
+     * is_superadmin may come from the backend as bool, int (0/1)
+     * or string ("0"/"1"), so all three are accepted.
+     */
+    _isSuperadmin() {
+        const auth = window.coreEngine?.auth;
+        if (!auth) return false;
+
         if (typeof auth.isSuperadmin === 'function') {
-            return auth.isSuperadmin();
+            return !!auth.isSuperadmin();
         }
         if (typeof auth.getUser === 'function') {
             const user = auth.getUser();
-            return user?.is_superadmin === true;
+            if (!user) return false;
+            const v = user.is_superadmin;
+            return v === true || v === 1 || v === "1";
         }
         return false;
     }
@@ -555,7 +619,6 @@ export class Pages {
     destroy() {
         console.log('[Pages] destroy()');
 
-        // Restore the title that was on screen before Pages opened.
         if (this._restoreCaption) {
             this._restoreCaption(this._savedCaption);
         }

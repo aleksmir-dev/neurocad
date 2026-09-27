@@ -150,6 +150,7 @@ export class LayoutBlocks {
          * Flex shell — full-height page skeleton with a three-column main:
          *
          *   nav      — fixed height (60px)
+         *              brand (left) · title (center) · menu (right)
          *   main     — flex row of three areas:
          *              left   (aside)   — 1 share of free space
          *              center (section) — 3 shares of free space
@@ -163,6 +164,13 @@ export class LayoutBlocks {
          *   - editor canvas: iframe <body> (canvas.css);
          *   - admin preview: inner <div id="..."> (word.css);
          *   - public page:   .core-engine-lib-word-blocks (public.css).
+         *
+         * Nav menu collapses to a burger on narrow screens. This is done
+         * with pure CSS via the checkbox hack:
+         *   <input type="checkbox" id="flex-shell-burger" class="flex-shell__burger-toggle">
+         *   <label for="flex-shell-burger" class="flex-shell__burger">...</label>
+         *   <ul class="flex-shell__menu">...</ul>
+         * No JavaScript. Styles live in editor/blocks/layout.css.
          *
          * Droppable targets:
          *   nav, all three areas and footer carry data-gjs-droppable="true"
@@ -186,15 +194,51 @@ export class LayoutBlocks {
                 + '</svg>',
             content: `
                 <div class="flex-shell" data-block="core-flex-shell">
-                    <nav class="flex-shell__nav"
-                         data-gjs-droppable="true">Nav</nav>
+                    <nav class="flex-shell__nav" data-gjs-droppable="true">
+                        <div class="flex-shell__brand">
+                            <span class="flex-shell__logo" aria-hidden="true">🚀</span>
+                            <span class="flex-shell__brand-name">NeuroCad</span>
+                        </div>
+                        <div class="flex-shell__title">НейроКад</div>
+                        <input type="checkbox"
+                               id="flex-shell-burger"
+                               class="flex-shell__burger-toggle">
+                        <label for="flex-shell-burger"
+                               class="flex-shell__burger"
+                               aria-label="Меню">
+                            <span></span><span></span><span></span>
+                        </label>
+                        <ul class="flex-shell__menu">
+                            <li><a href="#">Главная</a></li>
+                            <li><a href="#">Статьи</a></li>
+                            <li><a href="#">О проекте</a></li>
+                            <li><a href="#">Контакты</a></li>
+                        </ul>
+                    </nav>
                     <main class="flex-shell__main">
                         <aside class="flex-shell__area flex-shell__area--left"
                                data-gjs-droppable="true"
                                data-gjs-draggable=".flex-shell__main"></aside>
                         <section class="flex-shell__area flex-shell__area--center"
                                  data-gjs-droppable="true"
-                                 data-gjs-draggable=".flex-shell__main"><div data-slot="content"></div></section>
+                                 data-gjs-draggable=".flex-shell__main">
+                            <div data-slot="content">
+                                <h2 class="h2">НейроКад</h2>
+                                <p class="text">
+                                    НейроКад — это конструктор сайтов, в котором
+                                    визуальный редактор сочетается с языковыми
+                                    моделями. Вы собираете страницу из готовых
+                                    блоков, а LLM помогает с текстом, вёрсткой
+                                    и изображениями.
+                                </p>
+                                <p class="text">
+                                    Редактор построен на GrapesJS, движок — на
+                                    FastAPI и SQLite. Каждый блок описан как
+                                    отдельный модуль, поэтому библиотеку можно
+                                    расширять, не трогая ядро.
+                                </p>
+                            </div>
+                        </section>
                         <aside class="flex-shell__area flex-shell__area--right"
                                data-gjs-droppable="true"
                                data-gjs-draggable=".flex-shell__main"></aside>

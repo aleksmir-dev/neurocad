@@ -8,21 +8,28 @@ Endpoints:
     POST   /core/engine/lib/base/assets/upload       — upload files
     DELETE /core/engine/lib/base/assets/{filename}   — delete file
 
-All endpoints:
-  - resolve the current module via ?module=<name> or Referer
-  - require superadmin (get_current_user -> is_superadmin)
+Scoping:
+    Each endpoint resolves a nav instance. If ?nav_id=<id> is given,
+    it is used as-is; otherwise the backend falls back to the current
+    user's first nav (by id ASC). Storage lives under media/<nav_id>/
+    (see service.py).
 
-Storage: media/<mod_id>/ (see service.py).
+Permissions:
+    All endpoints require an authenticated user (get_current_user).
+    Guests get 401 from the dependency.
 
 Namespace: CoreEngineLibBaseAssets*
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile
 from fastapi.responses import JSONResponse
-from typing import List
+from typing import List, Optional
+
+from sqlalchemy import select
 
 from neurocad.core.auth.dependencies import get_current_user
-from ..module.service import resolve_module_id
+from neurocad.core.models.nav import Nav
+from neurocad.utils.sqlite import get_db_sqlite
 from .service import CoreEngineLibBaseAssetsService
 
 
@@ -48,16 +55,48 @@ def _is_upload_file(obj) -> bool:
     )
 
 
-async def _require_superadmin(request: Request) -> dict:
+async def _resolve_nav_id(
+    request: Request,
+    explicit_nav_id: Optional[int],
+    current_user: Optional[dict] = None,
+) -> int:
     """
-    Resolve current user and require superadmin.
+    Resolve the nav instance for the current request.
 
-    Raises HTTPException(403) if the user is not a superadmin.
+    Priority:
+      1. Explicit nav_id (from query / path) — used as-is.
+      2. First nav of the current user (ORDER BY id ASC, is_delete=0).
+
+    Raises:
+        401 if there is no authenticated user and no explicit nav_id.
+        404 if the current user has no nav at all.
     """
-    current_user = await get_current_user(request)
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
-    return current_user
+    if explicit_nav_id is not None:
+        return explicit_nav_id
+
+    if current_user is None:
+        current_user = await get_current_user(request)
+
+    user_id = current_user.get("id") if isinstance(current_user, dict) else None
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    async for session in get_db_sqlite():
+        stmt = (
+            select(Nav)
+            .where(Nav.user_id == user_id, Nav.is_delete == False)
+            .order_by(Nav.id.asc())
+            .limit(1)
+        )
+        nav = (await session.execute(stmt)).scalar_one_or_none()
+        if not nav:
+            raise HTTPException(
+                status_code=404,
+                detail="No nav found for the current user",
+            )
+        return nav.id
+
+    raise HTTPException(status_code=500, detail="DB error")
 
 
 # ============================================
@@ -67,18 +106,19 @@ async def _require_superadmin(request: Request) -> dict:
 @router.get("")
 async def list_assets(
     request: Request,
+    nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """
-    List all images from media/<mod_id>/.
+    List all images from media/<nav_id>/.
 
-    Example: /core/engine/lib/base/assets?module=aleksmir.ru
+    Example: /core/engine/lib/base/assets?nav_id=2
+
+    Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
+    resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
 
-    mod_id = await resolve_module_id(request)
-    assets = await CoreEngineLibBaseAssetsService.list_assets(mod_id)
+    assets = await CoreEngineLibBaseAssetsService.list_assets(resolved_nav_id)
 
     return JSONResponse({
         "success": True,
@@ -93,9 +133,10 @@ async def list_assets(
 @router.post("/upload")
 async def upload_assets(
     request: Request,
+    nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
 ) -> JSONResponse:
     """
-    Upload images to media/<mod_id>/.
+    Upload images to media/<nav_id>/.
 
     Notes:
       - Read form ONCE (Starlette does not allow re-reading).
@@ -103,7 +144,9 @@ async def upload_assets(
       - Accept any field name: 'files', 'files[]', 'file', 'upload'.
       - Authorization — manually via get_current_user(request).
 
-    Example: /core/engine/lib/base/assets/upload?module=aleksmir.ru
+    Example: /core/engine/lib/base/assets/upload?nav_id=2
+
+    Any authenticated user.
     """
     # ===== READ FORM ONCE =====
     form = await request.form()
@@ -115,19 +158,24 @@ async def upload_assets(
             all_files.append(value)
 
     # ===== AUTHORIZATION =====
-    await _require_superadmin(request)
+    current_user = await get_current_user(request)
+    if not current_user or not current_user.get("id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # ===== RESOLVE NAV =====
+    resolved_nav_id = await _resolve_nav_id(
+        request, nav_id, current_user=current_user
+    )
 
     if not all_files:
-        raise HTTPException(status_code=400, detail="Файлы не переданы")
-
-    mod_id = await resolve_module_id(request)
+        raise HTTPException(status_code=400, detail="No files provided")
 
     try:
         uploaded = await CoreEngineLibBaseAssetsService.upload_assets(
-            all_files, mod_id
+            all_files, resolved_nav_id
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка загрузки: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Upload error: {str(e)}")
 
     return JSONResponse({
         "success": True,
@@ -143,25 +191,28 @@ async def upload_assets(
 async def delete_asset(
     filename: str,
     request: Request,
+    nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """
-    Delete a single file from media/<mod_id>/.
+    Delete a single file from media/<nav_id>/.
 
     Path traversal protection is inside the service.
 
-    Example: /core/engine/lib/base/assets/photo_a1b2c3d4.png?module=aleksmir.ru
-    """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Недостаточно прав")
+    Example: /core/engine/lib/base/assets/photo_a1b2c3d4.png?nav_id=2
 
-    mod_id = await resolve_module_id(request)
-    deleted = await CoreEngineLibBaseAssetsService.delete_asset(filename, mod_id)
+    Any authenticated user.
+    """
+    resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
+
+    deleted = await CoreEngineLibBaseAssetsService.delete_asset(
+        filename, resolved_nav_id
+    )
 
     if not deleted:
         raise HTTPException(
             status_code=404,
-            detail=f"Файл {filename} не найден",
+            detail=f"File {filename} not found",
         )
 
     return JSONResponse({

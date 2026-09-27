@@ -232,6 +232,166 @@
       "source": "logo",
       "builtin": false,
       "order": 290
+    },
+    {
+      "id": "img-1931845c",
+      "alt": "Интерфейс редактора NeuroCad: блоки страницы, панель настроек и медиатека",
+      "file": "files/img-1931845c.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 300
+    },
+    {
+      "id": "img-a52e8683",
+      "alt": "Главная",
+      "file": "files/img-a52e8683.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 310
+    },
+    {
+      "id": "img-ae9ab083",
+      "alt": "Статья 12",
+      "file": "files/img-ae9ab083.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 320
+    },
+    {
+      "id": "img-ae2da19b",
+      "alt": "Микшерный пульт и студийный мониторинг в аппаратной музыкальной студии",
+      "file": "files/img-ae2da19b.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 330
+    },
+    {
+      "id": "img-30664982",
+      "alt": "Аппаратная комната с микшерным пультом и студийными мониторами",
+      "file": "files/img-30664982.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 340
+    },
+    {
+      "id": "img-7af31907",
+      "alt": "Кабина для записи вокала с микрофоном и акустическими панелями",
+      "file": "files/img-7af31907.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 350
+    },
+    {
+      "id": "img-e1e09ff6",
+      "alt": "Живой зал для записи группы с барабанной установкой",
+      "file": "files/img-e1e09ff6.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 360
+    },
+    {
+      "id": "img-3f147f56",
+      "alt": "Репетиционная комната с гитарными усилителями и комбо",
+      "file": "files/img-3f147f56.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 370
+    },
+    {
+      "id": "img-aecc713d",
+      "alt": "Рабочее место для сведения и мастеринга звука",
+      "file": "files/img-aecc713d.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 380
+    },
+    {
+      "id": "img-12f6ab41",
+      "alt": "Зона отдыха для музыкантов в студии",
+      "file": "files/img-12f6ab41.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 390
+    },
+    {
+      "id": "img-d156c83e",
+      "alt": "Музыкальная студия полного цикла",
+      "file": "files/img-d156c83e.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 400
+    },
+    {
+      "id": "img-29912b4d",
+      "alt": "Барбер за работой в парикмахерской «Точка стрижки»",
+      "file": "files/img-29912b4d.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 410
+    },
+    {
+      "id": "img-189befa6",
+      "alt": "Мужская стрижка с короткими висками",
+      "file": "files/img-189befa6.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 420
+    },
+    {
+      "id": "img-68e51707",
+      "alt": "Оформление бороды в барбершопе",
+      "file": "files/img-68e51707.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 430
+    },
+    {
+      "id": "img-b5e5a2f7",
+      "alt": "Классическая стрижка ножницами",
+      "file": "files/img-b5e5a2f7.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 440
+    },
+    {
+      "id": "img-33f9ca13",
+      "alt": "Укладка волос после стрижки",
+      "file": "files/img-33f9ca13.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 450
+    },
+    {
+      "id": "img-82fd75f0",
+      "alt": "Бритьё опасной бритвой",
+      "file": "files/img-82fd75f0.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 460
+    },
+    {
+      "id": "img-ee683c32",
+      "alt": "Зал парикмахерской «Точка стрижки»",
+      "file": "files/img-ee683c32.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 470
+    },
+    {
+      "id": "img-006b7f62",
+      "alt": "Точка стрижки",
+      "file": "files/img-006b7f62.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 480
+    },
+    {
+      "id": "img-f366f493",
+      "alt": "Точка стрижки",
+      "file": "files/img-f366f493.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 490
     }
   ]
 }

@@ -5,10 +5,11 @@ from typing import Optional, Dict, Any
 
 from sqlalchemy import select
 
-from ...models.base import User
+from ...models.base import User, Module, Nav
 from ..service import CoreAuthService, serialize_datetime
 from ....utils.sqlite import get_db_sqlite
 from ....utils.hash import get_hash_string
+from ....config import settings
 
 
 class CoreAuthRegisterService:
@@ -25,7 +26,7 @@ class CoreAuthRegisterService:
     ) -> Dict[str, Any]:
         """
         Регистрация нового пользователя
-        
+
         Returns:
             Dict с ключами:
             - success: bool
@@ -85,9 +86,73 @@ class CoreAuthRegisterService:
                 "message": "Ошибка при создании пользователя"
             }
 
+        # ===== Auto-create personal Nav for the new user =====
+        #
+        # When USER_AUTO_CREATE_NAV is True, every new user gets
+        # their own "Каталог статей" nav entry pointing at the
+        # built-in 'default' module. This is the object that owns
+        # their pages; without it, the user would have no place
+        # to create content.
+        #
+        # Non-fatal: if the nav cannot be created (e.g. module
+        # missing), the user is still registered — we just log
+        # a warning. Failing hard here would block registration
+        # for a purely cosmetic reason.
+        if getattr(settings, "USER_AUTO_CREATE_NAV", False):
+            try:
+                async for session in get_db_sqlite():
+                    # Find the 'default' module by name (not by id —
+                    # the id is an implementation detail and may differ
+                    # between installations).
+                    mod_stmt = select(Module).where(
+                        Module.name == "default",
+                        Module.is_delete == False,
+                    )
+                    default_mod = (await session.execute(mod_stmt)).scalar_one_or_none()
+
+                    if default_mod is None:
+                        if log:
+                            await log.log_warning(
+                                target="auth",
+                                message=(
+                                    "USER_AUTO_CREATE_NAV is on, but module "
+                                    "'default' not found — nav not created"
+                                ),
+                            )
+                    else:
+                        nav = Nav(
+                            user_id=user["id"],
+                            parent_id=None,
+                            card_type="link",
+                            sort_order=1,
+                            name="Каталог статей",
+                            description=None,
+                            icon=None,
+                            module_id=default_mod.id,
+                            is_delete=False,
+                        )
+                        session.add(nav)
+                        await session.commit()
+
+                        if log:
+                            await log.log_info(
+                                target="auth",
+                                message=(
+                                    f"Auto-created nav id={nav.id} "
+                                    f"for user id={user['id']} "
+                                    f"(module 'default', id={default_mod.id})"
+                                ),
+                            )
+            except Exception as e:
+                if log:
+                    await log.log_warning(
+                        target="auth",
+                        message=f"Failed to auto-create nav for user {user['id']}: {e}",
+                    )
+
         if log:
             await log.log_info(target="auth", message=f"User {login} registered successfully with id={user['id']}")
-        
+
         return {
             "success": True,
             "message": "Регистрация успешна",

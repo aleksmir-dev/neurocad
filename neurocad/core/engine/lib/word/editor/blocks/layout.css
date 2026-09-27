@@ -9,6 +9,13 @@
  * Covers classes from blocks/layout.js:
  *   - .flex-shell                     full-height page skeleton
  *   - .flex-shell__nav                top navigation bar
+ *   - .flex-shell__brand              left zone: logo + brand name
+ *   - .flex-shell__logo               emoji/svg logo in the nav
+ *   - .flex-shell__brand-name         text next to the logo
+ *   - .flex-shell__title              centered title in the nav
+ *   - .flex-shell__menu               right zone: nav links
+ *   - .flex-shell__burger             burger button (label)
+ *   - .flex-shell__burger-toggle      hidden checkbox driving the menu
  *   - .flex-shell__main               three-area flex row
  *   - .flex-shell__area               shared area (flex: 1, scroll)
  *   - .flex-shell__area--left         1 share of free space
@@ -64,10 +71,99 @@
     height: 60px;
     display: flex;
     align-items: center;
+    gap: var(--theme-space-3);
     padding: 0 var(--theme-space-5);
     background: var(--theme-accent);
     color: var(--theme-text-invert);
     box-sizing: border-box;
+    position: relative; /* anchor for the drop-down menu on narrow screens */
+}
+
+/* ===== NAV · BRAND (left) ===== */
+
+.core-engine-lib-word-blocks .flex-shell__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--theme-space-2);
+    flex: 0 0 auto;
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.core-engine-lib-word-blocks .flex-shell__logo {
+    font-size: 22px;
+    line-height: 1;
+    display: inline-block;
+}
+
+.core-engine-lib-word-blocks .flex-shell__brand-name {
+    font-size: var(--theme-font-size-sm, 14px);
+    letter-spacing: 0.02em;
+}
+
+/* ===== NAV · TITLE (center) ===== */
+
+.core-engine-lib-word-blocks .flex-shell__title {
+    flex: 1 1 auto;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* ===== NAV · MENU (right) ===== */
+
+.core-engine-lib-word-blocks .flex-shell__menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--theme-space-4);
+    flex: 0 0 auto;
+}
+
+.core-engine-lib-word-blocks .flex-shell__menu a {
+    text-decoration: none;
+    color: inherit;
+    font-size: var(--theme-font-size-sm, 14px);
+    opacity: 0.85;
+    transition: opacity 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .flex-shell__menu a:hover {
+    opacity: 1;
+}
+
+/* ===== NAV · BURGER (hidden on wide screens) ===== */
+
+.core-engine-lib-word-blocks .flex-shell__burger-toggle {
+    display: none; /* the checkbox itself is always hidden */
+}
+
+.core-engine-lib-word-blocks .flex-shell__burger {
+    display: none; /* shown only on narrow screens */
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    flex: 0 0 auto;
+    margin-left: auto; /* push to the right edge on narrow screens */
+}
+
+.core-engine-lib-word-blocks .flex-shell__burger span {
+    display: block;
+    height: 2px;
+    width: 22px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 /* ===== MAIN — three-area flex row ===== */
@@ -125,15 +221,18 @@
     display: flex;
     align-items: center;
     padding: 0 var(--theme-space-5);
-    background: var(--theme-bg-dark);
+    background: var(--theme-accent);
     color: var(--theme-text-invert);
     font-size: var(--theme-font-size-xs);
     box-sizing: border-box;
 }
 
-/* ===== FLEX SHELL — narrow viewports ===== */
+/* ============================================
+   FLEX SHELL — narrow viewports
+   ============================================ */
 
 @media (max-width: 768px) {
+    /* Main becomes a column, areas stack and scroll independently */
     .core-engine-lib-word-blocks .flex-shell__main {
         flex-direction: column;
     }
@@ -147,5 +246,60 @@
     .core-engine-lib-word-blocks .flex-shell__area--center {
         border-right: none;
         border-bottom: 1px solid var(--theme-border);
+    }
+
+    /* ---- NAV: burger visible, menu becomes a drop-down ---- */
+
+    .core-engine-lib-word-blocks .flex-shell__burger {
+        display: flex;
+    }
+
+    .core-engine-lib-word-blocks .flex-shell__menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        background: var(--theme-accent);
+        color: var(--theme-text-invert);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.25s ease;
+        z-index: 10;
+    }
+
+    .core-engine-lib-word-blocks .flex-shell__menu li {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    }
+
+    .core-engine-lib-word-blocks .flex-shell__menu li:last-child {
+        border-bottom: none;
+    }
+
+    .core-engine-lib-word-blocks .flex-shell__menu a {
+        display: block;
+        padding: var(--theme-space-3) var(--theme-space-5);
+        font-size: var(--theme-font-size-md, 15px);
+        opacity: 1;
+    }
+
+    /* Checked → menu is expanded */
+    .core-engine-lib-word-blocks .flex-shell__burger-toggle:checked ~ .flex-shell__menu {
+        max-height: 320px;
+    }
+
+    /* Checked → burger morphs into a cross */
+    .core-engine-lib-word-blocks .flex-shell__burger-toggle:checked ~ .flex-shell__burger span:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+    }
+    .core-engine-lib-word-blocks .flex-shell__burger-toggle:checked ~ .flex-shell__burger span:nth-child(2) {
+        opacity: 0;
+    }
+    .core-engine-lib-word-blocks .flex-shell__burger-toggle:checked ~ .flex-shell__burger span:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
     }
 }

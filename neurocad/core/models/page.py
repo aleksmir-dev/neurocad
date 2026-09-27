@@ -12,14 +12,13 @@ class Page(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    # Module this page belongs to.
-    # Each module = a site (e.g. "aleksmir.ru", "site01.ru", "pages").
-    # Index is defined in __table_args__ (idx_pages_mod_id).
-    mod_id: Mapped[int] = mapped_column(
+    # Nav instance this page belongs to (a concrete object owned by a user).
+    # Each Nav row = one object of some module ("class"); pages belong
+    # to the object, not to the module/class.
+    nav_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("modules.id"),
+        ForeignKey("nav.id"),
         nullable=False,
-        default=1,
     )
 
     datetime: Mapped[dt] = mapped_column(DateTime, nullable=False)
@@ -59,8 +58,8 @@ class Page(Base):
     rss_yandex_id: Mapped[Optional[str]] = mapped_column(String(64), default=None)
 
     __table_args__ = (
-        Index('idx_pages_mod_id', 'mod_id'),
-        Index('idx_pages_mod_datetime', 'mod_id', 'datetime'),
+        Index('idx_pages_nav_id', 'nav_id'),
+        Index('idx_pages_nav_datetime', 'nav_id', 'datetime'),
         Index('idx_pages_datetime', 'datetime'),
         Index('idx_pages_is_delete', 'is_delete'),
         Index('idx_pages_is_active', 'is_active'),

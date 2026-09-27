@@ -1,5 +1,25 @@
 <!-- app/core/engine/engine.html -->
 
+<!--
+    CoreEngine HTML shell.
+
+    Rendered by /core/engine/<module_path> (see core/engine/route.py).
+    Loads engine.js, which parses the URL, fetches the page config,
+    and builds the UI.
+
+    Runtime hints are passed via <body data-*> attributes:
+      data-module        — module name (first URL segment)
+      data-auth-required — "true" if the page needs authentication
+      data-auth-redirect — optional redirect target after login
+      data-config-path   — explicit config path (overrides the URL-derived one)
+      data-auth-form     — if set, Base opens the given auth form
+                           (login / register / profile / password / restore)
+      data-nav-id        — nav instance this page belongs to
+                           (used by Word / Pages to scope their API calls)
+
+    All hints are read by CoreEngine in its constructor.
+-->
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -8,9 +28,12 @@
     <title>Нейрокад</title>
     <link rel="icon" type="image/x-icon" href="{{ 'core/engine/lib/base/images/favicon.ico'|static }}">
 </head>
-<body data-module="{{ module_name }}" 
-      data-auth-required="{{ auth_required|lower }}" 
-      data-auth-redirect="{{ auth_redirect or '' }}">
+<body data-module="{{ module_name }}"
+      data-auth-required="{{ auth_required|lower }}"
+      data-auth-redirect="{{ auth_redirect or '' }}"
+      data-config-path="{{ config_path or '' }}"
+      data-auth-form="{{ auth_form or '' }}"
+      data-nav-id="{{ nav_id or '' }}">
 
     <div id="engine-root"></div>
     <script src="{{ 'core/engine/engine.js'|static }}"></script>
@@ -19,11 +42,23 @@
             const moduleName = document.body.dataset.module || 'assistent';
             const authRequired = document.body.dataset.authRequired === 'true';
             const authRedirect = document.body.dataset.authRedirect || null;
-            
+            const configPath = document.body.dataset.configPath || null;
+            const authForm = document.body.dataset.authForm || null;
+            const navId = document.body.dataset.navId || null;
+
             const engine = new CoreEngine(moduleName);
             engine.static_version = '{{ static_version }}';
             engine.authRequired = authRequired;
             engine.authRedirect = authRedirect;
+            if (configPath) {
+                engine.configPath = configPath;
+            }
+            if (authForm) {
+                engine.authForm = authForm;
+            }
+            if (navId != null) {
+                engine.navId = navId;
+            }
             window.coreEngine = engine;
         });
     </script>

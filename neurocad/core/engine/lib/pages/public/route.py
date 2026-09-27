@@ -6,6 +6,13 @@ Public pages routes.
 Clean HTML rendering — no admin UI, no JS engine.
 Uses base template + CSS from /static, content from DB.
 
+URL schema:
+    GET /page/<nav_id>/<date>/<time>
+
+Pages are scoped to a nav instance (Page.nav_id). The nav_id is part
+of the URL, so the same <date>/<time> pair can exist in different
+nav instances without collision.
+
 Page CSS is served as a static file under this module's namespace:
     /static/core/engine/lib/pages/public/pages/<id>.css?v=<hash>
 Generated on demand from page.css (see neurocad/utils/css.py).
@@ -37,29 +44,33 @@ from .service import (
 from .schema import CoreEngineLibPagesPublicItem
 
 
-# No prefix — mounted by parent router (lib/route.py)
-router = APIRouter(prefix="/page", tags=["/page"])
+# Mounted by parent router (utils/routes.py) without extra prefix,
+# so the final URL is /page/<nav_id>/<date>/<time>.
+router = APIRouter(prefix="/page", tags=["core/engine/lib/pages/public"])
 
 
 # ============================================
 # PAGE BY DATETIME
 # ============================================
 
-@router.get("/{date}/{time}", response_class=HTMLResponse)
+@router.get("/{nav_id}/{date}/{time}", response_class=HTMLResponse)
 async def render_page_public(
+    nav_id: int,
     date: str,
     time: str,
     request: Request,
 ) -> HTMLResponse:
     """
-    Render a page by date/time.
+    Render a page by nav_id + date/time.
 
     URL:
-        GET /pages/20260919/023649
+        GET /page/<nav_id>/20260919/023649
     """
-    page = await CoreEngineLibPagesPublicService.get_by_datetime(date, time)
+    page = await CoreEngineLibPagesPublicService.get_by_datetime(
+        date, time, nav_id=nav_id
+    )
     if not page:
-        raise HTTPException(status_code=404, detail="Страница не найдена")
+        raise HTTPException(status_code=404, detail="Page not found")
 
     return await _render_public_page(request, page)
 
@@ -130,7 +141,7 @@ async def _render_public_page(
             "content": final_content,
             "datetime": dt_display,
             "logo": page.logo,
-            "module_name": "default",
+            "nav_id": page.nav_id,
             "page_css_url": page_css_url,
         },
     )
@@ -145,7 +156,7 @@ async def _resolve_content(page: CoreEngineLibPagesPublicItem) -> str:
     Build the final HTML for the page.
 
     If page.template_id is set:
-      1. Load the base template page.
+      1. Load the base template page (within the same nav).
       2. Insert page.content into [data-slot="content"] of the template.
       3. Return the combined HTML.
 
@@ -161,8 +172,11 @@ async def _resolve_content(page: CoreEngineLibPagesPublicItem) -> str:
     if not page.template_id:
         return page_content
 
-    # Load template page
-    template = await CoreEngineLibPagesPublicService.get_by_id(page.template_id)
+    # Load template page — same nav as the page itself, so a template
+    # cannot cross nav boundaries.
+    template = await CoreEngineLibPagesPublicService.get_by_id(
+        page.template_id, nav_id=page.nav_id
+    )
     if not template or not template.content:
         return page_content
 

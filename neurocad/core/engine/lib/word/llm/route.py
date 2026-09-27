@@ -27,9 +27,13 @@ The old HTTP endpoint POST /chat/{page_id} was removed — it did
 the whole plan → fill → effects flow, which is now handled by the
 agent dispatcher in ws.py.
 
-All HTTP endpoints except GET-list, GET-one and GET-history require
-superadmin. The WebSocket endpoint also requires superadmin (checked
-inside the handler).
+Permissions:
+  - Read endpoints (GET list, GET one, GET history, GET active run)
+    are public.
+  - Write endpoints (create / update / delete / restore preset,
+    upload / delete thumbnail, clear chat history) require any
+    authenticated user.
+  - The WebSocket endpoint checks authentication inside its handler.
 
 WebSocket handler binding
 -------------------------
@@ -110,10 +114,7 @@ async def create_preset(
     data: CoreEngineLibWordLlmPresetCreate,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Create preset. Superadmin only."""
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Forbidden")
-
+    """Create preset. Any authenticated user."""
     item = await CoreEngineLibWordLlmService.create_preset(
         name=data.name,
         description=data.description,
@@ -140,10 +141,7 @@ async def update_preset(
     data: CoreEngineLibWordLlmPresetUpdate,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Update preset. Superadmin only."""
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Forbidden")
-
+    """Update preset. Any authenticated user."""
     item = await CoreEngineLibWordLlmService.update_preset(
         preset_id=preset_id,
         name=data.name,
@@ -170,10 +168,7 @@ async def delete_preset(
     preset_id: int,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Soft delete preset. Superadmin only."""
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Forbidden")
-
+    """Soft delete preset. Any authenticated user."""
     result = await CoreEngineLibWordLlmService.delete_preset(preset_id)
 
     if not result:
@@ -194,10 +189,7 @@ async def restore_preset(
     preset_id: int,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Restore deleted preset. Superadmin only."""
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Forbidden")
-
+    """Restore deleted preset. Any authenticated user."""
     result = await CoreEngineLibWordLlmService.restore_preset(preset_id)
 
     if not result:
@@ -219,10 +211,7 @@ async def upload_thumbnail(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Upload PNG thumbnail for preset. Superadmin only."""
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Forbidden")
-
+    """Upload PNG thumbnail for preset. Any authenticated user."""
     try:
         result = await CoreEngineLibWordLlmService.upload_thumbnail(preset_id, file)
     except ValueError as e:
@@ -248,10 +237,7 @@ async def delete_thumbnail(
     preset_id: int,
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Delete preset thumbnail. Superadmin only."""
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Forbidden")
-
+    """Delete preset thumbnail. Any authenticated user."""
     result = await CoreEngineLibWordLlmService.delete_thumbnail(preset_id)
 
     if not result:
@@ -293,11 +279,8 @@ async def clear_chat_history(
     """
     Clear chat history for a page.
 
-    Deletes all rows from page_chat for this page. Superadmin only.
+    Deletes all rows from page_chat for this page. Any authenticated user.
     """
-    if not current_user.get("is_superadmin", False):
-        raise HTTPException(status_code=403, detail="Forbidden")
-
     deleted = await CoreEngineLibWordLlmService.clear_chat_history(page_id)
 
     return JSONResponse({

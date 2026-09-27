@@ -1,10 +1,15 @@
-// neurocad/core/engine/lib/word/actions.js
+// app/core/engine/lib/word/actions.js
 
 /**
  * Word actions — high-level operations.
  * All utilities via word._utils.
  *
  * Uses window.coreEngine.fetchJson — loaded once by CoreEngine.loadApi().
+ *
+ * Scoping:
+ *   Every word API request carries ?nav_id=<id> from word._qs
+ *   (see word.js constructor). The single exception is the public
+ *   page URL — there nav_id goes into the path, not the query.
  */
 
 /**
@@ -57,6 +62,12 @@ export function goBack(word) {
 
 /**
  * Open public version of the page in a new tab.
+ *
+ * URL schema:
+ *   /page/<nav_id>/<date>/<time>
+ *
+ * nav_id comes from word.navId (injected via props). If it's missing,
+ * we cannot build a valid public URL — bail out instead of guessing.
  */
 export function openPublicPage(word) {
     console.log('[Word] Opening public page');
@@ -64,6 +75,11 @@ export function openPublicPage(word) {
     const datetime = word.pageData?.datetime;
     if (!datetime) {
         console.warn('[Word] No datetime — cannot open public page');
+        return;
+    }
+
+    if (word.navId == null) {
+        console.warn('[Word] No nav_id — cannot build public URL');
         return;
     }
 
@@ -75,7 +91,7 @@ export function openPublicPage(word) {
         return;
     }
 
-    const url = `/page/${date}/${time}`;
+    const url = `/page/${word.navId}/${date}/${time}`;
     console.log('[Word] Public URL:', url);
 
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -167,7 +183,7 @@ export async function autoSaveContent(word, data) {
 /**
  * List snapshots for the current page (metadata only, no html/content_json/css).
  *
- * GET /core/engine/lib/word/{page_id}/history?module=<name>
+ * GET /core/engine/lib/word/{page_id}/history?nav_id=<id>
  *
  * @param {Object} word — Word instance
  * @returns {Promise<Array>} — [{ id, action, note, created_at }, ...]
@@ -189,7 +205,7 @@ export async function listHistory(word) {
 /**
  * Get one full snapshot (html + content_json + css).
  *
- * GET /core/engine/lib/word/{page_id}/history/{hist_id}?module=<name>
+ * GET /core/engine/lib/word/{page_id}/history/{hist_id}?nav_id=<id>
  *
  * @param {Object} word — Word instance
  * @param {number} histId — snapshot id
@@ -212,7 +228,7 @@ export async function getHistoryItem(word, histId) {
 /**
  * Roll the page back to the given snapshot.
  *
- * POST /core/engine/lib/word/{page_id}/rollback/{hist_id}?module=<name>
+ * POST /core/engine/lib/word/{page_id}/rollback/{hist_id}?nav_id=<id>
  *
  * Also updates local pageData with the rolled-back values, so the
  * next render (article view / editor) uses the restored state.

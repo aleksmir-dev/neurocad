@@ -6,6 +6,11 @@ Public pages service.
 Read-only access to Page records for public HTML rendering.
 No admin fields (content_json, is_active, is_delete, etc.).
 
+Scoping:
+  Pages are scoped to a nav instance (Page.nav_id). A nav is the
+  object that owns pages; the module behind it is irrelevant here —
+  the public page just needs "all active pages of this nav".
+
 CSS handling:
   - Page.css is the source of truth for the page's content CSS.
     It is assembled at save time by word/css_builder.py:
@@ -31,14 +36,9 @@ from typing import Optional
 from sqlalchemy import select
 
 from .....models.base import Page
-from .....models.module import Module
 from ......utils.sqlite import get_db_sqlite
 from ......utils.css import split_style_from_html
 from .schema import CoreEngineLibPagesPublicItem
-
-
-# Default module name for public pages
-DEFAULT_MODULE = "default"
 
 
 # ============================================
@@ -71,27 +71,19 @@ class CoreEngineLibPagesPublicService:
 
     @staticmethod
     async def get_main_page(
-        module_name: str = DEFAULT_MODULE,
+        nav_id: int,
     ) -> Optional[CoreEngineLibPagesPublicItem]:
         """
-        Get the main page of a module.
+        Get the main page of a nav instance.
 
         Currently: the first active page (ORDER BY id ASC).
-        Later: configurable via is_main flag or module.json.
+        Later: configurable via is_main flag.
         """
         async for session in get_db_sqlite():
-            # Resolve module
-            module = await CoreEngineLibPagesPublicService._resolve_module(
-                session, module_name
-            )
-            if not module:
-                return None
-
-            # Find first active page
             stmt = (
                 select(Page)
                 .where(
-                    Page.mod_id == module.id,
+                    Page.nav_id == nav_id,
                     Page.is_delete == 0,
                     Page.is_active == 1,
                 )
@@ -115,10 +107,10 @@ class CoreEngineLibPagesPublicService:
     async def get_by_datetime(
         date: str,
         time: str,
-        module_name: str = DEFAULT_MODULE,
+        nav_id: int,
     ) -> Optional[CoreEngineLibPagesPublicItem]:
         """
-        Find page by date/time within a module.
+        Find page by date/time within a nav instance.
 
         date = "20260914" (YYYYMMDD)
         time = "153910"   (HHMMSS)
@@ -136,16 +128,8 @@ class CoreEngineLibPagesPublicService:
         dt_end = dt_start + timedelta(seconds=1)
 
         async for session in get_db_sqlite():
-            # Resolve module
-            module = await CoreEngineLibPagesPublicService._resolve_module(
-                session, module_name
-            )
-            if not module:
-                return None
-
-            # Find page
             stmt = select(Page).where(
-                Page.mod_id == module.id,
+                Page.nav_id == nav_id,
                 Page.datetime >= dt_start,
                 Page.datetime < dt_end,
                 Page.is_delete == 0,
@@ -167,26 +151,18 @@ class CoreEngineLibPagesPublicService:
     @staticmethod
     async def get_by_id(
         page_id: int,
-        module_name: str = DEFAULT_MODULE,
+        nav_id: int,
     ) -> Optional[CoreEngineLibPagesPublicItem]:
         """
-        Find page by ID within a module.
+        Find page by ID within a nav instance.
 
         Used to load the base template page when rendering a child page.
         Only returns active, non-deleted pages.
         """
         async for session in get_db_sqlite():
-            # Resolve module
-            module = await CoreEngineLibPagesPublicService._resolve_module(
-                session, module_name
-            )
-            if not module:
-                return None
-
-            # Find page
             stmt = select(Page).where(
                 Page.id == page_id,
-                Page.mod_id == module.id,
+                Page.nav_id == nav_id,
                 Page.is_delete == 0,
                 Page.is_active == 1,
             )
@@ -202,16 +178,6 @@ class CoreEngineLibPagesPublicService:
     # ========================================
     # HELPERS
     # ========================================
-
-    @staticmethod
-    async def _resolve_module(session, module_name: str) -> Optional[Module]:
-        """Resolve Module by name (active, non-deleted)."""
-        stmt = select(Module).where(
-            Module.name == module_name,
-            Module.is_delete == False,
-        )
-        result = await session.execute(stmt)
-        return result.scalar_one_or_none()
 
     @staticmethod
     def _page_to_public(page: Page) -> CoreEngineLibPagesPublicItem:
@@ -237,7 +203,7 @@ class CoreEngineLibPagesPublicService:
 
         return CoreEngineLibPagesPublicItem(
             id=page.id,
-            mod_id=page.mod_id,
+            nav_id=page.nav_id,
             datetime=page.datetime,
             title=page.title,
             description=page.description,
