@@ -9,6 +9,7 @@ Endpoints:
   GET    /images                — list all images (list response)
   GET    /images/<id>           — read one image's metadata
   POST   /images                — create a new image
+  POST   /images/generate       — generate a new image from a prompt
   DELETE /images/<id>           — delete an image
 """
 
@@ -79,6 +80,44 @@ class CoreEngineLibWordImagesCreateResponse(BaseModel):
     success: bool = True
     data: dict
     # {"id": "img-a1b2c3d4", "file": "files/img-a1b2c3d4.svg", "bytes": 1234}
+
+
+# ============================================
+# GENERATE IMAGE (POST /images/generate)
+# ============================================
+
+class CoreEngineLibWordImagesGenerateRequest(BaseModel):
+    """
+    Request body for POST /images/generate.
+
+    `prompt` is the free-form prompt sent to the LLM (typically the
+    page title plus a short description). `alt` is stored on the image
+    record for future reference. `source` distinguishes logo /
+    illustration / other.
+    """
+    prompt: str = Field(
+        ...,
+        min_length=1,
+        max_length=2000,
+        description="Free-form prompt for the LLM.",
+    )
+    alt: str = Field(
+        "",
+        max_length=200,
+        description="Alt text / human description.",
+    )
+    source: str = Field(
+        "logo",
+        description="'logo' | 'illustration' | ...",
+    )
+
+
+class CoreEngineLibWordImagesGenerateResponse(BaseModel):
+    """Response for POST /images/generate."""
+    success: bool = True
+    data: dict
+    # {"id": "img-a1b2c3d4", "file": "files/img-a1b2c3d4.svg",
+    #  "url": "/static/.../files/img-a1b2c3d4.svg", "bytes": 1234}
 
 
 # ============================================

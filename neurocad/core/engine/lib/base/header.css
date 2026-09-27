@@ -32,6 +32,12 @@
     white-space: nowrap;
     flex-shrink: 0;
     letter-spacing: -0.02em;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.core-engine-lib-base-logo:hover {
+    opacity: 0.85;
 }
 
 .core-engine-lib-base-title {

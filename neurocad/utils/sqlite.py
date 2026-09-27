@@ -90,14 +90,53 @@ def _log_sync(log, level: str, message: str) -> None:
         pass
 
 
+# ============================================
+# FRESH-DB CHECK
+# ============================================
+
+async def _is_db_fresh() -> bool:
+    """
+    Return True if the DB has no users yet.
+
+    "No users" is our marker for "clean DB": a freshly created DB
+    has an empty `users` table, and demo data (if any) can be
+    imported into it.
+
+    If the table does not exist yet (very first run, migrations
+    not applied), we treat this as "not fresh" — the importer
+    must not run before the schema is in place anyway.
+
+    Any user — superadmin, regular, whatever — is enough to
+    consider the DB "in use". Demo data must never be mixed
+    with real data.
+    """
+    try:
+        from ..core.models.base import User
+
+        async with AsyncSessionLocal() as session:
+            stmt = select(User.id).limit(1)
+            result = await session.execute(stmt)
+            return result.scalar_one_or_none() is None
+    except Exception:
+        # Table `users` not there yet, DB unreachable, etc.
+        # Conservative default: not fresh → skip demo import.
+        return False
+
+
+# ============================================
+# INIT
+# ============================================
+
 async def init_sqlite(log=None):
     """
     Initialize SQLite:
       1. create working directories,
       2. check connection,
       3. apply migrations,
-      4. create superadmin,
-      5. register modules from mod/.
+      4. import demo data — only if the DB is fresh (no users yet)
+         AND `base/demo/` exists in the working directory,
+      5. create superadmin,
+      6. register modules from mod/.
 
     log — app.state.log from lifespan. If None — silent.
     """
@@ -117,10 +156,35 @@ async def init_sqlite(log=None):
         from .migrations import apply_migrations
         apply_migrations()
 
-        # 4. Superadmin (auth bootstrap)
+        # 4. Demo data — only if the DB is fresh.
+        #
+        #    "Fresh" means: no users yet. If the DB already has
+        #    any user (superadmin or regular), it is considered
+        #    "in use" and demo data must NOT be mixed into it.
+        #
+        #    The importer itself also checks that `base/demo/`
+        #    exists — so a user who deleted that folder gets a
+        #    clean DB without demo content.
+        #
+        #    Non-fatal: import errors do not block startup.
+        try:
+            if await _is_db_fresh():
+                from .dbsqlite.demo_import import import_demo
+                await import_demo(log=log)
+            else:
+                _log_sync(
+                    log,
+                    "info",
+                    "SQLite: DB is not fresh (users exist) — "
+                    "demo import skipped",
+                )
+        except Exception as e:
+            _log_sync(log, "warning", f"demo import failed: {e}")
+
+        # 5. Superadmin (auth bootstrap)
         await ensure_superadmin(log=log)
 
-        # 5. Modules (engine bootstrap).
+        # 6. Modules (engine bootstrap).
         # NOTE: temporary for 0.1.x — will be replaced by web UI in 0.2.x.
         # Local import: utils/ must not depend on core/engine at module level.
         from ..core.engine.modules import ensure_modules
@@ -144,6 +208,10 @@ async def close_sqlite(log=None):
         if log is not None:
             await log.log_error(target="sqlite", message=f"close error: {e}")
 
+
+# ============================================
+# SUPERADMIN
+# ============================================
 
 async def ensure_superadmin(log=None):
     """

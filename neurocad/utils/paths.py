@@ -2,6 +2,7 @@
 
 """Package paths and user working directory helpers."""
 
+import json
 import shutil
 from pathlib import Path
 from importlib.resources import files
@@ -41,9 +42,26 @@ def package_static_dir() -> Path:
     return package_dir() / "static"
 
 
+def package_demo_dir() -> Path:
+    """
+    Package demo dir (neurocad/base/demo/).
+
+    Injected into the wheel from `base/demo/` in the repo via
+    pyproject.toml → [tool.hatch.build.targets.wheel.force-include]:
+        "base/demo" = "neurocad/base/demo"
+    """
+    return package_dir() / "base" / "demo"
+
+
 # ============================================
 # USER PATHS (relative to cwd)
 # ============================================
+
+def user_base_dir() -> Path:
+    """User base dir (relative to cwd) — where neurocad.db lives."""
+    from ..config import settings
+    return Path(settings.BASE_PATH)
+
 
 def user_alembic_dir() -> Path:
     """User migrations directory (relative to cwd)."""
@@ -70,6 +88,24 @@ def user_static_dir() -> Path:
     return Path("static")
 
 
+def user_demo_dir() -> Path:
+    """
+    User demo dir — `base/demo/` inside cwd, next to neurocad.db.
+
+    The manifest.json inside this folder carries the `applied` flag:
+      - applied: false → demo has never been imported into this project;
+      - applied: true  → demo has been imported once; do not re-import.
+
+    The user controls demo data by this folder:
+      - keep it        → demo stays applied (applied: true);
+      - delete the DB  → clean DB, demo will NOT be re-imported
+                         (applied is still true);
+      - delete base/demo/ → demo will be re-copied from the package
+                            and re-imported on the next run.
+    """
+    return user_base_dir() / "demo"
+
+
 # ============================================
 # ENSURE WORKDIRS
 # ============================================
@@ -84,9 +120,19 @@ def ensure_workdirs():
       - app/ — with copy of mod/* (if empty)
       - core/engine/ — user overrides dir
       - alembic/versions/ — user migrations
+      - base/demo/ — copy of package demo, unless applied:true or DB exists
       - main.py — entry point (if missing)
-      - .env — settings (if missing)
+      - .env — settings (if missing, copied from package .env.example)
       - .gitignore — project gitignore (created or synced)
+
+    Demo copy rule (see `_copy_demo_if_needed`):
+      Copy package demo (neurocad/base/demo) to cwd/base/demo only when
+      BOTH:
+        - the DB does not exist yet (this is the first run), and
+        - cwd/base/demo does not exist yet, and
+        - cwd/base/demo/manifest.json is missing or has applied:false.
+
+      Any of those being false → no copy.
     """
     from ..config import settings
 
@@ -110,7 +156,10 @@ def ensure_workdirs():
     versions_dir = user_alembic_versions_dir()
     versions_dir.mkdir(parents=True, exist_ok=True)
 
-    # ===== 4. main.py — if missing =====
+    # ===== 4. base/demo/ — copy from package if not applied yet =====
+    _copy_demo_if_needed()
+
+    # ===== 5. main.py — if missing =====
     main_py = Path("main.py")
     if not main_py.exists():
         main_py.write_text(
@@ -120,76 +169,98 @@ def ensure_workdirs():
             encoding="utf-8",
         )
 
-    # ===== 5. .env — if missing =====
+    # ===== 6. .env — if missing =====
+    # Template lives in the package as neurocad/.env.example
+    # (injected via pyproject.toml → force-include).
+    # Single source of truth: edit the template, not this file.
     env = Path(".env")
     if not env.exists():
-        env.write_text(
-            "# NeuroCad .env\n"
-            "# All settings are optional. Defaults are in config.py.\n"
-            "\n"
-            "# ============================================\n"
-            "# APPLICATION\n"
-            "# ============================================\n"
-            "\n"
-            "# Application host (default: 127.0.0.1)\n"
-            "APP_HOST=127.0.0.1\n"
-            "\n"
-            "# Application port (default: 8000)\n"
-            "APP_PORT=8000\n"
-            "\n"
-            "# Debug mode (default: True)\n"
-            "DEBUG=True\n"
-            "\n"
-            "# ============================================\n"
-            "# DATABASE\n"
-            "# ============================================\n"
-            "\n"
-            "# Async SQLite URL (used by the app)\n"
-            "SQLITE_URL=sqlite+aiosqlite:///base/neurocad.db\n"
-            "\n"
-            "# Sync SQLite URL (used by Alembic migrations)\n"
-            "SQLITE_URL_SYNC=sqlite:///base/neurocad.db\n"
-            "\n"
-            "# ============================================\n"
-            "# SECURITY\n"
-            "# ============================================\n"
-            "\n"
-            "# Secret key for JWT tokens. CHANGE IN PRODUCTION!\n"
-            "SECRET_KEY=change-me-in-production\n"
-            "\n"
-            "# JWT algorithm (default: HS256)\n"
-            "ALGORITHM=HS256\n"
-            "\n"
-            "# Access token lifetime in minutes (default: 1440 = 24 hours)\n"
-            "ACCESS_TOKEN_EXPIRE_MINUTES=1440\n"
-            "\n"
-            "# ============================================\n"
-            "# SUPERADMIN\n"
-            "# ============================================\n"
-            "\n"
-            "# Default superadmin login (created on first run)\n"
-            "SUPERADMIN_LOGIN=admin\n"
-            "\n"
-            "# Default superadmin password (created on first run)\n"
-            "SUPERADMIN_PASSWORD=admin\n"
-            "\n"
-            "# ============================================\n"
-            "# LLM\n"
-            "# ============================================\n"
-            "\n"
-            "# Active LLM provider: deepseek | yandex | gigachat | gemini\n"
-            "LLM_PROVIDER=deepseek\n"
-            "\n"
-            "# DeepSeek API key (get it at https://platform.deepseek.com)\n"
-            "DEEPSEEK_API_KEY=\n"
-            "\n"
-            "# DeepSeek model name (default: deepseek-flash)\n"
-            "DEEPSEEK_MODEL=deepseek-flash\n",
-            encoding="utf-8",
-        )
+        try:
+            env_example = package_dir() / ".env.example"
+            if env_example.is_file():
+                shutil.copy(env_example, env)
+                print(f"[neurocad] .env created from template: {env}")
+            else:
+                print("[neurocad] .env.example not found in package — .env not created")
+        except Exception as e:
+            print(f"[neurocad] failed to create .env: {e}")
 
-    # ===== 6. .gitignore — create or sync =====
+    # ===== 7. .gitignore — create or sync =====
     ensure_gitignore()
+
+
+# ============================================
+# DEMO COPY
+# ============================================
+
+def _read_applied(demo_dir: Path) -> bool:
+    """
+    Read the `applied` flag from <demo_dir>/manifest.json.
+
+    Returns False if the file is missing, unreadable, or has no
+    `applied` field. That means "treat as not yet applied" — safe
+    default: we would rather re-import than silently skip demo on
+    the first run.
+    """
+    manifest = demo_dir / "manifest.json"
+    if not manifest.is_file():
+        return False
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+    except Exception:
+        return False
+    return bool(data.get("applied", False))
+
+
+def _copy_demo_if_needed():
+    """
+    Copy `base/demo/` from the package into cwd/base/demo/ — but only
+    when demo has never been applied.
+
+    Skip the copy if ANY of these is true:
+      - the DB exists (not the first run);
+      - cwd/base/demo exists AND its manifest has applied:true
+        (demo already imported once; respect the user's state);
+      - the package has no demo.
+
+    Otherwise — copy.
+
+    Notes:
+      - If cwd/base/demo exists with applied:false (user copied an
+        unapplied demo folder by hand, or the very first copy) — we
+        still don't touch it: the folder is already there, the
+        importer will read it and set applied:true.
+      - If cwd/base/demo exists with applied:true — never copy.
+      - Deleting cwd/base/demo is the user's signal "I want demo
+        again": the next run will copy it from the package and
+        re-import (as long as the DB does not exist or the applied
+        flag was reset by the deletion).
+    """
+    src = package_demo_dir()
+    dst = user_demo_dir()
+    db_file = user_base_dir() / "neurocad.db"
+
+    if not src.is_dir():
+        # This build ships without demo data — nothing to copy.
+        return
+
+    if dst.exists():
+        # Folder already there. If applied:true — definitely skip.
+        # If applied:false — also skip: the importer will pick it up.
+        return
+
+    if db_file.exists():
+        # Not the first run: the DB exists, so we are past the
+        # "first copy" moment. Respect the current state: base/demo
+        # is gone → the user deliberately removed it.
+        return
+
+    try:
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(src, dst)
+        print(f"[neurocad] demo copied to: {dst}")
+    except Exception as e:
+        print(f"[neurocad] failed to copy demo: {e}")
 
 
 # ============================================

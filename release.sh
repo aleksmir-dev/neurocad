@@ -10,17 +10,17 @@
 
 set -e  # stop on any error
 
-VERSION="0.1.21"
+VERSION="0.1.22"
 TAG="v${VERSION}"
 
 # Папки, которые не должны лежать в корне проекта.
 # Скрипт НЕ удаляет их "вслепую" — только после подтверждения.
 UNWANTED_DIRS=(
     "app"
-    "base"
     "core"
     "media"
-    "mid"
+    "log"
+    "mig"
     "static"
 )
 
@@ -77,11 +77,68 @@ if [ "${REMOVED_ANY}" -eq 0 ]; then
 fi
 
 echo ""
+echo "=== 0b. Sanity check: .env.example ==="
+if [ ! -f ".env.example" ]; then
+    echo "WARNING: .env.example not found in project root"
+    echo "         It will not be included in the distribution."
+fi
+
+echo ""
+echo "=== 0c. Sanity check: source DB ==="
+SRC_DB="test/base/neurocad.db"
+if [ ! -f "${SRC_DB}" ]; then
+    echo "WARNING: source DB not found: ${SRC_DB}"
+    echo "         demo export will create an empty base/demo/"
+fi
+
+echo ""
+echo "=== 0d. Export demo data from test DB ==="
+DEMO_OUT="base/demo"
+
+if [ -f "${SRC_DB}" ]; then
+    python -m neurocad.utils.dbsqlite.demo_export \
+        --db "${SRC_DB}" \
+        --out "${DEMO_OUT}"
+else
+    echo "Source DB not found — creating empty demo folder"
+    mkdir -p "${DEMO_OUT}"
+    cat > "${DEMO_OUT}/manifest.json" << 'EOF'
+{
+  "version": 1,
+  "applied": false,
+  "tables": []
+}
+EOF
+fi
+
+echo ""
 echo "=== 1. Clean old dist ==="
 rm -rf dist/
 
 echo "=== 2. Build package ==="
 python -m build
+
+echo "=== 2b. Inspect wheel contents ==="
+WHEEL=$(ls dist/*.whl 2>/dev/null | head -n 1)
+if [ -n "${WHEEL}" ]; then
+    echo "Wheel: ${WHEEL}"
+    echo ""
+    echo "Looking for .env.example ..."
+    python -m zipfile -l "${WHEEL}" | grep "env\.example" || \
+        echo "  (MISSING .env.example — check force-include)"
+    echo ""
+    echo "Looking for neurocad/base/demo/ ..."
+    python -m zipfile -l "${WHEEL}" | grep "neurocad/base/demo/" | head -n 10 || \
+        echo "  (MISSING neurocad/base/demo/ — check force-include)"
+    echo ""
+    echo "Looking for editor/images/files/*.svg ..."
+    python -m zipfile -l "${WHEEL}" | grep "editor/images/files/.*\.svg" | head -n 5 || \
+        echo "  (no SVG found — check exclude/force-include)"
+    echo ""
+    echo "Looking for the demo_import module ..."
+    python -m zipfile -l "${WHEEL}" | grep "dbsqlite/demo_import" || \
+        echo "  (MISSING dbsqlite/demo_import — check package tree)"
+fi
 
 echo "=== 3. Upload to PyPI (token will be requested) ==="
 python -m twine upload dist/*

@@ -32,7 +32,25 @@ export class BaseCards {
         this.statuses = props.statuses || {};
         this.contextId = props.contextId || null;
         this.contextField = props.contextField || 'plan_id';
-        this.gridColumns = props.listView?.gridColumns || 'repeat(auto-fill, minmax(180px, 180px))';
+
+        // Grid template for the cards grid.
+        //
+        // `gridColumns` may be provided by the consumer through
+        // `props.listView.gridColumns`. It is applied as an INLINE
+        // style on the grid element — which overrides whatever is
+        // defined in cards.css.
+        //
+        // IMPORTANT: do NOT hardcode a fallback here. Previously this
+        // line was
+        //     props.listView?.gridColumns || 'repeat(auto-fill, minmax(180px, 180px))'
+        // — which meant that any consumer who did not pass
+        // `gridColumns` got a 180×180 inline grid, and there was no
+        // way to override it from CSS. Now, if the consumer does not
+        // pass a value, the inline style is not applied at all, and
+        // the grid layout comes from cards.css
+        // (grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))).
+        this.gridColumns = props.listView?.gridColumns || '';
+
         this.widgetTitle = props.widgetTitle || this.title;
         this.widgetStatus = props.widgetStatus || 'Готово';
 
@@ -339,7 +357,7 @@ export class BaseCards {
     openEditForm(id) {
         const item = this.items.find(i => i.id === id);
         if (!item) {
-            console.warn('[BaseCards] Item not found:', id);
+            console.warn('[BaseCards] item not found:', id);
             return;
         }
 

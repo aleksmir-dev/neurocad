@@ -13,12 +13,32 @@
  *
  * Layout for media fields:
  *   .edit-group--media
- *     ├── actions (Выбрать / Очистить)  ← LEFT
- *     └── preview (img or placeholder)  ← RIGHT
+ *     ├── actions (Выбрать / [extraButtons] / Очистить)  ← LEFT
+ *     └── preview (img or placeholder)                   ← RIGHT
  *   → click "Выбрать" opens BaseAssets picker.
  *   → selected src is stored in this.values[key].
  *
  * Other field types keep the standard label-above-input layout.
+ *
+ * Extra media buttons
+ * -------------------
+ * A media field may declare `extraButtons: [{ label, className,
+ * onClick }]`. These buttons are rendered BETWEEN "Выбрать" and
+ * "Очистить" (in the order given). `onClick` receives a context:
+ *
+ *     {
+ *       field,          — the field descriptor
+ *       getValue,       — () => current value of THIS field
+ *       getAllValues,   — () => snapshot of ALL current form values
+ *       setValue,       — (src) => update value + hidden input + preview
+ *       showError,      — (msg) => show an error under this field
+ *       clearError,     — () => clear the error under this field
+ *       button,         — the DOM node (for busy state, disable, ...)
+ *     }
+ *
+ * This is the ONLY extension point for media fields. BaseCardsEdit
+ * itself knows nothing about logos, LLM, or HTTP — callers provide
+ * the extra behaviour through this list.
  */
 export class BaseCardsEdit {
     constructor(props = {}) {
@@ -262,6 +282,7 @@ export class BaseCardsEdit {
      *     <div class="edit-media">
      *       <div class="edit-media-actions">
      *         <button class="edit-media-btn edit-media-btn-pick">Выбрать</button>
+     *         [... extraButtons ...]
      *         <button class="edit-media-btn edit-media-btn-clear">Очистить</button>
      *       </div>
      *       <div class="edit-media-preview" data-js="preview-<key>">
@@ -275,6 +296,10 @@ export class BaseCardsEdit {
      * Actions on the LEFT, preview on the RIGHT.
      * Click "Выбрать" opens BaseAssets picker (media library).
      * Selected src is written to hidden input and shown in preview.
+     *
+     * `field.extraButtons` — optional array of additional buttons,
+     * rendered between "Выбрать" and "Очистить". See the module
+     * docstring for the onClick context.
      */
     _createMediaGroup(field) {
         const group = document.createElement('div');
@@ -310,6 +335,40 @@ export class BaseCardsEdit {
             this._openMediaPicker(field);
         });
         actions.appendChild(pickBtn);
+
+        // ---- Extra buttons (optional) ----
+        // Rendered between "Выбрать" and "Очистить", in order.
+        // Each entry is { label, className, onClick }.
+        // onClick receives a context object — see the module
+        // docstring for the full shape.
+        if (Array.isArray(field.extraButtons)) {
+            for (const btnSpec of field.extraButtons) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'edit-media-btn ' + (btnSpec.className || '');
+                btn.textContent = btnSpec.label || 'Действие';
+
+                btn.addEventListener('click', async () => {
+                    if (typeof btnSpec.onClick !== 'function') return;
+                    try {
+                        await btnSpec.onClick({
+                            field,
+                            getValue: () => this.values[field.key],
+                            getAllValues: () => ({ ...this.values }),
+                            setValue: (v) => this._setMediaValue(field, v),
+                            showError: (msg) => this._setError(field.key, msg),
+                            clearError: () => this._clearError(field.key),
+                            button: btn,
+                        });
+                    } catch (e) {
+                        console.error('[BaseCardsEdit] extraButtons onClick error:', e);
+                        this._setError(field.key, e?.message || 'Ошибка');
+                    }
+                });
+
+                actions.appendChild(btn);
+            }
+        }
 
         const clearBtn = document.createElement('button');
         clearBtn.type = 'button';
@@ -602,6 +661,35 @@ export class BaseCardsEdit {
                 }
             }
         });
+    }
+
+    /**
+     * Show an error under a field.
+     *
+     * Counterpart to _clearError(). Used by extraButtons handlers
+     * (e.g. "Генерировать" in media fields) to report failures.
+     *
+     * @param {string} key — field key
+     * @param {string} msg — error message; empty string clears
+     */
+    _setError(key, msg) {
+        if (!msg) {
+            this._clearError(key);
+            return;
+        }
+
+        this.errors[key] = msg;
+
+        const errorEl = this.editBody.querySelector(`[data-js="error-${key}"]`);
+        if (errorEl) {
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+        }
+
+        const inputEl = this.editBody.querySelector(`[data-js="field-${key}"]`);
+        if (inputEl) {
+            inputEl.classList.add('error');
+        }
     }
 
     /**

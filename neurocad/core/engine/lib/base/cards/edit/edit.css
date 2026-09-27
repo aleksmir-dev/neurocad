@@ -229,7 +229,7 @@
  *   .edit-group--media
  *     ├── label.edit-label
  *     └── .edit-media
- *         ├── .edit-media-actions    — Выбрать / Очистить (top-left)
+ *         ├── .edit-media-actions    — Выбрать / [extraButtons] / Очистить
  *         └── .edit-media-preview    — img or placeholder (right)
  *     └── input[type=hidden]         — the actual value
  *     └── span.edit-error
@@ -237,7 +237,10 @@
  * Buttons are stacked at the TOP-LEFT of the free area.
  * Preview tile is on the RIGHT, vertically centered.
  * Wrapper background is white (same as other field groups).
- * Both buttons are secondary (white) and compact (fit content).
+ *
+ * Extra buttons (field.extraButtons) are rendered between the pick
+ * and clear buttons, and use the same base style — no special
+ * accent. Their behaviour lives in the caller (e.g. logo-generator.js).
  */
 .core-engine-lib-base-cards-edit .edit-group--media {
     margin-bottom: 8px;
@@ -297,6 +300,11 @@
 .core-engine-lib-base-cards-edit .edit-media-btn:focus-visible {
     outline: 2px solid #3b82f6;
     outline-offset: 2px;
+}
+
+.core-engine-lib-base-cards-edit .edit-media-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /*

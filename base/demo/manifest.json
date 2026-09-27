@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "applied": false,
+  "tables": [
+    "modules",
+    "pages",
+    "nav",
+    "access"
+  ]
+}

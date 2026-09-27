@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.22] - 2026-09-27
+
+### Added
+- Logo generation from the editor — the "Логотип" media field in the page form now has a "Генерировать" button. It sends the page title and description to the LLM, receives an SVG logo, saves it to the images registry, and fills the field with the resulting URL. Prompt built for compact square symbols (see `llm/prompts/logo.py`), agent in `llm/agent/generate_logo.py`.
+- `POST /editor/images/generate` — thin HTTP endpoint around the `generate_logo` agent and `CoreEngineLibWordImagesService`. Returns `{id, file, url, bytes}`.
+- Demo data on first start — demo project (modules, pages, navigation, access) ships inside the package under `neurocad/base/demo/`, is copied to `base/demo/` next to the database on first run, and imported once. Users can keep the DB and delete `base/demo/`, or delete both `base/demo/` and `base/neurocad.db` to get a clean DB without demo.
+- `.env.example` in the package — the `.env` template moved into `neurocad/.env.example` (injected via `force-include`) and is copied to `./.env` on first run. `paths.py` no longer hard-codes the `.env` body; the package file is the single source of truth.
+- `BaseCardsEdit` extension point — media fields now accept `extraButtons: [{label, className, onClick}]`. The onClick receives a context object with `getValue`, `getAllValues`, `setValue`, `showError`, `clearError`, `button`. No logo-specific logic inside `BaseCardsEdit`.
+
+### Changed
+- `/editor/images` API — added `POST /editor/images/generate`. Existing endpoints (`GET`, `POST`, `DELETE`) unchanged.
+- `paths.py` — `ensure_workdirs()` copies `base/demo/` from the package into the working directory on the first run and creates `.env` from `neurocad/.env.example` instead of an inline string.
+
+### Fixed
+- `step.py` — SVG save import is `from ...editor.images.store import save_generated_svg` (three dots, into `word/editor/images/`), not `...images.store`. Previously every generated illustration was dropped silently.
+- `DataLoader` empty `<p>` cleanup — `child.removed` is now called as a method (`child.removed()`), not used as a boolean property. The placeholder `<p></p>` is now actually removed on first load and after rollback.
+
+[0.1.22]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.21...v0.1.22
+
 ## [0.1.21] - 2026-09-27
 
 ### Added

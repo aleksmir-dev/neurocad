@@ -1,7 +1,7 @@
 # neurocad/core/engine/lib/word/editor/images/route.py
 
 """
-Images editor API: list, create, read, delete.
+Images editor API: list, create, read, delete, generate.
 
 Namespace: CoreEngineLibWordImagesRoute
 
@@ -9,6 +9,7 @@ Mounted under the parent editor router (prefix="/editor"), so the
 final paths are:
   GET    /core/engine/lib/word/editor/images             — list
   POST   /core/engine/lib/word/editor/images             — create
+  POST   /core/engine/lib/word/editor/images/generate    — generate via LLM
   GET    /core/engine/lib/word/editor/images/<id>        — read metadata
   DELETE /core/engine/lib/word/editor/images/<id>        — delete
 
@@ -31,6 +32,7 @@ from sqlalchemy import select
 
 from .schema import (
     CoreEngineLibWordImagesCreateRequest,
+    CoreEngineLibWordImagesGenerateRequest,
 )
 from .service import CoreEngineLibWordImagesService
 
@@ -171,6 +173,122 @@ async def create_image(
     return JSONResponse({
         "success": True,
         "data": result,
+    })
+
+
+# ============================================
+# GENERATE IMAGE
+# ============================================
+#
+# NOTE: this route MUST be declared BEFORE the `GET /{image_id}`
+# route below. FastAPI matches routes in the order they are added;
+# if `/{image_id}` came first, a request to /images/generate would
+# be interpreted as image_id="generate" and fail validation.
+#
+# The endpoint:
+#   1. resolves the LLM provider (same factory as the WebSocket flow);
+#   2. runs the "generate_logo" agent (prompt → SVG);
+#   3. saves the SVG through CoreEngineLibWordImagesService;
+#   4. returns { id, file, url, bytes }.
+#
+# The agent is NOT registered in _AGENTS and is NOT called by the
+# WebSocket dispatcher — the logo flow is HTTP-only.
+
+@router.post("/generate")
+async def generate_image(
+    data: CoreEngineLibWordImagesGenerateRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Generate a new SVG from a prompt, save it to the registry,
+    and return its id + public URL.
+
+    Example:
+      POST /core/engine/lib/word/editor/images/generate?module=aleksmir.ru
+      body: {
+        "prompt": "Нейрокад — CMS нового поколения",
+        "alt": "Нейрокад",
+        "source": "logo"
+      }
+
+    Superadmin only.
+    """
+    if not current_user.get("is_superadmin", False):
+        raise HTTPException(status_code=403, detail="Недостаточно прав")
+
+    await _verify_module(request)
+
+    # ---- Resolve the LLM provider ----
+    # Same factory the WebSocket flow uses, so the same settings /
+    # mock switch apply here too.
+    log = getattr(request.app.state, "log", None)
+    try:
+        from .......utils.llm.factory import get_provider
+        provider = await get_provider(log=log)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Не удалось получить LLM-провайдера: {e}",
+        )
+
+    # ---- Run the agent ----
+    # Imported lazily so this module stays importable when the LLM
+    # stack is not configured.
+    from ...llm.agent.generate_logo import (
+        CoreEngineLibWordLlmAgentGenerateLogo,
+    )
+
+    agent = CoreEngineLibWordLlmAgentGenerateLogo()
+    try:
+        result = await agent.run(
+            provider=provider,
+            user_message=data.prompt,
+            page_id=0,
+            run_id=None,
+            alt=data.alt or "",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка генерации: {e}",
+        )
+
+    svg = result.get("svg")
+    if not svg:
+        raise HTTPException(
+            status_code=400,
+            detail=result.get("error") or "Не удалось сгенерировать SVG",
+        )
+
+    # ---- Save to the registry ----
+    try:
+        saved = CoreEngineLibWordImagesService.create_image(
+            svg=svg,
+            alt=data.alt or "",
+            source=data.source or "logo",
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка сохранения изображения: {e}",
+        )
+
+    # ---- Public URL ----
+    # Same path nginx serves the rest of editor/images/ from.
+    file_rel = saved["file"]                      # "files/img-xxxx.svg"
+    url = f"/static/core/engine/lib/word/editor/images/{file_rel}"
+
+    return JSONResponse({
+        "success": True,
+        "data": {
+            "id": saved["id"],
+            "file": saved["file"],
+            "url": url,
+            "bytes": saved.get("bytes", 0),
+        },
     })
 
 

@@ -136,6 +136,102 @@
       "source": "llm",
       "builtin": false,
       "order": 170
+    },
+    {
+      "id": "img-1c4c06ce",
+      "alt": "Космологическая сингулярность",
+      "file": "files/img-1c4c06ce.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 180
+    },
+    {
+      "id": "img-6a44d407",
+      "alt": "Детский сад «Солнышко»",
+      "file": "files/img-6a44d407.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 190
+    },
+    {
+      "id": "img-3fb5806e",
+      "alt": "Спа-салон для отдыха",
+      "file": "files/img-3fb5806e.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 200
+    },
+    {
+      "id": "img-66af9ef4",
+      "alt": "Родовое поместье",
+      "file": "files/img-66af9ef4.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 210
+    },
+    {
+      "id": "img-663eda4a",
+      "alt": "Приключения Электроника",
+      "file": "files/img-663eda4a.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 220
+    },
+    {
+      "id": "img-a16bd140",
+      "alt": "Юлия Кузнецова",
+      "file": "files/img-a16bd140.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 230
+    },
+    {
+      "id": "img-5bbde8c3",
+      "alt": "Картины художников Урала",
+      "file": "files/img-5bbde8c3.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 240
+    },
+    {
+      "id": "img-e020ef7d",
+      "alt": "Гостья из будущего",
+      "file": "files/img-e020ef7d.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 250
+    },
+    {
+      "id": "img-6329a76d",
+      "alt": "Юлия Кузнецова",
+      "file": "files/img-6329a76d.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 260
+    },
+    {
+      "id": "img-2709c5a3",
+      "alt": "Юлия Кузнецова",
+      "file": "files/img-2709c5a3.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 270
+    },
+    {
+      "id": "img-8eb1a0c8",
+      "alt": "Родовое поместье",
+      "file": "files/img-8eb1a0c8.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 280
+    },
+    {
+      "id": "img-faa74880",
+      "alt": "Родовое поместье",
+      "file": "files/img-faa74880.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 290
     }
   ]
 }

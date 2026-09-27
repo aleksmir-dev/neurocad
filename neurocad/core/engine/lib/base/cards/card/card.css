@@ -1,7 +1,7 @@
 /* neurocad/core/engine/lib/base/cards/card/card.css */
 
 /* ============================================ */
-/* КАРТОЧКА */
+/* КАРТОЧКА — базовая                            */
 /* ============================================ */
 
 .core-engine-lib-base-cards-card {
@@ -9,36 +9,30 @@
     border: 2px solid var(--color-border, #e2e8f0);
     border-radius: var(--radius, 10px);
     padding: 12px 14px;
+
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
 
-    /* ✅ ДЕФОЛТНЫЕ РАЗМЕРЫ: квадратная карточка */
-    width: 180px;
-    height: 180px;
-    min-height: 120px;
+    /* Карточка заполняет грид-ячейку */
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    box-sizing: border-box;
 
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
 
-    /* ✅ Запрет выделения текста (важно для долгого нажатия) */
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-
-    /* ✅ iOS: запрет системного меню при долгом нажатии */
     -webkit-touch-callout: none;
-
-    /* ✅ Android: убираем серую подсветку тапа */
     -webkit-tap-highlight-color: transparent;
-
-    /* ✅ Убираем задержку клика на тач (300ms) */
     touch-action: manipulation;
-
-    /* ✅ Запрет drag-and-drop карточки как картинки */
     -webkit-user-drag: none;
     -khtml-user-drag: none;
     -moz-user-drag: none;
@@ -56,7 +50,7 @@
 }
 
 /* ============================================ */
-/* ВЫДЕЛЕНИЕ */
+/* ВЫДЕЛЕНИЕ                                    */
 /* ============================================ */
 
 .core-engine-lib-base-cards-card.selected {
@@ -93,7 +87,7 @@
 }
 
 /* ============================================ */
-/* СТАТУСЫ КАРТОЧЕК */
+/* СТАТУСЫ КАРТОЧЕК                             */
 /* ============================================ */
 
 .core-engine-lib-base-cards-card.status-white {
@@ -113,7 +107,7 @@
 }
 
 /* ============================================ */
-/* СОДЕРЖИМОЕ КАРТОЧКИ */
+/* СОДЕРЖИМОЕ КАРТОЧКИ                          */
 /* ============================================ */
 
 .core-engine-lib-base-cards-card .card-content {
@@ -121,6 +115,8 @@
     flex-direction: column;
     gap: 4px;
     width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 .core-engine-lib-base-cards-card .card-field {
@@ -152,12 +148,17 @@
 }
 
 /* ============================================ */
-/* КАСТОМНЫЙ РЕНДЕР КАРТОЧКИ (Nav) */
+/* КАСТОМНЫЙ РЕНДЕР КАРТОЧКИ                    */
 /* ============================================ */
 
 .core-engine-lib-base-cards-card .card-content-custom {
-    display: block;
+    display: flex;
+    flex-direction: column;
     width: 100%;
+    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
 }
 
 /* Nav: Папка */
@@ -210,32 +211,16 @@
 }
 
 /* ============================================ */
-/* АДАПТИВ КАРТОЧКИ */
+/* АДАПТИВ                                      */
 /* ============================================ */
 
 @media (max-width: 1024px) {
-    .core-engine-lib-base-cards-card {
-        width: 160px;
-        height: 160px;
-        min-height: 100px;
-        padding: 10px 12px;
-    }
-
     .core-engine-lib-base-cards-card .card-field-title {
         font-size: 15px;
     }
 }
 
 @media (max-width: 768px) {
-    .core-engine-lib-base-cards-card {
-        width: 140px;
-        height: 140px;
-        min-height: 90px;
-        padding: 8px 10px;
-        border-width: 2px;
-        border-radius: 8px;
-    }
-
     .core-engine-lib-base-cards-card .card-field-title {
         font-size: 14px;
     }
@@ -257,7 +242,6 @@
         left: -3px;
     }
 
-    /* Nav: адаптив */
     .core-engine-lib-base-cards-card.card-nav .nav-folder-icon,
     .core-engine-lib-base-cards-card.card-nav .nav-module-icon {
         font-size: 28px;
@@ -270,14 +254,6 @@
 }
 
 @media (max-width: 480px) {
-    .core-engine-lib-base-cards-card {
-        width: 120px;
-        height: 120px;
-        min-height: 80px;
-        padding: 6px 8px;
-        border-radius: 6px;
-    }
-
     .core-engine-lib-base-cards-card .card-field-title {
         font-size: 13px;
     }
@@ -299,7 +275,6 @@
         left: -2px;
     }
 
-    /* Nav: адаптив */
     .core-engine-lib-base-cards-card.card-nav .nav-folder-icon,
     .core-engine-lib-base-cards-card.card-nav .nav-module-icon {
         font-size: 24px;
@@ -312,7 +287,7 @@
 }
 
 /* ============================================ */
-/* ПЕЧАТЬ КАРТОЧКИ */
+/* ПЕЧАТЬ КАРТОЧКИ                              */
 /* ============================================ */
 
 @media print {

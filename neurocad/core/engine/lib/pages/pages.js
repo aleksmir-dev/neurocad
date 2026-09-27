@@ -14,6 +14,24 @@
  *   - template_id: this page inherits layout from that template page;
  *     its own `content` is inserted into [data-slot="content"] slot.
  *
+ * Logo generation:
+ *   The "logo" media field declares an `extraButtons` entry — the
+ *   "Генерировать" button. Its onClick lives in logo.js and is loaded
+ *   dynamically, like every other module here. BaseCardsEdit itself
+ *   stays generic: it only renders the buttons and calls their
+ *   onClick with a context object.
+ *
+ * Grid layout:
+ *   Grid is defined in cards.css:
+ *       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))
+ *       grid-auto-rows: 220px
+ *
+ *   Cards are NOT less than 280px wide, and stretch to fill the row
+ *   (no empty space on the right). The row height is fixed at 220px.
+ *   We deliberately do NOT pass `listView.gridColumns` — an inline
+ *   `grid-template-columns` would override the minmax() and break
+ *   the stretch.
+ *
  * Caption: on _init() we pick up the shared caption helpers from
  * window.coreEngine.base (_setCaption / _restoreCaption). They are
  * used to set the header/tab title to "Каталог статей" while the
@@ -60,6 +78,12 @@ export class Pages {
 
             const version = window.coreEngine?.static_version || Date.now();
             const { BaseCards } = await import(`../base/cards/cards.js?v=${version}`);
+
+            // Logo generator button — used by the "logo" media field
+            // below. Loaded dynamically, like every other module here.
+            const { makeLogoGeneratorButton } = await import(
+                `./logo.js?v=${version}`
+            );
 
             const isAdmin = this._isAdmin();
 
@@ -118,6 +142,10 @@ export class Pages {
                         label: 'Логотип',
                         type: 'media',
                         placeholder: 'Не выбрано',
+                        // Extra button: "Генерировать".
+                        // Rendered between "Выбрать" и "Очистить".
+                        // The behaviour lives in logo.js.
+                        extraButtons: [ makeLogoGeneratorButton() ],
                     },
 
                     // ===== Template system =====
@@ -167,10 +195,12 @@ export class Pages {
                 // Entity type (used in UI messages)
                 entityType: 'статью',
 
-                // Grid — wide cards
-                listView: {
-                    gridColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-                },
+                // NOTE: `listView.gridColumns` is intentionally NOT set.
+                // The grid is defined in cards.css:
+                //   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))
+                //   grid-auto-rows: 220px
+                // Cards are >= 280px and stretch to fill the row.
+                // An inline grid-template-columns would break the stretch.
 
                 // Buttons — admin only
                 showAddButton: isAdmin,

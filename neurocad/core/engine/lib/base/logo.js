@@ -3,9 +3,10 @@
 export class Logo {
     constructor(text) {
         this.text = text || '⚡ Ассистент';
+        this.href = '/';
     }
 
     render() {
-        return `<div class="core-engine-lib-base-logo">${this.text}</div>`;
+        return `<a class="core-engine-lib-base-logo" href="${this.href}">${this.text}</a>`;
     }
 }
