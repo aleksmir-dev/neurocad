@@ -18,6 +18,13 @@ Error reporting:
   On a non-200 response the provider yields a human-readable message
   built from the response body (extracted via _extract_error_detail),
   not just the status code. This is what the user sees in the chat.
+
+Token accounting:
+  Gemini returns exact token counts in `usageMetadata`:
+      promptTokenCount, candidatesTokenCount, totalTokenCount
+  When present, we use those values instead of the heuristic
+  `count_tokens`. If the field is missing (older models, error
+  responses), the fallback heuristic is used.
 """
 
 import httpx
@@ -44,6 +51,9 @@ class GeminiProvider(LLMProvider):
     BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
     def __init__(self, config: dict, log=None):
+        # Initialize LLMProvider (sets self.tokens_used = 0)
+        super().__init__()
+
         self.api_key = config.get("api_key") or ""
         self.model = config.get("model") or "gemini-1.5-flash"
         self.max_output_tokens = config.get("max_output_tokens") or 8192
@@ -82,8 +92,6 @@ class GeminiProvider(LLMProvider):
           - JSON: {"message": "..."}
           - JSON: {"detail": "..."}
           - fallback: raw text, truncated to ~400 chars
-
-        Never raises.
         """
         try:
             data = response.json()
@@ -130,6 +138,9 @@ class GeminiProvider(LLMProvider):
         max_tokens: int | None = None,
         stream: bool = False,
     ) -> AsyncGenerator[str, None]:
+        # Reset the per-call token counter.
+        self._reset_tokens()
+
         if not self.is_configured:
             yield "Ошибка: Gemini API ключ не настроен."
             return
@@ -150,6 +161,10 @@ class GeminiProvider(LLMProvider):
                 contents.append({"role": "user", "parts": [{"text": text}]})
             elif role == "assistant":
                 contents.append({"role": "model", "parts": [{"text": text}]})
+
+            # Count input (prompt) tokens with the fallback heuristic.
+            # Overwritten below if Gemini returns usageMetadata.
+            self._add_tokens(text)
 
         payload = {
             "contents": contents,
@@ -175,6 +190,14 @@ class GeminiProvider(LLMProvider):
                     yield f"\n⚠️ Ошибка Gemini ({response.status_code}): {detail}\n"
                     return
                 result = response.json()
+
+                # ---- Prefer exact usage from Gemini, if present ----
+                usage = result.get("usageMetadata") or {}
+                total = usage.get("totalTokenCount")
+                if isinstance(total, int) and total > 0:
+                    # Replace the heuristic count with the exact one.
+                    self.tokens_used = total
+
                 candidates = result.get("candidates") or []
                 if candidates:
                     parts = candidates[0].get("content", {}).get("parts") or []

@@ -14,6 +14,13 @@ Error reporting:
   built from the response body (extracted via _extract_error_detail),
   not just the status code. Works in both streaming and non-streaming
   modes.
+
+Token accounting:
+  `self.tokens_used` is reset at the start of get_response(), then
+  incremented for every input message and every yielded chunk. After
+  the generator is fully consumed, it holds the total cost.
+  The exact tokenizer is tiktoken.encoding_for_model(self.model)
+  (falls back to cl100k_base).
 """
 
 import json
@@ -31,12 +38,12 @@ MAX_CONTEXT_TOKENS = 128_000
 
 
 # ============================================
-# TOKENIZER
+# TOKENIZER (module-level helpers)
 # ============================================
 #
-# NOTE: tokenizer helpers are module-level and have no access to
-# app.state.log — silent by design. If logging is needed here,
-# call them through the provider instance.
+# NOTE: these are standalone helpers for use outside the class
+# (CLI, tests). The provider class overrides `count_tokens` and
+# uses the same tokenizer internally, with the configured model.
 
 def get_openai_tokenizer(model: str | None = None):
     """
@@ -57,10 +64,11 @@ def get_openai_tokenizer(model: str | None = None):
         return None
 
 
-def count_tokens(text: str) -> int:
+def count_tokens(text: str, model: str | None = None) -> int:
+    """Approximate token count using the model's encoding (fallback: len * 0.6)."""
     if not text:
         return 0
-    tokenizer = get_openai_tokenizer()
+    tokenizer = get_openai_tokenizer(model)
     if tokenizer is None:
         return int(len(text) * 0.6)
     try:
@@ -86,6 +94,9 @@ class OpenAIProvider(LLMProvider):
     name = "openai"
 
     def __init__(self, config: dict, log=None):
+        # Initialize LLMProvider (sets self.tokens_used = 0)
+        super().__init__()
+
         self.api_key = config.get("api_key") or ""
         self.base_url = (config.get("base_url") or "https://api.openai.com/v1").rstrip("/")
         self.model = config.get("model") or "gpt-4o-mini"
@@ -94,6 +105,14 @@ class OpenAIProvider(LLMProvider):
 
         # app.state.log — приходит из эндпоинта.
         self.log = log
+
+    # ============================================
+    # TOKEN COUNTING
+    # ============================================
+
+    def count_tokens(self, text: str) -> int:
+        """Exact count via tiktoken for self.model (fallback: len * 0.6)."""
+        return count_tokens(text, model=self.model)
 
     # ============================================
     # LOG HELPERS
@@ -119,15 +138,8 @@ class OpenAIProvider(LLMProvider):
         """
         Pull a human-readable message out of an API error response.
 
-        `raw_text` is the response body as a string (works for both
-        streaming and non-streaming — the caller reads the body and
-        passes the text here).
-
         OpenAI / OpenAI-compatible providers return errors as:
           {"error": {"message": "...", "type": "...", "code": "..."}}
-        so the nested "error.message" branch is the common one.
-
-        Never raises.
         """
         if not raw_text:
             return "нет деталей"
@@ -178,6 +190,9 @@ class OpenAIProvider(LLMProvider):
         max_tokens: int | None = None,
         stream: bool = False,
     ) -> AsyncGenerator[str, None]:
+        # Reset the per-call token counter.
+        self._reset_tokens()
+
         if not self.is_configured:
             yield "Ошибка: OpenAI API ключ не настроен."
             return
@@ -186,6 +201,10 @@ class OpenAIProvider(LLMProvider):
             temperature = DEFAULT_TEMPERATURE
         if max_tokens is None:
             max_tokens = self.max_output_tokens
+
+        # Count input (prompt) tokens.
+        for m in messages_list or []:
+            self._add_tokens(m.get("content", "") if isinstance(m, dict) else "")
 
         self._log_info(f"Отправляем {len(messages_list)} сообщений в OpenAI API")
 
@@ -226,6 +245,8 @@ class OpenAIProvider(LLMProvider):
                                         delta = chunk['choices'][0].get('delta', {})
                                         content = delta.get('content', '')
                                         if content:
+                                            # Count output (completion) tokens.
+                                            self._add_tokens(content)
                                             yield content
                                 except json.JSONDecodeError:
                                     continue
@@ -242,6 +263,8 @@ class OpenAIProvider(LLMProvider):
                     result = response.json()
                     if 'choices' in result and len(result['choices']) > 0:
                         content = result['choices'][0].get('message', {}).get('content', '')
+                        # Count output tokens.
+                        self._add_tokens(content)
                         yield content
 
             except httpx.TimeoutException:

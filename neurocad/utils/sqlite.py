@@ -137,7 +137,8 @@ async def init_sqlite(log=None):
          AND `base/demo/` exists in the working directory,
       5. create superadmin,
       6. register modules from mod/,
-      7. ensure the admin has a default Nav row (owns demo pages).
+      7. ensure the admin has a default Nav row (owns demo pages),
+      8. ensure the admin has a Balance row.
 
     log — app.state.log from lifespan. If None — silent.
     """
@@ -195,6 +196,10 @@ async def init_sqlite(log=None):
         # 7. Default nav for admin (the object that owns demo pages).
         # Idempotent: does nothing if the row already exists.
         await ensure_default_nav(log=log)
+
+        # 8. Balance row for admin (user_id = 1, created by step 5).
+        # Idempotent: does nothing if the row already exists.
+        await ensure_user_balance(user_id=1, log=log)
 
     except Exception as e:
         error_msg = f"SQLite connection error: {e}"
@@ -341,3 +346,100 @@ async def ensure_default_nav(log=None) -> int:
             f"created admin nav for 'default': id={nav.id}",
         )
         return nav.id
+
+
+# ============================================
+# USER BALANCE
+# ============================================
+
+async def ensure_user_balance(user_id: int, log=None) -> int:
+    """
+    Ensure a balance row exists for the given user.
+
+    Idempotent: if the row already exists, returns its id without
+    creating a new one.
+
+    New users start on the TRIAL tariff (code 3, 1 day, same
+    limits as llm). The lazy reset in BalanceChecked.reset_if_needed()
+    will switch them to free after 1 day.
+
+    Default values for a new user:
+
+        tarif          = 3       (trial, 1 day)
+        tokens         = 0       (will be filled on first reset)
+        gen            = 0
+        sum            = 0
+        mb             = 0
+        pages          = 0
+        price          = 0
+        refer_id       = None
+        acc_at         = None    (set on first lazy reset)
+
+        limit_genday   = 0
+        limit_genmon   = 0
+        limit_mb       = 1024    (1 GB, same as llm)
+        limit_pages    = 0       (unlimited, same as llm)
+        limit_tokens   = 2_000_000 (2M, same as llm)
+
+    Returns the balance row id, or 0 on error / user not found.
+    """
+    from ..core.models.base import Balance, User
+
+    async with AsyncSessionLocal() as session:
+        # 1. Verify the user exists (defensive — avoids FK errors).
+        user_stmt = select(User).where(
+            User.id == user_id,
+            User.is_delete == False,
+        )
+        user = (await session.execute(user_stmt)).scalar_one_or_none()
+        if not user:
+            _log_sync(
+                log, "info",
+                f"ensure_user_balance: user {user_id} not found — skip",
+            )
+            return 0
+
+        # 2. Does a balance row already exist?
+        bal_stmt = select(Balance).where(
+            Balance.user_id == user_id,
+            Balance.is_delete == False,
+        )
+        existing = (await session.execute(bal_stmt)).scalar_one_or_none()
+        if existing:
+            _log_sync(
+                log, "info",
+                f"ensure_user_balance: balance for user {user_id} "
+                f"already exists (id={existing.id})",
+            )
+            return existing.id
+
+        # 3. Create it with TRIAL defaults (code 3, same limits as llm).
+        bal = Balance(
+            user_id=user_id,
+            tarif=3,                # trial
+            day=None,
+            gen=0,
+            tokens=0,
+            sum=0,
+            mb=0,
+            pages=0,
+            price=0,
+            refer_id=None,
+            limit_genday=0,
+            limit_genmon=0,
+            limit_mb=1024,
+            limit_pages=0,
+            limit_tokens=2_000_000,
+            acc_at=None,
+            is_delete=False,
+        )
+        session.add(bal)
+        await session.commit()
+        await session.refresh(bal)
+
+        _log_sync(
+            log, "info",
+            f"ensure_user_balance: created balance id={bal.id} "
+            f"for user {user_id} (trial)",
+        )
+        return bal.id

@@ -1,0 +1,281 @@
+/* neurocad/core/engine/lib/base/profile/balance/balance.css */
+
+.core-engine-lib-base-profile-balance {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.core-engine-lib-base-profile-balance .balance-body {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 24px 20px 0;
+    box-sizing: border-box;
+}
+
+/* ===== Titlebar (fixed) ===== */
+
+.core-engine-lib-base-profile-balance .balance-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 12px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.core-engine-lib-base-profile-balance .balance-titlebar-left,
+.core-engine-lib-base-profile-balance .balance-titlebar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 80px;
+}
+
+.core-engine-lib-base-profile-balance .balance-titlebar-right {
+    justify-content: flex-end;
+}
+
+.core-engine-lib-base-profile-balance .balance-titlebar-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-main, #1e293b);
+    text-align: center;
+    flex: 1 1 auto;
+}
+
+.core-engine-lib-base-profile-balance .balance-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    background: transparent;
+    color: #475569;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+    line-height: 1;
+}
+
+.core-engine-lib-base-profile-balance .balance-icon-btn:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 0.08);
+    color: #3b82f6;
+}
+
+.core-engine-lib-base-profile-balance .balance-icon-btn:active:not(:disabled) {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+/* ===== Scrollable area ===== */
+
+.core-engine-lib-base-profile-balance .balance-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+    margin-right: -4px;
+    padding-bottom: 24px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ===== Cards ===== */
+
+.core-engine-lib-base-profile-balance .balance-card {
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    padding: 16px 18px;
+    background: #f8fafc;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+
+    /* Flex column — so inner rows can align-self / stretch as needed */
+    display: flex;
+    flex-direction: column;
+}
+
+.core-engine-lib-base-profile-balance .balance-card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 12px 0;
+}
+
+/* ===== Tariff row (name + change button on the right) ===== */
+
+.core-engine-lib-base-profile-balance .balance-tariff-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.core-engine-lib-base-profile-balance .balance-tariff-name {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-main, #1e293b);
+    line-height: 1.2;
+    margin: 0;
+}
+
+.core-engine-lib-base-profile-balance .balance-tariff-change-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border: 1px solid var(--border-color, #d5dee9);
+    border-radius: var(--radius-md, 8px);
+    background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
+    color: var(--text-main, #2c3e50);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    white-space: nowrap;
+}
+
+.core-engine-lib-base-profile-balance .balance-tariff-change-btn:hover {
+    background: linear-gradient(180deg, #f5f8fd 0%, #e8edf5 100%);
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 6px rgba(44, 62, 80, 0.08);
+}
+
+.core-engine-lib-base-profile-balance .balance-tariff-change-btn:active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+.core-engine-lib-base-profile-balance .balance-tariff-change-btn:focus-visible {
+    outline: 2px solid #4a8bc2;
+    outline-offset: 2px;
+}
+
+.core-engine-lib-base-profile-balance .balance-card-hint {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* ===== List of items ===== */
+
+.core-engine-lib-base-profile-balance .balance-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.core-engine-lib-base-profile-balance .balance-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(148, 163, 184, 0.25);
+}
+
+.core-engine-lib-base-profile-balance .balance-item:last-child {
+    border-bottom: none;
+}
+
+.core-engine-lib-base-profile-balance .balance-item-label {
+    font-size: 14px;
+    color: #475569;
+}
+
+.core-engine-lib-base-profile-balance .balance-item-value {
+    font-size: 14px;
+    color: var(--text-main, #1e293b);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.core-engine-lib-base-profile-balance .balance-item-current {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.core-engine-lib-base-profile-balance .balance-item-limit {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* ===== Buttons (error state only) ===== */
+
+.core-engine-lib-base-profile-balance .balance-btn {
+    padding: 9px 16px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.core-engine-lib-base-profile-balance .balance-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+/* ===== Error state ===== */
+
+.core-engine-lib-base-profile-balance .balance-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 48px 24px;
+    text-align: center;
+}
+
+.core-engine-lib-base-profile-balance .balance-error-icon {
+    font-size: 40px;
+    line-height: 1;
+}
+
+.core-engine-lib-base-profile-balance .balance-error-text {
+    font-size: 15px;
+    color: #dc2626;
+}
+
+/* ===== Mobile ===== */
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-profile-balance .balance-body {
+        padding: 12px 12px 0;
+    }
+
+    .core-engine-lib-base-profile-balance .balance-titlebar-title {
+        font-size: 15px;
+    }
+
+    .core-engine-lib-base-profile-balance .balance-tariff-name {
+        font-size: 18px;
+    }
+
+    .core-engine-lib-base-profile-balance .balance-tariff-change-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}

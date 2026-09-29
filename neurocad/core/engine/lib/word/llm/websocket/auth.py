@@ -11,6 +11,12 @@ Two responsibilities:
      The endpoint closes the connection with code 4403 when this
      returns None or when the user is not a superadmin.
 
+     On success, the resolved user is stored on `websocket.state`:
+       - websocket.state.user     — full user dict
+       - websocket.state.user_id  — int(user.id)
+     Downstream mixins (DispatchMixin) read those instead of
+     re-decoding the cookie on every run.
+
   2. _log(websocket, level, message, **kwargs)
      Best-effort logger. Writes through `websocket.app.state.log`
      (the shared app logger) if it exists, otherwise to stderr.
@@ -48,6 +54,10 @@ class AuthMixin:
             The caller (endpoint) treats None as "close connection
             with code 4403".
 
+        On success, also stores:
+            websocket.state.user     — full user dict
+            websocket.state.user_id  — int(user.id)
+
         Notes:
           - Cookie is read BEFORE websocket.accept(), which is fine
             for FastAPI/Starlette: cookies are available on the scope
@@ -78,6 +88,16 @@ class AuthMixin:
 
             from neurocad.core.auth.service import CoreAuthService
             user = await CoreAuthService.get_user_by_id(int(user_id))
+
+            # Cache the resolved identity on the websocket so downstream
+            # mixins (dispatch) can read it without re-decoding the cookie.
+            if user:
+                try:
+                    websocket.state.user = user
+                    websocket.state.user_id = int(user.get("id"))
+                except Exception as e:
+                    print(f"[ws-auth] failed to cache user on state: {e}", flush=True)
+
             return user
 
         except Exception as e:

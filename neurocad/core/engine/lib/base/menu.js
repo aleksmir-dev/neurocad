@@ -18,8 +18,8 @@ export class Menu {
     }
 
     /**
-     * Whether current user can see the "Настройки" menu item.
-     * Only superadmins.
+     * Whether current user can see superadmin-only items
+     * ("Настройки" and "Баланс").
      */
     _canSeeSetup() {
         return this.user?.is_superadmin === true;
@@ -29,10 +29,15 @@ export class Menu {
         const guestEl = document.querySelector('.core-engine-lib-base-menu-guest');
         const loginEl = document.querySelector('.core-engine-lib-base-menu-login');
         const setupEl = document.querySelector('.core-engine-lib-base-menu-setup');
+        const balanceEl = document.querySelector('.core-engine-lib-base-menu-balance');
 
-        // Show / hide "Настройки" based on role.
+        // Show / hide superadmin-only items.
+        const show = this._canSeeSetup();
         if (setupEl) {
-            setupEl.style.display = this._canSeeSetup() ? '' : 'none';
+            setupEl.style.display = show ? '' : 'none';
+        }
+        if (balanceEl) {
+            balanceEl.style.display = show ? '' : 'none';
         }
 
         if (!guestEl || !loginEl) return;
@@ -63,19 +68,27 @@ export class Menu {
             return `<a href="${item.href || '#'}" class="core-engine-lib-base-menu-item">${item.text}</a>`;
         }).join('');
 
-        // "Настройки" — visible to superadmins only.
-        // Hidden via inline style so we can toggle it in updateUI()
+        // Superadmin-only items: "Настройки" and "Баланс".
+        // Hidden via inline style so updateUI() can toggle them
         // without re-rendering the whole menu.
-        const setupStyle = this._canSeeSetup() ? '' : 'display:none;';
+        const superadminStyle = this._canSeeSetup() ? '' : 'display:none;';
+
+        const balanceHtml = `
+            <span class="core-engine-lib-base-menu-item core-engine-lib-base-menu-balance"
+                  data-action="balance"
+                  style="${superadminStyle}">Баланс</span>
+        `;
+
         const setupHtml = `
             <span class="core-engine-lib-base-menu-item core-engine-lib-base-menu-setup"
                   data-action="setup"
-                  style="${setupStyle}">Настройки</span>
-        `;
+                  style="${superadminStyle}">Настройки</span>
+        `;        
 
         return `
             ${itemsHtml}
-            ${setupHtml}
+            ${balanceHtml}
+            ${setupHtml}            
             <span class="core-engine-lib-base-menu-item core-engine-lib-base-menu-guest" data-action="profile">${displayName}</span>
             <span class="core-engine-lib-base-menu-item core-engine-lib-base-menu-login" data-action="${loginAction}">${loginText}</span>
         `;
@@ -100,7 +113,8 @@ export class Menu {
         menuItems.forEach((item) => {
             if (item.classList.contains('core-engine-lib-base-menu-guest') ||
                 item.classList.contains('core-engine-lib-base-menu-login') ||
-                item.classList.contains('core-engine-lib-base-menu-setup')) {
+                item.classList.contains('core-engine-lib-base-menu-setup') ||
+                item.classList.contains('core-engine-lib-base-menu-balance')) {
                 return;
             }
 
@@ -136,6 +150,24 @@ export class Menu {
             });
         });
 
+        // "Баланс" — opens the balance admin page (superadmin only).
+        // This is a standalone page (app/balance/balance.json), so it
+        // navigates via window.location.href — not base.renderInArea().
+        const balanceItems = document.querySelectorAll('[data-action="balance"]');
+        balanceItems.forEach(item => {
+            item.style.cursor = 'pointer';
+
+            item.addEventListener('click', () => {
+                if (!this._canSeeSetup()) return;
+
+                window.location.href = '/core/engine/default/balance';
+
+                if (this.isOpen) {
+                    this.closeMobile();
+                }
+            });
+        });
+
         const loginItems = document.querySelectorAll('[data-action="auth"], [data-action="logout"]');
         loginItems.forEach(item => {
             item.addEventListener('click', () => {
@@ -163,8 +195,14 @@ export class Menu {
 
             item.addEventListener('click', () => {
                 if (this.user && this.user.login) {
-                    if (this.auth && typeof this.auth.showProfile === 'function') {
+                    // Profile lives in lib/base/profile (Base.showProfile).
+                    // Fallback to auth.showProfile() for backward compat.
+                    if (window.coreEngine?.base?.showProfile) {
+                        window.coreEngine.base.showProfile('main');
+                    } else if (this.auth && typeof this.auth.showProfile === 'function') {
                         this.auth.showProfile();
+                    } else {
+                        console.warn('[Menu] No profile handler available');
                     }
                 }
 

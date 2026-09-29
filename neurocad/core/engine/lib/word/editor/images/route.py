@@ -17,6 +17,12 @@ Permissions:
   All endpoints require an authenticated user (get_current_user).
   Guests get 401 from the dependency.
 
+  /generate additionally enforces the user's tariff:
+    - free        → 403 llm_not_available
+    - tokens <= 0 → 403 tokens_exhausted
+    - pro gen <= 0 → 403 gen_exhausted
+  On success, tokens (and, on pro, one gen) are charged to Balance.
+
 The list is served from the registry (registry.json in the package
 tree, mirrored to static/). The registry is the single source of
 truth for alt text and file paths.
@@ -24,13 +30,16 @@ truth for alt text and file paths.
 module_name is resolved the same way as in the effects router.
 """
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 
 from neurocad.core.auth.dependencies import get_current_user
 from neurocad.utils.sqlite import get_db_sqlite
 from neurocad.core.models.module import Module
-from sqlalchemy import select
+from neurocad.core.models.balance import Balance
 
 from .schema import (
     CoreEngineLibWordImagesCreateRequest,
@@ -84,6 +93,70 @@ async def _verify_module(request: Request) -> str:
         return module_name
 
     raise HTTPException(status_code=500, detail="DB error")
+
+
+# ============================================
+# BALANCE CHARGE (logo generation)
+# ============================================
+
+async def _charge_logo(
+    user_id: int,
+    provider,
+    log=None,
+) -> None:
+    """
+    Charge the logo generation to the user's Balance.
+
+    - tokens -= provider.tokens_used (clamped at 0)
+    - gen    -= 1 on pro only
+    - updated_at = now
+
+    Best-effort: a failure here is logged but does not fail the
+    request (the SVG has already been saved).
+    """
+    usage = int(getattr(provider, "tokens_used", 0) or 0)
+
+    try:
+        async for session in get_db_sqlite():
+            stmt = select(Balance).where(
+                Balance.user_id == user_id,
+                Balance.is_delete.is_(False),
+            )
+            bal = (await session.execute(stmt)).scalar_one_or_none()
+            if bal is None:
+                return
+
+            if usage > 0:
+                bal.tokens = max(0, (bal.tokens or 0) - usage)
+
+            # pro — also charge one generation.
+            if bal.tarif == 1:
+                bal.gen = max(0, (bal.gen or 0) - 1)
+
+            bal.updated_at = datetime.now()
+            await session.commit()
+
+            if log is not None:
+                try:
+                    log.log_info_sync(
+                        target="images-generate",
+                        message=(
+                            f"user {user_id} charged {usage} tokens"
+                            + (" + 1 gen" if bal.tarif == 1 else "")
+                        ),
+                    )
+                except Exception:
+                    pass
+            return
+    except Exception as e:
+        if log is not None:
+            try:
+                log.log_warning_sync(
+                    target="images-generate",
+                    message=f"charge failed for user {user_id}: {e}",
+                )
+            except Exception:
+                pass
 
 
 # ============================================
@@ -182,10 +255,12 @@ async def create_image(
 # be interpreted as image_id="generate" and fail validation.
 #
 # The endpoint:
+#   0. balance guard (logo_allowed) — tariff + tokens + gen;
 #   1. resolves the LLM provider (same factory as the WebSocket flow);
 #   2. runs the "generate_logo" agent (prompt → SVG);
 #   3. saves the SVG through CoreEngineLibWordImagesService;
-#   4. returns { id, file, url, bytes }.
+#   4. charges tokens (+1 gen on pro) to Balance;
+#   5. returns { id, file, url, bytes }.
 #
 # The agent is NOT registered in _AGENTS and is NOT called by the
 # WebSocket dispatcher — the logo flow is HTTP-only.
@@ -208,14 +283,48 @@ async def generate_image(
         "source": "logo"
       }
 
-    Any authenticated user.
+    Any authenticated user, but limited by tariff:
+      - free        → 403 llm_not_available
+      - tokens <= 0 → 403 tokens_exhausted
+      - pro gen <= 0 → 403 gen_exhausted
     """
     await _verify_module(request)
 
-    # ---- Resolve the LLM provider ----
+    log = getattr(request.app.state, "log", None)
+
+    # ---- 0. Balance guard ----
+    from neurocad.core.engine.lib.balance.checked import BalanceChecked
+
+    user_id = int(current_user.get("id"))
+    bal, err = await BalanceChecked.logo_allowed(user_id, log=log)
+    if err:
+        # Map error code to a human-readable detail.
+        detail_map = {
+            "llm_not_available": (
+                "Генерация недоступна на тарифе Free. "
+                "Перейдите на тариф Pro или LLM."
+            ),
+            "tokens_exhausted": (
+                "Закончились токены LLM на этот месяц. "
+                "Они восстановятся в расчётный день."
+            ),
+            "gen_exhausted": (
+                "Закончились генерации на этот месяц. "
+                "Они восстановятся в расчётный день."
+            ),
+            "no_balance": (
+                "Не удалось определить ваш тариф. "
+                "Обратитесь к администратору."
+            ),
+        }
+        raise HTTPException(
+            status_code=403,
+            detail=detail_map.get(err, "Лимит исчерпан."),
+        )
+
+    # ---- 1. Resolve the LLM provider ----
     # Same factory the WebSocket flow uses, so the same settings /
     # mock switch apply here too.
-    log = getattr(request.app.state, "log", None)
     try:
         from .......utils.llm.factory import get_provider
         provider = await get_provider(log=log)
@@ -225,7 +334,7 @@ async def generate_image(
             detail=f"Failed to get LLM provider: {e}",
         )
 
-    # ---- Run the agent ----
+    # ---- 2. Run the agent ----
     # Imported lazily so this module stays importable when the LLM
     # stack is not configured.
     from ...llm.agent.generate_logo import (
@@ -254,7 +363,7 @@ async def generate_image(
             detail=result.get("error") or "Failed to generate SVG",
         )
 
-    # ---- Save to the registry ----
+    # ---- 3. Save to the registry ----
     try:
         saved = CoreEngineLibWordImagesService.create_image(
             svg=svg,
@@ -269,7 +378,10 @@ async def generate_image(
             detail=f"Failed to save image: {e}",
         )
 
-    # ---- Public URL ----
+    # ---- 4. Charge tokens (+1 gen on pro) ----
+    await _charge_logo(user_id=user_id, provider=provider, log=log)
+
+    # ---- 5. Public URL ----
     # Same path nginx serves the rest of editor/images/ from.
     file_rel = saved["file"]                      # "files/img-xxxx.svg"
     url = f"/static/core/engine/lib/word/editor/images/{file_rel}"

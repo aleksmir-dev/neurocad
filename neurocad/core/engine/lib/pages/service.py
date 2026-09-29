@@ -1,14 +1,16 @@
-# app/core/engine/lib/pages/service.py
+# neurocad/core/engine/lib/pages/service.py
 
 from sqlalchemy import select, func
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from ....models.base import Page
+from ....models.nav import Nav
 from .schema import (
     CoreEngineLibPagesItemCreate,
     CoreEngineLibPagesItemUpdate,
 )
 from neurocad.utils.sqlite import get_db_sqlite
+from neurocad.core.engine.lib.balance.checked import BalanceChecked
 
 
 class CoreEngineLibPagesService:
@@ -87,6 +89,85 @@ class CoreEngineLibPagesService:
             }
 
         return {"items": [], "total": 0, "page": page, "limit": limit}
+
+    # ========================================
+    # LIST FOR USER — для редактора (выбор ссылки)
+    # ========================================
+
+    @staticmethod
+    async def list_for_user(
+        user_id: int,
+        exclude_page_id: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Список страниц пользователя — для выбора ссылки в редакторе.
+
+        Возвращает только активные, неудалённые, не-шаблонные страницы
+        всех nav текущего юзера. Каждая с готовым URL вида
+        /page/<nav_id>/<YYYYMMDD>/<HHMMSS>.
+
+        exclude_page_id — исключить конкретную страницу (обычно — ту,
+        которую сейчас редактирует пользователь: нельзя ссылаться на
+        себя).
+
+        Формат элемента:
+            {
+              "id": <page.id>,
+              "title": <page.title>,
+              "url": "/page/<nav_id>/<YYYYMMDD>/<HHMMSS>"
+            }
+        """
+        async for session in get_db_sqlite():
+            # Найти все nav пользователя (по возрастанию id —
+            # чтобы порядок был предсказуемым)
+            nav_stmt = (
+                select(Nav.id)
+                .where(
+                    Nav.user_id == user_id,
+                    Nav.is_delete == False,
+                )
+                .order_by(Nav.id.asc())
+            )
+            nav_rows = (await session.execute(nav_stmt)).all()
+            nav_ids = [r[0] for r in nav_rows]
+            if not nav_ids:
+                return []
+
+            # Все активные неудалённые не-шаблонные страницы этих nav
+            stmt = (
+                select(Page)
+                .where(
+                    Page.nav_id.in_(nav_ids),
+                    Page.is_delete == 0,
+                    Page.is_active == 1,
+                    Page.is_template == 0,
+                )
+                .order_by(Page.datetime.desc())
+            )
+            if exclude_page_id is not None:
+                stmt = stmt.where(Page.id != exclude_page_id)
+
+            result = await session.execute(stmt)
+            rows = result.scalars().all()
+
+            items: List[Dict[str, Any]] = []
+            for p in rows:
+                if not p.datetime:
+                    continue
+                url = (
+                    f"/page/{p.nav_id}/"
+                    f"{p.datetime.strftime('%Y%m%d')}/"
+                    f"{p.datetime.strftime('%H%M%S')}"
+                )
+                items.append({
+                    "id": p.id,
+                    "title": p.title or f"Страница {p.id}",
+                    "url": url,
+                })
+
+            return items
+
+        return []
 
     # ========================================
     # ONE ITEM BY ID
@@ -194,10 +275,29 @@ class CoreEngineLibPagesService:
         data: CoreEngineLibPagesItemCreate,
         nav_id: int,
     ) -> Optional[Dict[str, Any]]:
-        """Create a new article in the given nav.
+        """
+        Create a new article in the given nav.
+
+        Before creating — checks the page limit via BalanceChecked
+        (lazy, based on the owner's tariff). If the limit is hit,
+        returns None — the route translates this into HTTP 403.
 
         If datetime is not provided, the current time is used.
         """
+        # Resolve the owner of this nav — needed for the balance check.
+        user_id = await CoreEngineLibPagesService._resolve_user_id(nav_id)
+        if user_id is None:
+            print(f"[Pages] create_item: nav {nav_id} has no owner")
+            return None
+
+        # Lazy limit check (BalanceChecked internally applies the
+        # day-change accruals before checking).
+        bal, err, current_pages = await BalanceChecked.page_allowed(user_id)
+        if err:
+            print(f"[Pages] create_item: user {user_id} — {err} "
+                  f"(pages={current_pages}, limit={bal.limit_pages if bal else '?'})")
+            return None
+
         item_datetime = data.datetime
         if item_datetime is None:
             item_datetime = datetime.now()
@@ -327,7 +427,13 @@ class CoreEngineLibPagesService:
 
     @staticmethod
     async def restore_item(item_id: int, nav_id: int) -> bool:
-        """Restore a soft-deleted article."""
+        """
+        Restore a soft-deleted article.
+
+        Restoring may push the user over the page limit — the check
+        is NOT run here, because restored pages belong to the user
+        (they were created earlier, under a valid tariff).
+        """
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == item_id,
@@ -346,3 +452,19 @@ class CoreEngineLibPagesService:
             return True
 
         return False
+
+    # ========================================
+    # INTERNAL — NAV OWNER
+    # ========================================
+
+    @staticmethod
+    async def _resolve_user_id(nav_id: int) -> Optional[int]:
+        """Return the owner (user_id) of a nav, or None."""
+        async for session in get_db_sqlite():
+            stmt = select(Nav.user_id).where(
+                Nav.id == nav_id,
+                Nav.is_delete.is_(False),
+            )
+            result = await session.execute(stmt)
+            return result.scalar_one_or_none()
+        return None

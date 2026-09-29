@@ -39,6 +39,10 @@ export async function createModal(type, props = {}) {
             const { BaseModalInterval } = await import('./interval.js');
             return new BaseModalInterval(props);
         }
+        case 'image': {
+            const { BaseModalImage } = await import('./image.js');
+            return new BaseModalImage(props);
+        }
         default:
             console.warn(`[Modal] Unknown type: ${type}`);
             return null;

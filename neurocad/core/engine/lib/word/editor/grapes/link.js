@@ -6,7 +6,12 @@
  * registerLinkType(instance)    — register the 'link' component type
  *                                 with traits (href, title, target) so
  *                                 links can be set on buttons and other
- *                                 elements.
+ *                                 elements. The `href` trait uses our
+ *                                 custom 'page-link' type (registered
+ *                                 in page-link.js) — a hybrid
+ *                                 select+input control that lets the
+ *                                 user pick one of their pages or
+ *                                 type a URL manually.
  * registerLinkCommand(instance) — register the 'tlb-custom-link' command
  *                                 used by the context menu. It wraps the
  *                                 selected component in <a> and selects
@@ -19,6 +24,10 @@
 
 /**
  * Register the 'link' component type with traits.
+ *
+ * The `href` trait uses the custom 'page-link' type — see
+ * page-link.js. It MUST be registered before this function runs
+ * (done in index.js).
  */
 export function registerLinkType(instance) {
     try {
@@ -30,10 +39,9 @@ export function registerLinkType(instance) {
                         'id',
                         'title',
                         {
-                            type: 'text',
+                            type: 'page-link',
                             name: 'href',
                             label: 'Ссылка (href)',
-                            placeholder: '/page/... или https://...',
                         },
                         {
                             type: 'select',

@@ -4,12 +4,13 @@
  * GrapesLoader — load and init GrapesJS.
  *
  * Split into modules under editor/grapes/:
- *   config.js — buildConfig (buildContextMenu lives locally)
- *   link.js   — registerLinkType, registerLinkCommand
- *   scope.js  — makeScopeClassHandler
- *   empty.js  — bindEmptyPCleanup
- *   undo.js   — bindUndoFilter
- *   traits.js — registerBodyTraits
+ *   config.js    — buildConfig (buildContextMenu lives locally)
+ *   link.js      — registerLinkType, registerLinkCommand
+ *   page-link.js — registerPageLinkTrait
+ *   scope.js     — makeScopeClassHandler
+ *   empty.js     — bindEmptyPCleanup
+ *   undo.js      — bindUndoFilter
+ *   traits.js    — registerBodyTraits
  *
  * Internal modules are loaded DYNAMICALLY with ?v=static_version
  * so static versioning is not broken. Inside the modules themselves
@@ -182,6 +183,7 @@ export class GrapesLoader {
         const [
             configMod,
             linkMod,
+            pageLinkMod,
             scopeMod,
             emptyMod,
             undoMod,
@@ -189,6 +191,7 @@ export class GrapesLoader {
         ] = await Promise.all([
             import(v('./config.js')),
             import(v('./link.js')),
+            import(v('./page-link.js')),
             import(v('./scope.js')),
             import(v('./empty.js')),
             import(v('./undo.js')),
@@ -199,6 +202,7 @@ export class GrapesLoader {
             buildConfig: configMod.buildConfig,
             registerLinkType: linkMod.registerLinkType,
             registerLinkCommand: linkMod.registerLinkCommand,
+            registerPageLinkTrait: pageLinkMod.registerPageLinkTrait,
             makeScopeClassHandler: scopeMod.makeScopeClassHandler,
             bindEmptyPCleanup: emptyMod.bindEmptyPCleanup,
             bindUndoFilter: undoMod.bindUndoFilter,
@@ -377,6 +381,11 @@ export class GrapesLoader {
 
         // ===== tlb-custom-link command =====
         m.registerLinkCommand(instance);
+
+        // ===== 'page-link' trait type =====
+        // MUST run before registerLinkType — the 'link' type references
+        // 'page-link' in its traits defaults.
+        m.registerPageLinkTrait(instance);
 
         // ===== 'link' type with traits (href, target) =====
         m.registerLinkType(instance);

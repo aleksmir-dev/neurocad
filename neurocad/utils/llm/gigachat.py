@@ -40,6 +40,12 @@ Error reporting:
   not just the status code. This is what the user sees in the chat.
   The same helper is used for the OAuth step — a failed token request
   also surfaces a readable message.
+
+Token accounting:
+  `self.tokens_used` is reset at the start of get_response(), then
+  incremented for every input message and for the (single) response
+  text. GigaChat does not expose a public tokenizer; `count_tokens`
+  uses the base heuristic (len * 0.6).
 """
 
 import base64
@@ -78,6 +84,9 @@ class GigaChatProvider(LLMProvider):
     API_URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
     def __init__(self, config: dict, log=None):
+        # Initialize LLMProvider (sets self.tokens_used = 0)
+        super().__init__()
+
         self.auth_key = (config.get("auth_key") or "").strip()
         self.scope = config.get("scope") or "GIGACHAT_API_PERS"
         self.model = config.get("model") or "GigaChat-2-Lite"
@@ -92,6 +101,14 @@ class GigaChatProvider(LLMProvider):
         self.log = log
 
         self._check_auth_key()
+
+    # ============================================
+    # TOKEN COUNTING
+    # ============================================
+    #
+    # GigaChat does not expose a public tokenizer — use the base
+    # heuristic (len * 0.6). No override needed; kept here as a
+    # documented "explicitly not overridden" point.
 
     # ============================================
     # LOG HELPERS
@@ -127,8 +144,6 @@ class GigaChatProvider(LLMProvider):
         GigaChat returns errors as:
           {"status": 404, "message": "No such model"}
         so the plain "message" branch is the common one.
-
-        Never raises.
         """
         try:
             data = response.json()
@@ -216,9 +231,6 @@ class GigaChatProvider(LLMProvider):
         Returns (token, error_detail):
           - on success: (token, None)
           - on failure: (None, human-readable error string)
-
-        The caller decides how to present the error — the second element
-        is meant to be shown in the chat (see get_response()).
         """
         headers = {
             "Authorization": f"Basic {self.auth_key}",
@@ -254,6 +266,9 @@ class GigaChatProvider(LLMProvider):
         max_tokens: int | None = None,
         stream: bool = False,
     ) -> AsyncGenerator[str, None]:
+        # Reset the per-call token counter.
+        self._reset_tokens()
+
         if not self.is_configured:
             yield "Ошибка: GigaChat не настроен. Нужен auth_key."
             return
@@ -262,6 +277,10 @@ class GigaChatProvider(LLMProvider):
             temperature = DEFAULT_TEMPERATURE
         if max_tokens is None:
             max_tokens = self.max_output_tokens
+
+        # Count input (prompt) tokens.
+        for m in messages_list or []:
+            self._add_tokens(m.get("content", "") if isinstance(m, dict) else "")
 
         ssl_ctx = self._get_ssl_context()
 
@@ -299,6 +318,8 @@ class GigaChatProvider(LLMProvider):
                 if choices:
                     content = choices[0].get("message", {}).get("content", "")
                     if content:
+                        # Count output (completion) tokens.
+                        self._add_tokens(content)
                         yield content
             except httpx.TimeoutException:
                 self._log_error("timeout")

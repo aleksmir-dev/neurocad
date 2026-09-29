@@ -1,4 +1,4 @@
-# app/core/engine/lib/pages/route.py
+# neurocad/core/engine/lib/pages/route.py
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
@@ -9,6 +9,7 @@ from sqlalchemy import select
 from neurocad.core.auth.dependencies import get_current_user
 from neurocad.core.models.nav import Nav
 from neurocad.utils.sqlite import get_db_sqlite
+from neurocad.core.engine.lib.balance.checked import BalanceChecked
 from .service import CoreEngineLibPagesService
 from .schema import (
     CoreEngineLibPagesItemCreate,
@@ -105,6 +106,44 @@ async def get_pages_list(
 
 
 # ========================================
+# MY LIST — для редактора (выбор ссылки)
+# ========================================
+#
+# ВАЖНО: этот роут ДОЛЖЕН быть объявлен ДО /item/{item_id}.
+# FastAPI матчит роуты в порядке добавления; иначе /my-list
+# будет интерпретирован как item_id="my-list" и упадёт валидация.
+
+@router.get("/my-list")
+async def get_my_pages_list(
+    request: Request,
+    exclude_page_id: Optional[int] = Query(
+        None,
+        description="Исключить страницу из списка (нельзя ссылаться на себя)",
+    ),
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Список страниц текущего пользователя — для выбора ссылки
+    в редакторе (trait page-link).
+
+    Возвращает только активные, неудалённые, не-шаблонные страницы
+    всех nav текущего юзера. Каждая с готовым URL вида
+    /page/<nav_id>/<YYYYMMDD>/<HHMMSS>.
+
+    Any authenticated user.
+    """
+    user_id = current_user.get("id")
+    items = await CoreEngineLibPagesService.list_for_user(
+        user_id,
+        exclude_page_id=exclude_page_id,
+    )
+    return JSONResponse({
+        "success": True,
+        "data": items,
+    })
+
+
+# ========================================
 # ONE ITEM BY ID
 # ========================================
 
@@ -175,9 +214,24 @@ async def create_page_item(
     nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Create a new article. Any authenticated user."""
+    """
+    Create a new article. Any authenticated user.
+
+    Before creating — checks the page limit via BalanceChecked
+    (lazy, based on the owner's tariff).
+
+    On limit exceeded → 403 with detail 'pages_exhausted'.
+    """
     # get_current_user raises 401 for guests — no extra permission check needed.
+    user_id = current_user.get("id")
     resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
+
+    # Pre-check: is the user allowed to create a new page?
+    bal, err, current_pages = await BalanceChecked.page_allowed(
+        user_id, log=request.app.state.log
+    )
+    if err:
+        raise HTTPException(status_code=403, detail=err)
 
     item = await CoreEngineLibPagesService.create_item(data, nav_id=resolved_nav_id)
 

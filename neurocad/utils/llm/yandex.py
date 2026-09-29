@@ -18,6 +18,12 @@ Error reporting:
   Yandex returns errors as:
     {"error": {"grpcCode": 16, "httpCode": 401, "message": "...", "httpStatus": "..."}}
   so the nested "error.message" branch is the common one.
+
+Token accounting:
+  `self.tokens_used` is reset at the start of get_response(), then
+  incremented for every input message and for the (single) response
+  text. Yandex does not expose a public tokenizer; `count_tokens`
+  uses the base heuristic (len * 0.6).
 """
 
 import httpx
@@ -44,6 +50,9 @@ class YandexProvider(LLMProvider):
     API_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
 
     def __init__(self, config: dict, log=None):
+        # Initialize LLMProvider (sets self.tokens_used = 0)
+        super().__init__()
+
         self.api_key = config.get("api_key") or ""
         self.folder_id = config.get("folder_id") or ""
         self.model = config.get("model") or "yandexgpt-lite"
@@ -52,6 +61,14 @@ class YandexProvider(LLMProvider):
 
         # app.state.log — приходит из эндпоинта.
         self.log = log
+
+    # ============================================
+    # TOKEN COUNTING
+    # ============================================
+    #
+    # Yandex does not expose a public tokenizer — use the base
+    # heuristic (len * 0.6). No override needed; kept here as a
+    # documented "explicitly not overridden" point.
 
     # ============================================
     # LOG HELPERS
@@ -83,13 +100,6 @@ class YandexProvider(LLMProvider):
           - JSON: {"message": "..."}
           - JSON: {"detail": "..."}
           - fallback: raw text, truncated to ~400 chars
-
-        Yandex returns errors as:
-          {"error": {"grpcCode": 16, "httpCode": 401,
-                     "message": "API key not valid",
-                     "httpStatus": "UNAUTHENTICATED"}}
-
-        Never raises.
         """
         try:
             data = response.json()
@@ -134,6 +144,9 @@ class YandexProvider(LLMProvider):
         max_tokens: int | None = None,
         stream: bool = False,
     ) -> AsyncGenerator[str, None]:
+        # Reset the per-call token counter.
+        self._reset_tokens()
+
         if not self.is_configured:
             yield "Ошибка: YandexGPT не настроен. Нужны api_key и folder_id."
             return
@@ -152,6 +165,9 @@ class YandexProvider(LLMProvider):
                 system_text = text
             else:
                 chat_messages.append({"role": role, "text": text})
+
+            # Count input (prompt) tokens for every message.
+            self._add_tokens(text)
 
         if system_text:
             chat_messages.insert(0, {"role": "system", "text": system_text})
@@ -185,6 +201,8 @@ class YandexProvider(LLMProvider):
                 if alternatives:
                     text = alternatives[0].get("message", {}).get("text", "")
                     if text:
+                        # Count output (completion) tokens.
+                        self._add_tokens(text)
                         yield text
             except httpx.TimeoutException:
                 self._log_error("timeout")

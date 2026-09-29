@@ -18,6 +18,11 @@ Permissions:
     All endpoints require an authenticated user (get_current_user).
     Guests get 401 from the dependency.
 
+Errors:
+    Upload may return HTTP 403 with detail 'mb_exhausted' if the
+    user would exceed their storage limit. HTTPException from the
+    service is passed through — not wrapped into a 500.
+
 Namespace: CoreEngineLibBaseAssets*
 """
 
@@ -144,6 +149,9 @@ async def upload_assets(
       - Accept any field name: 'files', 'files[]', 'file', 'upload'.
       - Authorization — manually via get_current_user(request).
 
+    On storage limit exceeded — returns 403 with detail 'mb_exhausted'.
+    HTTPException from the service is passed through — not wrapped.
+
     Example: /core/engine/lib/base/assets/upload?nav_id=2
 
     Any authenticated user.
@@ -172,8 +180,15 @@ async def upload_assets(
 
     try:
         uploaded = await CoreEngineLibBaseAssetsService.upload_assets(
-            all_files, resolved_nav_id
+            all_files,
+            resolved_nav_id,
+            log=request.app.state.log,
         )
+    except HTTPException:
+        # Tariff / storage checks inside the service already raised
+        # a proper HTTPException (403 mb_exhausted, 400, etc.) —
+        # pass it through unchanged.
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload error: {str(e)}")
 
@@ -198,6 +213,7 @@ async def delete_asset(
     Delete a single file from media/<nav_id>/.
 
     Path traversal protection is inside the service.
+    After deletion — decrements the user's Balance.mb.
 
     Example: /core/engine/lib/base/assets/photo_a1b2c3d4.png?nav_id=2
 
@@ -206,7 +222,9 @@ async def delete_asset(
     resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
 
     deleted = await CoreEngineLibBaseAssetsService.delete_asset(
-        filename, resolved_nav_id
+        filename,
+        resolved_nav_id,
+        log=request.app.state.log,
     )
 
     if not deleted:

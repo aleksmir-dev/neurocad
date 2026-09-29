@@ -392,6 +392,70 @@
       "source": "logo",
       "builtin": false,
       "order": 490
+    },
+    {
+      "id": "img-d1420223",
+      "alt": "Превью демо-сайта TET: главный экран",
+      "file": "files/img-d1420223.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 500
+    },
+    {
+      "id": "img-5d185962",
+      "alt": "Превью демо-сайта TET: блок с преимуществами",
+      "file": "files/img-5d185962.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 510
+    },
+    {
+      "id": "img-713a3ab7",
+      "alt": "Превью демо-сайта TET: галерея и призыв к действию",
+      "file": "files/img-713a3ab7.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 520
+    },
+    {
+      "id": "img-04b8570e",
+      "alt": "Превью демо-сайта Georgy: главный экран",
+      "file": "files/img-04b8570e.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 530
+    },
+    {
+      "id": "img-dd77ae43",
+      "alt": "Превью демо-сайта Georgy: блок с преимуществами",
+      "file": "files/img-dd77ae43.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 540
+    },
+    {
+      "id": "img-53503403",
+      "alt": "Превью демо-сайта Georgy: галерея и призыв к действию",
+      "file": "files/img-53503403.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 550
+    },
+    {
+      "id": "img-ecde601a",
+      "alt": "Демо-сайты",
+      "file": "files/img-ecde601a.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 560
+    },
+    {
+      "id": "img-69eaaf6b",
+      "alt": "Демо-сайты",
+      "file": "files/img-69eaaf6b.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 570
     }
   ]
 }

@@ -1,0 +1,10 @@
+{
+  "_file": "default/balance.json",    
+  "component": "page",
+  "extend": "base",
+  "title": "Управление балансом",
+  "content": "{{ balance }}",
+  "components": [
+    { "component": "balance" }
+  ]
+}

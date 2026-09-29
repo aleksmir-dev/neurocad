@@ -3,91 +3,283 @@
 """
 DispatchMixin — four run methods, one per WS request type.
 
-  _run_agent(websocket, page_id, run_id, user_message,
-             block_catalog, selection, history)
-      Full flow for `type: "start"`. Loads the page HTML, asks the
-      router which agent should handle the request, then runs that
-      agent. Router + agent each get an `emit` callback so they can
-      send intermediate events to the client.
+  _run_agent          — type: "start" (router + agent)
+  _run_effect_edit    — type: "effect_edit"
+  _run_effect_rename  — type: "effect_rename"
+  _run_create_effect  — type: "create_effect"
 
-  _run_effect_edit(websocket, page_id, run_id, user_message,
-                   effect_id, effect_css, effect_label,
-                   existing_effect_ids, history)
-      Direct flow for `type: "effect_edit"`. No router, no page HTML.
-      The client already told us which effect is being edited and
-      sent its current CSS. It also sends the current label and the
-      list of ids already taken by other effects — the agent uses
-      both to decide whether the edit changes the meaning of the
-      effect and should therefore propose a rename. We call the
-      "edit" agent and return the new CSS (plus optional new_id /
-      new_label) as `css_update`.
-
-  _run_effect_rename(websocket, page_id, run_id, user_message,
-                     effect_id, effect_css, effect_label,
-                     existing_effect_ids, history)
-      Direct flow for `type: "effect_rename"`. The user clicked the
-      "pencil" button on an active effect; we call the "rename" agent
-      to propose a NEW label and SVG miniature for the effect. The
-      `id` and the CSS are NOT changed — the agent returns the same
-      id and CSS it received, plus `new_label` and `new_media`. We
-      forward them to the client as `css_update` with those two
-      extra fields, and the client updates the block's label/icon
-      in the palette. Nothing is written to disk here — that happens
-      later, when the client has all the pieces (label, media) and
-      applies them via the standard relabel endpoint.
-
-  _run_create_effect(websocket, page_id, run_id, user_message,
-                     previous_draft, existing_effect_ids, history)
-      Direct flow for `type: "create_effect"`. The agent returns a
-      JSON draft (id, label, hint, css, media). We send it as
-      `effect_draft`. Nothing is written to disk here — the frontend
-      POSTs to /editor/effects after the user confirms with "сохрани".
-
-      `existing_effect_ids` — the list of effect ids already
-      registered in the palette. Passed to the agent so it can tell
-      the LLM not to pick a colliding id.
-
-Every method follows the same skeleton:
-
-    try:
-        update_run_status("planning" | "filling")
-        result = await agent.run(...)
-        if cancel_event.is_set(): finish_cancelled; return
-        save assistant message
-        persist run's final state (html/css/message)
-        send result to client
-        send `done`
-    except Exception as e:
-        log the traceback
-        finish_error
-    finally:
-        clear_cancel_event(run_id)
+Every method:
+    1. _check_balance() — tokens + free guard (llm_allowed).
+    2. _run_agent only: if the router picks the "create" agent,
+       additionally checks gen > 0 on pro (logo_allowed).
+    3. Runs the agent.
+    4. _charge_tokens() — tokens -= provider.tokens_used.
+    5. _run_agent only: _charge_gen() — gen -= 1 for create on pro.
+    6. Clears the cancel event.
 
 Cancel semantics: the server never aborts an in-flight LLM request.
 We wait for the current call to finish, then check
-`cancel_event.is_set()` and stop. That is why `cancel_event.is_set()`
-appears after every `agent.run(...)` and why the original request
-always completes on the network side.
+`cancel_event.is_set()` and stop.
 
-These methods used to be @staticmethod on CoreEngineLibWordLlmWS.
-Now they are regular methods on a mixin — called as
-`self._run_agent(...)` / `self._run_effect_edit(...)` /
-`self._run_effect_rename(...)` / `self._run_create_effect(...)`
-from the endpoint.
+Balance errors:
+    'llm_not_available' — free tariff; LLM is disabled.
+    'tokens_exhausted'  — pro / llm; tokens have run out.
+    'gen_exhausted'     — pro; gen has run out (generation request).
+    'no_balance'        — no Balance row for this user.
 
 Namespace: CoreEngineLibWordLlmWS (via Base + mixins)
 """
 
 import traceback
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import WebSocket
+from sqlalchemy import select
 
 from .agents import _AGENTS
 
 
+# Human-readable messages for balance errors. Kept next to the
+# guard so the wording lives in one place.
+_BALANCE_ERROR_MESSAGES = {
+    "llm_not_available": (
+        "LLM-чат недоступен на тарифе Free. "
+        "Перейдите на тариф Pro или LLM, чтобы пользоваться чатом."
+    ),
+    "tokens_exhausted": (
+        "Закончились токены LLM на этот месяц. "
+        "Они восстановятся в расчётный день или при смене тарифа."
+    ),
+    "gen_exhausted": (
+        "Закончились генерации страниц на этот месяц. "
+        "Они восстановятся в расчётный день или при смене тарифа."
+    ),
+    "no_balance": (
+        "Не удалось определить ваш тариф. "
+        "Обратитесь к администратору."
+    ),
+}
+
+
 class DispatchMixin:
     """Run methods for the four WS request types."""
+
+    # ============================================
+    # BALANCE GUARD
+    # ============================================
+
+    async def _send_balance_error(
+        self,
+        websocket: WebSocket,
+        run_id: int,
+        err: str,
+        user_id: Optional[int] = None,
+    ) -> None:
+        """
+        Send a balance error frame + done, update the run status.
+
+        `err` is the code from BalanceChecked (llm_not_available,
+        tokens_exhausted, gen_exhausted, no_balance).
+        """
+        from ..runs import CoreEngineLibWordLlmRuns
+
+        message = _BALANCE_ERROR_MESSAGES.get(err, "Лимит исчерпан.")
+
+        try:
+            await CoreEngineLibWordLlmRuns.update_run_status(
+                run_id,
+                status="failed",
+                message="Лимит исчерпан",
+                error=err,
+            )
+        except Exception:
+            pass
+
+        await self._safe_send(
+            websocket,
+            {"type": "error", "code": err, "message": message},
+        )
+        await self._safe_send(
+            websocket, {"type": "done", "run_id": run_id}
+        )
+
+    async def _check_balance(
+        self,
+        websocket: WebSocket,
+        run_id: int,
+    ) -> Optional[Any]:
+        """
+        Check whether the current user may run an LLM request.
+
+        Uses BalanceChecked.llm_allowed — blocks free users and
+        users with no tokens left.
+
+        Returns the Balance object on success, or None if blocked
+        (error frame already sent).
+        """
+        from neurocad.core.engine.lib.balance.checked import BalanceChecked
+
+        user_id = getattr(websocket.state, "user_id", None)
+        if not user_id:
+            await self._log(
+                websocket, "warning",
+                f"[balance] run {run_id}: no user_id on websocket.state",
+            )
+            await self._send_balance_error(
+                websocket, run_id, "no_balance", user_id=None,
+            )
+            return None
+
+        log = getattr(websocket.app.state, "log", None)
+
+        bal, err = await BalanceChecked.llm_allowed(user_id, log=log)
+        if err:
+            await self._log(
+                websocket, "info",
+                f"[balance] run {run_id} blocked for user {user_id}: {err}",
+            )
+            await self._send_balance_error(
+                websocket, run_id, err, user_id=user_id,
+            )
+            return None
+
+        return bal
+
+    async def _check_generation(
+        self,
+        websocket: WebSocket,
+        run_id: int,
+    ) -> bool:
+        """
+        Additional guard for generation requests (create-agent).
+
+        Uses BalanceChecked.logo_allowed — on pro also requires
+        gen > 0. Returns True if the request may proceed, False if
+        blocked (error frame already sent).
+        """
+        from neurocad.core.engine.lib.balance.checked import BalanceChecked
+
+        user_id = getattr(websocket.state, "user_id", None)
+        if not user_id:
+            return False
+
+        log = getattr(websocket.app.state, "log", None)
+
+        _bal, err = await BalanceChecked.logo_allowed(user_id, log=log)
+        if err:
+            await self._log(
+                websocket, "info",
+                f"[balance] run {run_id} generation blocked "
+                f"for user {user_id}: {err}",
+            )
+            await self._send_balance_error(
+                websocket, run_id, err, user_id=user_id,
+            )
+            return False
+
+        return True
+
+    # ============================================
+    # CHARGE
+    # ============================================
+
+    async def _charge_tokens(
+        self,
+        websocket: WebSocket,
+        provider: Any,
+    ) -> None:
+        """
+        Charge `provider.tokens_used` to the current user's Balance.
+
+        Called after the agent returns successfully. If the provider
+        has no `tokens_used` (0), nothing happens.
+
+        Updates Balance.tokens (clamped at 0) and updated_at.
+        """
+        from neurocad.core.models.balance import Balance
+        from neurocad.utils.sqlite import get_db_sqlite
+
+        user_id = getattr(websocket.state, "user_id", None)
+        usage = int(getattr(provider, "tokens_used", 0) or 0)
+
+        if not user_id or usage <= 0:
+            return
+
+        try:
+            async for session in get_db_sqlite():
+                stmt = select(Balance).where(
+                    Balance.user_id == user_id,
+                    Balance.is_delete.is_(False),
+                )
+                bal = (await session.execute(stmt)).scalar_one_or_none()
+                if bal is None:
+                    return
+                bal.tokens = max(0, (bal.tokens or 0) - usage)
+                bal.updated_at = datetime.now()
+                await session.commit()
+                await self._log(
+                    websocket, "info",
+                    f"[balance] user {user_id} charged {usage} tokens "
+                    f"(left {bal.tokens})",
+                )
+                return
+        except Exception as e:
+            await self._log(
+                websocket, "warning",
+                f"[balance] charge tokens failed for user {user_id}: {e}",
+            )
+
+    async def _charge_gen(
+        self,
+        websocket: WebSocket,
+        agent_name: str,
+    ) -> None:
+        """
+        Charge 1 generation for the create-agent on pro.
+
+        Free / llm — no charge (free is blocked earlier; llm is
+        unlimited). Only runs when agent_name == "create".
+
+        Called after agent.run() returns, so an LLM failure costs
+        nothing.
+        """
+        from neurocad.core.models.balance import Balance
+        from neurocad.utils.sqlite import get_db_sqlite
+
+        if agent_name != "create":
+            return
+
+        user_id = getattr(websocket.state, "user_id", None)
+        if not user_id:
+            return
+
+        try:
+            async for session in get_db_sqlite():
+                stmt = select(Balance).where(
+                    Balance.user_id == user_id,
+                    Balance.is_delete.is_(False),
+                )
+                bal = (await session.execute(stmt)).scalar_one_or_none()
+                if bal is None:
+                    return
+                # Only pro pays with gen.
+                if bal.tarif != 1:
+                    return
+                bal.gen = max(0, (bal.gen or 0) - 1)
+                bal.updated_at = datetime.now()
+                await session.commit()
+                await self._log(
+                    websocket, "info",
+                    f"[balance] user {user_id} charged 1 gen "
+                    f"(left {bal.gen})",
+                )
+                return
+        except Exception as e:
+            await self._log(
+                websocket, "warning",
+                f"[balance] charge gen failed for user {user_id}: {e}",
+            )
 
     # ============================================
     # TYPE: start — router then agent
@@ -107,22 +299,24 @@ class DispatchMixin:
         Route the request to one agent and send the result to the client.
 
         Steps:
-          1. Resolve the provider (mock or real, from the DB).
-          2. Dump meta for this run (for post-mortem debugging).
-          3. Load the current page HTML (for router state + agents).
-          4. Ask the router which agent should handle the request.
-          5. Run that agent and send its result to the client.
-
-        Any exception is caught and reported as an `error` frame.
+          0a. Balance guard — refuse if the user cannot run an LLM call.
+          1.  Resolve the provider (mock or real, from the DB).
+          2.  Dump meta for this run (for post-mortem debugging).
+          3.  Load the current page HTML (for router state + agents).
+          4.  Ask the router which agent should handle the request.
+          0b. If the router picked "create" — generation guard (gen > 0 on pro).
+          5.  Run that agent and send its result to the client.
+          6.  Charge tokens + (for create on pro) 1 gen.
         """
-        print(f"[RUN-AGENT] ENTER run={run_id}", flush=True)
-
-        # Imports are lazy so this mixin stays importable even when the
-        # DB / provider stack is not yet configured.
         from ..runs import CoreEngineLibWordLlmRuns
         from ..service import CoreEngineLibWordLlmService
         from ..dumper import CoreEngineLibWordLlmDumper
         from ..agent.router import CoreEngineLibWordLlmRouter
+
+        # ---- 0a. BALANCE GUARD (tokens + free) ----
+        bal = await self._check_balance(websocket, run_id)
+        if bal is None:
+            return
 
         cancel_event = self._get_cancel_event(run_id)
 
@@ -142,8 +336,6 @@ class DispatchMixin:
 
         current_html = await self._load_current_page_html(page_id)
 
-        # `emit` — a callback that the router and the agent use to send
-        # intermediate frames back to the client (e.g. "step").
         async def _emit(msg: dict) -> None:
             await self._safe_send(websocket, msg)
 
@@ -167,26 +359,22 @@ class DispatchMixin:
             agent_name = routing.get("agent", "help")
             target = routing.get("target")
 
-            print(
-                f"[RUN-AGENT] run={run_id} agent={agent_name} target={target}",
-                flush=True,
-            )
-
             # "edit", "create_effect" and "rename" are only reachable
-            # via their explicit WS types. If the router returns them
-            # in a start flow, it got confused — fall back to help.
+            # via their explicit WS types. Fall back to help if the
+            # router returned them in a start flow.
             if agent_name in ("edit", "create_effect", "rename"):
-                print(
-                    f"[RUN-AGENT] run={run_id} router returned {agent_name!r} "
-                    f"in a start flow — falling back to 'help'",
-                    flush=True,
-                )
                 agent_name = "help"
                 target = None
 
             if cancel_event.is_set():
                 await self._finish_cancelled(websocket, run_id)
                 return
+
+            # ---- 0b. GENERATION GUARD (only for create) ----
+            if agent_name == "create":
+                ok = await self._check_generation(websocket, run_id)
+                if not ok:
+                    return
 
             # ---- NO TARGET FOR fill / effect ----
             has_element = bool((selection or {}).get("selector"))
@@ -255,28 +443,23 @@ class DispatchMixin:
                 await self._finish_cancelled(websocket, run_id)
                 return
 
+            # ---- CHARGE ----
+            await self._charge_tokens(websocket, provider)
+            await self._charge_gen(websocket, agent_name)
+
             # ---- RESULT ----
             message = result.get("message") or ""
             html = result.get("html")
             selector = result.get("selector")
             element_html = result.get("element_html")
 
-            # Sanity: element_html must look like HTML. If the model
-            # returned prose, drop it — otherwise the client would
-            # replace a real component with garbage.
+            # Sanity: element_html must look like HTML.
             if selector and element_html:
                 trimmed = str(element_html).strip()
                 if not trimmed.startswith("<"):
-                    print(
-                        f"[ws-run] run={run_id} element_html does not look "
-                        f"like HTML (starts with {trimmed[:40]!r}) — "
-                        f"refusing to send element_update",
-                        flush=True,
-                    )
                     selector = None
                     element_html = None
 
-            # Save assistant message (best-effort).
             try:
                 await CoreEngineLibWordLlmService.save_chat_message(
                     page_id=page_id,
@@ -290,7 +473,6 @@ class DispatchMixin:
                     f"[ws] save assistant msg failed: {e}",
                 )
 
-            # Persist the run's "final" payload — what the run produced.
             if html and str(html).strip().startswith("<"):
                 final_html = html
             elif element_html and str(element_html).strip().startswith("<"):
@@ -303,7 +485,6 @@ class DispatchMixin:
                 message=message,
             )
 
-            # Send frames to the client.
             if html and str(html).strip().startswith("<"):
                 await self._safe_send(
                     websocket,
@@ -329,15 +510,12 @@ class DispatchMixin:
                 {"type": "done", "run_id": run_id},
             )
 
-            print(f"[RUN-AGENT] run={run_id} DONE agent={agent_name}", flush=True)
-
         except Exception as e:
             await self._log(
                 websocket,
                 "error",
                 f"[run-agent] run {run_id} crashed: {e}\n{traceback.format_exc()}",
             )
-            print(f"[RUN-AGENT] run={run_id} CRASHED: {e}", flush=True)
             await self._finish_error(
                 websocket,
                 run_id,
@@ -348,7 +526,7 @@ class DispatchMixin:
             self._clear_cancel_event(run_id)
 
     # ============================================
-    # TYPE: effect_edit — direct edit agent, no router
+    # TYPE: effect_edit
     # ============================================
 
     async def _run_effect_edit(
@@ -363,30 +541,15 @@ class DispatchMixin:
         existing_effect_ids: Optional[List[str]] = None,
         history: Optional[List[Dict[str, str]]] = None,
     ) -> None:
-        """
-        Run the "edit" agent directly.
-
-        The client already told us which effect is being edited and
-        sent its current CSS, its human label, and the list of ids
-        already taken by OTHER effects. The agent returns a new full
-        CSS; we send it back as `css_update`. If the edit changed the
-        MEANING of the effect, the agent also returns `new_id` and
-        `new_label` — they are forwarded to the client, which will
-        create a new effect and delete the old one on save.
-
-        The effect is NOT written to disk here. That happens later,
-        when the user confirms the edit (frontend PUT for an in-place
-        edit, or POST + DELETE for a rename).
-        """
-        print(
-            f"[RUN-EFFECT-EDIT] ENTER run={run_id} effect={effect_id} "
-            f"existing={len(existing_effect_ids or [])}",
-            flush=True,
-        )
-
+        """Run the "edit" agent directly."""
         from ..runs import CoreEngineLibWordLlmRuns
         from ..service import CoreEngineLibWordLlmService
         from ..dumper import CoreEngineLibWordLlmDumper
+
+        # ---- BALANCE GUARD ----
+        bal = await self._check_balance(websocket, run_id)
+        if bal is None:
+            return
 
         cancel_event = self._get_cancel_event(run_id)
 
@@ -436,6 +599,9 @@ class DispatchMixin:
                 await self._finish_cancelled(websocket, run_id)
                 return
 
+            # ---- CHARGE TOKENS ----
+            await self._charge_tokens(websocket, provider)
+
             message = result.get("message") or ""
             css = result.get("css")
             result_effect_id = result.get("effect_id")
@@ -455,7 +621,6 @@ class DispatchMixin:
                     f"[ws] save assistant msg failed: {e}",
                 )
 
-            # For an edit run, the "final" payload is the new CSS.
             final_html = css if css else ""
             await CoreEngineLibWordLlmRuns.set_run_final(
                 run_id,
@@ -468,20 +633,9 @@ class DispatchMixin:
                     "type": "css_update",
                     "effect_id": result_effect_id,
                     "css": css,
+                    "new_id": new_id,
+                    "new_label": new_label,
                 }
-                # Optional rename proposal — only present when the
-                # agent decided the edit changed the meaning. Always
-                # include the keys so the client can rely on their
-                # presence; `None` means "no rename, in-place PUT".
-                payload["new_id"] = new_id
-                payload["new_label"] = new_label
-
-                print(
-                    f"[RUN-EFFECT-EDIT] run={run_id} "
-                    f"css_update effect={result_effect_id} "
-                    f"new_id={new_id!r} new_label={new_label!r}",
-                    flush=True,
-                )
                 await self._safe_send(websocket, payload)
 
             if message:
@@ -495,11 +649,6 @@ class DispatchMixin:
                 {"type": "done", "run_id": run_id},
             )
 
-            print(
-                f"[RUN-EFFECT-EDIT] run={run_id} DONE effect={effect_id}",
-                flush=True,
-            )
-
         except Exception as e:
             await self._log(
                 websocket,
@@ -507,7 +656,6 @@ class DispatchMixin:
                 f"[run-effect-edit] run {run_id} crashed: {e}\n"
                 f"{traceback.format_exc()}",
             )
-            print(f"[RUN-EFFECT-EDIT] run={run_id} CRASHED: {e}", flush=True)
             await self._finish_error(
                 websocket,
                 run_id,
@@ -518,7 +666,7 @@ class DispatchMixin:
             self._clear_cancel_event(run_id)
 
     # ============================================
-    # TYPE: effect_rename — direct rename agent, no router
+    # TYPE: effect_rename
     # ============================================
 
     async def _run_effect_rename(
@@ -533,32 +681,15 @@ class DispatchMixin:
         existing_effect_ids: Optional[List[str]] = None,
         history: Optional[List[Dict[str, str]]] = None,
     ) -> None:
-        """
-        Run the "rename" agent directly.
-
-        The user clicked the "pencil" button on an active effect. The
-        client sent the effect's current CSS, its human label, and
-        the list of ids already taken by OTHER effects. The agent
-        proposes a NEW label and a NEW SVG miniature — WITHOUT
-        changing the id or the CSS.
-
-        We send the SAME id and CSS back with `new_label` and
-        `new_media` set, so the client can update the block's label
-        and icon in the palette. The id and the CSS file stay exactly
-        as they were — nothing on the canvas needs to be touched.
-
-        The effect is NOT written to disk here. That happens later,
-        when the client has all the pieces and applies them via the
-        standard relabel endpoint.
-        """
-        print(
-            f"[RUN-EFFECT-RENAME] ENTER run={run_id} effect={effect_id}",
-            flush=True,
-        )
-
+        """Run the "rename" agent directly."""
         from ..runs import CoreEngineLibWordLlmRuns
         from ..service import CoreEngineLibWordLlmService
         from ..dumper import CoreEngineLibWordLlmDumper
+
+        # ---- BALANCE GUARD ----
+        bal = await self._check_balance(websocket, run_id)
+        if bal is None:
+            return
 
         cancel_event = self._get_cancel_event(run_id)
 
@@ -608,6 +739,9 @@ class DispatchMixin:
                 await self._finish_cancelled(websocket, run_id)
                 return
 
+            # ---- CHARGE TOKENS ----
+            await self._charge_tokens(websocket, provider)
+
             message = result.get("message") or ""
             css = result.get("css")
             result_effect_id = result.get("effect_id")
@@ -627,7 +761,6 @@ class DispatchMixin:
                     f"[ws] save assistant msg failed: {e}",
                 )
 
-            # The "final" payload is the (unchanged) CSS.
             final_html = css if css else ""
             await CoreEngineLibWordLlmRuns.set_run_final(
                 run_id,
@@ -643,13 +776,6 @@ class DispatchMixin:
                     "new_label": new_label,
                     "new_media": new_media,
                 }
-                print(
-                    f"[RUN-EFFECT-RENAME] run={run_id} "
-                    f"css_update effect={result_effect_id} "
-                    f"new_label={new_label!r} "
-                    f"new_media={(str(new_media)[:40] if new_media else '')!r}",
-                    flush=True,
-                )
                 await self._safe_send(websocket, payload)
 
             if message:
@@ -663,11 +789,6 @@ class DispatchMixin:
                 {"type": "done", "run_id": run_id},
             )
 
-            print(
-                f"[RUN-EFFECT-RENAME] run={run_id} DONE effect={effect_id}",
-                flush=True,
-            )
-
         except Exception as e:
             await self._log(
                 websocket,
@@ -675,7 +796,6 @@ class DispatchMixin:
                 f"[run-effect-rename] run {run_id} crashed: {e}\n"
                 f"{traceback.format_exc()}",
             )
-            print(f"[RUN-EFFECT-RENAME] run={run_id} CRASHED: {e}", flush=True)
             await self._finish_error(
                 websocket,
                 run_id,
@@ -686,7 +806,7 @@ class DispatchMixin:
             self._clear_cancel_event(run_id)
 
     # ============================================
-    # TYPE: create_effect — direct draft agent, no router
+    # TYPE: create_effect
     # ============================================
 
     async def _run_create_effect(
@@ -699,28 +819,15 @@ class DispatchMixin:
         existing_effect_ids: Optional[List[str]] = None,
         history: Optional[List[Dict[str, str]]] = None,
     ) -> None:
-        """
-        Run the "create_effect" agent directly.
-
-        The agent returns a JSON draft (id, label, hint, css, media).
-        We send it as `effect_draft` and DO NOT write anything to disk.
-        The frontend shows the draft to the user; when the user
-        confirms with "сохрани", the frontend POSTs to /editor/effects
-        — that is where persistence happens.
-
-        `existing_effect_ids` — the list of effect ids already
-        registered in the palette. Passed to the agent so it can tell
-        the LLM not to pick a colliding id.
-        """
-        print(
-            f"[RUN-CREATE-EFFECT] ENTER run={run_id} "
-            f"existing={len(existing_effect_ids or [])}",
-            flush=True,
-        )
-
+        """Run the "create_effect" agent directly."""
         from ..runs import CoreEngineLibWordLlmRuns
         from ..service import CoreEngineLibWordLlmService
         from ..dumper import CoreEngineLibWordLlmDumper
+
+        # ---- BALANCE GUARD ----
+        bal = await self._check_balance(websocket, run_id)
+        if bal is None:
+            return
 
         cancel_event = self._get_cancel_event(run_id)
 
@@ -768,6 +875,9 @@ class DispatchMixin:
                 await self._finish_cancelled(websocket, run_id)
                 return
 
+            # ---- CHARGE TOKENS ----
+            await self._charge_tokens(websocket, provider)
+
             message = result.get("message") or ""
             draft = result.get("draft")
 
@@ -784,7 +894,6 @@ class DispatchMixin:
                     f"[ws] save assistant msg failed: {e}",
                 )
 
-            # A draft has no "final html" — store the message only.
             await CoreEngineLibWordLlmRuns.set_run_final(
                 run_id,
                 "",
@@ -808,8 +917,6 @@ class DispatchMixin:
                 {"type": "done", "run_id": run_id},
             )
 
-            print(f"[RUN-CREATE-EFFECT] run={run_id} DONE", flush=True)
-
         except Exception as e:
             await self._log(
                 websocket,
@@ -817,7 +924,6 @@ class DispatchMixin:
                 f"[run-create-effect] run {run_id} crashed: {e}\n"
                 f"{traceback.format_exc()}",
             )
-            print(f"[RUN-CREATE-EFFECT] run={run_id} CRASHED: {e}", flush=True)
             await self._finish_error(
                 websocket,
                 run_id,

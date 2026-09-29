@@ -12,10 +12,9 @@
     <meta name="description" content="{{ description }}">
     {% endif %}
 
-    {# Favicon — per-nav, fallback to default #}
+    {# Favicon — per-nav #}
     <link rel="icon" type="image/x-icon"
-          href="/media/{{ nav_id }}/favicon.ico"
-          onerror="this.href='/static/core/engine/lib/base/images/favicon.ico'">
+          href="/media/{{ nav_id }}/favicon.ico">
 
     {# Public page CSS — wrapper layout only (content CSS comes from DB) #}
     <link rel="stylesheet" href="{{ 'core/engine/lib/pages/public/public.css'|static }}">
@@ -57,25 +56,6 @@
       in the editor and on the public page.
     #}
     <article class="core-engine-lib-pages-public-page core-engine-lib-word-blocks">
-
-        {# Header — title + date (optional) #}
-        {% if title %}
-        <header class="core-engine-lib-pages-public-header">
-
-            {% if logo %}
-            <img class="core-engine-lib-pages-public-logo"
-                 src="{{ logo }}"
-                 alt="{{ title }}">
-            {% endif %}
-
-            <h1 class="core-engine-lib-pages-public-title">{{ title }}</h1>
-
-            {% if datetime %}
-            <time class="core-engine-lib-pages-public-date">{{ datetime }}</time>
-            {% endif %}
-
-        </header>
-        {% endif %}
 
         {# Content — HTML only (no <style>). CSS comes via page_css_url. #}
         <div class="core-engine-lib-pages-public-content">

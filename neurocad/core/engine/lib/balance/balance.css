@@ -1,0 +1,454 @@
+/* neurocad/core/engine/lib/balance/balance.css */
+
+/* ============================================
+   ROOT
+   ============================================ */
+
+.core-engine-lib-balance {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.core-engine-lib-balance .balance-body {
+    width: 100%;
+    max-width: 1280px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 24px 20px 0;
+    box-sizing: border-box;
+}
+
+/* ============================================
+   TITLEBAR (fixed)
+   ============================================ */
+
+.core-engine-lib-balance .balance-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 12px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.core-engine-lib-balance .balance-titlebar-left,
+.core-engine-lib-balance .balance-titlebar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 80px;
+}
+
+.core-engine-lib-balance .balance-titlebar-right {
+    justify-content: flex-end;
+}
+
+.core-engine-lib-balance .balance-titlebar-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-main, #1e293b);
+    text-align: center;
+    flex: 1 1 auto;
+}
+
+.core-engine-lib-balance .balance-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    background: transparent;
+    color: #475569;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+    line-height: 1;
+}
+
+.core-engine-lib-balance .balance-icon-btn:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 0.08);
+    color: #3b82f6;
+}
+
+.core-engine-lib-balance .balance-icon-btn:active:not(:disabled) {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+/* ============================================
+   STATUS (fixed, под titlebar)
+   ============================================ */
+
+.core-engine-lib-balance .balance-status {
+    padding: 10px 14px;
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    margin-bottom: 12px;
+    border: 1px solid transparent;
+    flex-shrink: 0;
+}
+
+.core-engine-lib-balance .balance-status-success {
+    background: #dcfce7;
+    color: #16a34a;
+    border-color: #86efac;
+}
+
+.core-engine-lib-balance .balance-status-error {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.core-engine-lib-balance .balance-status-info {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #bfdbfe;
+}
+
+/* ============================================
+   QR TOOLBAR (fixed, над таблицей)
+   ============================================ */
+
+.core-engine-lib-balance .balance-qr-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.core-engine-lib-balance .balance-qr-info {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.core-engine-lib-balance .balance-qr-label {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.core-engine-lib-balance .balance-qr-state {
+    font-weight: 600;
+}
+
+.core-engine-lib-balance .balance-qr-state.is-ok {
+    color: #16a34a;
+}
+
+.core-engine-lib-balance .balance-qr-state.is-missing {
+    color: #b45309;
+}
+
+.core-engine-lib-balance .balance-qr-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.core-engine-lib-balance .balance-qr-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.core-engine-lib-balance .balance-qr-btn:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.core-engine-lib-balance .balance-qr-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-balance .balance-qr-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.core-engine-lib-balance .balance-qr-btn-primary {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.core-engine-lib-balance .balance-qr-btn-primary:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.core-engine-lib-balance .balance-qr-btn-danger {
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+.core-engine-lib-balance .balance-qr-btn-danger:hover:not(:disabled) {
+    background: rgba(220, 38, 38, 0.06);
+    border-color: #dc2626;
+}
+
+/* ============================================
+   SCROLLABLE AREA (таблица)
+   ============================================ */
+
+.core-engine-lib-balance .balance-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding-bottom: 24px;
+}
+
+/* ============================================
+   TABLE
+   ============================================ */
+
+.core-engine-lib-balance .balance-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    color: var(--text-main, #1e293b);
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    overflow: hidden;
+}
+
+.core-engine-lib-balance .balance-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.core-engine-lib-balance .balance-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+    vertical-align: middle;
+}
+
+.core-engine-lib-balance .balance-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.core-engine-lib-balance .balance-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.core-engine-lib-balance .balance-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+}
+
+.core-engine-lib-balance .balance-date {
+    color: #64748b;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.core-engine-lib-balance .balance-empty {
+    padding: 32px 12px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+/* ============================================
+   TARIF BADGE
+   ============================================ */
+
+.core-engine-lib-balance .balance-tarif {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    line-height: 1.5;
+}
+
+.core-engine-lib-balance .balance-tarif-free {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.core-engine-lib-balance .balance-tarif-pro {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.core-engine-lib-balance .balance-tarif-llm {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+/* ============================================
+   ACTIONS
+   ============================================ */
+
+.core-engine-lib-balance .balance-actions {
+    display: flex;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.core-engine-lib-balance .balance-action-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.core-engine-lib-balance .balance-action-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.core-engine-lib-balance .balance-action-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-balance .balance-action-btn-primary {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.core-engine-lib-balance .balance-action-btn-primary:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+/* ============================================
+   ERROR / FORBIDDEN STATE
+   ============================================ */
+
+.core-engine-lib-balance .balance-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 64px 24px;
+    text-align: center;
+    flex: 1 1 auto;
+}
+
+.core-engine-lib-balance .balance-error-icon {
+    font-size: 48px;
+    line-height: 1;
+}
+
+.core-engine-lib-balance .balance-error-text {
+    font-size: 17px;
+    font-weight: 600;
+    color: #dc2626;
+}
+
+.core-engine-lib-balance .balance-error-hint {
+    font-size: 14px;
+    color: #64748b;
+    max-width: 400px;
+    line-height: 1.5;
+}
+
+.core-engine-lib-balance .balance-btn {
+    margin-top: 8px;
+    padding: 9px 16px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.core-engine-lib-balance .balance-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+/* ============================================
+   MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-balance .balance-body {
+        padding: 16px 12px 0;
+    }
+
+    .core-engine-lib-balance .balance-titlebar-title {
+        font-size: 15px;
+    }
+
+    .core-engine-lib-balance .balance-qr-toolbar {
+        padding: 8px 10px;
+    }
+
+    .core-engine-lib-balance .balance-qr-actions {
+        width: 100%;
+    }
+
+    .core-engine-lib-balance .balance-qr-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+
+    .core-engine-lib-balance .balance-table {
+        font-size: 12px;
+    }
+
+    .core-engine-lib-balance .balance-table thead th,
+    .core-engine-lib-balance .balance-table tbody td {
+        padding: 8px 10px;
+    }
+
+    .core-engine-lib-balance .balance-action-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+}

@@ -66,10 +66,27 @@ body {
 
 .core-engine-lib-base-footer {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 48px;
     background: var(--bg-surface);
     border-top: 1px solid var(--border-color);
-    padding: var(--gap-md) var(--gap-xl);
-    text-align: center;
+    padding: 0 var(--gap-xl);
     font-size: var(--font-size-sm);
     color: var(--text-muted);
+}
+
+.core-engine-lib-base-footer {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 48px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    padding: 0 var(--gap-xl) 8px;   /* ← 0 сверху, 8px снизу */
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    box-sizing: border-box;
 }

@@ -28,6 +28,7 @@ from fastapi import APIRouter
 from .auth.route import router as auth_router
 from .assets.route import router as assets_router
 from .setup.route import router as setup_router
+from .profile.route import router as profile_router
 
 
 
@@ -45,3 +46,4 @@ router = APIRouter(prefix="/base", tags=["core/engine/lib/base"])
 router.include_router(auth_router)
 router.include_router(assets_router)
 router.include_router(setup_router)
+router.include_router(profile_router)

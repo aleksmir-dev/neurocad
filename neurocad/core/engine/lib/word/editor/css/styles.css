@@ -16,6 +16,7 @@
  *   - Radio buttons (text-align), clear icon, color pickers.
  *   - Class Manager (class tags).
  *   - Trait Manager (element attributes) — label сверху, поле снизу.
+ *   - Page-link trait (select + input для href).
  *
  * All classes — standard .gjs-sm-* / .gjs-field / .gjs-clm-* / .gjs-trt-*.
  * Styled for light Base theme.
@@ -353,6 +354,63 @@
     font-family: inherit;
     cursor: pointer;
     padding: 6px 8px;
+}
+
+/* ============================================
+   PAGE LINK TRAIT (href — select + input)
+   ============================================ */
+
+/*
+ * Кастомный trait `page-link` — гибрид:
+ *   - <select> со страницами пользователя (URL подставляется);
+ *   - <input> для ручного ввода URL.
+ *
+ * Оба контрола растягиваются на всю ширину поля трейта.
+ * Между ними — небольшой вертикальный отступ.
+ *
+ * Стилистика — как у соседних полей: белый фон,
+ * скругление 6px, граница var(--border-light).
+ *
+ * Обёртка .gjs-field вокруг нашего .page-link-trait даёт
+ * рамку и скругление — внутренние контролы без своих рамок.
+ */
+
+.core-engine-lib-word-editor-panel-content .page-link-trait {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+}
+
+/* Общий стиль обоих контролов */
+.core-engine-lib-word-editor-panel-content .page-link-trait__select,
+.core-engine-lib-word-editor-panel-content .page-link-trait__input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 6px;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.core-engine-lib-word-editor-panel-content .page-link-trait__select {
+    cursor: pointer;
+}
+
+.core-engine-lib-word-editor-panel-content .page-link-trait__select:focus,
+.core-engine-lib-word-editor-panel-content .page-link-trait__input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-word-editor-panel-content .page-link-trait__input::placeholder {
+    color: #94a3b8;
 }
 
 /* ============================================

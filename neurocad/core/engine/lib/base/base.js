@@ -618,8 +618,8 @@ export class Base {
                 </div>
             </main>
             <footer class="core-engine-lib-base-footer">
-                <div class="core-engine-lib-base-footer-inner">Подвал</div>
-            </footer>
+                <div class="core-engine-lib-base-footer-inner">© 2026 NeuroCad - Смирнов Алексей Владимирович</div>
+            </footer>            
         `;
 
         this.headerEl = document.querySelector('.core-engine-lib-base-header');
@@ -632,7 +632,7 @@ export class Base {
             this.headerEl.style.display = this.showHeader ? 'flex' : 'none';
         }
         if (this.footerEl) {
-            this.footerEl.style.display = this.showFooter ? 'block' : 'none';
+            this.footerEl.style.display = this.showFooter ? 'flex' : 'none';
         }
         if (this.leftEl) {
             this.leftEl.style.display = this.showLeft ? 'flex' : 'none';
@@ -805,6 +805,81 @@ export class Base {
             setCaption: this._setCaption,
             restoreCaption: this._restoreCaption,
             onNavigate: (nextSection) => this.showSetup(nextSection),
+        });
+    }
+
+    /**
+     * Open a profile page in area-center.
+     *
+     * Available to any authenticated user (no superadmin check).
+     *
+     * Two sections, two separate components:
+     *   - 'main'    → profile/profile.js          (BaseProfile)
+     *   - 'balance' → profile/balance/balance.js  (BaseProfileBalance)
+     *
+     * Password change is NOT a profile section — it lives in
+     * auth/password.js and is opened directly via auth.showPassword()
+     * from the profile landing page.
+     *
+     * Each component navigates back via onNavigate(section).
+     *
+     * ASYNC: if the active page (Word) has unsaved changes, the user
+     * is asked via teardownAreas() → confirmClose(). If the user
+     * cancels — nothing is rendered and the editor stays open.
+     *
+     * @param {string} section — 'main' (default) or 'balance'
+     */
+    async showProfile(section = 'main') {
+        console.log('[Base] showProfile()', section);
+
+        const user = this.auth?.getUser?.();
+        if (!user) {
+            console.warn('[Base] showProfile: access denied (not authenticated)');
+            if (this.auth) this.auth.showLogin();
+            return;
+        }
+
+        // Tear down area-center + area-left / area-right.
+        // Note: renderInArea() also calls teardownAreas(), but we do it
+        // here too because the import below may fail — in that case the
+        // editor panels must already be gone.
+        //
+        // If the user cancels the confirmClose() dialog, we must abort
+        // before touching the profile import — otherwise the editor
+        // would already be gone but no profile page is shown.
+        const proceed = await this.teardownAreas();
+        if (!proceed) {
+            console.log('[Base] showProfile cancelled by user');
+            return;
+        }
+
+        const version = window.coreEngine?.static_version || Date.now();
+
+        let ComponentClass = null;
+        try {
+            if (section === 'balance') {
+                const mod = await import(`./profile/balance/balance.js?v=${version}`);
+                ComponentClass = mod.BaseProfileBalance;
+            } else {
+                const mod = await import(`./profile/profile.js?v=${version}`);
+                ComponentClass = mod.BaseProfile;
+            }
+        } catch (err) {
+            console.error('[Base] showProfile import error:', err);
+            return;
+        }
+
+        if (!ComponentClass) {
+            console.error('[Base] showProfile: component class not found for section', section);
+            return;
+        }
+
+        await this.renderInArea(ComponentClass, {
+            section,
+            user,
+            setCaption: this._setCaption,
+            restoreCaption: this._restoreCaption,
+            onNavigate: (nextSection) => this.showProfile(nextSection),
         });
     }
 

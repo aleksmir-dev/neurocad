@@ -364,5 +364,66 @@ export class ReadyBlocks {
                 </footer>
             `,
         });
+
+        // ===== ARTICLE CATALOG =====
+
+        /*
+         * Article catalog — grid of page cards (links).
+         *
+         * Каждая карточка — это <a>, ведущая на страницу.
+         * По умолчанию — 3 карточки-заглушки. Редактор заменяет
+         * заголовок, описание, дату, ссылку и (опционально) логотип.
+         *
+         * Никакого JS на публичной странице: карточки уже в HTML,
+         * клик — обычный переход по href.
+         */
+        this.bm.add('core-article-catalog', {
+            label: 'Каталог статей',
+            category: this.category,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="9" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="4" width="9" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="4" y1="9" x2="9" y2="9" stroke="currentColor" stroke-width="2"/><line x1="15" y1="9" x2="20" y2="9" stroke="currentColor" stroke-width="2"/></svg>',
+            content: `
+                <section class="section" data-block="core-article-catalog">
+                    <div class="container">
+                        <h2 class="h2 article-catalog__heading">Статьи</h2>
+                        <div class="article-catalog">
+                            <a class="article-catalog__card" href="#">
+                                <div class="article-catalog__glow"></div>
+                                <div class="article-catalog__logo">
+                                    <img src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
+                                </div>
+                                <div class="article-catalog__body">
+                                    <h3 class="article-catalog__title">Заголовок статьи</h3>
+                                    <p class="article-catalog__desc">Краткое описание. Замените на реальный текст.</p>
+                                    <time class="article-catalog__date">27 сентября 2026 г.</time>
+                                </div>
+                            </a>
+                            <a class="article-catalog__card" href="#">
+                                <div class="article-catalog__glow"></div>
+                                <div class="article-catalog__logo">
+                                    <img src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
+                                </div>
+                                <div class="article-catalog__body">
+                                    <h3 class="article-catalog__title">Заголовок статьи</h3>
+                                    <p class="article-catalog__desc">Краткое описание. Замените на реальный текст.</p>
+                                    <time class="article-catalog__date">27 сентября 2026 г.</time>
+                                </div>
+                            </a>
+                            <a class="article-catalog__card" href="#">
+                                <div class="article-catalog__glow"></div>
+                                <div class="article-catalog__logo">
+                                    <img src="/static/core/engine/lib/word/editor/placeholder.svg" alt="">
+                                </div>
+                                <div class="article-catalog__body">
+                                    <h3 class="article-catalog__title">Заголовок статьи</h3>
+                                    <p class="article-catalog__desc">Краткое описание. Замените на реальный текст.</p>
+                                    <time class="article-catalog__date">27 сентября 2026 г.</time>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            `,
+        });
+
     }
 }

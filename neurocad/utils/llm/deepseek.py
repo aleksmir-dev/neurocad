@@ -16,6 +16,12 @@ Error reporting:
   built from the response body (extracted via _extract_error_detail),
   not just the status code. Works in both streaming and non-streaming
   modes.
+
+Token accounting:
+  `self.tokens_used` is reset at the start of get_response(), then
+  incremented for every input message and every yielded chunk. After
+  the generator is fully consumed, it holds the total cost.
+  The exact tokenizer is cl100k_base (tiktoken).
 """
 
 import json
@@ -37,12 +43,12 @@ MAX_CONTEXT_TOKENS = 1_000_000
 
 
 # ============================================
-# TOKENIZER
+# TOKENIZER (module-level helpers)
 # ============================================
 #
-# NOTE: tokenizer helpers are module-level and have no access to
-# app.state.log — they log through the provider instance where possible.
-# When called standalone (CLI, tests), they are silent.
+# NOTE: these are standalone helpers for use outside the class
+# (CLI, tests). The provider class overrides `count_tokens` and
+# uses the same tokenizer internally.
 
 def get_deepseek_tokenizer():
     """
@@ -58,6 +64,7 @@ def get_deepseek_tokenizer():
 
 
 def count_tokens(text: str) -> int:
+    """Approximate token count using cl100k_base (fallback: len * 0.6)."""
     if not text:
         return 0
     tokenizer = get_deepseek_tokenizer()
@@ -86,6 +93,9 @@ class DeepSeekProvider(LLMProvider):
     name = "deepseek"
 
     def __init__(self, config: dict, log=None):
+        # Initialize LLMProvider (sets self.tokens_used = 0)
+        super().__init__()
+
         self.api_key = config.get("api_key") or ""
         self.base_url = (config.get("base_url") or "https://api.deepseek.com").rstrip("/")
         self.model = config.get("model") or "deepseek-flash"
@@ -94,6 +104,14 @@ class DeepSeekProvider(LLMProvider):
 
         # app.state.log — приходит из эндпоинта.
         self.log = log
+
+    # ============================================
+    # TOKEN COUNTING
+    # ============================================
+
+    def count_tokens(self, text: str) -> int:
+        """Exact count via cl100k_base (falls back to len * 0.6)."""
+        return count_tokens(text)
 
     # ============================================
     # LOG HELPERS
@@ -119,15 +137,8 @@ class DeepSeekProvider(LLMProvider):
         """
         Pull a human-readable message out of an API error response.
 
-        `raw_text` is the response body as a string (works for both
-        streaming and non-streaming — the caller reads the body and
-        passes the text here).
-
         DeepSeek uses the OpenAI error format:
           {"error": {"message": "Authentication Fails", "type": "...", "code": "..."}}
-        so the nested "error.message" branch is the common one.
-
-        Never raises.
         """
         if not raw_text:
             return "нет деталей"
@@ -178,6 +189,9 @@ class DeepSeekProvider(LLMProvider):
         max_tokens: int | None = None,
         stream: bool = False,
     ) -> AsyncGenerator[str, None]:
+        # Reset the per-call token counter.
+        self._reset_tokens()
+
         if not self.is_configured:
             yield "Ошибка: DeepSeek API ключ не настроен."
             return
@@ -186,6 +200,10 @@ class DeepSeekProvider(LLMProvider):
             temperature = DEFAULT_TEMPERATURE
         if max_tokens is None:
             max_tokens = self.max_output_tokens
+
+        # Count input (prompt) tokens.
+        for m in messages_list or []:
+            self._add_tokens(m.get("content", "") if isinstance(m, dict) else "")
 
         self._log_info(f"Отправляем {len(messages_list)} сообщений в DeepSeek API")
 
@@ -226,6 +244,8 @@ class DeepSeekProvider(LLMProvider):
                                         delta = chunk['choices'][0].get('delta', {})
                                         content = delta.get('content', '')
                                         if content:
+                                            # Count output (completion) tokens.
+                                            self._add_tokens(content)
                                             yield content
                                 except json.JSONDecodeError:
                                     continue
@@ -242,6 +262,8 @@ class DeepSeekProvider(LLMProvider):
                     result = response.json()
                     if 'choices' in result and len(result['choices']) > 0:
                         content = result['choices'][0].get('message', {}).get('content', '')
+                        # Count output tokens.
+                        self._add_tokens(content)
                         yield content
 
             except httpx.TimeoutException:
