@@ -1,33 +1,114 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.28] - 2026-09-30
+
+### Added
+- Import pages from `.grp` archives, `.html` files or remote URLs, and export the current page as a standalone `.html` document or a `.grp` archive, with new Import / Export buttons in the editor toolbar and a corresponding API under `/core/engine/lib/word/editor/io/`.
+
+### Changed
+- Editor toolbar buttons got more breathing room (`gap: 8px`), inline SVG icons are now supported, and the Import / Export dialogs follow the Base-modal singleton pattern (`.active` toggling).
+
+### Fixed
+- Import / Export dialogs no longer render below the page — `io.css` is now loaded by the editor (`cssFiles` in `editor/grapes/index.js`), and the dialogs are proper singletons.
+
 ## [0.1.27] - 2026-09-29
 
 ### Added
-
-- **Article catalog block for GrapesJS.** New ready-made section «Каталог статей» in the «Секции» category. Renders a grid of page cards — each card is an `<a>` link with logo, title, description and date. Pure HTML+CSS, no JavaScript on the public page. Ships with three placeholder cards; the editor replaces texts, links and images via traits or inline editing.
-- **Link picker in the editor.** The `href` trait for `<a>` elements is now a hybrid control:
-  - a `<select>` listing the current user's pages (`title — url`), pulled once from `GET /core/engine/lib/pages/my-list`;
-  - a text `<input>` for manual URL entry (external links, anchors, etc.).
-  Selecting a page fills the input and updates `href`; typing a URL updates `href` directly.
-- **API endpoint `GET /core/engine/lib/pages/my-list`** — returns active, non-deleted, non-template pages of the current user across all their navs, each with a ready-to-use `/page/<nav_id>/<YYYYMMDD>/<HHMMSS>` URL. Supports `?exclude_page_id=` to skip the page being edited.
+- Article catalog block for GrapesJS, a hybrid `href` trait with a page picker, and `GET /core/engine/lib/pages/my-list`.
 
 ### Changed
-
-- **Public page body cleanup.** `pages/public/route.py` now strips stray `<body>…</body>` wrappers (left over from GrapesJS export) at render time via a compiled regex. The DB and the editor are untouched — only the public HTML output is cleaned. Fixes nested `<body>` flagged by W3C / Google / Yandex validators.
-- **Public page header removed from the template.** The old admin-era `<header class="core-engine-lib-pages-public-header">` (logo + `<h1>` + `<time>`) is gone from `public.html` — it duplicated the content `<h1>` and served no purpose on a public page.
-- **Footer layout.** `.core-engine-lib-base-footer` now uses `display: flex; align-items: center; justify-content: flex-start` — text sits left, vertically centered. `base.js` no longer forces `display: block` on the footer element.
-- **Footer content.** «Подвал» placeholder replaced with `© 2026 NeuroCad. Смирнов Алексей Владимирович.`
+- `grapes.js` split into modules under `editor/grapes/`; `<body>` wrapper cleanup and header removal on public pages; footer layout and content updated.
 
 ### Fixed
-
-- **Balance guard in the LLM WebSocket dispatcher.** All four run methods (`start`, `effect_edit`, `effect_rename`, `create_effect`) now check the user's tariff and token balance before any LLM call:
-  - free → `llm_not_available`;
-  - tokens ≤ 0 → `tokens_exhausted`;
-  - create-agent additionally requires `gen > 0` on Pro → `gen_exhausted`.
-  After a successful run, tokens (and, for the create-agent on Pro, one generation) are charged to `Balance`. No LLM call is made if the guard blocks.
-- **Balance guard on logo generation.** `POST /core/engine/lib/word/editor/images/generate` checks `logo_allowed` before calling the provider and charges tokens (plus one generation on Pro) after a successful save.
-- **Token accounting in all five LLM providers** (`deepseek`, `openai`, `yandex`, `gigachat`, `gemini`). Each provider keeps `self.tokens_used`, reset at the start of `get_response()` and incremented for input messages and output chunks. `BaseProvider.count_tokens()` is the fallback; DeepSeek and OpenAI override it with tiktoken; Gemini uses the exact `usageMetadata` when the API returns it.
-- **`cleanup_stale()` in the admin balance list.** `BalanceChecked.cleanup_stale()` runs lazily when the superadmin opens `/core/engine/lib/balance` — soft-deletes free users past `FREE_TTL_DAYS` and drops their `media/<nav_id>/` folder. The list query now filters `User.is_delete = 0` so soft-deleted users don't linger.
-- **Trial tariff label.** `TARIF_LABELS[3] = "Trial"` — previously fell back to "Free".
+- Balance guard in the LLM WebSocket dispatcher and logo generation; token accounting in all five providers; lazy `cleanup_stale()`; Trial tariff label.
 
 ### Removed
+- Monolithic `editor/grapes.js`.
 
-- **`editor/grapes.js` (monolithic version).** Superseded by `editor/grapes/` modules (`index.js`, `config.js`, `link.js`, `page-link.js`, `scope.js`, `empty.js`, `undo.js`, `traits.js`). The file was unused after the split; confirmed by `grep -rn "grapes.js"` — only stale comments remained.
+## [0.1.26] - 2026-09-27
+
+### Added
+- Demo pages (10) importable into an existing DB via `INSERT`-only SQL, scoped to `nav_id = 1`.
+
+## [0.1.25] - 2026-09-27
+
+### Added
+- `Page.nav_id` — pages scoped to a nav instance; `?nav_id=` on write endpoints; `ensure_default_nav()`; `USER_AUTO_CREATE_NAV`.
+
+### Changed
+- `Page.mod_id` → `Page.nav_id`; media layout `media/<nav_id>/`; permissions relaxed from superadmin to any authenticated user.
+
+### Fixed
+- Public page URL, LLM chat WebSocket auth, `nav_id` propagation to child components.
+
+## [0.1.24] - 2026-09-27
+
+### Fixed
+- Demo import: statements split by `_split_sql_statements()` and run via `exec_driver_sql()`, so multi-line HTML `INSERT`s import correctly.
+
+## [0.1.23] - 2026-09-27
+
+### Added
+- Logo generation from the editor (`POST /editor/images/generate`); demo data on first start; `.env.example` shipped in the package; `BaseCardsEdit.extraButtons`.
+
+### Changed
+- `paths.py` — `ensure_workdirs()` copies `base/demo/` and creates `.env`.
+
+### Fixed
+- `demo_import.py` driver_connection call; `step.py` SVG save import; `DataLoader` empty `<p>` removal.
+
+## [0.1.21] - 2026-09-27
+
+### Added
+- Effects palette and LLM-generated effects; images palette and LLM illustrations; page-level CSS builder; blocks manifest as JSON.
+
+### Changed
+- Public page loads only `public.css` + `pages/<id>.css`; editor sub-APIs under the parent `editor` router; five pre-created block categories.
+
+### Removed
+- `effects/manifest.js` legacy fallback; static `blockCssUrls` import.
+
+### Fixed
+- `DataLoader` `child.removed` call; deferred empty-placeholder cleanup; SVG save path in `step.py`.
+
+## [0.1.20] - 2026-09-24
+
+### Added
+- LLM settings UI (DeepSeek, OpenAI, YandexGPT, GigaChat, Gemini); `Setting` table with Fernet encryption; setup landing page; `Base.renderInArea()`; `ensure_css_file()`.
+
+### Changed
+- Page CSS split into `Page.css` + derived static file; `BaseSetup` renders into `area-center`; DeepSeek tokenizer uses `cl100k_base`.
+
+### Removed
+- `LLMSetting` model and `llm` table — replaced by `Setting`.
+
+### Fixed
+- Page CSS cache-busting reflects content changes.
+
+## [0.1.19] - 2026-09-23
+
+### Added
+- Base templates extendable by child pages via `[data-slot="content"]`.
+
+### Changed
+- Base blocks refactor: unified `blocks/manifest.js`, dynamic versioned imports, CSS scoped to `.core-engine-lib-word-blocks`.
+
+## [0.1.18] - 2026-09-22
+
+### Added
+- Initial public release: FastAPI backend, SQLite storage, BaseCards widgets, GrapesJS Word editor, LLM chat panel, presets, media library, page history.
+
+[0.1.28]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.27...v0.1.28
+[0.1.27]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.26...v0.1.27
+[0.1.26]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.25...v0.1.26
+[0.1.25]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.24...v0.1.25
+[0.1.24]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.23...v0.1.24
+[0.1.23]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.22...v0.1.23
+[0.1.21]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.20...v0.1.21
+[0.1.19]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.18...v0.1.19
+[0.1.18]: https://github.com/aleksmir-dev/neurocad/releases/tag/v0.1.18

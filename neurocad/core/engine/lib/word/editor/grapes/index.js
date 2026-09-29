@@ -80,6 +80,7 @@ export class GrapesLoader {
             'styles.css',
             'assets.css',
             'resizer.css',
+            'io.css',
             'theme.css',
             'responsive.css',
         ];

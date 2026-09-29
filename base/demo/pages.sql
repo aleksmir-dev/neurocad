@@ -1,11 +1,11 @@
 -- Demo data: pages
--- Rows: 32
+-- Rows: 34
 
 PRAGMA foreign_keys = OFF;
 
 DELETE FROM "pages";
 
-INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (1, 1, '2026-09-27 08:35:40.221761', 'Демо-сайты', 'Примеры, сгенерированные с помощью Neurocad', '/static/core/engine/lib/word/editor/images/files/img-69eaaf6b.svg', '<body id="iasz"><section data-block="core-article-catalog" id="ila1" data-selected-id="sel-8hptb26y" class="section fx-silver-orbit-stars"><div id="iqhv" class="container fx-silver-orbit-stars"><h2 id="is4g" class="h2 article-catalog__heading">Примеры главной страницы сайта</h2><h3 data-block="core-heading-h3" id="in91c" class="h3">Сгенерированы с помощью Neurocad</h3><hr data-block="core-divider" class="divider"/><div id="i7xtg" class="article-catalog"><a href="/page/1/20260927/134225" id="ieufs" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-d156c83e.svg" alt="Музыкальная студия полного цикла" id="iwdvf" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-7b13da99.svg" alt="Воспитатель занимается с детьми в светлой игровой комнате детского сада" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt="" id="issk4"/></div><div class="article-catalog__body"><h3 id="iow49" class="article-catalog__title">Музыкальная студия полного цикла</h3><p id="ijumw" class="article-catalog__desc">Запись, сведение и мастеринг в профессионально оборудованных залах</p></div></a><a href="/page/1/20260927/152812" id="i5hal" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-006b7f62.svg" alt="Точка стрижки" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-7cc7a337.svg" alt="Прогулка детей на игровой площадке детского сада" id="ipkv8" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt="" id="iozhh"/></div><div class="article-catalog__body"><h3 id="img1i" class="article-catalog__title">Точка стрижки</h3><p class="article-catalog__desc">Парикмахерская, где вас стригут по-настоящему</p></div></a><a href="/page/1/20260926/223715" id="imlr8" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="iejvf" class="article-catalog__title">Картины художников Урала</h3><p class="article-catalog__desc">Выставка живописи уральских мастеров</p></div></a><a href="/page/1/20260926/180106" id="indvm" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-6a44d407.svg" alt="Детский сад «Солнышко»" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" id="irqvr" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="ixlz5" class="article-catalog__title">Детский сад «Солнышко»</h3><p id="ihy6a" class="article-catalog__desc">Забота, развитие и радость каждый день</p></div></a><a href="/page/1/20260926/222321" id="igrmg" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="ie39h" class="article-catalog__title">Юлия Кузнецова</h3><p id="izy63" class="article-catalog__desc">Авторский блок</p></div></a><a href="/page/1/20260926/225555" id="iso05" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-cd3149a1.svg" alt="Алиса Селезнёва — гостья из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" id="id9on" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="i609d" class="article-catalog__title">Гостья из будущего</h3><p class="article-catalog__desc">Советский научно-фантастический телесериал</p></div></a><a href="/page/1/20260926/225555" class="article-catalog__card" id="ien24y"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-1c4c06ce.svg" alt="Космологическая сингулярность" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-3fb5806e.svg" alt="Спа-салон для отдыха" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" id="ipbtuw" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 class="article-catalog__title" id="i18x9h">Космологическая сингулярность</h3><p class="article-catalog__desc" id="iarogj">Начало и пределы описания</p></div></a><a href="/page/1/20260926/225555" class="article-catalog__card" id="ikcgag"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-77251502.svg" alt="Флип — летающий аппарат из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-1c4c06ce.svg" alt="Космологическая сингулярность" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" id="i20ico" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 class="article-catalog__title" id="igrxp7">Приключения Электроника</h3><p class="article-catalog__desc" id="iunalp">Фанатская страница легендарного фильма</p></div></a><a href="/page/1/20260926/225555" class="article-catalog__card" id="ipsa2y"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-66af9ef4.svg" alt="Родовое поместье" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 class="article-catalog__title" id="i2h37">Родовое поместье</h3><p class="article-catalog__desc" id="iza1ow">Земля для жизни вашей семьи</p></div></a><a href="/page/1/20260926/225555" class="article-catalog__card" id="ivcyi"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-3fb5806e.svg" alt="Спа-салон для отдыха" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 class="article-catalog__title" id="ianjz">Спа-салон для отдыха</h3><p class="article-catalog__desc">Восстановление и забота о себе</p></div></a></div></div></section></body>', '{"assets":[{"type":"image","src":"/media/default/1_2a5d0981.jpg","unitDim":"px","height":0,"width":0,"name":"1_2a5d0981.jpg"},{"type":"image","src":"/media/default/deepseek_mermaid_20260714_ea7f08_552fde3a.png","unitDim":"px","height":0,"width":0,"name":"deepseek_mermaid_20260714_ea7f08_552fde3a.png"},{"type":"image","src":"/media/default/fone_ace23bb7.jpg","unitDim":"px","height":0,"width":0,"name":"fone_ace23bb7.jpg"},{"type":"image","src":"/media/default/logo_ec0d8ede.png","unitDim":"px","height":0,"width":0,"name":"logo_ec0d8ede.png"}],"styles":[{"selectors":["#in91c"],"style":{"text-align":"center"}},{"selectors":["#ixlz5"],"style":{"color":"#568cbc"}},{"selectors":["#iow49"],"style":{"color":"#568cbc"}},{"selectors":["#img1i"],"style":{"color":"#568cbc"}},{"selectors":["#iejvf"],"style":{"color":"#568cbc"}},{"selectors":["#ie39h"],"style":{"color":"#568cbc"}},{"selectors":["#i609d"],"style":{"color":"#568cbc"}},{"selectors":["#ianjz"],"style":{"color":"#568cbc"}},{"selectors":["#i2h37"],"style":{"color":"#568cbc"}},{"selectors":["#igrxp7"],"style":{"color":"#568cbc"}},{"selectors":["#i18x9h"],"style":{"color":"#568cbc"}}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"attributes":{"id":"iasz"},"components":[{"tagName":"section","classes":["section","fx-silver-orbit-stars"],"attributes":{"data-block":"core-article-catalog","id":"ila1","data-selected-id":"sel-8hptb26y"},"components":[{"classes":["container","fx-silver-orbit-stars"],"attributes":{"id":"iqhv"},"components":[{"tagName":"h2","type":"text","classes":["h2","article-catalog__heading"],"attributes":{"id":"is4g"},"components":[{"type":"textnode","content":"Примеры главной страницы сайта"}]},{"tagName":"h3","type":"text","classes":["h3"],"attributes":{"data-block":"core-heading-h3","id":"in91c"},"components":[{"type":"textnode","content":"Сгенерированы с помощью Neurocad"}]},{"tagName":"hr","void":true,"classes":["divider"],"attributes":{"data-block":"core-divider"}},{"classes":["article-catalog"],"attributes":{"id":"i7xtg"},"components":[{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260927/134225","id":"ieufs"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-d156c83e.svg","alt":"Музыкальная студия полного цикла","id":"iwdvf"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-7b13da99.svg","alt":"Воспитатель занимается с детьми в светлой игровой комнате детского сада"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":"","id":"issk4"}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"iow49"},"components":[{"type":"textnode","content":"Музыкальная студия полного цикла"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"ijumw"},"components":[{"type":"textnode","content":"Запись, сведение и мастеринг в профессионально оборудованных залах"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260927/152812","id":"i5hal"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-006b7f62.svg","alt":"Точка стрижки"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-7cc7a337.svg","alt":"Прогулка детей на игровой площадке детского сада","id":"ipkv8"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":"","id":"iozhh"}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"img1i"},"components":[{"type":"textnode","content":"Точка стрижки"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"Парикмахерская, где вас стригут по-настоящему"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/223715","id":"imlr8"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"iejvf"},"components":[{"type":"textnode","content":"Картины художников Урала"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"Выставка живописи уральских мастеров"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/180106","id":"indvm"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-6a44d407.svg","alt":"Детский сад «Солнышко»"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала","id":"irqvr"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"ixlz5"},"components":[{"type":"textnode","content":"Детский сад «Солнышко»"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"ihy6a"},"components":[{"type":"textnode","content":"Забота, развитие и радость каждый день"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/222321","id":"igrmg"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"ie39h"},"components":[{"type":"textnode","content":"Юлия Кузнецова"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"izy63"},"components":[{"type":"textnode","content":"Авторский блок"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/225555","id":"iso05"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-cd3149a1.svg","alt":"Алиса Селезнёва — гостья из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова","id":"id9on"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"i609d"},"components":[{"type":"textnode","content":"Гостья из будущего"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"Советский научно-фантастический телесериал"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/225555","id":"ien24y"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-1c4c06ce.svg","alt":"Космологическая сингулярность"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-3fb5806e.svg","alt":"Спа-салон для отдыха"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего","id":"ipbtuw"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"i18x9h"},"components":[{"type":"textnode","content":"Космологическая сингулярность"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"iarogj"},"components":[{"type":"textnode","content":"Начало и пределы описания"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/225555","id":"ikcgag"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-77251502.svg","alt":"Флип — летающий аппарат из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-1c4c06ce.svg","alt":"Космологическая сингулярность"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего","id":"i20ico"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"igrxp7"},"components":[{"type":"textnode","content":"Приключения Электроника"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"iunalp"},"components":[{"type":"textnode","content":"Фанатская страница легендарного фильма"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/225555","id":"ipsa2y"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-66af9ef4.svg","alt":"Родовое поместье"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"i2h37"},"components":[{"type":"textnode","content":"Родовое поместье"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"iza1ow"},"components":[{"type":"textnode","content":"Земля для жизни вашей семьи"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/225555","id":"ivcyi"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-3fb5806e.svg","alt":"Спа-салон для отдыха"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"ianjz"},"components":[{"type":"textnode","content":"Спа-салон для отдыха"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"Восстановление и забота о себе"}]}]}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"m0YzY11FFk8LXqTH"}],"id":"6rfAdwOYxN8d4xts"}],"symbols":[]}', 1, 0, '2026-09-27 08:35:40.221784', '2026-09-29 16:11:13.617695', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
+INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (1, 1, '2026-09-27 08:35:40.221761', 'Демо-сайты', 'Примеры, сгенерированные с помощью Neurocad', '/static/core/engine/lib/word/editor/images/files/img-69eaaf6b.svg', '<body id="iasz"><section data-block="core-article-catalog" id="ila1" data-selected-id="sel-8hptb26y" class="section fx-silver-orbit-stars"><div id="iqhv" class="container fx-silver-orbit-stars"><h2 id="is4g" class="h2 article-catalog__heading">Примеры главной страницы сайта</h2><h3 data-block="core-heading-h3" id="in91c" class="h3">Сгенерированы с помощью Neurocad</h3><hr data-block="core-divider" class="divider"/><div id="i7xtg" class="article-catalog"><a href="/page/1/20260927/134225" id="ieufs" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-d156c83e.svg" alt="Музыкальная студия полного цикла" id="iwdvf" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-7b13da99.svg" alt="Воспитатель занимается с детьми в светлой игровой комнате детского сада" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt="" id="issk4"/></div><div class="article-catalog__body"><h3 id="iow49" class="article-catalog__title">Музыкальная студия полного цикла</h3><p id="ijumw" class="article-catalog__desc">Запись, сведение и мастеринг</p></div></a><a href="/page/1/20260927/152812" id="i5hal" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-006b7f62.svg" alt="Точка стрижки" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-7cc7a337.svg" alt="Прогулка детей на игровой площадке детского сада" id="ipkv8" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt="" id="iozhh"/></div><div class="article-catalog__body"><h3 id="img1i" class="article-catalog__title">Точка стрижки</h3><p class="article-catalog__desc">Парикмахерская, где вас стригут по-настоящему</p></div></a><a href="/page/1/20260926/223715" id="imlr8" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="iejvf" class="article-catalog__title">Картины художников Урала</h3><p class="article-catalog__desc">Выставка живописи уральских мастеров</p></div></a><a href="/page/1/20260926/180106" id="indvm" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-6a44d407.svg" alt="Детский сад «Солнышко»" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" id="irqvr" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="ixlz5" class="article-catalog__title">Детский сад «Солнышко»</h3><p id="ihy6a" class="article-catalog__desc">Забота, развитие и радость каждый день</p></div></a><a href="/page/1/20260926/222321" id="igrmg" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="ie39h" class="article-catalog__title">Юлия Кузнецова</h3><p id="izy63" class="article-catalog__desc">Авторский блок</p></div></a><a href="/page/1/20260926/225555" id="iso05" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-cd3149a1.svg" alt="Алиса Селезнёва — гостья из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" id="id9on" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="i609d" class="article-catalog__title">Гостья из будущего</h3><p class="article-catalog__desc">Советский научно-фантастический телесериал</p></div></a><a href="/page/1/20260926/225555" id="ien24y" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-1c4c06ce.svg" alt="Космологическая сингулярность" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-3fb5806e.svg" alt="Спа-салон для отдыха" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" id="ipbtuw" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="i18x9h" class="article-catalog__title">Космологическая сингулярность</h3><p id="iarogj" class="article-catalog__desc">Начало и пределы описания</p></div></a><a href="/page/1/20260926/225555" id="ikcgag" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-77251502.svg" alt="Флип — летающий аппарат из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-1c4c06ce.svg" alt="Космологическая сингулярность" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" id="i20ico" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="igrxp7" class="article-catalog__title">Приключения Электроника</h3><p id="iunalp" class="article-catalog__desc">Фанатская страница легендарного фильма</p></div></a><a href="/page/1/20260926/225555" id="ipsa2y" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-66af9ef4.svg" alt="Родовое поместье" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 id="i2h37" class="article-catalog__title">Родовое поместье</h3><p id="iza1ow" class="article-catalog__desc">Земля для жизни вашей семьи</p></div></a><a href="/page/1/20260926/225555" id="ivcyi" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-3fb5806e.svg" alt="Спа-салон для отдыха" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body" id="ii7pj5"><h3 id="ianjz" class="article-catalog__title">Спа-салон для отдыха</h3><p class="article-catalog__desc">Восстановление и забота о себе</p></div></a><a href="/page/1/20260929/171218" id="icdmw6" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><img src="/static/core/engine/lib/word/editor/images/files/img-b0bbd400.svg" alt="Иллюстрация к статье о выборе смартфона" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-3fb5806e.svg" alt="Спа-салон для отдыха" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg" alt="Гостья из будущего" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg" alt="Юлия Кузнецова" class="image"/><img src="/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg" alt="Картины художников Урала" class="image"/><img src="/static/core/engine/lib/word/editor/placeholder.svg" alt=""/></div><div class="article-catalog__body"><h3 class="article-catalog__title" id="ib3eux">Интернет-магазин</h3><p class="article-catalog__desc" id="ilax9h">Пример главной страницы</p></div></a></div></div></section></body>', '{"assets":[{"type":"image","src":"/media/default/1_2a5d0981.jpg","unitDim":"px","height":0,"width":0,"name":"1_2a5d0981.jpg"},{"type":"image","src":"/media/default/deepseek_mermaid_20260714_ea7f08_552fde3a.png","unitDim":"px","height":0,"width":0,"name":"deepseek_mermaid_20260714_ea7f08_552fde3a.png"},{"type":"image","src":"/media/default/fone_ace23bb7.jpg","unitDim":"px","height":0,"width":0,"name":"fone_ace23bb7.jpg"},{"type":"image","src":"/media/default/logo_ec0d8ede.png","unitDim":"px","height":0,"width":0,"name":"logo_ec0d8ede.png"}],"styles":[{"selectors":["#in91c"],"style":{"text-align":"center"}},{"selectors":["#ixlz5"],"style":{"color":"#568cbc"}},{"selectors":["#iow49"],"style":{"color":"#568cbc"}},{"selectors":["#img1i"],"style":{"color":"#568cbc"}},{"selectors":["#iejvf"],"style":{"color":"#568cbc"}},{"selectors":["#ie39h"],"style":{"color":"#568cbc"}},{"selectors":["#i609d"],"style":{"color":"#568cbc"}},{"selectors":["#ianjz"],"style":{"color":"#568cbc"}},{"selectors":["#i2h37"],"style":{"color":"#568cbc"}},{"selectors":["#igrxp7"],"style":{"color":"#568cbc"}},{"selectors":["#i18x9h"],"style":{"color":"#568cbc"}},{"selectors":["#ib3eux"],"style":{"color":"#568cbc"}}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"attributes":{"id":"iasz"},"components":[{"tagName":"section","classes":["section","fx-silver-orbit-stars"],"attributes":{"data-block":"core-article-catalog","id":"ila1","data-selected-id":"sel-8hptb26y"},"components":[{"classes":["container","fx-silver-orbit-stars"],"attributes":{"id":"iqhv"},"components":[{"tagName":"h2","type":"text","classes":["h2","article-catalog__heading"],"attributes":{"id":"is4g"},"components":[{"type":"textnode","content":"Примеры главной страницы сайта"}]},{"tagName":"h3","type":"text","classes":["h3"],"attributes":{"data-block":"core-heading-h3","id":"in91c"},"components":[{"type":"textnode","content":"Сгенерированы с помощью Neurocad"}]},{"tagName":"hr","void":true,"classes":["divider"],"attributes":{"data-block":"core-divider"}},{"classes":["article-catalog"],"attributes":{"id":"i7xtg"},"components":[{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260927/134225","id":"ieufs"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-d156c83e.svg","alt":"Музыкальная студия полного цикла","id":"iwdvf"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-7b13da99.svg","alt":"Воспитатель занимается с детьми в светлой игровой комнате детского сада"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":"","id":"issk4"}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"iow49"},"components":[{"type":"textnode","content":"Музыкальная студия полного цикла"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"ijumw"},"components":[{"type":"textnode","content":"Запись, сведение и мастеринг"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260927/152812","id":"i5hal"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-006b7f62.svg","alt":"Точка стрижки"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-7cc7a337.svg","alt":"Прогулка детей на игровой площадке детского сада","id":"ipkv8"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":"","id":"iozhh"}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"img1i"},"components":[{"type":"textnode","content":"Точка стрижки"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"Парикмахерская, где вас стригут по-настоящему"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/223715","id":"imlr8"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"iejvf"},"components":[{"type":"textnode","content":"Картины художников Урала"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"Выставка живописи уральских мастеров"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/180106","id":"indvm"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-6a44d407.svg","alt":"Детский сад «Солнышко»"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала","id":"irqvr"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"ixlz5"},"components":[{"type":"textnode","content":"Детский сад «Солнышко»"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"ihy6a"},"components":[{"type":"textnode","content":"Забота, развитие и радость каждый день"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/222321","id":"igrmg"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"ie39h"},"components":[{"type":"textnode","content":"Юлия Кузнецова"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"izy63"},"components":[{"type":"textnode","content":"Авторский блок"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/225555","id":"iso05"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-cd3149a1.svg","alt":"Алиса Селезнёва — гостья из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова","id":"id9on"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"i609d"},"components":[{"type":"textnode","content":"Гостья из будущего"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"Советский научно-фантастический телесериал"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/225555","id":"ien24y"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-1c4c06ce.svg","alt":"Космологическая сингулярность"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-3fb5806e.svg","alt":"Спа-салон для отдыха"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего","id":"ipbtuw"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"i18x9h"},"components":[{"type":"textnode","content":"Космологическая сингулярность"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"iarogj"},"components":[{"type":"textnode","content":"Начало и пределы описания"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/225555","id":"ikcgag"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-77251502.svg","alt":"Флип — летающий аппарат из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-1c4c06ce.svg","alt":"Космологическая сингулярность"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего","id":"i20ico"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"igrxp7"},"components":[{"type":"textnode","content":"Приключения Электроника"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"iunalp"},"components":[{"type":"textnode","content":"Фанатская страница легендарного фильма"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/225555","id":"ipsa2y"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-66af9ef4.svg","alt":"Родовое поместье"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"i2h37"},"components":[{"type":"textnode","content":"Родовое поместье"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"iza1ow"},"components":[{"type":"textnode","content":"Земля для жизни вашей семьи"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260926/225555","id":"ivcyi"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-3fb5806e.svg","alt":"Спа-салон для отдыха"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"attributes":{"id":"ii7pj5"},"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"ianjz"},"components":[{"type":"textnode","content":"Спа-салон для отдыха"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"Восстановление и забота о себе"}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"/page/1/20260929/171218","id":"icdmw6"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-b0bbd400.svg","alt":"Иллюстрация к статье о выборе смартфона"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-3fb5806e.svg","alt":"Спа-салон для отдыха"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-e020ef7d.svg","alt":"Гостья из будущего"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-a16bd140.svg","alt":"Юлия Кузнецова"}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image"],"attributes":{"src":"/static/core/engine/lib/word/editor/images/files/img-5bbde8c3.svg","alt":"Картины художников Урала"}},{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/static/core/engine/lib/word/editor/placeholder.svg","alt":""}}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"attributes":{"id":"ib3eux"},"components":[{"type":"textnode","content":"Интернет-магазин"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"attributes":{"id":"ilax9h"},"components":[{"type":"textnode","content":"Пример главной страницы"}]}]}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"m0YzY11FFk8LXqTH"}],"id":"6rfAdwOYxN8d4xts"}],"symbols":[]}', 1, 0, '2026-09-27 08:35:40.221784', '2026-09-29 17:23:16.521244', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
 
 /**
  * Content — theme variables + shared atoms + layout for CONTENT pages.
@@ -1057,7 +1057,7 @@ INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo",
 
 .core-engine-lib-word-blocks .fx-silver-orbit-stars { position: relative; background-image: radial-gradient(circle closest-side, transparent 0 97%, rgba(148,163,184,0.05) 97% 100%, transparent 100%), radial-gradient(circle closest-side, transparent 0 97%, rgba(148,163,184,0.05) 97% 100%, transparent 100%), radial-gradient(circle closest-side, transparent 0 97%, rgba(148,163,184,0.05) 97% 100%, transparent 100%); background-size: 520px 520px, 900px 900px, 1500px 1500px; background-position: center, center, center; background-repeat: no-repeat, no-repeat, no-repeat; } .core-engine-lib-word-blocks .fx-silver-orbit-stars::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(2.4px 2.4px at 20px 30px, #94a3b8 50%, transparent 100%), radial-gradient(2px 2px at 120px 80px, #94a3b8 50%, transparent 100%), radial-gradient(1.8px 1.8px at 60px 180px, #cbd5e1 50%, transparent 100%), radial-gradient(2.2px 2.2px at 200px 150px, #94a3b8 50%, transparent 100%), radial-gradient(1.6px 1.6px at 170px 240px, #cbd5e1 50%, transparent 100%), radial-gradient(2px 2px at 230px 40px, #94a3b8 50%, transparent 100%); background-size: 260px 260px; background-repeat: repeat; animation: fx-silver-orbit-stars-twinkle 4.5s ease-in-out infinite; pointer-events: none; } .core-engine-lib-word-blocks .fx-silver-orbit-stars::after { content: ""; position: absolute; left: 50%; top: 50%; width: 1500px; height: 1500px; margin: -750px 0 0 -750px; background-image: radial-gradient(circle 30px at 260px 30px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 260px 490px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 450px 30px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 450px 870px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 750px 30px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 750px 1470px, rgba(148,163,184,0.05) 99%, transparent 100%); background-size: 520px 520px, 520px 520px, 900px 900px, 900px 900px, 1500px 1500px, 1500px 1500px; background-position: center, center, center, center, center, center; background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat; animation: fx-silver-orbit-stars-spin 30s linear infinite; pointer-events: none; } @keyframes fx-silver-orbit-stars-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } } @keyframes fx-silver-orbit-stars-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-* { box-sizing: border-box; } body {margin: 0;}#in91c{text-align:center;}#ixlz5{color:#568cbc;}#iow49{color:#568cbc;}#img1i{color:#568cbc;}#iejvf{color:#568cbc;}#ie39h{color:#568cbc;}#i609d{color:#568cbc;}#ianjz{color:#568cbc;}#i2h37{color:#568cbc;}#igrxp7{color:#568cbc;}#i18x9h{color:#568cbc;}');
+* { box-sizing: border-box; } body {margin: 0;}#in91c{text-align:center;}#ixlz5{color:#568cbc;}#iow49{color:#568cbc;}#img1i{color:#568cbc;}#iejvf{color:#568cbc;}#ie39h{color:#568cbc;}#i609d{color:#568cbc;}#ianjz{color:#568cbc;}#i2h37{color:#568cbc;}#igrxp7{color:#568cbc;}#i18x9h{color:#568cbc;}#ib3eux{color:#568cbc;}');
 INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (2, 1, '2026-09-27 08:40:39.259941', 'Нейрокад', 'Конструктор сайтов', '/static/core/engine/lib/word/editor/images/files/img-a52e8683.svg', '<body><section data-block="core-hero" class="section hero fx-starfield-earth" id="i23u"><div id="iz3z" class="container hero__inner"><h1 class="h1 hero__title">Создай свой сайт за пару минут — без программирования</h1><p class="lead hero__lead">NeuroCad — конструктор сайтов на базе искусственного интеллекта. Ты описываешь, что хочешь, — и ИИ собирает страницу за тебя: без кода, без вёрстки, без технических знаний. Получи свой адрес вида твоё-имя.neurocad.ru.</p><a href="/page/1/20260927/083540" data-action="auth" id="i8ze" class="btn hero__btn">Посмотреть примеры</a></div></section><section data-block="core-steps" class="section steps fx-soft-diagonal-hatch"><div class="container"><h2 class="h2 steps__title">Три шага до готового сайта</h2><div class="grid grid--3 steps__grid"><div class="steps__item"><div class="steps__num">1</div><h3 class="h3 steps__item-title">Регистрация</h3><p class="text text--muted">Зарегистрируйся — и получи личный адрес вида твоё-имя.neurocad.ru.</p></div><div class="steps__item"><div class="steps__num">2</div><h3 class="h3 steps__item-title">Описание сайта</h3><p class="text text--muted">Опиши, какой сайт тебе нужен: чем занимаешься, что хочешь рассказать, какие разделы должны быть.</p></div><div class="steps__item"><div class="steps__num">3</div><h3 class="h3 steps__item-title">Публикация</h3><p class="text text--muted">Искусственный интеллект соберёт готовую страницу. Ты сможешь её посмотреть, отредактировать и опубликовать.</p></div></div></div></section><section data-block="core-features" class="section features fx-circles-n"><div class="container"><h2 class="h2 features__title">Что можно делать в NeuroCad</h2><div class="grid grid--3 features__grid"><div class="card features__item"><h3 class="card__title">Визуальный редактор</h3><p class="card__text">Перетаскивай блоки, меняй цвета и шрифты, собирай страницу как конструктор.</p></div><div class="card features__item"><h3 class="card__title">ИИ-редактор</h3><p class="card__text">Опиши словами, что хочешь изменить, и модель сама поправит текст, добавит раздел или перепишет абзац.</p></div><div class="card features__item"><h3 class="card__title">Готовые блоки и медиатека</h3><p class="card__text">Заголовки, тексты, кнопки, карточки и формы уже нарисованы — остаётся поставить их на место, добавить картинки из медиатеки и применить эффекты.</p></div></div></div></section><section data-block="core-text-image" class="section text-image fx-aurora-drift"><div class="container"><div class="grid grid--2 text-image__grid"><div class="text-image__text"><h2 class="h2">Собери страницу как конструктор</h2><p class="text">Перетаскивай блоки, меняй цвета и шрифты, добавляй картинки из медиатеки и применяй эффекты. Заголовки, тексты, кнопки, карточки и формы уже нарисованы — остаётся поставить их на место.</p><p class="text text--muted">Если нужно изменить текст или добавить раздел, просто опиши это словами — ИИ-редактор сам поправит страницу.</p></div><div class="text-image__media"><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Интерфейс редактора NeuroCad: блоки страницы, панель настроек и медиатека" class="image"><rect x="110" y="80" width="580" height="440" rx="16" fill="var(--theme-bg-soft, #f1f5f9)" stroke="var(--theme-text, #1e293b)" stroke-width="3"></rect><rect x="126" y="94" width="548" height="34" rx="8" fill="var(--theme-accent, #3b82f6)"></rect><circle cx="148" cy="111" r="6" fill="var(--theme-bg-soft, #f1f5f9)"></circle><circle cx="170" cy="111" r="6" fill="var(--theme-bg-soft, #f1f5f9)"></circle><circle cx="192" cy="111" r="6" fill="var(--theme-bg-soft, #f1f5f9)"></circle><rect x="126" y="150" width="120" height="38" rx="8" fill="none" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="3"></rect><rect x="126" y="196" width="120" height="38" rx="8" fill="none" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="3"></rect><rect x="126" y="242" width="120" height="38" rx="8" fill="var(--theme-accent, #3b82f6)"></rect><rect x="126" y="288" width="120" height="38" rx="8" fill="none" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="3"></rect><rect x="126" y="352" width="52" height="52" rx="8" fill="var(--theme-text-muted, #94a3b8)"></rect><circle cx="152" cy="378" r="9" fill="var(--theme-bg-soft, #f1f5f9)"></circle><rect x="186" y="352" width="52" height="52" rx="8" fill="var(--theme-text-muted, #94a3b8)"></rect><circle cx="212" cy="378" r="9" fill="var(--theme-bg-soft, #f1f5f9)"></circle><rect x="126" y="414" width="52" height="52" rx="8" fill="var(--theme-text-muted, #94a3b8)"></rect><circle cx="152" cy="440" r="9" fill="var(--theme-bg-soft, #f1f5f9)"></circle><rect x="186" y="414" width="52" height="52" rx="8" fill="var(--theme-text-muted, #94a3b8)"></rect><circle cx="212" cy="440" r="9" fill="var(--theme-bg-soft, #f1f5f9)"></circle><rect x="262" y="150" width="294" height="340" rx="10" fill="none" stroke="var(--theme-text, #1e293b)" stroke-width="3"></rect><rect x="284" y="172" width="250" height="26" rx="6" fill="var(--theme-accent, #3b82f6)"></rect><rect x="284" y="214" width="250" height="10" rx="5" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="284" y="234" width="170" height="10" rx="5" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="284" y="262" width="250" height="110" rx="8" fill="var(--theme-text-muted, #94a3b8)"></rect><path d="M300 356 L345 304 L382 344 L412 312 L452 356 Z" fill="var(--theme-bg-soft, #f1f5f9)"></path><circle cx="496" cy="292" r="14" fill="var(--theme-bg-soft, #f1f5f9)"></circle><rect x="284" y="396" width="250" height="10" rx="5" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="284" y="416" width="190" height="10" rx="5" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="284" y="444" width="96" height="26" rx="13" fill="var(--theme-accent, #3b82f6)"></rect><rect x="572" y="150" width="102" height="340" rx="10" fill="none" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="3"></rect><rect x="588" y="180" width="70" height="8" rx="4" fill="var(--theme-text-muted, #94a3b8)"></rect><circle cx="632" cy="184" r="10" fill="var(--theme-accent, #3b82f6)"></circle><rect x="588" y="212" width="70" height="8" rx="4" fill="var(--theme-text-muted, #94a3b8)"></rect><circle cx="608" cy="216" r="10" fill="var(--theme-accent, #3b82f6)"></circle><rect x="588" y="252" width="22" height="22" rx="6" fill="var(--theme-accent, #3b82f6)"></rect><rect x="616" y="252" width="22" height="22" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="644" y="252" width="22" height="22" rx="6" fill="var(--theme-text, #1e293b)"></rect><rect x="588" y="300" width="46" height="24" rx="12" fill="var(--theme-accent, #3b82f6)"></rect><circle cx="622" cy="312" r="9" fill="var(--theme-bg-soft, #f1f5f9)"></circle><rect x="588" y="352" width="70" height="8" rx="4" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="588" y="374" width="48" height="8" rx="4" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="588" y="410" width="70" height="44" rx="8" fill="var(--theme-text-muted, #94a3b8)"></rect></svg></div></div></div></section><section data-block="core-faq" id="i78zxd" class="section faq fx-rotating-globe"><div class="container"><h2 class="h2 faq__title">Часто задаваемые вопросы</h2><div class="faq__list"><div class="faq__item"><h3 class="h3 faq__question">Нужно ли уметь программировать?</h3><p class="text text--muted faq__answer">Нет. NeuroCad создан для людей без технического опыта: ты описываешь, что хочешь, — остальное делает система. Первую страницу можно собрать за несколько минут, дальше — только правки и наполнение.</p></div><div class="faq__item"><h3 class="h3 faq__question">Что если мне не хватит бесплатного тарифа?</h3><p class="text text--muted faq__answer">Ты в любой момент можешь перейти на тариф «Про» за 500 рублей в месяц. Всё, что уже создано, сохранится.</p></div><div class="faq__item"><h3 class="h3 faq__question">Можно ли использовать свой домен и что происходит с моими данными?</h3><p class="text text--muted faq__answer">На бесплатном тарифе доступен адрес вида твоё-имя.neurocad.ru, подключение собственного домена обсуждается отдельно. Свою страницу и аккаунт можно удалить в любой момент — мы не передаём данные третьим лицам.</p></div></div></div></section><section data-block="core-cta" id="i7zexb" class="section cta fx-dance-spotlight-sweep"><div class="container cta__inner"><h2 class="h2 cta__title">Готов попробовать?</h2><p class="text cta__text">Зарегистрируйся и собери первую страницу прямо сейчас. Бесплатно, без ограничений по времени и без привязки карты.</p><a href="/core/engine/lib/base/auth/register" id="i9txr4" class="btn cta__btn">Создать сайт</a></div></section><footer data-block="core-footer" class="section footer"><div class="container footer__inner"><div class="footer__brand">© NeuroCad</div><nav class="footer__nav"><a href="/page/1/20260927/084039" id="id45kg" class="footer__link">Главная</a><a href="page:features" id="iihyrh" class="footer__link">Возможности</a><a href="page:contacts" id="ib29pq" class="footer__link">Контакты</a></nav></div></footer></body>', '{"assets":[{"type":"image","src":"/media/default/1_2a5d0981.jpg","unitDim":"px","height":0,"width":0,"name":"1_2a5d0981.jpg"},{"type":"image","src":"/media/default/deepseek_mermaid_20260714_ea7f08_552fde3a.png","unitDim":"px","height":0,"width":0,"name":"deepseek_mermaid_20260714_ea7f08_552fde3a.png"},{"type":"image","src":"/media/default/fone_ace23bb7.jpg","unitDim":"px","height":0,"width":0,"name":"fone_ace23bb7.jpg"},{"type":"image","src":"/media/default/logo_ec0d8ede.png","unitDim":"px","height":0,"width":0,"name":"logo_ec0d8ede.png"}],"styles":[{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"tagName":"section","classes":["section","hero","fx-starfield-earth"],"attributes":{"data-block":"core-hero","id":"i23u"},"components":[{"classes":["container","hero__inner"],"attributes":{"id":"iz3z"},"components":[{"tagName":"h1","type":"text","classes":["h1","hero__title"],"components":[{"type":"textnode","content":"Создай свой сайт за пару минут — без программирования"}]},{"tagName":"p","type":"text","classes":["lead","hero__lead"],"components":[{"type":"textnode","content":"NeuroCad — конструктор сайтов на базе искусственного интеллекта. Ты описываешь, что хочешь, — и ИИ собирает страницу за тебя: без кода, без вёрстки, без технических знаний. Получи свой адрес вида твоё-имя.neurocad.ru."}]},{"type":"link","classes":["btn","hero__btn"],"attributes":{"href":"/page/1/20260927/083540","data-action":"auth","id":"i8ze"},"components":[{"type":"textnode","content":"Посмотреть примеры"}]}]}]},{"tagName":"section","classes":["section","steps","fx-soft-diagonal-hatch"],"attributes":{"data-block":"core-steps"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","steps__title"],"components":[{"type":"textnode","content":"Три шага до готового сайта"}]},{"classes":["grid","grid--3","steps__grid"],"components":[{"classes":["steps__item"],"components":[{"type":"text","classes":["steps__num"],"components":[{"type":"textnode","content":"1"}]},{"tagName":"h3","type":"text","classes":["h3","steps__item-title"],"components":[{"type":"textnode","content":"Регистрация"}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Зарегистрируйся — и получи личный адрес вида твоё-имя.neurocad.ru."}]}]},{"classes":["steps__item"],"components":[{"type":"text","classes":["steps__num"],"components":[{"type":"textnode","content":"2"}]},{"tagName":"h3","type":"text","classes":["h3","steps__item-title"],"components":[{"type":"textnode","content":"Описание сайта"}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Опиши, какой сайт тебе нужен: чем занимаешься, что хочешь рассказать, какие разделы должны быть."}]}]},{"classes":["steps__item"],"components":[{"type":"text","classes":["steps__num"],"components":[{"type":"textnode","content":"3"}]},{"tagName":"h3","type":"text","classes":["h3","steps__item-title"],"components":[{"type":"textnode","content":"Публикация"}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Искусственный интеллект соберёт готовую страницу. Ты сможешь её посмотреть, отредактировать и опубликовать."}]}]}]}]}]},{"tagName":"section","classes":["section","features","fx-circles-n"],"attributes":{"data-block":"core-features"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","features__title"],"components":[{"type":"textnode","content":"Что можно делать в NeuroCad"}]},{"classes":["grid","grid--3","features__grid"],"components":[{"classes":["card","features__item"],"components":[{"tagName":"h3","type":"text","classes":["card__title"],"components":[{"type":"textnode","content":"Визуальный редактор"}]},{"tagName":"p","type":"text","classes":["card__text"],"components":[{"type":"textnode","content":"Перетаскивай блоки, меняй цвета и шрифты, собирай страницу как конструктор."}]}]},{"classes":["card","features__item"],"components":[{"tagName":"h3","type":"text","classes":["card__title"],"components":[{"type":"textnode","content":"ИИ-редактор"}]},{"tagName":"p","type":"text","classes":["card__text"],"components":[{"type":"textnode","content":"Опиши словами, что хочешь изменить, и модель сама поправит текст, добавит раздел или перепишет абзац."}]}]},{"classes":["card","features__item"],"components":[{"tagName":"h3","type":"text","classes":["card__title"],"components":[{"type":"textnode","content":"Готовые блоки и медиатека"}]},{"tagName":"p","type":"text","classes":["card__text"],"components":[{"type":"textnode","content":"Заголовки, тексты, кнопки, карточки и формы уже нарисованы — остаётся поставить их на место, добавить картинки из медиатеки и применить эффекты."}]}]}]}]}]},{"tagName":"section","classes":["section","text-image","fx-aurora-drift"],"attributes":{"data-block":"core-text-image"},"components":[{"classes":["container"],"components":[{"classes":["grid","grid--2","text-image__grid"],"components":[{"classes":["text-image__text"],"components":[{"tagName":"h2","type":"text","classes":["h2"],"components":[{"type":"textnode","content":"Собери страницу как конструктор"}]},{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Перетаскивай блоки, меняй цвета и шрифты, добавляй картинки из медиатеки и применяй эффекты. Заголовки, тексты, кнопки, карточки и формы уже нарисованы — остаётся поставить их на место."}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Если нужно изменить текст или добавить раздел, просто опиши это словами — ИИ-редактор сам поправит страницу."}]}]},{"classes":["text-image__media"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"classes":["image"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Интерфейс редактора NeuroCad: блоки страницы, панель настроек и медиатека"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"110","y":"80","width":"580","height":"440","rx":"16","fill":"var(--theme-bg-soft, #f1f5f9)","stroke":"var(--theme-text, #1e293b)","stroke-width":"3"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"126","y":"94","width":"548","height":"34","rx":"8","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"148","cy":"111","r":"6","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"170","cy":"111","r":"6","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"192","cy":"111","r":"6","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"126","y":"150","width":"120","height":"38","rx":"8","fill":"none","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"3"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"126","y":"196","width":"120","height":"38","rx":"8","fill":"none","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"3"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"126","y":"242","width":"120","height":"38","rx":"8","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"126","y":"288","width":"120","height":"38","rx":"8","fill":"none","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"3"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"126","y":"352","width":"52","height":"52","rx":"8","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"152","cy":"378","r":"9","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"186","y":"352","width":"52","height":"52","rx":"8","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"212","cy":"378","r":"9","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"126","y":"414","width":"52","height":"52","rx":"8","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"152","cy":"440","r":"9","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"186","y":"414","width":"52","height":"52","rx":"8","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"212","cy":"440","r":"9","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"262","y":"150","width":"294","height":"340","rx":"10","fill":"none","stroke":"var(--theme-text, #1e293b)","stroke-width":"3"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"284","y":"172","width":"250","height":"26","rx":"6","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"284","y":"214","width":"250","height":"10","rx":"5","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"284","y":"234","width":"170","height":"10","rx":"5","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"284","y":"262","width":"250","height":"110","rx":"8","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M300 356 L345 304 L382 344 L412 312 L452 356 Z","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"496","cy":"292","r":"14","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"284","y":"396","width":"250","height":"10","rx":"5","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"284","y":"416","width":"190","height":"10","rx":"5","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"284","y":"444","width":"96","height":"26","rx":"13","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"572","y":"150","width":"102","height":"340","rx":"10","fill":"none","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"3"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"588","y":"180","width":"70","height":"8","rx":"4","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"632","cy":"184","r":"10","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"588","y":"212","width":"70","height":"8","rx":"4","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"608","cy":"216","r":"10","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"588","y":"252","width":"22","height":"22","rx":"6","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"616","y":"252","width":"22","height":"22","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"644","y":"252","width":"22","height":"22","rx":"6","fill":"var(--theme-text, #1e293b)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"588","y":"300","width":"46","height":"24","rx":"12","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"622","cy":"312","r":"9","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"588","y":"352","width":"70","height":"8","rx":"4","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"588","y":"374","width":"48","height":"8","rx":"4","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"588","y":"410","width":"70","height":"44","rx":"8","fill":"var(--theme-text-muted, #94a3b8)"}}]}]}]}]}]},{"tagName":"section","classes":["section","faq","fx-rotating-globe"],"attributes":{"data-block":"core-faq","id":"i78zxd"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","faq__title"],"components":[{"type":"textnode","content":"Часто задаваемые вопросы"}]},{"classes":["faq__list"],"components":[{"classes":["faq__item"],"components":[{"tagName":"h3","type":"text","classes":["h3","faq__question"],"components":[{"type":"textnode","content":"Нужно ли уметь программировать?"}]},{"tagName":"p","type":"text","classes":["text","text--muted","faq__answer"],"components":[{"type":"textnode","content":"Нет. NeuroCad создан для людей без технического опыта: ты описываешь, что хочешь, — остальное делает система. Первую страницу можно собрать за несколько минут, дальше — только правки и наполнение."}]}]},{"classes":["faq__item"],"components":[{"tagName":"h3","type":"text","classes":["h3","faq__question"],"components":[{"type":"textnode","content":"Что если мне не хватит бесплатного тарифа?"}]},{"tagName":"p","type":"text","classes":["text","text--muted","faq__answer"],"components":[{"type":"textnode","content":"Ты в любой момент можешь перейти на тариф «Про» за 500 рублей в месяц. Всё, что уже создано, сохранится."}]}]},{"classes":["faq__item"],"components":[{"tagName":"h3","type":"text","classes":["h3","faq__question"],"components":[{"type":"textnode","content":"Можно ли использовать свой домен и что происходит с моими данными?"}]},{"tagName":"p","type":"text","classes":["text","text--muted","faq__answer"],"components":[{"type":"textnode","content":"На бесплатном тарифе доступен адрес вида твоё-имя.neurocad.ru, подключение собственного домена обсуждается отдельно. Свою страницу и аккаунт можно удалить в любой момент — мы не передаём данные третьим лицам."}]}]}]}]}]},{"tagName":"section","classes":["section","cta","fx-dance-spotlight-sweep"],"attributes":{"data-block":"core-cta","id":"i7zexb"},"components":[{"classes":["container","cta__inner"],"components":[{"tagName":"h2","type":"text","classes":["h2","cta__title"],"components":[{"type":"textnode","content":"Готов попробовать?"}]},{"tagName":"p","type":"text","classes":["text","cta__text"],"components":[{"type":"textnode","content":"Зарегистрируйся и собери первую страницу прямо сейчас. Бесплатно, без ограничений по времени и без привязки карты."}]},{"type":"link","classes":["btn","cta__btn"],"attributes":{"href":"/core/engine/lib/base/auth/register","id":"i9txr4"},"components":[{"type":"textnode","content":"Создать сайт"}]}]}]},{"tagName":"footer","classes":["section","footer"],"attributes":{"data-block":"core-footer"},"components":[{"classes":["container","footer__inner"],"components":[{"type":"text","classes":["footer__brand"],"components":[{"type":"textnode","content":"© NeuroCad"}]},{"tagName":"nav","classes":["footer__nav"],"components":[{"type":"link","classes":["footer__link"],"attributes":{"href":"/page/1/20260927/084039","id":"id45kg"},"components":[{"type":"textnode","content":"Главная"}]},{"type":"link","classes":["footer__link"],"attributes":{"href":"page:features","id":"iihyrh"},"components":[{"type":"textnode","content":"Возможности"}]},{"type":"link","classes":["footer__link"],"attributes":{"href":"page:contacts","id":"ib29pq"},"components":[{"type":"textnode","content":"Контакты"}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"BjSa5LGE86jeq1Pa"}],"id":"09RLKZEekWahPh5F"}],"symbols":[]}', 1, 0, '2026-09-27 08:40:39.259973', '2026-09-29 16:14:13.961234', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
 
 /**
@@ -17734,6 +17734,1626 @@ INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo",
 .core-engine-lib-word-blocks .fx-soft-diagonal-hatch > * {
     position: relative;
     z-index: 1;
+}
+
+* { box-sizing: border-box; } body {margin: 0;}');
+INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (33, 1, '2026-09-29 17:12:18.265936', 'Интернет-магазин', 'Пример главной страницы', '/static/core/engine/lib/word/editor/images/files/img-31df4d64.svg', '<body><section data-block="core-hero" id="i35c" class="section hero fx-clouds-sun"><div id="i8lf" class="container hero__inner"><h1 class="h1 hero__title">Каталог электроники</h1><p class="lead hero__lead">Смартфоны, ноутбуки, аудиотехника и умные устройства. Оригинальные товары, официальная гарантия и доставка по всей России.</p><a href="page:catalog" class="btn hero__btn">Перейти в каталог</a></div></section><section data-block="core-features" class="section features fx-office-grid"><div class="container"><h2 class="h2 features__title">Преимущества</h2><div class="grid grid--3 features__grid"><div class="card features__item"><h3 class="card__title">Оригинальная техника</h3><p class="card__text">Работаем напрямую с производителями и официальными дистрибьюторами.</p></div><div class="card features__item"><h3 class="card__title">Быстрая доставка</h3><p class="card__text">Отправляем заказы в день оплаты, доставка по городу от одного дня.</p></div><div class="card features__item"><h3 class="card__title">Гарантия и сервис</h3><p class="card__text">Официальная гарантия до 3 лет и собственный сервисный центр.</p></div></div></div></section><section data-block="core-article-catalog" class="section fx-soft-diagonal-hatch"><div class="container"><h2 class="h2 article-catalog__heading">Полезные статьи</h2><div class="article-catalog"><a href="page:article-smartfony" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Иллюстрация к статье о выборе смартфона"><rect x="170" y="170" width="190" height="290" rx="26" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="200" y="205" width="95" height="85" rx="16" fill="var(--theme-bg-soft, #f1f5f9)"></rect><circle cx="228" cy="232" r="15" fill="var(--theme-text, #1e293b)"></circle><circle cx="268" cy="232" r="15" fill="var(--theme-text, #1e293b)"></circle><circle cx="248" cy="268" r="9" fill="var(--theme-accent, #3b82f6)"></circle><rect x="410" y="100" width="260" height="400" rx="30" fill="var(--theme-text, #1e293b)"></rect><rect x="426" y="140" width="228" height="320" rx="12" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="500" y="112" width="80" height="12" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><circle cx="600" cy="192" r="18" fill="var(--theme-text-muted, #94a3b8)"></circle><polygon points="426,460 426,400 498,318 552,370 598,328 654,400 654,460" fill="var(--theme-accent, #3b82f6)"></polygon></svg></div><div class="article-catalog__body"><h3 class="article-catalog__title">Как выбрать смартфон в 2026 году</h3><p class="article-catalog__desc">Разбираем ключевые характеристики: процессор, экран, камеру и автономность.</p><time class="article-catalog__date">27 сентября 2026 г.</time></div></a><a href="page:article-noutbuki" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Иллюстрация к статье о выборе ноутбука"><path d="M 44 340 L 212 340 L 228 372 L 28 372 Z" fill="var(--theme-text-muted, #94a3b8)"></path><rect x="64" y="248" width="128" height="92" rx="10" fill="var(--theme-bg-soft, #f1f5f9)" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="5"></rect><path d="M 588 340 L 756 340 L 772 372 L 572 372 Z" fill="var(--theme-text-muted, #94a3b8)"></path><rect x="608" y="248" width="128" height="92" rx="10" fill="var(--theme-bg-soft, #f1f5f9)" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="5"></rect><path d="M 186 390 L 614 390 L 668 448 L 132 448 Z" fill="var(--theme-text-muted, #94a3b8)"></path><rect x="360" y="408" width="80" height="12" rx="6" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="230" y="140" width="340" height="250" rx="16" fill="var(--theme-bg-soft, #f1f5f9)" stroke="var(--theme-text, #1e293b)" stroke-width="6"></rect><rect x="256" y="166" width="288" height="196" rx="8" fill="var(--theme-accent, #3b82f6)"></rect><rect x="284" y="278" width="32" height="52" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="334" y="234" width="32" height="96" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="384" y="198" width="32" height="132" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="434" y="256" width="32" height="74" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="484" y="222" width="32" height="108" fill="var(--theme-bg-soft, #f1f5f9)"></rect></svg></div><div class="article-catalog__body"><h3 class="article-catalog__title">Ноутбук для работы и учёбы</h3><p class="article-catalog__desc">Сравниваем типы корпусов, объём памяти и время работы от батареи.</p><time class="article-catalog__date">27 сентября 2026 г.</time></div></a><a href="page:article-audio" class="article-catalog__card"><div class="article-catalog__glow"></div><div class="article-catalog__logo"><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Иллюстрация к статье о выборе наушников"><path d="M250 345 L250 275 A150 150 0 0 1 550 275 L550 345" fill="none" stroke="var(--theme-accent, #3b82f6)" stroke-width="36" stroke-linecap="round"></path><rect x="205" y="300" width="90" height="170" rx="42" fill="var(--theme-accent, #3b82f6)"></rect><rect x="505" y="300" width="90" height="170" rx="42" fill="var(--theme-accent, #3b82f6)"></rect><rect x="228" y="332" width="44" height="106" rx="22" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="528" y="332" width="44" height="106" rx="22" fill="var(--theme-bg-soft, #f1f5f9)"></rect></svg></div><div class="article-catalog__body"><h3 class="article-catalog__title">Наушники: виды и особенности</h3><p class="article-catalog__desc">На что обратить внимание при выборе проводных и беспроводных моделей.</p><time class="article-catalog__date">27 сентября 2026 г.</time></div></a></div></div></section><section data-block="core-gallery" class="section gallery fx-aurora-drift"><div class="container"><h2 class="h2 gallery__title">Галерея</h2><div class="grid grid--auto gallery__grid"><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Смартфон с безрамочным экраном" class="image gallery__item"><rect x="288" y="46" width="224" height="508" rx="38" fill="var(--theme-text, #1e293b)"></rect><rect x="299" y="57" width="202" height="486" rx="30" fill="var(--theme-accent, #3b82f6)"></rect><circle cx="346" cy="86" r="7" fill="var(--theme-text, #1e293b)"></circle><rect x="322" y="120" width="156" height="12" rx="6" fill="#ffffff" opacity="0.85"></rect><rect x="322" y="144" width="106" height="10" rx="5" fill="#ffffff" opacity="0.5"></rect><rect x="322" y="176" width="156" height="118" rx="16" fill="#ffffff" opacity="0.25"></rect><circle cx="400" cy="235" r="32" fill="#ffffff" opacity="0.4"></circle><rect x="322" y="314" width="156" height="48" rx="12" fill="#ffffff" opacity="0.2"></rect><rect x="322" y="374" width="156" height="48" rx="12" fill="#ffffff" opacity="0.2"></rect><rect x="322" y="434" width="156" height="48" rx="12" fill="#ffffff" opacity="0.2"></rect><rect x="360" y="510" width="80" height="8" rx="4" fill="#ffffff" opacity="0.7"></rect></svg><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ноутбук на рабочем столе" class="image gallery__item"><rect x="90" y="448" width="620" height="16" rx="8" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="230" y="150" width="340" height="240" rx="14" fill="var(--theme-text, #1e293b)"></rect><rect x="252" y="172" width="296" height="196" rx="6" fill="var(--theme-accent, #3b82f6)"></rect><rect x="276" y="200" width="170" height="14" rx="7" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="276" y="230" width="110" height="14" rx="7" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="276" y="260" width="140" height="14" rx="7" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="252" y="308" width="90" height="40" rx="6" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="358" y="308" width="190" height="40" rx="6" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="250" y="384" width="300" height="18" rx="8" fill="var(--theme-text-muted, #94a3b8)"></rect><path d="M 130 448 L 190 400 L 610 400 L 670 448 Z" fill="var(--theme-text-muted, #94a3b8)"></path><rect x="364" y="414" width="72" height="14" rx="7" fill="var(--theme-bg-soft, #f1f5f9)"></rect></svg><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Беспроводные наушники в кейсе" class="image gallery__item"><g transform="rotate(-14 400 355)"><rect x="230" y="185" width="340" height="165" rx="56" fill="var(--theme-accent, #3b82f6)"></rect><rect x="258" y="212" width="284" height="112" rx="34" fill="var(--theme-bg-soft, #f1f5f9)"></rect></g><rect x="230" y="352" width="340" height="198" rx="56" fill="var(--theme-accent, #3b82f6)"></rect><rect x="258" y="378" width="284" height="146" rx="38" fill="var(--theme-bg-soft, #f1f5f9)"></rect><circle cx="332" cy="443" r="40" fill="var(--theme-text, #1e293b)"></circle><rect x="317" y="462" width="30" height="60" rx="15" fill="var(--theme-text, #1e293b)"></rect><circle cx="468" cy="443" r="40" fill="var(--theme-text, #1e293b)"></circle><rect x="453" y="462" width="30" height="60" rx="15" fill="var(--theme-text, #1e293b)"></rect><circle cx="322" cy="432" r="11" fill="var(--theme-bg-soft, #f1f5f9)"></circle><circle cx="458" cy="432" r="11" fill="var(--theme-bg-soft, #f1f5f9)"></circle><circle cx="400" cy="548" r="8" fill="var(--theme-bg-soft, #f1f5f9)"></circle></svg><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Умная колонка на полке" class="image gallery__item"><rect x="130" y="445" width="540" height="22" rx="7" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="305" y="205" width="190" height="240" rx="38" fill="var(--theme-accent, #3b82f6)"></rect><line x1="332" y1="280" x2="468" y2="280" stroke="var(--theme-bg-soft, #f1f5f9)" stroke-width="4" stroke-linecap="round"></line><line x1="332" y1="308" x2="468" y2="308" stroke="var(--theme-bg-soft, #f1f5f9)" stroke-width="4" stroke-linecap="round"></line><line x1="332" y1="336" x2="468" y2="336" stroke="var(--theme-bg-soft, #f1f5f9)" stroke-width="4" stroke-linecap="round"></line><line x1="332" y1="364" x2="468" y2="364" stroke="var(--theme-bg-soft, #f1f5f9)" stroke-width="4" stroke-linecap="round"></line><line x1="332" y1="392" x2="468" y2="392" stroke="var(--theme-bg-soft, #f1f5f9)" stroke-width="4" stroke-linecap="round"></line><rect x="305" y="178" width="190" height="74" rx="37" fill="var(--theme-text, #1e293b)"></rect><circle cx="400" cy="215" r="9" fill="var(--theme-bg-soft, #f1f5f9)"></circle></svg><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Планшет с клавиатурой" class="image gallery__item"><rect x="180" y="80" width="440" height="330" rx="22" fill="var(--theme-bg-soft, #f1f5f9)" stroke="var(--theme-text, #1e293b)" stroke-width="10"></rect><circle cx="400" cy="94" r="6" fill="var(--theme-text-muted, #94a3b8)"></circle><rect x="206" y="104" width="388" height="270" rx="12" fill="var(--theme-accent, #3b82f6)"></rect><rect x="232" y="132" width="160" height="110" rx="10" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="408" y="132" width="160" height="110" rx="10" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="232" y="262" width="336" height="84" rx="10" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="330" y="404" width="140" height="24" rx="10" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="110" y="430" width="580" height="120" rx="16" fill="var(--theme-bg-soft, #f1f5f9)" stroke="var(--theme-text, #1e293b)" stroke-width="10"></rect><rect x="140" y="452" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="192.8" y="452" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="245.6" y="452" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="298.4" y="452" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="351.2" y="452" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="404" y="452" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="456.8" y="452" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="509.6" y="452" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="562.4" y="452" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="615.2" y="452" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="140" y="482" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="192.8" y="482" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="245.6" y="482" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="298.4" y="482" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="351.2" y="482" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="404" y="482" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="456.8" y="482" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="509.6" y="482" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="562.4" y="482" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="615.2" y="482" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="140" y="512" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="192.8" y="512" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="245.6" y="512" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="298.4" y="512" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="351.2" y="512" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="404" y="512" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="456.8" y="512" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="509.6" y="512" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="562.4" y="512" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="615.2" y="512" width="44.8" height="24" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect></svg><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Игровая консоль с геймпадом" class="image gallery__item"><rect x="320" y="80" width="160" height="252" rx="22" fill="var(--theme-accent, #3b82f6)"></rect><rect x="356" y="130" width="88" height="9" rx="4.5" fill="var(--theme-bg-soft, #f1f5f9)"></rect><circle cx="400" cy="292" r="8" fill="var(--theme-bg-soft, #f1f5f9)"></circle><rect x="352" y="332" width="96" height="14" rx="7" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="255" y="395" width="290" height="100" rx="48" fill="var(--theme-text, #1e293b)"></rect><circle cx="292" cy="490" r="50" fill="var(--theme-text, #1e293b)"></circle><circle cx="508" cy="490" r="50" fill="var(--theme-text, #1e293b)"></circle><rect x="300" y="436" width="52" height="18" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="317" y="419" width="18" height="52" rx="6" fill="var(--theme-text-muted, #94a3b8)"></rect><circle cx="466" cy="429" r="10" fill="var(--theme-text-muted, #94a3b8)"></circle><circle cx="490" cy="429" r="10" fill="var(--theme-text-muted, #94a3b8)"></circle><circle cx="466" cy="453" r="10" fill="var(--theme-text-muted, #94a3b8)"></circle><circle cx="490" cy="453" r="10" fill="var(--theme-text-muted, #94a3b8)"></circle><circle cx="381" cy="470" r="14" fill="var(--theme-text-muted, #94a3b8)"></circle><circle cx="419" cy="470" r="14" fill="var(--theme-text-muted, #94a3b8)"></circle></svg></div></div></section><section data-block="core-text-image" class="section text-image"><div class="container"><div class="grid grid--2 text-image__grid"><div class="text-image__text"><h2 class="h2">Техника с официальной гарантией</h2><p class="text">Все товары каталога поставляются проверенными производителями и сопровождаются гарантийным обслуживанием в нашем сервисном центре.</p><p class="text text--muted">Приём и диагностика обращений — бесплатно, срок рассмотрения заявки — до трёх рабочих дней.</p></div><div class="text-image__media"><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Витрина магазина электроники" class="image"><rect x="170" y="100" width="460" height="400" rx="14" fill="var(--theme-bg-soft, #f1f5f9)" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="6"></rect><line x1="182" y1="240" x2="618" y2="240" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="6"></line><line x1="182" y1="372" x2="618" y2="372" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="6"></line><rect x="240" y="140" width="320" height="88" rx="8" fill="var(--theme-accent, #3b82f6)"></rect><rect x="254" y="154" width="292" height="60" rx="4" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="380" y="228" width="40" height="12" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="250" y="262" width="190" height="98" rx="8" fill="var(--theme-accent, #3b82f6)"></rect><rect x="262" y="274" width="166" height="74" rx="4" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="228" y="358" width="234" height="14" rx="7" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="244" y="392" width="72" height="104" rx="12" fill="var(--theme-accent, #3b82f6)"></rect><rect x="254" y="404" width="52" height="80" rx="6" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="384" y="430" width="90" height="66" rx="8" fill="var(--theme-text-muted, #94a3b8)"></rect><circle cx="429" cy="463" r="18" fill="var(--theme-bg-soft, #f1f5f9)"></circle></svg></div></div></div></section><section data-block="core-steps" class="section steps fx-nuclei-electron-orbits"><div class="container"><h2 class="h2 steps__title">Как оформить заказ</h2><div class="grid grid--3 steps__grid"><div class="steps__item"><div class="steps__num">1</div><h3 class="h3 steps__item-title">Выберите товар</h3><p class="text text--muted">Найдите нужную модель в каталоге и добавьте её в корзину.</p></div><div class="steps__item"><div class="steps__num">2</div><h3 class="h3 steps__item-title">Оформите доставку</h3><p class="text text--muted">Укажите адрес и удобный способ оплаты, проверьте состав заказа.</p></div><div class="steps__item"><div class="steps__num">3</div><h3 class="h3 steps__item-title">Получите заказ</h3><p class="text text--muted">Курьер привезёт товар с документами и гарантийным талоном.</p></div></div></div></section><section data-block="core-faq" class="section faq"><div class="container"><h2 class="h2 faq__title">Частые вопросы</h2><div class="faq__list"><div class="faq__item"><h3 class="h3 faq__question">Сколько времени занимает доставка?</h3><p class="text text--muted faq__answer">По городу — от одного рабочего дня, в другие регионы — от трёх дней. Срок зависит от склада и выбранного товара.</p></div><div class="faq__item"><h3 class="h3 faq__question">Товары оригинальные?</h3><p class="text text--muted faq__answer">Да, мы работаем только с официальными поставщиками и предоставляем гарантию производителя.</p></div><div class="faq__item"><h3 class="h3 faq__question">Можно ли вернуть товар?</h3><p class="text text--muted faq__answer">Да, в течение 14 дней с момента покупки при сохранении упаковки и комплектации.</p></div></div></div></section><section data-block="core-cta" class="section cta"><div class="container cta__inner"><h2 class="h2 cta__title">Нужна помощь с выбором?</h2><p class="text cta__text">Оставьте заявку — консультант подберёт технику под ваши задачи и бюджет.</p><a href="page:contacts" class="btn cta__btn">Оставить заявку</a></div></section><section data-block="core-contacts" class="section contacts fx-silver-orbit-stars"><div class="container"><h2 class="h2 contacts__title">Контакты</h2><div class="grid grid--3 contacts__grid"><div class="contacts__item"><div class="contacts__label">Адрес</div><div class="contacts__value">Москва, ул. Тверская, д. 18, стр. 1</div></div><div class="contacts__item"><div class="contacts__label">Телефон</div><div class="contacts__value">+7 (495) 123-45-67</div></div><div class="contacts__item"><div class="contacts__label">Email</div><div class="contacts__value">sales@electromarket.ru</div></div></div></div></section><footer data-block="core-footer" class="section footer"><div class="container footer__inner"><div class="footer__brand">© ЭлектроМаркет, 2026</div><nav class="footer__nav"><a href="page:home" class="footer__link">Главная</a><a href="page:catalog" class="footer__link">Каталог</a><a href="page:contacts" class="footer__link">Контакты</a></nav></div></footer></body>', '{"assets":[{"type":"image","src":"/media/1/fone_73669b1a.jpg","unitDim":"px","height":0,"width":0,"name":"fone_73669b1a.jpg"},{"type":"image","src":"/media/1/logo_bcf3c00f.png","unitDim":"px","height":0,"width":0,"name":"logo_bcf3c00f.png"},{"type":"image","src":"/media/1/qr.png","unitDim":"px","height":0,"width":0,"name":"qr.png"}],"styles":[],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"tagName":"section","classes":["section","hero","fx-clouds-sun"],"attributes":{"data-block":"core-hero","id":"i35c"},"components":[{"classes":["container","hero__inner"],"attributes":{"id":"i8lf"},"components":[{"tagName":"h1","type":"text","classes":["h1","hero__title"],"components":[{"type":"textnode","content":"Каталог электроники"}]},{"tagName":"p","type":"text","classes":["lead","hero__lead"],"components":[{"type":"textnode","content":"Смартфоны, ноутбуки, аудиотехника и умные устройства. Оригинальные товары, официальная гарантия и доставка по всей России."}]},{"type":"link","classes":["btn","hero__btn"],"attributes":{"href":"page:catalog"},"components":[{"type":"textnode","content":"Перейти в каталог"}]}]}]},{"tagName":"section","classes":["section","features","fx-office-grid"],"attributes":{"data-block":"core-features"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","features__title"],"components":[{"type":"textnode","content":"Преимущества"}]},{"classes":["grid","grid--3","features__grid"],"components":[{"classes":["card","features__item"],"components":[{"tagName":"h3","type":"text","classes":["card__title"],"components":[{"type":"textnode","content":"Оригинальная техника"}]},{"tagName":"p","type":"text","classes":["card__text"],"components":[{"type":"textnode","content":"Работаем напрямую с производителями и официальными дистрибьюторами."}]}]},{"classes":["card","features__item"],"components":[{"tagName":"h3","type":"text","classes":["card__title"],"components":[{"type":"textnode","content":"Быстрая доставка"}]},{"tagName":"p","type":"text","classes":["card__text"],"components":[{"type":"textnode","content":"Отправляем заказы в день оплаты, доставка по городу от одного дня."}]}]},{"classes":["card","features__item"],"components":[{"tagName":"h3","type":"text","classes":["card__title"],"components":[{"type":"textnode","content":"Гарантия и сервис"}]},{"tagName":"p","type":"text","classes":["card__text"],"components":[{"type":"textnode","content":"Официальная гарантия до 3 лет и собственный сервисный центр."}]}]}]}]}]},{"tagName":"section","classes":["section","fx-soft-diagonal-hatch"],"attributes":{"data-block":"core-article-catalog"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","article-catalog__heading"],"components":[{"type":"textnode","content":"Полезные статьи"}]},{"classes":["article-catalog"],"components":[{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"page:article-smartfony"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Иллюстрация к статье о выборе смартфона"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"170","y":"170","width":"190","height":"290","rx":"26","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"200","y":"205","width":"95","height":"85","rx":"16","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"228","cy":"232","r":"15","fill":"var(--theme-text, #1e293b)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"268","cy":"232","r":"15","fill":"var(--theme-text, #1e293b)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"248","cy":"268","r":"9","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"410","y":"100","width":"260","height":"400","rx":"30","fill":"var(--theme-text, #1e293b)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"426","y":"140","width":"228","height":"320","rx":"12","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"500","y":"112","width":"80","height":"12","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"600","cy":"192","r":"18","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"polygon","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"points":"426,460 426,400 498,318 552,370 598,328 654,400 654,460","fill":"var(--theme-accent, #3b82f6)"}}]}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"components":[{"type":"textnode","content":"Как выбрать смартфон в 2026 году"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"Разбираем ключевые характеристики: процессор, экран, камеру и автономность."}]},{"tagName":"time","type":"text","classes":["article-catalog__date"],"components":[{"type":"textnode","content":"27 сентября 2026 г."}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"page:article-noutbuki"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Иллюстрация к статье о выборе ноутбука"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M 44 340 L 212 340 L 228 372 L 28 372 Z","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"64","y":"248","width":"128","height":"92","rx":"10","fill":"var(--theme-bg-soft, #f1f5f9)","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"5"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M 588 340 L 756 340 L 772 372 L 572 372 Z","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"608","y":"248","width":"128","height":"92","rx":"10","fill":"var(--theme-bg-soft, #f1f5f9)","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"5"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M 186 390 L 614 390 L 668 448 L 132 448 Z","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"360","y":"408","width":"80","height":"12","rx":"6","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"230","y":"140","width":"340","height":"250","rx":"16","fill":"var(--theme-bg-soft, #f1f5f9)","stroke":"var(--theme-text, #1e293b)","stroke-width":"6"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"256","y":"166","width":"288","height":"196","rx":"8","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"284","y":"278","width":"32","height":"52","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"334","y":"234","width":"32","height":"96","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"384","y":"198","width":"32","height":"132","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"434","y":"256","width":"32","height":"74","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"484","y":"222","width":"32","height":"108","fill":"var(--theme-bg-soft, #f1f5f9)"}}]}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"components":[{"type":"textnode","content":"Ноутбук для работы и учёбы"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"Сравниваем типы корпусов, объём памяти и время работы от батареи."}]},{"tagName":"time","type":"text","classes":["article-catalog__date"],"components":[{"type":"textnode","content":"27 сентября 2026 г."}]}]}]},{"type":"link","classes":["article-catalog__card"],"attributes":{"href":"page:article-audio"},"components":[{"classes":["article-catalog__glow"]},{"classes":["article-catalog__logo"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Иллюстрация к статье о выборе наушников"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M250 345 L250 275 A150 150 0 0 1 550 275 L550 345","fill":"none","stroke":"var(--theme-accent, #3b82f6)","stroke-width":"36","stroke-linecap":"round"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"205","y":"300","width":"90","height":"170","rx":"42","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"505","y":"300","width":"90","height":"170","rx":"42","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"228","y":"332","width":"44","height":"106","rx":"22","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"528","y":"332","width":"44","height":"106","rx":"22","fill":"var(--theme-bg-soft, #f1f5f9)"}}]}]},{"classes":["article-catalog__body"],"components":[{"tagName":"h3","type":"text","classes":["article-catalog__title"],"components":[{"type":"textnode","content":"Наушники: виды и особенности"}]},{"tagName":"p","type":"text","classes":["article-catalog__desc"],"components":[{"type":"textnode","content":"На что обратить внимание при выборе проводных и беспроводных моделей."}]},{"tagName":"time","type":"text","classes":["article-catalog__date"],"components":[{"type":"textnode","content":"27 сентября 2026 г."}]}]}]}]}]}]},{"tagName":"section","classes":["section","gallery","fx-aurora-drift"],"attributes":{"data-block":"core-gallery"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","gallery__title"],"components":[{"type":"textnode","content":"Галерея"}]},{"classes":["grid","grid--auto","gallery__grid"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Смартфон с безрамочным экраном"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"288","y":"46","width":"224","height":"508","rx":"38","fill":"var(--theme-text, #1e293b)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"299","y":"57","width":"202","height":"486","rx":"30","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"346","cy":"86","r":"7","fill":"var(--theme-text, #1e293b)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"322","y":"120","width":"156","height":"12","rx":"6","fill":"#ffffff","opacity":"0.85"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"322","y":"144","width":"106","height":"10","rx":"5","fill":"#ffffff","opacity":"0.5"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"322","y":"176","width":"156","height":"118","rx":"16","fill":"#ffffff","opacity":"0.25"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"235","r":"32","fill":"#ffffff","opacity":"0.4"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"322","y":"314","width":"156","height":"48","rx":"12","fill":"#ffffff","opacity":"0.2"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"322","y":"374","width":"156","height":"48","rx":"12","fill":"#ffffff","opacity":"0.2"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"322","y":"434","width":"156","height":"48","rx":"12","fill":"#ffffff","opacity":"0.2"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"360","y":"510","width":"80","height":"8","rx":"4","fill":"#ffffff","opacity":"0.7"}}]},{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Ноутбук на рабочем столе"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"90","y":"448","width":"620","height":"16","rx":"8","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"230","y":"150","width":"340","height":"240","rx":"14","fill":"var(--theme-text, #1e293b)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"252","y":"172","width":"296","height":"196","rx":"6","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"276","y":"200","width":"170","height":"14","rx":"7","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"276","y":"230","width":"110","height":"14","rx":"7","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"276","y":"260","width":"140","height":"14","rx":"7","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"252","y":"308","width":"90","height":"40","rx":"6","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"358","y":"308","width":"190","height":"40","rx":"6","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"250","y":"384","width":"300","height":"18","rx":"8","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M 130 448 L 190 400 L 610 400 L 670 448 Z","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"364","y":"414","width":"72","height":"14","rx":"7","fill":"var(--theme-bg-soft, #f1f5f9)"}}]},{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Беспроводные наушники в кейсе"},"components":[{"tagName":"g","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"transform":"rotate(-14 400 355)"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"230","y":"185","width":"340","height":"165","rx":"56","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"258","y":"212","width":"284","height":"112","rx":"34","fill":"var(--theme-bg-soft, #f1f5f9)"}}]},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"230","y":"352","width":"340","height":"198","rx":"56","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"258","y":"378","width":"284","height":"146","rx":"38","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"332","cy":"443","r":"40","fill":"var(--theme-text, #1e293b)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"317","y":"462","width":"30","height":"60","rx":"15","fill":"var(--theme-text, #1e293b)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"468","cy":"443","r":"40","fill":"var(--theme-text, #1e293b)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"453","y":"462","width":"30","height":"60","rx":"15","fill":"var(--theme-text, #1e293b)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"322","cy":"432","r":"11","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"458","cy":"432","r":"11","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"548","r":"8","fill":"var(--theme-bg-soft, #f1f5f9)"}}]},{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Умная колонка на полке"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"130","y":"445","width":"540","height":"22","rx":"7","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"305","y":"205","width":"190","height":"240","rx":"38","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"line","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x1":"332","y1":"280","x2":"468","y2":"280","stroke":"var(--theme-bg-soft, #f1f5f9)","stroke-width":"4","stroke-linecap":"round"}},{"tagName":"line","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x1":"332","y1":"308","x2":"468","y2":"308","stroke":"var(--theme-bg-soft, #f1f5f9)","stroke-width":"4","stroke-linecap":"round"}},{"tagName":"line","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x1":"332","y1":"336","x2":"468","y2":"336","stroke":"var(--theme-bg-soft, #f1f5f9)","stroke-width":"4","stroke-linecap":"round"}},{"tagName":"line","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x1":"332","y1":"364","x2":"468","y2":"364","stroke":"var(--theme-bg-soft, #f1f5f9)","stroke-width":"4","stroke-linecap":"round"}},{"tagName":"line","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x1":"332","y1":"392","x2":"468","y2":"392","stroke":"var(--theme-bg-soft, #f1f5f9)","stroke-width":"4","stroke-linecap":"round"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"305","y":"178","width":"190","height":"74","rx":"37","fill":"var(--theme-text, #1e293b)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"215","r":"9","fill":"var(--theme-bg-soft, #f1f5f9)"}}]},{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Планшет с клавиатурой"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"180","y":"80","width":"440","height":"330","rx":"22","fill":"var(--theme-bg-soft, #f1f5f9)","stroke":"var(--theme-text, #1e293b)","stroke-width":"10"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"94","r":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"206","y":"104","width":"388","height":"270","rx":"12","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"232","y":"132","width":"160","height":"110","rx":"10","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"408","y":"132","width":"160","height":"110","rx":"10","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"232","y":"262","width":"336","height":"84","rx":"10","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"330","y":"404","width":"140","height":"24","rx":"10","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"110","y":"430","width":"580","height":"120","rx":"16","fill":"var(--theme-bg-soft, #f1f5f9)","stroke":"var(--theme-text, #1e293b)","stroke-width":"10"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"140","y":"452","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"192.8","y":"452","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"245.6","y":"452","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"298.4","y":"452","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"351.2","y":"452","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"404","y":"452","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"456.8","y":"452","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"509.6","y":"452","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"562.4","y":"452","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"615.2","y":"452","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"140","y":"482","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"192.8","y":"482","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"245.6","y":"482","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"298.4","y":"482","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"351.2","y":"482","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"404","y":"482","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"456.8","y":"482","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"509.6","y":"482","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"562.4","y":"482","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"615.2","y":"482","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"140","y":"512","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"192.8","y":"512","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"245.6","y":"512","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"298.4","y":"512","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"351.2","y":"512","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"404","y":"512","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"456.8","y":"512","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"509.6","y":"512","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"562.4","y":"512","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"615.2","y":"512","width":"44.8","height":"24","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}}]},{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Игровая консоль с геймпадом"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"320","y":"80","width":"160","height":"252","rx":"22","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"356","y":"130","width":"88","height":"9","rx":"4.5","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"292","r":"8","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"352","y":"332","width":"96","height":"14","rx":"7","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"255","y":"395","width":"290","height":"100","rx":"48","fill":"var(--theme-text, #1e293b)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"292","cy":"490","r":"50","fill":"var(--theme-text, #1e293b)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"508","cy":"490","r":"50","fill":"var(--theme-text, #1e293b)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"300","y":"436","width":"52","height":"18","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"317","y":"419","width":"18","height":"52","rx":"6","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"466","cy":"429","r":"10","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"490","cy":"429","r":"10","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"466","cy":"453","r":"10","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"490","cy":"453","r":"10","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"381","cy":"470","r":"14","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"419","cy":"470","r":"14","fill":"var(--theme-text-muted, #94a3b8)"}}]}]}]}]},{"tagName":"section","classes":["section","text-image"],"attributes":{"data-block":"core-text-image"},"components":[{"classes":["container"],"components":[{"classes":["grid","grid--2","text-image__grid"],"components":[{"classes":["text-image__text"],"components":[{"tagName":"h2","type":"text","classes":["h2"],"components":[{"type":"textnode","content":"Техника с официальной гарантией"}]},{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Все товары каталога поставляются проверенными производителями и сопровождаются гарантийным обслуживанием в нашем сервисном центре."}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Приём и диагностика обращений — бесплатно, срок рассмотрения заявки — до трёх рабочих дней."}]}]},{"classes":["text-image__media"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"classes":["image"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Витрина магазина электроники"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"170","y":"100","width":"460","height":"400","rx":"14","fill":"var(--theme-bg-soft, #f1f5f9)","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"6"}},{"tagName":"line","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x1":"182","y1":"240","x2":"618","y2":"240","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"6"}},{"tagName":"line","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x1":"182","y1":"372","x2":"618","y2":"372","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"6"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"240","y":"140","width":"320","height":"88","rx":"8","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"254","y":"154","width":"292","height":"60","rx":"4","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"380","y":"228","width":"40","height":"12","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"250","y":"262","width":"190","height":"98","rx":"8","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"262","y":"274","width":"166","height":"74","rx":"4","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"228","y":"358","width":"234","height":"14","rx":"7","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"244","y":"392","width":"72","height":"104","rx":"12","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"254","y":"404","width":"52","height":"80","rx":"6","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"384","y":"430","width":"90","height":"66","rx":"8","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"429","cy":"463","r":"18","fill":"var(--theme-bg-soft, #f1f5f9)"}}]}]}]}]}]},{"tagName":"section","classes":["section","steps","fx-nuclei-electron-orbits"],"attributes":{"data-block":"core-steps"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","steps__title"],"components":[{"type":"textnode","content":"Как оформить заказ"}]},{"classes":["grid","grid--3","steps__grid"],"components":[{"classes":["steps__item"],"components":[{"type":"text","classes":["steps__num"],"components":[{"type":"textnode","content":"1"}]},{"tagName":"h3","type":"text","classes":["h3","steps__item-title"],"components":[{"type":"textnode","content":"Выберите товар"}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Найдите нужную модель в каталоге и добавьте её в корзину."}]}]},{"classes":["steps__item"],"components":[{"type":"text","classes":["steps__num"],"components":[{"type":"textnode","content":"2"}]},{"tagName":"h3","type":"text","classes":["h3","steps__item-title"],"components":[{"type":"textnode","content":"Оформите доставку"}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Укажите адрес и удобный способ оплаты, проверьте состав заказа."}]}]},{"classes":["steps__item"],"components":[{"type":"text","classes":["steps__num"],"components":[{"type":"textnode","content":"3"}]},{"tagName":"h3","type":"text","classes":["h3","steps__item-title"],"components":[{"type":"textnode","content":"Получите заказ"}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Курьер привезёт товар с документами и гарантийным талоном."}]}]}]}]}]},{"tagName":"section","classes":["section","faq"],"attributes":{"data-block":"core-faq"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","faq__title"],"components":[{"type":"textnode","content":"Частые вопросы"}]},{"classes":["faq__list"],"components":[{"classes":["faq__item"],"components":[{"tagName":"h3","type":"text","classes":["h3","faq__question"],"components":[{"type":"textnode","content":"Сколько времени занимает доставка?"}]},{"tagName":"p","type":"text","classes":["text","text--muted","faq__answer"],"components":[{"type":"textnode","content":"По городу — от одного рабочего дня, в другие регионы — от трёх дней. Срок зависит от склада и выбранного товара."}]}]},{"classes":["faq__item"],"components":[{"tagName":"h3","type":"text","classes":["h3","faq__question"],"components":[{"type":"textnode","content":"Товары оригинальные?"}]},{"tagName":"p","type":"text","classes":["text","text--muted","faq__answer"],"components":[{"type":"textnode","content":"Да, мы работаем только с официальными поставщиками и предоставляем гарантию производителя."}]}]},{"classes":["faq__item"],"components":[{"tagName":"h3","type":"text","classes":["h3","faq__question"],"components":[{"type":"textnode","content":"Можно ли вернуть товар?"}]},{"tagName":"p","type":"text","classes":["text","text--muted","faq__answer"],"components":[{"type":"textnode","content":"Да, в течение 14 дней с момента покупки при сохранении упаковки и комплектации."}]}]}]}]}]},{"tagName":"section","classes":["section","cta"],"attributes":{"data-block":"core-cta"},"components":[{"classes":["container","cta__inner"],"components":[{"tagName":"h2","type":"text","classes":["h2","cta__title"],"components":[{"type":"textnode","content":"Нужна помощь с выбором?"}]},{"tagName":"p","type":"text","classes":["text","cta__text"],"components":[{"type":"textnode","content":"Оставьте заявку — консультант подберёт технику под ваши задачи и бюджет."}]},{"type":"link","classes":["btn","cta__btn"],"attributes":{"href":"page:contacts"},"components":[{"type":"textnode","content":"Оставить заявку"}]}]}]},{"tagName":"section","classes":["section","contacts","fx-silver-orbit-stars"],"attributes":{"data-block":"core-contacts"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","contacts__title"],"components":[{"type":"textnode","content":"Контакты"}]},{"classes":["grid","grid--3","contacts__grid"],"components":[{"classes":["contacts__item"],"components":[{"type":"text","classes":["contacts__label"],"components":[{"type":"textnode","content":"Адрес"}]},{"type":"text","classes":["contacts__value"],"components":[{"type":"textnode","content":"Москва, ул. Тверская, д. 18, стр. 1"}]}]},{"classes":["contacts__item"],"components":[{"type":"text","classes":["contacts__label"],"components":[{"type":"textnode","content":"Телефон"}]},{"type":"text","classes":["contacts__value"],"components":[{"type":"textnode","content":"+7 (495) 123-45-67"}]}]},{"classes":["contacts__item"],"components":[{"type":"text","classes":["contacts__label"],"components":[{"type":"textnode","content":"Email"}]},{"type":"text","classes":["contacts__value"],"components":[{"type":"textnode","content":"sales@electromarket.ru"}]}]}]}]}]},{"tagName":"footer","classes":["section","footer"],"attributes":{"data-block":"core-footer"},"components":[{"classes":["container","footer__inner"],"components":[{"type":"text","classes":["footer__brand"],"components":[{"type":"textnode","content":"© ЭлектроМаркет, 2026"}]},{"tagName":"nav","classes":["footer__nav"],"components":[{"type":"link","classes":["footer__link"],"attributes":{"href":"page:home"},"components":[{"type":"textnode","content":"Главная"}]},{"type":"link","classes":["footer__link"],"attributes":{"href":"page:catalog"},"components":[{"type":"textnode","content":"Каталог"}]},{"type":"link","classes":["footer__link"],"attributes":{"href":"page:contacts"},"components":[{"type":"textnode","content":"Контакты"}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"wY6rtmHHOn7nPKX9"}],"id":"nIhND5ZdoQXPMAex"}],"symbols":[]}', 1, 0, '2026-09-29 17:12:18.265961', '2026-09-29 18:58:32.891729', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
+
+/**
+ * Content — theme variables + shared atoms + layout for CONTENT pages.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Uses ONLY --theme-* variables, defined at the top of this file.
+ * Completely independent from base/css/00_variables.css (admin UI):
+ * admin theme changes do NOT affect page content.
+ *
+ * Contents:
+ *   THEME VARIABLES
+ *     --theme-*                 all colors, fonts, radii, spacing
+ *
+ *   ATOMS
+ *     .h1, .h2, .h3             headings
+ *     .text, .text--muted, .text--center
+ *     .lead                     intro paragraph
+ *     .list, .list--check, .list--num
+ *     .btn, .btn--ghost         buttons
+ *     .card, .card__title, .card__text
+ *     .badge, .quote, .image, .icon, .divider
+ *
+ *   LAYOUT
+ *     .section                  vertical rhythm wrapper
+ *     .container                centered max-width wrapper
+ *     .grid, .grid--2/3/4/auto  base grids
+ *     .col                      grid cell
+ *
+ * .flex-shell* lives in blocks/layout.css — it is block-specific
+ * (only used by the flex-shell block).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   THEME VARIABLES — content
+   ============================================ */
+
+/*
+ * Completely independent from base/css/00_variables.css (admin UI).
+ * Admin theme changes do NOT affect these values.
+ *
+ * Scoped under .core-engine-lib-word-blocks — the same class sits
+ * on the canvas <body> in the editor and on the article wrapper
+ * on the public page.
+ */
+.core-engine-lib-word-blocks {
+
+    /* ===== COLORS ===== */
+
+    --theme-bg:             #ffffff;
+    --theme-bg-subtle:      #f8fafc;
+    --theme-bg-dark:        #0f172a;
+    --theme-bg-hover:       #f1f5f9;
+
+    --theme-text:           #1e293b;
+    --theme-text-muted:     #64748b;
+    --theme-text-invert:    #ffffff;
+
+    --theme-accent:         #246eaa;
+    --theme-accent-hover:   #1e5a8a;
+    --theme-accent-soft:    #e0edf7;
+
+    --theme-border:         #e2e8f0;
+    --theme-border-strong:  #cbd5e1;
+
+    --theme-success:        #16a34a;
+    --theme-warning:        #d97706;
+    --theme-danger:         #dc2626;
+
+    /* ===== SHADOWS ===== */
+
+    --theme-shadow-sm:  0 1px 3px rgba(15, 23, 42, 0.06);
+    --theme-shadow-md:  0 4px 12px rgba(15, 23, 42, 0.08);
+    --theme-shadow-lg:  0 12px 32px rgba(15, 23, 42, 0.12);
+
+    /* ===== FONTS ===== */
+
+    --theme-font-family:    ''Inter'', ''Golos Text'', sans-serif;
+    --theme-font-size-xs:   0.75rem;
+    --theme-font-size-sm:   0.875rem;
+    --theme-font-size-base: 1rem;
+    --theme-font-size-lg:   1.125rem;
+    --theme-font-size-xl:   1.25rem;
+    --theme-font-size-2xl:  1.5rem;
+    --theme-font-size-3xl:  2rem;
+    --theme-font-size-4xl:  2.5rem;
+
+    --theme-font-weight-regular:  400;
+    --theme-font-weight-medium:   500;
+    --theme-font-weight-semibold: 600;
+    --theme-font-weight-bold:     700;
+
+    --theme-line-height-tight:  1.25;
+    --theme-line-height-base:   1.6;
+    --theme-line-height-loose:  1.8;
+
+    /* ===== RADII ===== */
+
+    --theme-radius-sm:   0.25rem;
+    --theme-radius-md:   0.5rem;
+    --theme-radius-lg:   0.75rem;
+    --theme-radius-xl:   1rem;
+    --theme-radius-pill: 9999px;
+
+    /* ===== SPACING ===== */
+
+    --theme-space-1:   0.25rem;
+    --theme-space-2:   0.5rem;
+    --theme-space-3:   0.75rem;
+    --theme-space-4:   1rem;
+    --theme-space-5:   1.25rem;
+    --theme-space-6:   1.5rem;
+    --theme-space-8:   2rem;
+    --theme-space-10:  2.5rem;
+    --theme-space-12:  3rem;
+    --theme-space-16:  4rem;
+    --theme-space-20:  5rem;
+
+    --theme-space-section:  4rem;
+    --theme-space-gutter:   1rem;
+    --theme-space-grid:     1rem;
+
+    /* ===== LAYOUT ===== */
+
+    --theme-container-max:  75rem;
+}
+
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+
+.core-engine-lib-word-blocks .h1 {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-4xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.02em;
+}
+
+.core-engine-lib-word-blocks .h2 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-3xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.01em;
+}
+
+.core-engine-lib-word-blocks .h3 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-2xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   TEXT
+   ============================================ */
+
+.core-engine-lib-word-blocks .text {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .text--muted {
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .text--center {
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .text:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================
+   LEAD
+   ============================================ */
+
+.core-engine-lib-word-blocks .lead {
+    margin: 0 0 var(--theme-space-5);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   LISTS
+   ============================================ */
+
+.core-engine-lib-word-blocks .list {
+    margin: 0 0 var(--theme-space-4);
+    padding-left: var(--theme-space-6);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .list li {
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .list li:last-child {
+    margin-bottom: 0;
+}
+
+.core-engine-lib-word-blocks .list li::marker {
+    color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .list--check {
+    list-style: none;
+    padding-left: 0;
+}
+
+.core-engine-lib-word-blocks .list--check li {
+    position: relative;
+    padding-left: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .list--check li::before {
+    content: ''✓'';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-bold);
+}
+
+.core-engine-lib-word-blocks .list--num {
+    list-style: decimal;
+}
+
+.core-engine-lib-word-blocks .list--num li::marker {
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-semibold);
+}
+
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.core-engine-lib-word-blocks .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--theme-space-2);
+    padding: var(--theme-space-3) var(--theme-space-6);
+    border: 2px solid transparent;
+    border-radius: var(--theme-radius-md);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: 1.2;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--theme-accent);
+    color: var(--theme-text-invert);
+    border-color: var(--theme-accent);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.core-engine-lib-word-blocks .btn:hover {
+    background: var(--theme-accent-hover);
+    border-color: var(--theme-accent-hover);
+    color: var(--theme-text-invert);
+}
+
+.core-engine-lib-word-blocks .btn:active {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-word-blocks .btn--ghost {
+    background: transparent;
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .btn--ghost:hover {
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+
+/* ============================================
+   CARD
+   ============================================ */
+
+.core-engine-lib-word-blocks .card {
+    padding: var(--theme-space-6);
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    border-radius: var(--theme-radius-lg);
+    box-shadow: var(--theme-shadow-sm);
+}
+
+.core-engine-lib-word-blocks .card__title {
+    margin: 0 0 var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .card__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   BADGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .badge {
+    display: inline-block;
+    padding: var(--theme-space-1) var(--theme-space-3);
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+}
+
+
+/* ============================================
+   QUOTE
+   ============================================ */
+
+.core-engine-lib-word-blocks .quote {
+    margin: var(--theme-space-6) 0;
+    padding: var(--theme-space-4) var(--theme-space-5);
+    border-left: 4px solid var(--theme-accent);
+    background: var(--theme-bg-subtle);
+    border-radius: 0 var(--theme-radius-md) var(--theme-radius-md) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-style: italic;
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   IMAGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--theme-radius-md);
+    margin: 0;
+}
+
+
+/* ============================================
+   ICON
+   ============================================ */
+
+.core-engine-lib-word-blocks .icon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    color: var(--theme-accent);
+    flex-shrink: 0;
+}
+
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+
+.core-engine-lib-word-blocks .divider {
+    margin: var(--theme-space-8) 0;
+    border: none;
+    height: 1px;
+    background: var(--theme-border);
+}
+
+
+/* ============================================
+   SECTION — vertical rhythm wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .section {
+    padding-top: var(--theme-space-section);
+    padding-bottom: var(--theme-space-section);
+}
+
+
+/* ============================================
+   CONTAINER — centered max-width wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .container {
+    width: 100%;
+    max-width: var(--theme-container-max);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--theme-space-gutter);
+    padding-right: var(--theme-space-gutter);
+    box-sizing: border-box;
+}
+
+
+/* ============================================
+   GRID — base
+   ============================================ */
+
+.core-engine-lib-word-blocks .grid {
+    display: grid;
+    gap: var(--theme-space-grid);
+}
+
+.core-engine-lib-word-blocks .grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--auto {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+
+/* ============================================
+   COLUMN — grid cell
+   ============================================ */
+
+/*
+ * Minimal cell: only prevents overflow. Padding, background, border
+ * are set per block (e.g. .card, .col--tile were removed on purpose).
+ */
+.core-engine-lib-word-blocks .col {
+    min-width: 0;
+}
+
+
+/* ============================================
+   GRID — responsive fallback
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .grid--2,
+    .core-engine-lib-word-blocks .grid--3,
+    .core-engine-lib-word-blocks .grid--4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* app/core/engine/lib/word/editor/blocks/ready.css */
+
+/**
+ * Ready — styles for the "Секции" (sections) blocks.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Covers section-specific classes from blocks/ready.js:
+ *   - .hero, .hero__inner, .hero__title, .hero__lead, .hero__btn
+ *   - .features, .features__title, .features__grid, .features__item
+ *   - .steps, .steps__title, .steps__grid, .steps__item, .steps__num
+ *   - .text-image, .text-image__grid, .text-image__text, .text-image__media
+ *   - .image-text, .image-text__grid, .image-text__text, .image-text__media
+ *   - .gallery, .gallery__title, .gallery__grid, .gallery__item
+ *   - .faq, .faq__title, .faq__list, .faq__item, .faq__question, .faq__answer
+ *   - .cta, .cta__inner, .cta__title, .cta__text, .cta__btn
+ *   - .contacts, .contacts__title, .contacts__grid, .contacts__item,
+ *     .contacts__label, .contacts__value
+ *   - .footer, .footer__inner, .footer__brand, .footer__nav, .footer__link
+ *   - .article-catalog, .article-catalog__heading, .article-catalog__card,
+ *     .article-catalog__glow, .article-catalog__logo, .article-catalog__body,
+ *     .article-catalog__title, .article-catalog__desc, .article-catalog__date
+ *
+ * Shared atom classes (.h1, .h2, .text, .lead, .btn, .card, .image)
+ * and layout classes (.section, .container, .grid) live in
+ * editor/css/content.css — they are loaded globally.
+ *
+ * Uses ONLY --theme-* variables (see theme.css).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   HERO — .hero
+   ============================================ */
+
+.core-engine-lib-word-blocks .hero__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .hero__title {
+    margin: 0;
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .hero__lead {
+    margin: 0;
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .hero__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   FEATURES — .features
+   ============================================ */
+
+.core-engine-lib-word-blocks .features__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .features__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .features__item {
+    /* uses .card from content.css */
+    height: 100%;
+}
+
+
+/* ============================================
+   STEPS — .steps
+   ============================================ */
+
+.core-engine-lib-word-blocks .steps__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .steps__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .steps__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-bold);
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__item-title {
+    margin: 0;
+}
+
+
+/* ============================================
+   TEXT + IMAGE — .text-image
+   ============================================ */
+
+.core-engine-lib-word-blocks .text-image__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .text-image__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .text-image__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .text-image__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   IMAGE + TEXT — .image-text
+   ============================================ */
+
+.core-engine-lib-word-blocks .image-text__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .image-text__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .image-text__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .image-text__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   GALLERY — .gallery
+   ============================================ */
+
+.core-engine-lib-word-blocks .gallery__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .gallery__grid {
+    /* uses .grid.grid--auto from content.css */
+}
+
+.core-engine-lib-word-blocks .gallery__item {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+
+/* ============================================
+   FAQ — .faq
+   ============================================ */
+
+.core-engine-lib-word-blocks .faq__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-6);
+    max-width: 48rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.core-engine-lib-word-blocks .faq__item {
+    padding-bottom: var(--theme-space-5);
+    border-bottom: 1px solid var(--theme-border);
+}
+
+.core-engine-lib-word-blocks .faq__item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.core-engine-lib-word-blocks .faq__question {
+    margin: 0 0 var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .faq__answer {
+    margin: 0;
+}
+
+
+/* ============================================
+   CTA — .cta
+   ============================================ */
+
+.core-engine-lib-word-blocks .cta {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+}
+
+.core-engine-lib-word-blocks .cta__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .cta__title {
+    margin: 0;
+    color: var(--theme-text, #1e293b);
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .cta__text {
+    margin: 0;
+    color: var(--theme-text-muted, #64748b);
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .cta__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   CONTACTS — .contacts
+   ============================================ */
+
+.core-engine-lib-word-blocks .contacts__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .contacts__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .contacts__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-1);
+}
+
+.core-engine-lib-word-blocks .contacts__label {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .contacts__value {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   FOOTER — .footer
+   ============================================ */
+
+.core-engine-lib-word-blocks .footer {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+    padding-top: var(--theme-space-6);
+    padding-bottom: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .footer__brand {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+}
+
+.core-engine-lib-word-blocks .footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .footer__link {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .footer__link:hover {
+    opacity: 1;
+}
+
+
+/* ============================================
+   ARTICLE CATALOG — .article-catalog
+   ============================================ */
+
+.core-engine-lib-word-blocks .article-catalog__heading {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .article-catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--theme-space-5);
+    align-content: start;
+}
+
+/* --- Ссылка-карточка --- */
+
+.core-engine-lib-word-blocks .article-catalog__card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 104px 1fr;   /* логотип | текст */
+    gap: var(--theme-space-4);
+    align-items: start;
+    padding: var(--theme-space-5);
+    border-radius: var(--theme-radius-lg);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 4px 16px rgba(15, 23, 42, 0.04),
+        0 1px 3px rgba(15, 23, 42, 0.06);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 12px 32px rgba(59, 130, 246, 0.12),
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:active {
+    transform: translateY(-2px) scale(0.99);
+}
+
+/* --- Свечение (при наведении) --- */
+
+.core-engine-lib-word-blocks .article-catalog__glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    background: radial-gradient(
+        600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(59, 130, 246, 0.15),
+        rgba(139, 92, 246, 0.08) 40%,
+        transparent 60%
+    );
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__glow {
+    opacity: 1;
+}
+
+/* --- Логотип — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__logo {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    border-radius: var(--theme-radius-lg);
+    overflow: hidden;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+    z-index: 1;
+}
+
+.core-engine-lib-word-blocks .article-catalog__logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__logo img {
+    transform: scale(1.05);
+}
+
+/* --- Тело — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__body {
+    position: relative;
+    z-index: 1;
+    min-width: 0;   /* важно: обрезка текста внутри grid работает */
+}
+
+.core-engine-lib-word-blocks .article-catalog__title {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: 1.25;
+    color: var(--theme-text, #0f172a);
+    letter-spacing: -0.01em;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__title {
+    color: var(--theme-accent, #3b82f6);
+}
+
+.core-engine-lib-word-blocks .article-catalog__desc {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    line-height: 1.5;
+    color: var(--theme-text-muted, #64748b);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__date {
+    display: block;
+    margin-top: var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text-muted, #94a3b8);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Адаптив --- */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .article-catalog {
+        grid-template-columns: 1fr;
+        gap: var(--theme-space-4);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-4);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 100px 1fr;
+        gap: var(--theme-space-3);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 100px;
+        height: 100px;
+        border-radius: var(--theme-radius-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-3);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 88px 1fr;
+        gap: var(--theme-space-2);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 88px;
+        height: 88px;
+        border-radius: var(--theme-radius-md);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__title {
+        font-size: var(--theme-font-size-lg);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__desc {
+        font-size: var(--theme-font-size-base);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__date {
+        font-size: var(--theme-font-size-sm);
+    }
+}
+
+/* --- prefers-reduced-motion --- */
+
+@media (prefers-reduced-motion: reduce) {
+    .core-engine-lib-word-blocks .article-catalog__card,
+    .core-engine-lib-word-blocks .article-catalog__logo img,
+    .core-engine-lib-word-blocks .article-catalog__glow {
+        transition: none;
+    }
+}
+
+.core-engine-lib-word-blocks .fx-clouds-sun { background-image: radial-gradient(circle at 30% 62%, rgba(255, 255, 255, 0.98) 0 16%, rgba(255, 255, 255, 0) 34%), radial-gradient(circle at 56% 40%, rgba(255, 255, 255, 0.92) 0 20%, rgba(255, 255, 255, 0) 40%), radial-gradient(circle at 76% 70%, rgba(191, 219, 254, 0.9) 0 14%, rgba(191, 219, 254, 0) 33%), radial-gradient(circle at 92% 28%, rgba(219, 234, 254, 0.85) 0 12%, rgba(219, 234, 254, 0) 30%), radial-gradient(circle at 8% 14%, rgba(253, 224, 71, 0.95) 0, rgba(253, 224, 71, 0.45) 40px, rgba(253, 224, 71, 0) 140px); background-size: 220px 140px, 280px 180px, 240px 150px, 200px 130px, 100% 100%; background-position: 0 0, 90px 50px, 40px 80px, 150px 20px, 0 0; background-repeat: repeat, repeat, repeat, repeat, no-repeat; animation: fx-clouds-sun-drift 60s linear infinite; } @keyframes fx-clouds-sun-drift { from { background-position: 0 0, 90px 50px, 40px 80px, 150px 20px, 0 0; } to { background-position: 220px 0, 310px 50px, 280px 80px, 350px 20px, 0 0; } }
+
+/* neurocad/core/engine/lib/word/editor/effects/fx/fx-soft-diagonal-hatch.css */
+
+/* Мягкие диагональные штрихи по фону с лёгким размытием.
+   Извлечено из pages/11.css (эффекты effect-a7k3 + effect-b9q2). */
+
+.core-engine-lib-word-blocks .fx-soft-diagonal-hatch {
+    position: relative;
+    overflow: hidden;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns=''http://www.w3.org/2000/svg'' width=''90'' height=''90''%3E%3Cg stroke=''%23808080'' stroke-width=''1.6'' stroke-linecap=''round'' opacity=''0.14''%3E%3Cline x1=''10'' y1=''13'' x2=''25'' y2=''19''/%3E%3Cline x1=''48'' y1=''30'' x2=''63'' y2=''35''/%3E%3Cline x1=''16'' y1=''56'' x2=''31'' y2=''62''/%3E%3Cline x1=''60'' y1=''70'' x2=''76'' y2=''63''/%3E%3Cline x1=''40'' y1=''8'' x2=''52'' y2=''15''/%3E%3Cline x1=''70'' y1=''44'' x2=''82'' y2=''50''/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 90px 90px;
+}
+
+.core-engine-lib-word-blocks .fx-soft-diagonal-hatch::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.14;
+    filter: blur(2.5px);
+    background-repeat: repeat;
+    background-image: repeating-linear-gradient(
+        24deg,
+        rgba(148, 163, 184, 0.38) 0 1px,
+        transparent 1px 9px
+    ),
+    repeating-linear-gradient(
+        -18deg,
+        rgba(148, 163, 184, 0.22) 0 1px,
+        transparent 1px 14px
+    ),
+    repeating-linear-gradient(
+        68deg,
+        rgba(148, 163, 184, 0.14) 0 1px,
+        transparent 1px 22px
+    ),
+    repeating-linear-gradient(
+        -52deg,
+        rgba(148, 163, 184, 0.10) 0 1px,
+        transparent 1px 28px
+    );
+    background-size: 220px 120px, 340px 160px, 180px 140px, 420px 200px;
+    background-position-x: 0px, 70px, 130px, 40px;
+    background-position-y: 0px, 60px, 30px, 120px;
+    mask-image: repeating-linear-gradient(
+        -45deg,
+        #000 0px, #000 9px,
+        transparent 9px, transparent 26px
+    );
+    -webkit-mask-image: repeating-linear-gradient(
+        -45deg,
+        #000 0px, #000 9px,
+        transparent 9px, transparent 26px
+    );
+}
+
+.core-engine-lib-word-blocks .fx-soft-diagonal-hatch > * {
+    position: relative;
+    z-index: 1;
+}
+
+.core-engine-lib-word-blocks .fx-aurora-drift { position: relative; overflow: hidden; background-image: radial-gradient(60% 80% at 15% 20%, rgba(148,163,184,0.35), transparent 62%), radial-gradient(55% 70% at 85% 78%, rgba(203,213,225,0.38), transparent 62%), radial-gradient(45% 60% at 60% 5%, rgba(148,163,184,0.18), transparent 62%); background-size: 180% 180%, 170% 170%, 200% 200%; background-repeat: no-repeat, no-repeat, no-repeat; animation: fx-aurora-drift-move 20s ease-in-out infinite alternate; } .core-engine-lib-word-blocks .fx-aurora-drift::after { content: ""; position: absolute; inset: -10%; background-image: radial-gradient(40% 50% at 50% 50%, rgba(203,213,225,0.22), transparent 65%); animation: fx-aurora-drift-breathe 9s ease-in-out infinite; pointer-events: none; } @keyframes fx-aurora-drift-move { 0% { background-position: 0% 0%, 100% 100%, 50% 0%; } 50% { background-position: 32% 42%, 68% 58%, 42% 32%; } 100% { background-position: 62% 82%, 38% 18%, 18% 62%; } } @keyframes fx-aurora-drift-breathe { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.08); } }
+
+.core-engine-lib-word-blocks .fx-office-grid { background-image: linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px); background-size: 24px 24px; background-position: -1px -1px; animation: fx-office-grid-flicker 7s ease-in-out infinite; } @keyframes fx-office-grid-flicker { 0%, 88%, 100% { opacity: 0.9; } 90% { opacity: 0.65; } 93% { opacity: 0.95; } 96% { opacity: 0.75; } }
+
+.core-engine-lib-word-blocks .fx-nuclei-electron-orbits { position: relative; overflow: hidden; background-image: radial-gradient(circle at 50% 50%, #94a3b8 0 7px, transparent 7px), radial-gradient(circle at 50% 50%, transparent 0 130px, rgba(148, 163, 184, 0.05) 130px 139px, transparent 139px), radial-gradient(circle at 50% 50%, transparent 0 260px, rgba(148, 163, 184, 0.05) 260px 269px, transparent 269px); background-size: 100% 100%, 300% 300%, 300% 300%; background-position: center center; background-repeat: no-repeat; } .core-engine-lib-word-blocks .fx-nuclei-electron-orbits::before { content: ""; position: absolute; left: calc(50% - 16px); top: calc(50% - 16px); width: 32px; height: 32px; border-radius: 50%; background: transparent; box-shadow: 130px 0 0 0 rgba(148, 163, 184, 0.05), -130px 0 0 0 rgba(148, 163, 184, 0.05), 0 130px 0 0 rgba(148, 163, 184, 0.05), 0 -130px 0 0 rgba(148, 163, 184, 0.05); animation: fx-nuclei-electron-orbits-spin 9s linear infinite; } .core-engine-lib-word-blocks .fx-nuclei-electron-orbits::after { content: ""; position: absolute; left: calc(50% - 13px); top: calc(50% - 13px); width: 26px; height: 26px; border-radius: 50%; background: transparent; box-shadow: 260px 0 0 0 rgba(148, 163, 184, 0.05), -260px 0 0 0 rgba(148, 163, 184, 0.05), 0 260px 0 0 rgba(148, 163, 184, 0.05), 0 -260px 0 0 rgba(148, 163, 184, 0.05); animation: fx-nuclei-electron-orbits-spin-rev 15s linear infinite; } @keyframes fx-nuclei-electron-orbits-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes fx-nuclei-electron-orbits-spin-rev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+
+.core-engine-lib-word-blocks .fx-silver-orbit-stars { position: relative; background-image: radial-gradient(circle closest-side, transparent 0 97%, rgba(148,163,184,0.05) 97% 100%, transparent 100%), radial-gradient(circle closest-side, transparent 0 97%, rgba(148,163,184,0.05) 97% 100%, transparent 100%), radial-gradient(circle closest-side, transparent 0 97%, rgba(148,163,184,0.05) 97% 100%, transparent 100%); background-size: 520px 520px, 900px 900px, 1500px 1500px; background-position: center, center, center; background-repeat: no-repeat, no-repeat, no-repeat; } .core-engine-lib-word-blocks .fx-silver-orbit-stars::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(2.4px 2.4px at 20px 30px, #94a3b8 50%, transparent 100%), radial-gradient(2px 2px at 120px 80px, #94a3b8 50%, transparent 100%), radial-gradient(1.8px 1.8px at 60px 180px, #cbd5e1 50%, transparent 100%), radial-gradient(2.2px 2.2px at 200px 150px, #94a3b8 50%, transparent 100%), radial-gradient(1.6px 1.6px at 170px 240px, #cbd5e1 50%, transparent 100%), radial-gradient(2px 2px at 230px 40px, #94a3b8 50%, transparent 100%); background-size: 260px 260px; background-repeat: repeat; animation: fx-silver-orbit-stars-twinkle 4.5s ease-in-out infinite; pointer-events: none; } .core-engine-lib-word-blocks .fx-silver-orbit-stars::after { content: ""; position: absolute; left: 50%; top: 50%; width: 1500px; height: 1500px; margin: -750px 0 0 -750px; background-image: radial-gradient(circle 30px at 260px 30px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 260px 490px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 450px 30px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 450px 870px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 750px 30px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 750px 1470px, rgba(148,163,184,0.05) 99%, transparent 100%); background-size: 520px 520px, 520px 520px, 900px 900px, 900px 900px, 1500px 1500px, 1500px 1500px; background-position: center, center, center, center, center, center; background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat; animation: fx-silver-orbit-stars-spin 30s linear infinite; pointer-events: none; } @keyframes fx-silver-orbit-stars-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } } @keyframes fx-silver-orbit-stars-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+* { box-sizing: border-box; } body {margin: 0;}');
+INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (34, 1, '2026-09-29 18:58:57.719329', 'Проба импорта', '', '', '<body></body>', '{"assets":[{"type":"image","src":"/media/1/fone_73669b1a.jpg","unitDim":"px","height":0,"width":0,"name":"fone_73669b1a.jpg"},{"type":"image","src":"/media/1/logo_bcf3c00f.png","unitDim":"px","height":0,"width":0,"name":"logo_bcf3c00f.png"},{"type":"image","src":"/media/1/qr.png","unitDim":"px","height":0,"width":0,"name":"qr.png"}],"styles":[],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"ZrCDovheAzIG4mJv"}],"id":"NXm6x76SCGQx0RGS"}],"symbols":[]}', 1, 0, '2026-09-29 18:58:57.719356', '2026-09-29 19:02:27.634601', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
+
+/**
+ * Content — theme variables + shared atoms + layout for CONTENT pages.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Uses ONLY --theme-* variables, defined at the top of this file.
+ * Completely independent from base/css/00_variables.css (admin UI):
+ * admin theme changes do NOT affect page content.
+ *
+ * Contents:
+ *   THEME VARIABLES
+ *     --theme-*                 all colors, fonts, radii, spacing
+ *
+ *   ATOMS
+ *     .h1, .h2, .h3             headings
+ *     .text, .text--muted, .text--center
+ *     .lead                     intro paragraph
+ *     .list, .list--check, .list--num
+ *     .btn, .btn--ghost         buttons
+ *     .card, .card__title, .card__text
+ *     .badge, .quote, .image, .icon, .divider
+ *
+ *   LAYOUT
+ *     .section                  vertical rhythm wrapper
+ *     .container                centered max-width wrapper
+ *     .grid, .grid--2/3/4/auto  base grids
+ *     .col                      grid cell
+ *
+ * .flex-shell* lives in blocks/layout.css — it is block-specific
+ * (only used by the flex-shell block).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   THEME VARIABLES — content
+   ============================================ */
+
+/*
+ * Completely independent from base/css/00_variables.css (admin UI).
+ * Admin theme changes do NOT affect these values.
+ *
+ * Scoped under .core-engine-lib-word-blocks — the same class sits
+ * on the canvas <body> in the editor and on the article wrapper
+ * on the public page.
+ */
+.core-engine-lib-word-blocks {
+
+    /* ===== COLORS ===== */
+
+    --theme-bg:             #ffffff;
+    --theme-bg-subtle:      #f8fafc;
+    --theme-bg-dark:        #0f172a;
+    --theme-bg-hover:       #f1f5f9;
+
+    --theme-text:           #1e293b;
+    --theme-text-muted:     #64748b;
+    --theme-text-invert:    #ffffff;
+
+    --theme-accent:         #246eaa;
+    --theme-accent-hover:   #1e5a8a;
+    --theme-accent-soft:    #e0edf7;
+
+    --theme-border:         #e2e8f0;
+    --theme-border-strong:  #cbd5e1;
+
+    --theme-success:        #16a34a;
+    --theme-warning:        #d97706;
+    --theme-danger:         #dc2626;
+
+    /* ===== SHADOWS ===== */
+
+    --theme-shadow-sm:  0 1px 3px rgba(15, 23, 42, 0.06);
+    --theme-shadow-md:  0 4px 12px rgba(15, 23, 42, 0.08);
+    --theme-shadow-lg:  0 12px 32px rgba(15, 23, 42, 0.12);
+
+    /* ===== FONTS ===== */
+
+    --theme-font-family:    ''Inter'', ''Golos Text'', sans-serif;
+    --theme-font-size-xs:   0.75rem;
+    --theme-font-size-sm:   0.875rem;
+    --theme-font-size-base: 1rem;
+    --theme-font-size-lg:   1.125rem;
+    --theme-font-size-xl:   1.25rem;
+    --theme-font-size-2xl:  1.5rem;
+    --theme-font-size-3xl:  2rem;
+    --theme-font-size-4xl:  2.5rem;
+
+    --theme-font-weight-regular:  400;
+    --theme-font-weight-medium:   500;
+    --theme-font-weight-semibold: 600;
+    --theme-font-weight-bold:     700;
+
+    --theme-line-height-tight:  1.25;
+    --theme-line-height-base:   1.6;
+    --theme-line-height-loose:  1.8;
+
+    /* ===== RADII ===== */
+
+    --theme-radius-sm:   0.25rem;
+    --theme-radius-md:   0.5rem;
+    --theme-radius-lg:   0.75rem;
+    --theme-radius-xl:   1rem;
+    --theme-radius-pill: 9999px;
+
+    /* ===== SPACING ===== */
+
+    --theme-space-1:   0.25rem;
+    --theme-space-2:   0.5rem;
+    --theme-space-3:   0.75rem;
+    --theme-space-4:   1rem;
+    --theme-space-5:   1.25rem;
+    --theme-space-6:   1.5rem;
+    --theme-space-8:   2rem;
+    --theme-space-10:  2.5rem;
+    --theme-space-12:  3rem;
+    --theme-space-16:  4rem;
+    --theme-space-20:  5rem;
+
+    --theme-space-section:  4rem;
+    --theme-space-gutter:   1rem;
+    --theme-space-grid:     1rem;
+
+    /* ===== LAYOUT ===== */
+
+    --theme-container-max:  75rem;
+}
+
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+
+.core-engine-lib-word-blocks .h1 {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-4xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.02em;
+}
+
+.core-engine-lib-word-blocks .h2 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-3xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.01em;
+}
+
+.core-engine-lib-word-blocks .h3 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-2xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   TEXT
+   ============================================ */
+
+.core-engine-lib-word-blocks .text {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .text--muted {
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .text--center {
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .text:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================
+   LEAD
+   ============================================ */
+
+.core-engine-lib-word-blocks .lead {
+    margin: 0 0 var(--theme-space-5);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   LISTS
+   ============================================ */
+
+.core-engine-lib-word-blocks .list {
+    margin: 0 0 var(--theme-space-4);
+    padding-left: var(--theme-space-6);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .list li {
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .list li:last-child {
+    margin-bottom: 0;
+}
+
+.core-engine-lib-word-blocks .list li::marker {
+    color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .list--check {
+    list-style: none;
+    padding-left: 0;
+}
+
+.core-engine-lib-word-blocks .list--check li {
+    position: relative;
+    padding-left: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .list--check li::before {
+    content: ''✓'';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-bold);
+}
+
+.core-engine-lib-word-blocks .list--num {
+    list-style: decimal;
+}
+
+.core-engine-lib-word-blocks .list--num li::marker {
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-semibold);
+}
+
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.core-engine-lib-word-blocks .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--theme-space-2);
+    padding: var(--theme-space-3) var(--theme-space-6);
+    border: 2px solid transparent;
+    border-radius: var(--theme-radius-md);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: 1.2;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--theme-accent);
+    color: var(--theme-text-invert);
+    border-color: var(--theme-accent);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.core-engine-lib-word-blocks .btn:hover {
+    background: var(--theme-accent-hover);
+    border-color: var(--theme-accent-hover);
+    color: var(--theme-text-invert);
+}
+
+.core-engine-lib-word-blocks .btn:active {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-word-blocks .btn--ghost {
+    background: transparent;
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .btn--ghost:hover {
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+
+/* ============================================
+   CARD
+   ============================================ */
+
+.core-engine-lib-word-blocks .card {
+    padding: var(--theme-space-6);
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    border-radius: var(--theme-radius-lg);
+    box-shadow: var(--theme-shadow-sm);
+}
+
+.core-engine-lib-word-blocks .card__title {
+    margin: 0 0 var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .card__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   BADGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .badge {
+    display: inline-block;
+    padding: var(--theme-space-1) var(--theme-space-3);
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+}
+
+
+/* ============================================
+   QUOTE
+   ============================================ */
+
+.core-engine-lib-word-blocks .quote {
+    margin: var(--theme-space-6) 0;
+    padding: var(--theme-space-4) var(--theme-space-5);
+    border-left: 4px solid var(--theme-accent);
+    background: var(--theme-bg-subtle);
+    border-radius: 0 var(--theme-radius-md) var(--theme-radius-md) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-style: italic;
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   IMAGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--theme-radius-md);
+    margin: 0;
+}
+
+
+/* ============================================
+   ICON
+   ============================================ */
+
+.core-engine-lib-word-blocks .icon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    color: var(--theme-accent);
+    flex-shrink: 0;
+}
+
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+
+.core-engine-lib-word-blocks .divider {
+    margin: var(--theme-space-8) 0;
+    border: none;
+    height: 1px;
+    background: var(--theme-border);
+}
+
+
+/* ============================================
+   SECTION — vertical rhythm wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .section {
+    padding-top: var(--theme-space-section);
+    padding-bottom: var(--theme-space-section);
+}
+
+
+/* ============================================
+   CONTAINER — centered max-width wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .container {
+    width: 100%;
+    max-width: var(--theme-container-max);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--theme-space-gutter);
+    padding-right: var(--theme-space-gutter);
+    box-sizing: border-box;
+}
+
+
+/* ============================================
+   GRID — base
+   ============================================ */
+
+.core-engine-lib-word-blocks .grid {
+    display: grid;
+    gap: var(--theme-space-grid);
+}
+
+.core-engine-lib-word-blocks .grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--auto {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+
+/* ============================================
+   COLUMN — grid cell
+   ============================================ */
+
+/*
+ * Minimal cell: only prevents overflow. Padding, background, border
+ * are set per block (e.g. .card, .col--tile were removed on purpose).
+ */
+.core-engine-lib-word-blocks .col {
+    min-width: 0;
+}
+
+
+/* ============================================
+   GRID — responsive fallback
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .grid--2,
+    .core-engine-lib-word-blocks .grid--3,
+    .core-engine-lib-word-blocks .grid--4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 * { box-sizing: border-box; } body {margin: 0;}');

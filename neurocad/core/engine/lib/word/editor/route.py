@@ -13,6 +13,7 @@ Final paths (after word router's prefix):
 Currently mounted here:
   /core/engine/lib/word/editor/effects/...   — effects editor API
   /core/engine/lib/word/editor/images/...    — images editor API
+  /core/engine/lib/word/editor/io/...        — import / export API
 
 New editor sub-APIs (toolbar, history, templates, ...) go here.
 """
@@ -21,6 +22,7 @@ from fastapi import APIRouter
 
 from .effects.route import router as effects_router
 from .images.route import router as images_router
+from .io.route import router as io_router
 
 
 router = APIRouter(
@@ -33,3 +35,6 @@ router.include_router(effects_router)
 
 # Images editor API
 router.include_router(images_router)
+
+# Import / export API
+router.include_router(io_router)

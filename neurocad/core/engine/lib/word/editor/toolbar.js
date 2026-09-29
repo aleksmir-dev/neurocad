@@ -11,8 +11,8 @@
  *
  * Two modes:
  *   - Full toolbar (GrapesJS instance exists) — save, undo, redo,
- *     device switcher, html, css, history, clear, cancel,
- *     plus the auto-save status indicator.
+ *     device switcher, html, css, history, import, export, clear,
+ *     cancel, plus the auto-save status indicator.
  *   - Preview mode (GrapesJS instance is null — template without
  *     [data-slot="content"]): only the "Close" button is rendered.
  *     No hotkeys are bound, no status indicator.
@@ -31,6 +31,8 @@
  *   - _openHtmlModal() {Function}
  *   - _openCssModal()  {Function}
  *   - _openHistoryModal() {Function}
+ *   - _openImportDialog() {Function}       — io/import.js
+ *   - _openExportDialog() {Function}       — io/export.js
  *
  * Auto-save status:
  *   Listens to editor:autosave-pending / editor:autosaved /
@@ -151,6 +153,35 @@ export class ToolbarManager {
                 <img class="core-engine-lib-word-editor-btn-icon"
                      src="${iconsBase}/history.svg"
                      alt="" aria-hidden="true">
+            </button>
+            <div class="core-engine-lib-word-editor-separator"></div>
+            <button type="button" data-action="import" title="Импорт (.grp, .html, URL)" class="core-engine-lib-word-editor-btn">
+                <svg class="core-engine-lib-word-editor-btn-icon"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+            </button>
+            <button type="button" data-action="export" title="Экспорт (HTML, .grp)" class="core-engine-lib-word-editor-btn">
+                <svg class="core-engine-lib-word-editor-btn-icon"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
             </button>
             <button type="button" data-action="clear" title="Очистить страницу" class="core-engine-lib-word-editor-btn">
                 <img class="core-engine-lib-word-editor-btn-icon"
@@ -282,6 +313,12 @@ export class ToolbarManager {
                 break;
             case 'history':
                 ed._openHistoryModal();
+                break;
+            case 'import':
+                ed._openImportDialog?.();
+                break;
+            case 'export':
+                ed._openExportDialog?.();
                 break;
             case 'clear':
                 this._handleClear();

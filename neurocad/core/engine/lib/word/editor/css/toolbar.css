@@ -15,9 +15,14 @@
  * Only gray background on hover, dark icon on active.
  *
  * Sizes:
- *   toolbar height  — 1.75rem (28px) — same as chat-toolbar
- *   regular button  — 32×32
- *   device button   — 28×28
+ *   toolbar height  — 2.25rem (36px)
+ *   regular button  — 24×24
+ *   device button   — 20×20
+ *
+ * Spacing:
+ *   gap between buttons — 8px
+ *   gap around separator — 8px each side
+ *   horizontal padding — 16px each side
  */
 
 /* ============================================
@@ -27,9 +32,9 @@
 .core-engine-lib-word-editor-toolbar {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 8px;
     height: 2.25rem;
-    padding: 0 12px;
+    padding: 0 16px;
     box-sizing: border-box;
     background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
     border-bottom: 1px solid var(--border-light, #e2e8f0);
@@ -83,7 +88,7 @@
 }
 
 /* ============================================
-   ICONS — two kinds: <span> (emoji/text) and <img> (SVG)
+   ICONS — two kinds: <span> (emoji/text), <img> (SVG), <svg> (inline SVG)
    ============================================ */
 
 /* span — emoji/text symbols: ↶ ↷ { } ✕ */
@@ -93,7 +98,7 @@
     display: inline-block;
 }
 
-/* img — SVG icons: save / desktop / tablet / mobile
+/* img — SVG icons loaded from /static/: save / desktop / tablet / mobile
    Light-gray strokes via opacity; on hover — fully visible. */
 img.core-engine-lib-word-editor-btn-icon {
     display: block;
@@ -106,6 +111,21 @@ img.core-engine-lib-word-editor-btn-icon {
 
 .core-engine-lib-word-editor-btn:hover img.core-engine-lib-word-editor-btn-icon {
     opacity: 1;
+}
+
+/* svg — inline SVG (import / export). Inherits currentColor from the
+   button; no opacity tricks needed — the button's color already
+   handles hover/active states. */
+svg.core-engine-lib-word-editor-btn-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
 }
 
 /* Device-switcher icons — slightly smaller */
@@ -121,11 +141,11 @@ img.core-engine-lib-word-editor-btn-icon {
 .core-engine-lib-word-editor-devices {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     padding: 2px;
     border-radius: 6px;
     background: rgba(15, 23, 42, 0.04);
-    margin: 0 4px;
+    margin: 0 6px;
 }
 
 .core-engine-lib-word-editor-btn-device {
@@ -160,6 +180,6 @@ img.core-engine-lib-word-editor-btn-icon {
     width: 1px;
     height: 16px;
     background: var(--border-light, #e2e8f0);
-    margin: 0 4px;
+    margin: 0 8px;
     flex-shrink: 0;
 }

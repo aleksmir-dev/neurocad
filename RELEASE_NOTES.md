@@ -1,6 +1,6 @@
-# neurocad 0.1.27
+# neurocad 0.1.28
 
-Release date: 2026-09-29
+Release date: 2026-09-30
 
 ---
 
@@ -8,43 +8,36 @@ Release date: 2026-09-29
 
 ### Added
 
-- **Article catalog block for GrapesJS.** New ready-made section «Каталог статей» in the «Секции» category. Renders a grid of page cards — each card is an `<a>` link with logo, title, description and date. Pure HTML+CSS, no JavaScript on the public page. Ships with three placeholder cards; the editor replaces texts, links and images via traits or inline editing.
-- **Link picker in the editor.** The `href` trait for `<a>` elements is now a hybrid control:
-  - a `<select>` listing the current user's pages (`title — url`), pulled once from `GET /core/engine/lib/pages/my-list`;
-  - a text `<input>` for manual URL entry (external links, anchors, etc.).
-  Selecting a page fills the input and updates `href`; typing a URL updates `href` directly.
-- **API endpoint `GET /core/engine/lib/pages/my-list`** — returns active, non-deleted, non-template pages of the current user across all their navs, each with a ready-to-use `/page/<nav_id>/<YYYYMMDD>/<HHMMSS>` URL. Supports `?exclude_page_id=` to skip the page being edited.
+- **Import and export for the editor.** The editor can now exchange pages with the outside world in three formats:
+  - **Import from `.grp` archive** — a ZIP file with the full GrapesJS project:
+    - `index.html` — HTML components;
+    - `index.css` — custom CSS from the Style Manager;
+    - `index.json` — full GrapesJS project data (preferred on import);
+    - `media/*` — asset files referenced by the page.
+    Loading a `.grp` restores the page completely — components, styles, and images (as data-URI).
+  - **Import from `.html` file** — plain HTML document with optional `<style>` blocks. The `<style>` contents are extracted into the editor's CSS; the body HTML is inserted as components.
+  - **Import from URL** — the backend fetches a remote page, inlines every `<link rel="stylesheet">` into an inline `<style>` (optionally downloads `<img>` and embeds them as data-URI), and returns the result to the editor. Guards against self-referencing URLs and non-http schemes.
+  - **Export to standalone HTML** — a single `.html` file with all CSS inlined in a `<style>` block. Ready to upload to any hosting, open from disk, or share — no server required, no external CSS.
+  - **Export to `.grp` archive** — the same ZIP layout as above. Importable into any NeuroCad instance via the Import dialog. Media referenced by the page is pulled from `media/<nav_id>/` and written into the archive.
+- **New editor API under `/core/engine/lib/word/editor/io/`**:
+  - `POST /import/url` — fetch a remote page (JSON body: `{ url, include_images }`);
+  - `POST /import/file` — parse an uploaded `.grp` or `.html` (multipart);
+  - `GET  /export/html/{page_id}` — download a standalone HTML document;
+  - `GET  /export/grp/{page_id}`  — download a `.grp` archive.
+  All endpoints require an authenticated user; the requested `page_id` must belong to the current user's nav.
+- **Import / Export buttons in the editor toolbar.** Two new icons open the corresponding dialogs. Both dialogs follow the Base modal visual language (overlay + window + title bar + actions).
+- **Automatic cache-busting for the editor UI CSS.** `io.css` joined the `cssFiles` list in `editor/grapes/index.js`, so its URL always carries the current `?v=<static_version>`.
 
 ### Changed
 
-- **`grapes.js` (editor bootstrap) rewritten as a modular loader** under `editor/grapes/`:
-  - `index.js` — entry point, `load()` + `init()`;
-  - `config.js` — GrapesJS config builder;
-  - `link.js` — `registerLinkType` + `registerLinkCommand`;
-  - `page-link.js` — new `page-link` trait type;
-  - `scope.js`, `empty.js`, `undo.js`, `traits.js` — extracted helpers.
-  Modules are loaded dynamically with `?v=<static_version>` so cache-busting keeps working; no static imports between them.
-- **Public page body cleanup.** `pages/public/route.py` now strips stray `<body>…</body>` wrappers (left over from GrapesJS export) at render time via a compiled regex. The DB and the editor are untouched — only the public HTML output is cleaned. Fixes nested `<body>` flagged by W3C / Google / Yandex validators.
-- **Public page header removed from the template.** The old admin-era `<header class="core-engine-lib-pages-public-header">` (logo + `<h1>` + `<time>`) is gone from `public.html` — it duplicated the content `<h1>` and served no purpose on a public page.
-- **Footer layout.** `.core-engine-lib-base-footer` now uses `display: flex; align-items: center; justify-content: flex-start` — text sits left, vertically centered. `base.js` no longer forces `display: block` on the footer element.
-- **Footer content.** «Подвал» placeholder replaced with `© 2026 NeuroCad. Смирнов Алексей Владимирович.`
+- **Editor toolbar spacing.** Buttons in the toolbar are now separated by `8px` (was `2px`); separator margins increased to `8px`; device-switcher gap raised to `6px`. Icons have more breathing room and the layout matches modern editor UIs.
+- **Inline SVG support in the toolbar.** The toolbar CSS now styles inline `<svg>` icons (used by the Import / Export buttons) — they inherit `currentColor` from the button, work in hover and active states, and need no external SVG files.
+- **Editor modal pattern aligned with Base modals.** The Import / Export dialogs are now singletons — created once in the constructor and toggled via the `.active` class. This matches the pattern used by `BaseModalMessage` / `BaseModalConfirm` and eliminates the "modal visible below the page" issue that occurred when the overlay was appended with `display: flex` on every open.
 
 ### Fixed
 
-- **Balance guard in the LLM WebSocket dispatcher.** All four run methods (`start`, `effect_edit`, `effect_rename`, `create_effect`) now check the user's tariff and token balance before any LLM call:
-  - free → `llm_not_available`;
-  - tokens ≤ 0 → `tokens_exhausted`;
-  - create-agent additionally requires `gen > 0` on Pro → `gen_exhausted`.
-  After a successful run, tokens (and, for the create-agent on Pro, one generation) are charged to `Balance`. No LLM call is made if the guard blocks.
-- **Balance guard on logo generation.** `POST /core/engine/lib/word/editor/images/generate` checks `logo_allowed` before calling the provider and charges tokens (plus one generation on Pro) after a successful save.
-- **Token accounting in all five LLM providers** (`deepseek`, `openai`, `yandex`, `gigachat`, `gemini`). Each provider keeps `self.tokens_used`, reset at the start of `get_response()` and incremented for input messages and output chunks. `BaseProvider.count_tokens()` is the fallback; DeepSeek and OpenAI override it with tiktoken; Gemini uses the exact `usageMetadata` when the API returns it.
-- **`websocket.state.user_id` cached during WS handshake.** `auth.py` now stores the resolved user and `user_id` on `websocket.state` after a successful JWT decode, so downstream dispatchers don't re-decode the cookie on every run.
-- **`cleanup_stale()` in the admin balance list.** `BalanceChecked.cleanup_stale()` runs lazily when the superadmin opens `/core/engine/lib/balance` — soft-deletes free users past `FREE_TTL_DAYS` and drops their `media/<nav_id>/` folder. The list query now filters `User.is_delete = 0` so soft-deleted users don't linger.
-- **Trial tariff label.** `TARIF_LABELS[3] = "Trial"` — previously fell back to "Free".
-
-### Removed
-
-- **`editor/grapes.js` (monolithic version).** Superseded by `editor/grapes/` modules. The file was unused after the split; confirmed by `grep -rn "grapes.js"` — only stale comments remained.
+- **Import / Export dialogs stayed visible in the page flow.** Root cause — `io.css` was not loaded by the editor (404), so `.core-engine-lib-word-editor-io { display: none }` never applied. Fixed by adding `io.css` to `cssFiles` and rebuilding the dialogs as singletons with `.active` toggling.
+- **Editor dialogs no longer block the canvas after import or export.** Each dialog now removes its `.active` class when finished (or on cancel / Escape) instead of leaving an inert overlay in the DOM.
 
 ---
 
@@ -52,40 +45,33 @@ Release date: 2026-09-29
 
 ### Добавлено
 
-- **Блок «Каталог статей» для GrapesJS.** Новая готовая секция «Каталог статей» в категории «Секции». Рендерит сетку карточек-ссылок: логотип, заголовок, описание, дата. Чистый HTML+CSS, без JavaScript на публичной странице. В комплекте — три карточки-заглушки; редактор меняет тексты, ссылки и картинки через трайты или прямое редактирование.
-- **Выбор страницы в редакторе.** Трайт `href` для `<a>` теперь гибридный:
-  - `<select>` со страницами текущего пользователя (`title — url`), список грузится один раз с `GET /core/engine/lib/pages/my-list`;
-  - `<input>` для ручного ввода URL (внешние ссылки, якоря и т.п.).
-  Выбрал страницу — URL подставился в `href`; ввёл вручную — `href` обновился напрямую.
-- **API-эндпоинт `GET /core/engine/lib/pages/my-list`** — отдаёт активные, неудалённые, не-шаблонные страницы текущего пользователя по всем его nav, каждая с готовым URL вида `/page/<nav_id>/<YYYYMMDD>/<HHMMSS>`. Поддерживает `?exclude_page_id=`, чтобы исключить редактируемую страницу.
+- **Импорт и экспорт в редакторе.** Редактор теперь умеет обмениваться страницами с внешним миром в трёх форматах:
+  - **Импорт из архива `.grp`** — ZIP-файл с полным проектом GrapesJS:
+    - `index.html` — HTML-компоненты;
+    - `index.css` — кастомный CSS из Style Manager;
+    - `index.json` — полное состояние проекта GrapesJS (приоритет при импорте);
+    - `media/*` — файлы ресурсов, на которые ссылается страница.
+    Загрузка `.grp` восстанавливает страницу полностью — компоненты, стили и картинки (как data-URI).
+  - **Импорт из файла `.html`** — обычный HTML-документ с возможными блоками `<style>`. Содержимое `<style>` выносится в CSS редактора; HTML тела вставляется как компоненты.
+  - **Импорт по URL** — бэкенд скачивает удалённую страницу, встраивает все `<link rel="stylesheet">` в инлайн `<style>` (опционально скачивает `<img>` и встраивает их как data-URI) и возвращает результат редактору. Защита от self-referencing URL и не-http схем.
+  - **Экспорт в самостоятельный HTML** — один файл `.html` со всем CSS, встроенным в `<style>`. Готов к загрузке на любой хостинг, открытию с диска или отправке — без сервера, без внешних CSS.
+  - **Экспорт в архив `.grp`** — та же ZIP-структура, что выше. Импортируется в любой инстанс NeuroCad через диалог «Импорт». Медиа, на которые ссылается страница, берутся из `media/<nav_id>/` и упаковываются в архив.
+- **Новый API редактора под `/core/engine/lib/word/editor/io/`**:
+  - `POST /import/url` — скачать удалённую страницу (JSON: `{ url, include_images }`);
+  - `POST /import/file` — разобрать загруженный `.grp` или `.html` (multipart);
+  - `GET  /export/html/{page_id}` — скачать HTML-документ;
+  - `GET  /export/grp/{page_id}`  — скачать архив `.grp`.
+  Все эндпоинты требуют аутентификации; запрошенный `page_id` должен принадлежать nav текущего пользователя.
+- **Кнопки «Импорт» / «Экспорт» в тулбаре редактора.** Две новые иконки открывают соответствующие диалоги. Оба диалога оформлены в стиле Base-модалок (overlay + окно + заголовок + панель действий).
+- **Автоматический cache-busting для UI-CSS редактора.** `io.css` добавлен в `cssFiles` в `editor/grapes/index.js` — его URL теперь всегда несёт актуальный `?v=<static_version>`.
 
 ### Изменено
 
-- **`grapes.js` (загрузчик редактора) разбит на модули** под `editor/grapes/`:
-  - `index.js` — точка входа, `load()` + `init()`;
-  - `config.js` — сборка конфига GrapesJS;
-  - `link.js` — `registerLinkType` + `registerLinkCommand`;
-  - `page-link.js` — новый тип трайта `page-link`;
-  - `scope.js`, `empty.js`, `undo.js`, `traits.js` — вынесенные хелперы.
-  Модули грузятся динамически с `?v=<static_version>` — кэш-бастинг работает; статических импортов между ними нет.
-- **Чистка `<body>` на публичной странице.** `pages/public/route.py` теперь срезает лишние обёртки `<body>…</body>` (наследие экспорта GrapesJS) на рендере — скомпилированным регексом. БД и редактор не трогаются: чистится только итоговый HTML. Исправляет вложенный `<body>`, который ловят валидаторы W3C / Google / Яндекс.
-- **Шапка публичной страницы убрана из шаблона.** Старый `<header class="core-engine-lib-pages-public-header">` (логотип + `<h1>` + `<time>`) удалён из `public.html` — он дублировал `<h1>` из контента и на публичной странице был не нужен.
-- **Раскладка футера.** `.core-engine-lib-base-footer` теперь `display: flex; align-items: center; justify-content: flex-start` — текст слева, по центру по вертикали. `base.js` больше не форсит `display: block` на элементе футера.
-- **Содержимое футера.** Заглушка «Подвал» заменена на `© 2026 NeuroCad. Смирнов Алексей Владимирович.`
+- **Отступы в тулбаре редактора.** Кнопки теперь разнесены на `8px` (было `2px`); отступы разделителя увеличены до `8px`; внутренний зазор переключателя устройств — `6px`. Иконкам стало просторнее, раскладка соответствует современным редакторам.
+- **Поддержка inline SVG в тулбаре.** CSS тулбара теперь стилизует inline `<svg>`-иконки (используются кнопками «Импорт» / «Экспорт») — они наследуют `currentColor` от кнопки, работают в hover и active состояниях, не требуют внешних SVG-файлов.
+- **Схема модалок редактора приведена к Base-модалкам.** Диалоги «Импорт» / «Экспорт» стали синглтонами — создаются один раз в конструкторе и переключаются через класс `.active`. Это соответствует паттерну `BaseModalMessage` / `BaseModalConfirm` и устраняет проблему «модалка видна ниже страницы», которая возникала, когда overlay добавлялся с `display: flex` при каждом открытии.
 
 ### Исправлено
 
-- **Проверка баланса в WebSocket-диспетчере LLM.** Все четыре run-метода (`start`, `effect_edit`, `effect_rename`, `create_effect`) теперь проверяют тариф и остаток токенов до вызова LLM:
-  - free → `llm_not_available`;
-  - токенов ≤ 0 → `tokens_exhausted`;
-  - для create-агента дополнительно `gen > 0` на Pro → `gen_exhausted`.
-  После успешного руна с баланса списываются токены (а для create-агента на Pro — ещё одна генерация). Если guard заблокировал — LLM не вызывается.
-- **Проверка баланса при генерации логотипа.** `POST /core/engine/lib/word/editor/images/generate` вызывает `logo_allowed` до запроса к провайдеру и списывает токены (плюс одну генерацию на Pro) после успешного сохранения.
-- **Учёт токенов во всех пяти провайдерах LLM** (`deepseek`, `openai`, `yandex`, `gigachat`, `gemini`). Каждый держит `self.tokens_used`, сбрасываемый в начале `get_response()` и увеличиваемый на входных сообщениях и выходных чанках. `BaseProvider.count_tokens()` — fallback; DeepSeek и OpenAI переопределяют через tiktoken; Gemini использует точный `usageMetadata`, когда API его возвращает.
-- **`websocket.state.user_id` кэшируется во время WS-рукопожатия.** `auth.py` после успешного декода JWT сохраняет пользователя и `user_id` в `websocket.state`, чтобы диспетчеры не декодировали cookie на каждом руне.
-- **`cleanup_stale()` в списке баланса админки.** `BalanceChecked.cleanup_stale()` срабатывает лениво при заходе суперадмина на `/core/engine/lib/balance` — soft-delete free-юзеров, у которых `acc_at` старше `FREE_TTL_DAYS`, и удаление их папки `media/<nav_id>/`. Список теперь фильтрует `User.is_delete = 0`, чтобы soft-deleted юзеры не висели.
-- **Метка Trial-тарифа.** `TARIF_LABELS[3] = "Trial"` — раньше падало в «Free».
-
-### Удалено
-
-- **`editor/grapes.js` (монолитная версия).** Заменён модулями `editor/grapes/`. Файл не использовался после разбивки — подтверждено `grep -rn "grapes.js"`: оставались только устаревшие комментарии.
+- **Диалоги «Импорт» / «Экспорт» оставались видимыми в потоке страницы.** Причина — `io.css` не загружался редактором (404), поэтому `.core-engine-lib-word-editor-io { display: none }` не применялся. Исправлено добавлением `io.css` в `cssFiles` и переработкой диалогов в синглтоны с переключением `.active`.
+- **Диалоги редактора больше не блокируют холст после импорта или экспорта.** Каждый диалог снимает класс `.active` по завершении (или по «Отмена» / Escape), а не оставляет инертный overlay в DOM.

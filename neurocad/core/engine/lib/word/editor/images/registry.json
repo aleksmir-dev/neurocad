@@ -456,6 +456,102 @@
       "source": "logo",
       "builtin": false,
       "order": 570
+    },
+    {
+      "id": "img-3047fe92",
+      "alt": "Интернет-магазин",
+      "file": "files/img-3047fe92.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 580
+    },
+    {
+      "id": "img-31df4d64",
+      "alt": "Интернет-магазин",
+      "file": "files/img-31df4d64.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 590
+    },
+    {
+      "id": "img-b0bbd400",
+      "alt": "Иллюстрация к статье о выборе смартфона",
+      "file": "files/img-b0bbd400.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 600
+    },
+    {
+      "id": "img-d61a7843",
+      "alt": "Иллюстрация к статье о выборе ноутбука",
+      "file": "files/img-d61a7843.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 610
+    },
+    {
+      "id": "img-e11db2be",
+      "alt": "Иллюстрация к статье о выборе наушников",
+      "file": "files/img-e11db2be.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 620
+    },
+    {
+      "id": "img-ae4f8f8b",
+      "alt": "Смартфон с безрамочным экраном",
+      "file": "files/img-ae4f8f8b.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 630
+    },
+    {
+      "id": "img-63b4813d",
+      "alt": "Ноутбук на рабочем столе",
+      "file": "files/img-63b4813d.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 640
+    },
+    {
+      "id": "img-ec3a5a56",
+      "alt": "Беспроводные наушники в кейсе",
+      "file": "files/img-ec3a5a56.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 650
+    },
+    {
+      "id": "img-1063f540",
+      "alt": "Умная колонка на полке",
+      "file": "files/img-1063f540.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 660
+    },
+    {
+      "id": "img-2eda3a82",
+      "alt": "Планшет с клавиатурой",
+      "file": "files/img-2eda3a82.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 670
+    },
+    {
+      "id": "img-7dcc56d8",
+      "alt": "Игровая консоль с геймпадом",
+      "file": "files/img-7dcc56d8.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 680
+    },
+    {
+      "id": "img-4f939cb2",
+      "alt": "Витрина магазина электроники",
+      "file": "files/img-4f939cb2.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 690
     }
   ]
 }

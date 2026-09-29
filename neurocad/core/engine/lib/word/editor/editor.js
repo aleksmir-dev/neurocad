@@ -16,6 +16,8 @@
  *   dataloader.js -> load project data + re-apply scope class / body traits
  *   modals.js     -> HTML+CSS page modal and element CSS modal
  *   history.js    -> page history modal (list, preview, rollback)
+ *   io/import.js  -> import page from .grp / .html / URL
+ *   io/export.js  -> export page to .html / .grp
  *   formatter.js  -> js-beautify wrapper (CSS / HTML pretty-print)
  *   base/modal    -> Base modals (incl. code modal for HTML + CSS)
  *   ../llm/chat.js    -> LLM chat panel (right)
@@ -128,6 +130,8 @@ export class Editor {
         this._history = null;       // history.js module
         this._chat = null;          // LLM chat
         this._presets = null;       // LLM presets
+        this._importer = null;      // io/import.js module
+        this._exporter = null;      // io/export.js module
 
         // DOM elements (filled by widgets.build())
         this.leftArea = null;
@@ -192,6 +196,8 @@ export class Editor {
                 { createModal },
                 { LLMChat },
                 { LLMPresets },
+                { Importer },
+                { Exporter },
             ] = await Promise.all([
                 import(`./grapes/index.js?v=${version}`),
                 import(`./widgets.js?v=${version}`),
@@ -206,6 +212,8 @@ export class Editor {
                 import(`../../base/modal/index.js?v=${version}`),
                 import(`../llm/chat.js?v=${version}`),
                 import(`../llm/presets.js?v=${version}`),
+                import(`./io/import.js?v=${version}`),
+                import(`./io/export.js?v=${version}`),
             ]);
 
             this._createModal = createModal;
@@ -258,6 +266,13 @@ export class Editor {
                 // 8. LLM Presets
                 this._presets = new LLMPresets(this);
                 await this._presets.init();
+
+                // 8.5. Import / export modules.
+                //      Created before the data loader so that any
+                //      post-load state (scope class, body traits) can
+                //      be re-applied from the importer as well.
+                this._importer = new Importer(this);
+                this._exporter = new Exporter(this);
 
                 // 9. Initial data.
                 this._dataLoader = new DataLoader(this);
@@ -501,6 +516,34 @@ export class Editor {
         } catch (err) {
             console.error('[Editor] history modal error:', err);
         }
+    }
+
+    // ============================================
+    // IMPORT / EXPORT (delegated to io/*)
+    // ============================================
+
+    /**
+     * Open the import dialog (.grp / .html / URL).
+     * Delegates to io/import.js — no editor logic here.
+     */
+    _openImportDialog() {
+        if (!this._importer) {
+            console.warn('[Editor] importer module not loaded');
+            return;
+        }
+        this._importer.openDialog();
+    }
+
+    /**
+     * Open the export dialog (HTML / .grp).
+     * Delegates to io/export.js — no editor logic here.
+     */
+    _openExportDialog() {
+        if (!this._exporter) {
+            console.warn('[Editor] exporter module not loaded');
+            return;
+        }
+        this._exporter.openDialog();
     }
 
     /**
@@ -825,6 +868,16 @@ export class Editor {
         if (this._presets) {
             try { this._presets.destroy(); } catch (e) { console.warn(e); }
             this._presets = null;
+        }
+
+        // Import / export modules — remove any open dialogs
+        if (this._importer) {
+            try { this._importer.destroy(); } catch (e) { console.warn(e); }
+            this._importer = null;
+        }
+        if (this._exporter) {
+            try { this._exporter.destroy(); } catch (e) { console.warn(e); }
+            this._exporter = null;
         }
 
         // Resizer
