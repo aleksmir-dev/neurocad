@@ -35,11 +35,11 @@ import json
 import mimetypes
 import re
 import zipfile
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 from urllib.parse import urljoin, urlparse
 
 import httpx
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 
 from ...css_builder import build_full_page_css
 
@@ -52,6 +52,43 @@ FETCH_TIMEOUT = 20.0
 MAX_ASSET_BYTES = 8 * 1024 * 1024       # 8 MB per asset
 MAX_HTML_BYTES = 16 * 1024 * 1024       # 16 MB per HTML document
 USER_AGENT = "NeuroCad-Importer/0.1 (+https://neurocad.ru)"
+
+#: How deep to follow @import chains inside CSS.
+MAX_CSS_IMPORT_DEPTH = 5
+
+#: Lazy-load attributes to check when the real `src` is a placeholder.
+#: Tilda, WordPress lazy plugins, and many custom themes put the real
+#: URL in one of these and a tiny placeholder into `src`.
+#:
+#: NOTE: on `<img>` these hold an image URL; on `<div>` they hold a
+#: background image URL (Tilda puts backgrounds into `data-original`
+#: on a div with class `t-bgimg`). We handle both.
+_LAZY_SRC_ATTRS = ("data-original", "data-src", "data-lazy-src", "data-lazy")
+
+#: Hosts that serve *only* placeholder/thumbnail images. A `src` from
+#: one of these is never the real image — always prefer a lazy attr.
+_PLACEHOLDER_HOSTS = (
+    "thb.tildacdn.com",     # Tilda thumbnail server
+)
+
+#: Path fragments that mark a URL as a placeholder or a server-side
+#: resize — Tilda puts these into `src` for lazy-loaded images.
+_PLACEHOLDER_PATH_MARKERS = (
+    "/-/empty/",
+    "/-/resize/",
+)
+
+#: `url(...)` inside CSS — quoted or unquoted.
+_CSS_URL_RE = re.compile(
+    r"""url\(\s*(?P<quote>['"]?)(?P<url>[^'")]+)(?P=quote)\s*\)""",
+    re.IGNORECASE,
+)
+
+#: `@import url(...)` or `@import "..."` — with an optional media query tail.
+_CSS_IMPORT_RE = re.compile(
+    r"""@import\s+(?:url\(\s*['"]?(?P<url1>[^'")]+)['"]?\s*\)|['"](?P<url2>[^'"]+)['"])\s*(?P<media>[^;]*);""",
+    re.IGNORECASE,
+)
 
 
 # ============================================
@@ -116,6 +153,240 @@ def _fetch(url: str) -> Tuple[Optional[bytes], Optional[str]]:
         return None, f"fetch failed for {url!r}: {type(e).__name__}: {e}"
 
 
+def _is_placeholder_src(src: str) -> bool:
+    """
+    True if `src` looks like a lazy-load placeholder, not a real image.
+    """
+    if not src:
+        return True
+    if src.startswith("data:"):
+        return True
+
+    low = src.lower()
+    for host in _PLACEHOLDER_HOSTS:
+        if host in low:
+            return True
+    for marker in _PLACEHOLDER_PATH_MARKERS:
+        if marker in low:
+            return True
+
+    return False
+
+
+def _pick_image_src(img) -> str:
+    """
+    Return the best URL to fetch for one <img> tag.
+
+    Priority:
+
+      1. A lazy attribute (data-original / data-src / ...) — IF the
+         current `src` is a placeholder.
+      2. `src` — if it is a real http(s) URL and NOT a placeholder.
+      3. A lazy attribute — if `src` is missing, empty, or a data-URI.
+      4. `src` — as a last resort.
+    """
+    try:
+        src = (img.get("src") or "").strip()
+    except Exception:
+        src = ""
+
+    # ---- 1. Collect the best lazy URL (if any) ----
+    lazy_url = ""
+    for attr in _LAZY_SRC_ATTRS:
+        try:
+            v = (img.get(attr) or "").strip()
+        except Exception:
+            v = ""
+        if v and not v.startswith("data:"):
+            lazy_url = v
+            break
+
+    # ---- 2. If src is a placeholder and we have a lazy URL — use lazy ----
+    if lazy_url and _is_placeholder_src(src):
+        return lazy_url
+
+    # ---- 3. If src is a real http(s) URL — use it ----
+    if src and not src.startswith("data:"):
+        return src
+
+    # ---- 4. If src is empty or data: and we have a lazy URL — use lazy ----
+    if lazy_url:
+        return lazy_url
+
+    # ---- 5. Nothing better ----
+    return src
+
+
+def _drop_lazy_attrs(img) -> None:
+    """
+    Remove every lazy-load attribute from an <img> after we have used
+    it.
+    """
+    for attr in _LAZY_SRC_ATTRS:
+        try:
+            if img.get(attr) is not None:
+                del img[attr]
+        except Exception:
+            pass
+
+
+# ============================================
+# BACKGROUND IMAGES (div[data-original])
+# ============================================
+
+def _set_inline_background(div, data_uri: str) -> None:
+    """
+    Add `background-image: url(data_uri); ...` to a div's style,
+    preserving whatever style was already there.
+
+    Used for Tilda's `t-bgimg` divs: instead of an <img> tag, Tilda
+    puts the real URL into `data-original` on a div, and its JS turns
+    that into an inline background-image. Without the JS the div stays
+    empty — which is exactly what happened before this fix.
+    """
+    try:
+        old_style = (div.get("style") or "").strip()
+    except Exception:
+        old_style = ""
+
+    if old_style and not old_style.endswith(";"):
+        old_style += ";"
+
+    extra = (
+        f"background-image: url({data_uri});"
+        " background-size: cover;"
+        " background-position: center;"
+        " background-repeat: no-repeat;"
+    )
+
+    try:
+        div["style"] = f"{old_style} {extra}".strip()
+    except Exception:
+        pass
+
+
+# ============================================
+# CSS PIPELINE
+# ============================================
+
+def _strip_body_text_nodes(body) -> None:
+    """
+    Remove stray text nodes from a <body> element in-place.
+    """
+    for child in list(body.children):
+        if isinstance(child, NavigableString):
+            if str(child).strip():
+                child.extract()
+
+
+def _fetch_css(
+    url: str,
+    depth: int,
+    visited: Set[str],
+    warnings: List[str],
+) -> str:
+    """
+    Fetch a CSS file, recursively expand @import, and return the
+    combined text. Relative url(...) references are resolved against
+    `url`.
+    """
+    if depth > MAX_CSS_IMPORT_DEPTH:
+        warnings.append(f"CSS @import depth exceeded: {url!r}")
+        return ""
+    if url in visited:
+        return ""
+    visited.add(url)
+
+    css_bytes, css_err = _fetch(url)
+    if css_bytes is None:
+        warnings.append(css_err or f"failed to fetch CSS: {url!r}")
+        return ""
+
+    css_text = css_bytes.decode("utf-8", errors="replace")
+
+    # ---- 1. Expand @import recursively ----
+    def _expand_import(match: re.Match) -> str:
+        raw = match.group("url1") or match.group("url2") or ""
+        media = (match.group("media") or "").strip()
+        raw = raw.strip()
+        if not raw:
+            return ""
+        abs_url = urljoin(url, raw)
+        if not _is_http_url(abs_url):
+            return ""
+        nested = _fetch_css(abs_url, depth + 1, visited, warnings)
+        if not nested:
+            return ""
+        if media:
+            return f"@media {media} {{\n{nested}\n}}"
+        return nested
+
+    css_text = _CSS_IMPORT_RE.sub(_expand_import, css_text)
+
+    # ---- 2. Resolve relative url(...) against the CSS URL ----
+    def _resolve_url(match: re.Match) -> str:
+        quote = match.group("quote") or ""
+        raw = (match.group("url") or "").strip()
+        if not raw:
+            return match.group(0)
+        low = raw.lower()
+        if (
+            low.startswith("data:")
+            or low.startswith("http://")
+            or low.startswith("https://")
+            or low.startswith("//")
+            or low.startswith("#")
+        ):
+            return match.group(0)
+        abs_u = urljoin(url, raw)
+        return f"url({quote}{abs_u}{quote})"
+
+    css_text = _CSS_URL_RE.sub(_resolve_url, css_text)
+
+    return f"/* === {url} === */\n{css_text}"
+
+
+def _collect_css_from_links(
+    soup: BeautifulSoup,
+    page_url: str,
+    warnings: List[str],
+) -> List[str]:
+    """
+    Walk every <link rel="stylesheet">, fetch the CSS, inline it as a
+    <style> element in the soup, and return the list of combined CSS
+    chunks.
+    """
+    collected: List[str] = []
+    visited: Set[str] = set()
+
+    for link in soup.find_all("link"):
+        rel = link.get("rel")
+        rels = rel if isinstance(rel, list) else [rel] if rel else []
+        if "stylesheet" not in [r.lower() for r in rels if r]:
+            continue
+
+        href = link.get("href")
+        if not href:
+            continue
+
+        abs_href = urljoin(page_url, href)
+        if not _is_http_url(abs_href):
+            warnings.append(f"skipped non-http stylesheet: {href!r}")
+            continue
+
+        css_text = _fetch_css(abs_href, depth=0, visited=visited, warnings=warnings)
+        if not css_text.strip():
+            continue
+
+        collected.append(css_text)
+
+        style_tag = soup.new_tag("style")
+        style_tag.string = css_text
+        link.replace_with(style_tag)
+
+    return collected
+
+
 # ============================================
 # IMPORT — URL
 # ============================================
@@ -132,15 +403,18 @@ def import_url(
       2. For each <link rel="stylesheet" href="...">:
            - resolve the absolute URL;
            - fetch the CSS;
-           - replace the <link> with a <style> element carrying the CSS.
+           - expand @import recursively;
+           - resolve relative url(...) against the CSS URL;
+           - replace the <link> with a <style> element.
       3. If include_images=True:
-           - for each <img src="...">, fetch and replace with data-URI.
+           - for each <img>, pick the best source URL (src, or a lazy
+             attribute if src is a placeholder) and fetch it;
+           - replace the tag's `src` with a data-URI;
+           - drop every lazy attribute.
+           - for each <div data-original="..."> (Tilda `t-bgimg`),
+             fetch the URL and set an inline `background-image`;
+             remove the lazy attribute.
       4. Return {html, css, warnings}.
-
-    `html` — the page body after processing (without <html>/<head>/<body>,
-    ready to be setComponents'ed).
-    `css` — combined CSS (from <link>s; inline <style> blocks are left
-    inside the HTML body, so they render in the editor's canvas).
     """
     warnings: List[str] = []
 
@@ -159,40 +433,12 @@ def import_url(
     soup = BeautifulSoup(raw_html, "lxml")
 
     # ---- 2. <link rel="stylesheet"> → <style> ----
-    collected_css: List[str] = []
+    collected_css = _collect_css_from_links(soup, url, warnings)
 
-    for link in soup.find_all("link"):
-        rel = link.get("rel")
-        rels = rel if isinstance(rel, list) else [rel] if rel else []
-        if "stylesheet" not in [r.lower() for r in rels if r]:
-            continue
-
-        href = link.get("href")
-        if not href:
-            continue
-
-        abs_href = urljoin(url, href)
-        if not _is_http_url(abs_href):
-            warnings.append(f"skipped non-http stylesheet: {href!r}")
-            continue
-
-        css_bytes, css_err = _fetch(abs_href)
-        if css_bytes is None:
-            warnings.append(css_err or f"failed to fetch CSS: {abs_href!r}")
-            continue
-
-        css_text = css_bytes.decode("utf-8", errors="replace")
-        collected_css.append(f"/* {abs_href} */\n{css_text}")
-
-        # Replace <link> with an inline <style> so the editor sees it.
-        style_tag = soup.new_tag("style")
-        style_tag.string = css_text
-        link.replace_with(style_tag)
-
-    # ---- 3. <img src> → data-URI ----
+    # ---- 3. <img> → data-URI ----
     if include_images:
         for img in soup.find_all("img"):
-            src = img.get("src")
+            src = _pick_image_src(img)
             if not src or src.startswith("data:"):
                 continue
             abs_src = urljoin(url, src)
@@ -206,11 +452,43 @@ def import_url(
 
             mime = _filename_to_mime(abs_src)
             img["src"] = _to_data_uri(img_bytes, mime)
+            _drop_lazy_attrs(img)
+
+    # ---- 3b. <div data-original="..."> → inline background ----
+    #
+    # Tilda uses this form for background images: the div carries
+    # `data-original="https://static.tildacdn.com/..."` and its JS
+    # turns that into an inline `background-image: url(...)`. Without
+    # the JS the div renders empty — the background never appears.
+    #
+    # We fetch the URL and set the inline background ourselves. The
+    # data-URI we insert here is later picked up by extract_from_html
+    # (which scans the whole HTML, not just <img> tags) and replaced
+    # with a `/media/<nav_id>/...` URL.
+    if include_images:
+        for div in soup.find_all(attrs={"data-original": True}):
+            lazy = (div.get("data-original") or "").strip()
+            if not lazy or lazy.startswith("data:"):
+                continue
+
+            abs_src = urljoin(url, lazy)
+            if not _is_http_url(abs_src):
+                continue
+
+            img_bytes, img_err = _fetch(abs_src)
+            if img_bytes is None or len(img_bytes) > MAX_ASSET_BYTES:
+                warnings.append(img_err or f"background too large: {abs_src!r}")
+                continue
+
+            mime = _filename_to_mime(abs_src)
+            data_uri = _to_data_uri(img_bytes, mime)
+            _set_inline_background(div, data_uri)
+            _drop_lazy_attrs(div)
 
     # ---- 4. Build clean HTML — keep only <body> content ----
     body = soup.find("body")
     if body is not None:
-        # BeautifulSoup: str(body) returns <body>...</body>; we want inner.
+        _strip_body_text_nodes(body)
         inner_html = "".join(str(child) for child in body.children)
     else:
         inner_html = str(soup)
@@ -234,25 +512,12 @@ def import_file(
 ) -> Dict[str, Any]:
     """
     Parse an uploaded file: .grp archive or .html.
-
-    For .grp (ZIP):
-      - reads index.json (preferred), index.html, index.css
-      - reads media/* and encodes each as data-URI (returned in `assets`)
-      - returns warnings for missing / oversized parts
-
-    For .html / .htm:
-      - reads HTML as text
-      - extracts <style> blocks into `css`
-      - inline <style> left in HTML too (renders in canvas)
-
-    Never writes to disk.
     """
     name = (filename or "").lower()
 
     if name.endswith(".grp") or name.endswith(".zip"):
         return _import_grp(content)
 
-    # Plain HTML.
     try:
         text = content.decode("utf-8", errors="replace")
     except Exception:
@@ -266,7 +531,6 @@ def _import_html_text(text: str) -> Dict[str, Any]:
     warnings: List[str] = []
     soup = BeautifulSoup(text, "lxml")
 
-    # Collect all <style> contents.
     css_chunks: List[str] = []
     for st in soup.find_all("style"):
         if st.string:
@@ -274,9 +538,9 @@ def _import_html_text(text: str) -> Dict[str, Any]:
 
     css = "\n\n".join(c for c in css_chunks if c)
 
-    # Keep only <body> inner HTML.
     body = soup.find("body")
     if body is not None:
+        _strip_body_text_nodes(body)
         html = "".join(str(child) for child in body.children)
     else:
         html = text
@@ -293,12 +557,6 @@ def _import_html_text(text: str) -> Dict[str, Any]:
 def _import_grp(content: bytes) -> Dict[str, Any]:
     """
     Parse a .grp ZIP archive.
-
-    Expected layout:
-        index.html     (fallback)
-        index.css      (fallback)
-        index.json     (preferred — GrapesJS project data)
-        media/*        (assets, returned as data-URI)
     """
     warnings: List[str] = []
     html = ""
@@ -314,28 +572,24 @@ def _import_grp(content: bytes) -> Dict[str, Any]:
     with zf:
         names = zf.namelist()
 
-        # ---- index.json ----
         if "index.json" in names:
             try:
                 project_json = zf.read("index.json").decode("utf-8")
             except Exception as e:
                 warnings.append(f"index.json unreadable: {e}")
 
-        # ---- index.html ----
         if "index.html" in names:
             try:
                 html = zf.read("index.html").decode("utf-8", errors="replace")
             except Exception as e:
                 warnings.append(f"index.html unreadable: {e}")
 
-        # ---- index.css ----
         if "index.css" in names:
             try:
                 css = zf.read("index.css").decode("utf-8", errors="replace")
             except Exception as e:
                 warnings.append(f"index.css unreadable: {e}")
 
-        # ---- media/* ----
         for member in names:
             if not member.startswith("media/") or member.endswith("/"):
                 continue
@@ -374,24 +628,6 @@ def export_html(
 ) -> str:
     """
     Build a standalone HTML document with all CSS inlined in <style>.
-
-    page_data = {
-        "title": str,
-        "content": str | None,
-        "content_json": str | None,
-        "css": str | None,
-    }
-    override = optional {"html", "css", "json"} to override page_data
-              (used to export unsaved editor state).
-
-    Logic:
-      - html comes from override.html, or page_data.content
-      - custom_css from override.css, or page_data.css
-      - full CSS = css_builder.build_full_page_css(html, custom_css)
-      - the final document wraps html in <body class="...">
-        inside <!DOCTYPE html>.
-
-    Returns the full HTML document as a string.
     """
     override = override or {}
 
@@ -407,8 +643,6 @@ def export_html(
 
     full_css = build_full_page_css(html, custom_css)
 
-    # Escape stray </style> occurrences inside CSS just in case
-    # (they would break the surrounding <style> block).
     safe_css = full_css.replace("</style>", "<\\/style>")
 
     return (
@@ -439,23 +673,6 @@ def export_grp(
 ) -> bytes:
     """
     Build the .grp ZIP archive in memory and return its bytes.
-
-    Archive layout:
-        index.html     — HTML components
-        index.css      — custom CSS (StyleManager)
-        index.json     — GrapesJS project data (if available)
-        media/*        — asset files pulled from the page's content
-                         (data-URI decoded back into binary)
-
-    Media discovery:
-      - scan HTML for `src="data:..."` and for `/media/<nav_id>/<path>`
-        references;
-      - data-URI → decode and store under media/;
-      - /media/ refs — resolved on the filesystem (relative to CWD);
-        file contents stored under media/.
-
-    Never fails hard: if a media file is missing, a warning comment is
-    added to index.html and the archive is still produced.
     """
     override = override or {}
 
@@ -471,22 +688,14 @@ def export_grp(
     if project_json is None:
         project_json = page_data.get("content_json")
 
-    # Collect media from HTML (data-URI + /media/ refs).
     media_files = _collect_media_from_html(html)
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
-        # ---- index.html ----
         zf.writestr("index.html", html or "")
-
-        # ---- index.css ----
         zf.writestr("index.css", custom_css or "")
-
-        # ---- index.json ----
         if project_json:
             zf.writestr("index.json", project_json)
-
-        # ---- media/* ----
         for name, data in media_files.items():
             zf.writestr(f"media/{name}", data)
 
@@ -496,13 +705,6 @@ def export_grp(
 def _collect_media_from_html(html: str) -> Dict[str, bytes]:
     """
     Scan HTML for media references and return {filename: bytes}.
-
-    Sources:
-      - `src="data:image/...;base64,..."` → decoded
-      - `src="/media/..."` and `src="media/..."` → read from disk
-
-    Filenames are taken from the URL / data-URI's surrounding context;
-    a fallback name is generated when nothing usable is available.
     """
     result: Dict[str, bytes] = {}
     counter = {"n": 0}
@@ -550,14 +752,11 @@ def _collect_media_from_html(html: str) -> Dict[str, bytes]:
         if "/media/" not in src and not src.startswith("media/"):
             continue
 
-        # /media/<nav_id>/<path> — take the tail after /media/.
         tail = src.split("/media/", 1)[-1].lstrip("/")
         name = _safe_filename(tail)
         if name in result:
             continue
 
-        # Try to read from disk. Paths in HTML are typically
-        # "/media/<nav_id>/<file>" — resolve relative to CWD.
         from pathlib import Path
         disk_path = Path("media") / tail
         try:

@@ -1,4 +1,4 @@
-# neurocad 0.1.28
+# neurocad 0.1.29
 
 Release date: 2026-09-30
 
@@ -8,36 +8,28 @@ Release date: 2026-09-30
 
 ### Added
 
-- **Import and export for the editor.** The editor can now exchange pages with the outside world in three formats:
-  - **Import from `.grp` archive** — a ZIP file with the full GrapesJS project:
-    - `index.html` — HTML components;
-    - `index.css` — custom CSS from the Style Manager;
-    - `index.json` — full GrapesJS project data (preferred on import);
-    - `media/*` — asset files referenced by the page.
-    Loading a `.grp` restores the page completely — components, styles, and images (as data-URI).
-  - **Import from `.html` file** — plain HTML document with optional `<style>` blocks. The `<style>` contents are extracted into the editor's CSS; the body HTML is inserted as components.
-  - **Import from URL** — the backend fetches a remote page, inlines every `<link rel="stylesheet">` into an inline `<style>` (optionally downloads `<img>` and embeds them as data-URI), and returns the result to the editor. Guards against self-referencing URLs and non-http schemes.
-  - **Export to standalone HTML** — a single `.html` file with all CSS inlined in a `<style>` block. Ready to upload to any hosting, open from disk, or share — no server required, no external CSS.
-  - **Export to `.grp` archive** — the same ZIP layout as above. Importable into any NeuroCad instance via the Import dialog. Media referenced by the page is pulled from `media/<nav_id>/` and written into the archive.
-- **New editor API under `/core/engine/lib/word/editor/io/`**:
-  - `POST /import/url` — fetch a remote page (JSON body: `{ url, include_images }`);
-  - `POST /import/file` — parse an uploaded `.grp` or `.html` (multipart);
-  - `GET  /export/html/{page_id}` — download a standalone HTML document;
-  - `GET  /export/grp/{page_id}`  — download a `.grp` archive.
-  All endpoints require an authenticated user; the requested `page_id` must belong to the current user's nav.
-- **Import / Export buttons in the editor toolbar.** Two new icons open the corresponding dialogs. Both dialogs follow the Base modal visual language (overlay + window + title bar + actions).
-- **Automatic cache-busting for the editor UI CSS.** `io.css` joined the `cssFiles` list in `editor/grapes/index.js`, so its URL always carries the current `?v=<static_version>`.
+- **`create_page` agent — full-page generation from a single prompt.** A new agent that builds a complete, self-contained landing page (HTML + CSS) in one pass, bypassing the block catalog and the effects editor entirely.
+  - **Free-form layout.** The model is not limited to the registered blocks (`core-heading-h1`, `core-card`, …). It returns arbitrary HTML — sections, grids, cards, hero blocks, whatever the prompt asks for — instead of stitching together catalog entries.
+  - **Single-shot HTML + CSS.** The agent returns a JSON payload `{ "html": "...", "css": "..." }`. The HTML goes straight into `editor.setComponents()`; the CSS goes through `editor.setStyle()`. The page is rendered on the canvas immediately, with no per-block editing step, no effect drafts, no save button.
+  - **Router integration.** Requests that describe a whole page («напиши главную страницу…», «собери лендинг для…», «сделай сайт про…») are routed to `create_page`. Requests that target a specific element or an existing block still go to the existing edit / effects flow. The two paths do not interfere.
+  - **No dependence on the effects subsystem.** `create_page` does not touch `EffectBlocks`, does not create drafts, does not write anything to `_effectsApiBase`. Everything the agent produces lives in the page's own HTML and CSS columns.
+- **WebSocket frame `page_css_update`.** A new frame type emitted by the dispatcher right after `html_update` when `create_page` returns a `{ html, css }` payload. The front end handles it in `chat/handler.js` and applies the CSS via a new `_applyPageCss(css)` method on the chat controller, which calls `editor.setStyle(css)`.
+  - The CSS is passed as a plain string **without** the surrounding `<style>` tag. This is required: GrapesJS cannot parse `<style>` mixed into a component tree and would silently drop the whole tree if we tried to inline it into the HTML.
+- **New prompt and parser for the agent.**
+  - `prompts/create_page.py` — JSON-mode prompt that asks the model for `{ "html": "...", "css": "..." }` and nothing else.
+  - `agent/create_page.py` — a strict JSON parser with a fallback: if the model returns raw HTML (no JSON wrapper), the parser still extracts `<style>` blocks into CSS and the rest into HTML.
 
 ### Changed
 
-- **Editor toolbar spacing.** Buttons in the toolbar are now separated by `8px` (was `2px`); separator margins increased to `8px`; device-switcher gap raised to `6px`. Icons have more breathing room and the layout matches modern editor UIs.
-- **Inline SVG support in the toolbar.** The toolbar CSS now styles inline `<svg>` icons (used by the Import / Export buttons) — they inherit `currentColor` from the button, work in hover and active states, and need no external SVG files.
-- **Editor modal pattern aligned with Base modals.** The Import / Export dialogs are now singletons — created once in the constructor and toggled via the `.active` class. This matches the pattern used by `BaseModalMessage` / `BaseModalConfirm` and eliminates the "modal visible below the page" issue that occurred when the overlay was appended with `display: flex` on every open.
+- **DeepSeek provider: reasoning-model support.** `deepseek-flash` (V4.1-Flash) may run in “thinking” mode and spend part of `max_tokens` on an internal `reasoning_content` field before producing the final `content`. Two changes in `utils/llm/deepseek.py`:
+  - **`_extract_message_content()`** — if `content` comes back empty, the provider falls back to `reasoning_content`. Previously, an empty `content` yielded `""` and the agent treated the response as malformed, even though the model had produced 30–40K characters of usable text.
+  - **`thinking: { type: disabled }`** in the request payload. Asks the model to skip the thinking phase. Models that do not know the parameter ignore it, so the change is backward-compatible.
+  - Both the streaming and non-streaming paths respect the fallback.
+- **DeepSeek provider: post-mortem dumps.** When the response looks suspicious (empty `content`, `finish_reason: "length"`), the full raw JSON is written to `/tmp/neurocad_llm_dumps/deepseek_<ts>_<reason>.json`, and the head / tail of `reasoning_content` (500 chars each) is logged. This made the “model returned a non-html answer: ''” bug diagnosable in one run instead of many.
 
 ### Fixed
 
-- **Import / Export dialogs stayed visible in the page flow.** Root cause — `io.css` was not loaded by the editor (404), so `.core-engine-lib-word-editor-io { display: none }` never applied. Fixed by adding `io.css` to `cssFiles` and rebuilding the dialogs as singletons with `.active` toggling.
-- **Editor dialogs no longer block the canvas after import or export.** Each dialog now removes its `.active` class when finished (or on cancel / Escape) instead of leaving an inert overlay in the DOM.
+- **`create_page` on reasoning models: empty response despite a successful call.** Root cause — `deepseek-flash` runs in thinking mode; the model produced 34K characters of `reasoning_content` and hit `finish_reason: "length"` before ever writing to `content`. The provider read only `content` and returned `""`. The agent then reported “Модель вернула некорректный ответ”. Fixed by the two provider changes above; the default `max_output_tokens` for DeepSeek is also raised so that the thinking phase plus a full page fit into one response.
 
 ---
 
@@ -45,33 +37,25 @@ Release date: 2026-09-30
 
 ### Добавлено
 
-- **Импорт и экспорт в редакторе.** Редактор теперь умеет обмениваться страницами с внешним миром в трёх форматах:
-  - **Импорт из архива `.grp`** — ZIP-файл с полным проектом GrapesJS:
-    - `index.html` — HTML-компоненты;
-    - `index.css` — кастомный CSS из Style Manager;
-    - `index.json` — полное состояние проекта GrapesJS (приоритет при импорте);
-    - `media/*` — файлы ресурсов, на которые ссылается страница.
-    Загрузка `.grp` восстанавливает страницу полностью — компоненты, стили и картинки (как data-URI).
-  - **Импорт из файла `.html`** — обычный HTML-документ с возможными блоками `<style>`. Содержимое `<style>` выносится в CSS редактора; HTML тела вставляется как компоненты.
-  - **Импорт по URL** — бэкенд скачивает удалённую страницу, встраивает все `<link rel="stylesheet">` в инлайн `<style>` (опционально скачивает `<img>` и встраивает их как data-URI) и возвращает результат редактору. Защита от self-referencing URL и не-http схем.
-  - **Экспорт в самостоятельный HTML** — один файл `.html` со всем CSS, встроенным в `<style>`. Готов к загрузке на любой хостинг, открытию с диска или отправке — без сервера, без внешних CSS.
-  - **Экспорт в архив `.grp`** — та же ZIP-структура, что выше. Импортируется в любой инстанс NeuroCad через диалог «Импорт». Медиа, на которые ссылается страница, берутся из `media/<nav_id>/` и упаковываются в архив.
-- **Новый API редактора под `/core/engine/lib/word/editor/io/`**:
-  - `POST /import/url` — скачать удалённую страницу (JSON: `{ url, include_images }`);
-  - `POST /import/file` — разобрать загруженный `.grp` или `.html` (multipart);
-  - `GET  /export/html/{page_id}` — скачать HTML-документ;
-  - `GET  /export/grp/{page_id}`  — скачать архив `.grp`.
-  Все эндпоинты требуют аутентификации; запрошенный `page_id` должен принадлежать nav текущего пользователя.
-- **Кнопки «Импорт» / «Экспорт» в тулбаре редактора.** Две новые иконки открывают соответствующие диалоги. Оба диалога оформлены в стиле Base-модалок (overlay + окно + заголовок + панель действий).
-- **Автоматический cache-busting для UI-CSS редактора.** `io.css` добавлен в `cssFiles` в `editor/grapes/index.js` — его URL теперь всегда несёт актуальный `?v=<static_version>`.
+- **Агент `create_page` — генерация полной страницы из одного промпта.** Новый агент собирает готовую самодостаточную страницу (HTML + CSS) за один проход, минуя каталог блоков и редактор эффектов.
+  - **Свободная вёрстка.** Модель не ограничена зарегистрированными блоками (`core-heading-h1`, `core-card`, …). Она возвращает произвольный HTML — секции, сетки, карточки, hero-блоки, что угодно по запросу — вместо склейки из элементов каталога.
+  - **HTML + CSS одним ответом.** Агент возвращает JSON `{ "html": "...", "css": "..." }`. HTML идёт напрямую в `editor.setComponents()`; CSS — через `editor.setStyle()`. Страница отрисовывается на холсте сразу, без пошагового редактирования, без черновиков эффектов, без кнопки «Сохранить».
+  - **Интеграция с роутером.** Запросы, описывающие целую страницу («напиши главную страницу…», «собери лендинг для…», «сделай сайт про…»), уходят в `create_page`. Запросы, адресованные конкретному элементу или существующему блоку, по-прежнему идут в старый поток редактирования и эффектов. Оба пути не мешают друг другу.
+  - **Не зависит от подсистемы эффектов.** `create_page` не трогает `EffectBlocks`, не создаёт черновики, ничего не пишет в `_effectsApiBase`. Всё, что производит агент, живёт в собственных колонках HTML и CSS страницы.
+- **WebSocket-кадр `page_css_update`.** Новый тип кадра, который диспетчер отправляет сразу после `html_update`, когда `create_page` возвращает пару `{ html, css }`. Фронт обрабатывает его в `chat/handler.js` и применяет CSS через новый метод `_applyPageCss(css)` на контроллере чата, который вызывает `editor.setStyle(css)`.
+  - CSS передаётся обычной строкой **без** обрамляющего тега `<style>`. Это обязательно: GrapesJS не умеет парсить `<style>`, подмешанный в дерево компонентов, и молча выбросил бы всё дерево, если бы мы попытались встроить его в HTML.
+- **Новый промпт и парсер для агента.**
+  - `prompts/create_page.py` — JSON-промпт, который просит у модели только `{ "html": "...", "css": "..." }` и ничего больше.
+  - `agent/create_page.py` — строгий JSON-парсер с фолбэком: если модель вернула сырой HTML (без JSON-обёртки), парсер всё равно вытаскивает `<style>`-блоки в CSS, а остальное — в HTML.
 
 ### Изменено
 
-- **Отступы в тулбаре редактора.** Кнопки теперь разнесены на `8px` (было `2px`); отступы разделителя увеличены до `8px`; внутренний зазор переключателя устройств — `6px`. Иконкам стало просторнее, раскладка соответствует современным редакторам.
-- **Поддержка inline SVG в тулбаре.** CSS тулбара теперь стилизует inline `<svg>`-иконки (используются кнопками «Импорт» / «Экспорт») — они наследуют `currentColor` от кнопки, работают в hover и active состояниях, не требуют внешних SVG-файлов.
-- **Схема модалок редактора приведена к Base-модалкам.** Диалоги «Импорт» / «Экспорт» стали синглтонами — создаются один раз в конструкторе и переключаются через класс `.active`. Это соответствует паттерну `BaseModalMessage` / `BaseModalConfirm` и устраняет проблему «модалка видна ниже страницы», которая возникала, когда overlay добавлялся с `display: flex` при каждом открытии.
+- **Провайдер DeepSeek: поддержка reasoning-моделей.** `deepseek-flash` (V4.1-Flash) может работать в режиме «размышления» и тратить часть `max_tokens` на внутреннее поле `reasoning_content`, прежде чем выдать финальный `content`. Два изменения в `utils/llm/deepseek.py`:
+  - **`_extract_message_content()`** — если `content` пришёл пустым, провайдер берёт текст из `reasoning_content`. Раньше пустой `content` давал `""`, и агент считал ответ битым, хотя модель сгенерировала 30–40K символов осмысленного текста.
+  - **`thinking: { type: disabled }`** в теле запроса. Просит модель пропустить фазу размышления. Модели, которые не знают этого параметра, его игнорируют — изменение обратно совместимо.
+  - Оба пути — streaming и non-streaming — учитывают фолбэк.
+- **Провайдер DeepSeek: дампы для разбора инцидентов.** Когда ответ выглядит подозрительно (пустой `content`, `finish_reason: "length"`), полный сырой JSON пишется в `/tmp/neurocad_llm_dumps/deepseek_<ts>_<reason>.json`, а в лог уходят начало и конец `reasoning_content` (по 500 символов). Именно это позволило диагностировать баг «model returned a non-html answer: ''» за один прогон, а не за много.
 
 ### Исправлено
 
-- **Диалоги «Импорт» / «Экспорт» оставались видимыми в потоке страницы.** Причина — `io.css` не загружался редактором (404), поэтому `.core-engine-lib-word-editor-io { display: none }` не применялся. Исправлено добавлением `io.css` в `cssFiles` и переработкой диалогов в синглтоны с переключением `.active`.
-- **Диалоги редактора больше не блокируют холст после импорта или экспорта.** Каждый диалог снимает класс `.active` по завершении (или по «Отмена» / Escape), а не оставляет инертный overlay в DOM.
+- **`create_page` на reasoning-моделях: пустой ответ при успешном вызове.** Причина — `deepseek-flash` работает в thinking-режиме; модель сгенерировала 34K символов `reasoning_content` и упёрлась в `finish_reason: "length"`, так и не дойдя до записи в `content`. Провайдер читал только `content` и возвращал `""`. Агент сообщал «Модель вернула некорректный ответ». Исправлено двумя изменениями провайдера выше; заодно поднят дефолтный `max_output_tokens` для DeepSeek — чтобы фаза размышления и полная страница помещались в один ответ.

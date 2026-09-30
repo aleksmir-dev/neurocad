@@ -1,5 +1,5 @@
 -- Demo data: pages
--- Rows: 34
+-- Rows: 36
 
 PRAGMA foreign_keys = OFF;
 
@@ -18863,7 +18863,7 @@ INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo",
 .core-engine-lib-word-blocks .fx-silver-orbit-stars { position: relative; background-image: radial-gradient(circle closest-side, transparent 0 97%, rgba(148,163,184,0.05) 97% 100%, transparent 100%), radial-gradient(circle closest-side, transparent 0 97%, rgba(148,163,184,0.05) 97% 100%, transparent 100%), radial-gradient(circle closest-side, transparent 0 97%, rgba(148,163,184,0.05) 97% 100%, transparent 100%); background-size: 520px 520px, 900px 900px, 1500px 1500px; background-position: center, center, center; background-repeat: no-repeat, no-repeat, no-repeat; } .core-engine-lib-word-blocks .fx-silver-orbit-stars::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(2.4px 2.4px at 20px 30px, #94a3b8 50%, transparent 100%), radial-gradient(2px 2px at 120px 80px, #94a3b8 50%, transparent 100%), radial-gradient(1.8px 1.8px at 60px 180px, #cbd5e1 50%, transparent 100%), radial-gradient(2.2px 2.2px at 200px 150px, #94a3b8 50%, transparent 100%), radial-gradient(1.6px 1.6px at 170px 240px, #cbd5e1 50%, transparent 100%), radial-gradient(2px 2px at 230px 40px, #94a3b8 50%, transparent 100%); background-size: 260px 260px; background-repeat: repeat; animation: fx-silver-orbit-stars-twinkle 4.5s ease-in-out infinite; pointer-events: none; } .core-engine-lib-word-blocks .fx-silver-orbit-stars::after { content: ""; position: absolute; left: 50%; top: 50%; width: 1500px; height: 1500px; margin: -750px 0 0 -750px; background-image: radial-gradient(circle 30px at 260px 30px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 260px 490px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 450px 30px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 450px 870px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 750px 30px, rgba(148,163,184,0.05) 99%, transparent 100%), radial-gradient(circle 30px at 750px 1470px, rgba(148,163,184,0.05) 99%, transparent 100%); background-size: 520px 520px, 520px 520px, 900px 900px, 900px 900px, 1500px 1500px, 1500px 1500px; background-position: center, center, center, center, center, center; background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat; animation: fx-silver-orbit-stars-spin 30s linear infinite; pointer-events: none; } @keyframes fx-silver-orbit-stars-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } } @keyframes fx-silver-orbit-stars-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 * { box-sizing: border-box; } body {margin: 0;}');
-INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (34, 1, '2026-09-29 18:58:57.719329', 'Проба импорта', '', '', '<body></body>', '{"assets":[{"type":"image","src":"/media/1/fone_73669b1a.jpg","unitDim":"px","height":0,"width":0,"name":"fone_73669b1a.jpg"},{"type":"image","src":"/media/1/logo_bcf3c00f.png","unitDim":"px","height":0,"width":0,"name":"logo_bcf3c00f.png"},{"type":"image","src":"/media/1/qr.png","unitDim":"px","height":0,"width":0,"name":"qr.png"}],"styles":[],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"ZrCDovheAzIG4mJv"}],"id":"NXm6x76SCGQx0RGS"}],"symbols":[]}', 1, 0, '2026-09-29 18:58:57.719356', '2026-09-29 19:02:27.634601', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
+INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (34, 1, '2026-09-29 18:58:57.719329', 'Филиция Клуб', 'Клуб знакомств для кошек', '/media/1/________-20260930-215020_25039293.jpg', '<body id="iqw7"><div class="core-engine-lib-word-blocks"><header class="header"><div class="header__inner"><a href="#" class="logo"><span class="logo__icon"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="18" fill="#F4A261"></circle><path d="M11 22c0-4 3-7 7-7s7 3 7 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round"></path><circle cx="14" cy="14" r="1.8" fill="#fff"></circle><circle cx="22" cy="14" r="1.8" fill="#fff"></circle><path d="M18 19v3" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg></span><span class="logo__text">Филиция Клуб</span></a><nav class="nav"><a href="#about" class="nav__link">О клубе</a><a href="#services" class="nav__link">Услуги</a><a href="#breeds" class="nav__link">Породы</a><a href="#contact" class="nav__link">Контакты</a></nav><a href="#contact" class="btn btn--primary header__cta">Записаться</a></div></header><main><section class="hero"><div class="hero__content"><p class="hero__label">Клуб любителей кошек с 2008 года</p><h1 class="hero__title">Ваш кот заслуживает лучшего</h1><p class="hero__text">Мы объединяем заводчиков, ветеринаров и просто любителей кошек. Помогаем найти породистого котёнка, подготовить питомца к выставке и обеспечить ему здоровую жизнь.</p><div class="hero__actions"><a href="#services" class="btn btn--primary">Наши услуги</a><a href="#about" class="btn btn--ghost">Узнать больше</a></div><div class="hero__stats"><div class="stat"><span class="stat__num">1 200+</span><span class="stat__label">счастливых владельцев</span></div><div class="stat"><span class="stat__num">48</span><span class="stat__label">пород в клубе</span></div><div class="stat"><span class="stat__num">15</span><span class="stat__label">лет опыта</span></div></div></div><div class="hero__visual"><div class="hero__circle"></div><div class="hero__image"><svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="200" cy="200" r="200" fill="#FDF0E6"></circle><ellipse cx="200" cy="260" rx="90" ry="70" fill="#F4A261"></ellipse><circle cx="200" cy="180" r="75" fill="#F4A261"></circle><path d="M140 130 L120 70 L170 110 Z" fill="#F4A261"></path><path d="M260 130 L280 70 L230 110 Z" fill="#F4A261"></path><path d="M148 135 L135 95 L168 118 Z" fill="#FAD7B5"></path><path d="M252 135 L265 95 L232 118 Z" fill="#FAD7B5"></path><circle cx="175" cy="175" r="10" fill="#2D3142"></circle><circle cx="225" cy="175" r="10" fill="#2D3142"></circle><circle cx="178" cy="172" r="3" fill="#fff"></circle><circle cx="228" cy="172" r="3" fill="#fff"></circle><path d="M195 200 Q200 208 205 200" stroke="#2D3142" stroke-width="3" fill="none" stroke-linecap="round"></path><path d="M200 205 L200 215" stroke="#2D3142" stroke-width="2.5" stroke-linecap="round"></path><path d="M185 218 Q200 228 215 218" stroke="#2D3142" stroke-width="2.5" fill="none" stroke-linecap="round"></path><path d="M160 195 L130 190 M160 205 L128 205 M160 215 L130 220" stroke="#2D3142" stroke-width="2" stroke-linecap="round"></path><path d="M240 195 L270 190 M240 205 L272 205 M240 215 L270 220" stroke="#2D3142" stroke-width="2" stroke-linecap="round"></path></svg></div></div></section><section id="about" class="about"><div class="section-head"><h2 class="section-title">О клубе «Филиция»</h2><p class="section-sub">Мы создаём сообщество, где каждый кот получает заботу, а каждый владелец — поддержку и знания.</p></div><div class="about__grid"><article class="about__card"><div class="about__icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4 L20 12 L28 13 L22 19 L24 27 L16 23 L8 27 L10 19 L4 13 L12 12 Z" fill="#F4A261"></path></svg></div><h3>Помощь в выборе</h3><p>Подберём породу и конкретного котёнка под ваш образ жизни, характер и жилищные условия.</p></article><article class="about__card"><div class="about__icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="6" width="20" height="20" rx="4" stroke="#F4A261" stroke-width="2.5"></rect><path d="M11 16 L15 20 L22 12" stroke="#F4A261" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></div><h3>Ветеринарный контроль</h3><p>Все питомцы клуба проходят осмотр, вакцинацию и получают полный пакет документов.</p></article><article class="about__card"><div class="about__icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="12" stroke="#F4A261" stroke-width="2.5"></circle><path d="M16 8 V16 L22 20" stroke="#F4A261" stroke-width="2.5" stroke-linecap="round"></path></svg></div><h3>Поддержка 24/7</h3><p>Консультации по уходу, кормлению и воспитанию — в любое время, пока питомец с вами.</p></article></div></section><section id="services" class="services"><div class="section-head"><h2 class="section-title">Наши услуги</h2><p class="section-sub">Полный спектр заботы о вашем питомце — от выбора до выставки.</p></div><div class="services__grid"><article class="service"><div class="service__num">01</div><h3>Подбор котёнка</h3><p>Поможем найти здорового котёнка нужной породы у проверенных заводчиков клуба.</p></article><article class="service"><div class="service__num">02</div><h3>Подготовка к выставке</h3><p>Груминг, хендлинг и тренировка — ваш кот будет готов блистать на ринге.</p></article><article class="service"><div class="service__num">03</div><h3>Ветеринарные консультации</h3><p>Приём у профильных специалистов, вакцинация, чипирование и оформление документов.</p></article><article class="service"><div class="service__num">04</div><h3>Кинология для кошек</h3><p>Курсы по воспитанию, коррекции поведения и социализации для владельцев.</p></article></div></section><section id="breeds" class="breeds"><div class="section-head"><h2 class="section-title">Популярные породы</h2><p class="section-sub">В нашем клубе представлены десятки пород — от классики до редких линий.</p></div><div class="breeds__grid"><article class="breed"><div class="breed__image breed__image--1"></div><h3>Мейн-кун</h3><p>Величественный гигант с добрым сердцем.</p></article><article class="breed"><div class="breed__image breed__image--2"></div><h3>Британская короткошёрстная</h3><p>Плюшевый характер и аристократичная внешность.</p></article><article class="breed"><div class="breed__image breed__image--3"></div><h3>Сфинкс</h3><p>Тёплый на ощупь и бесконечно преданный.</p></article><article class="breed"><div class="breed__image breed__image--4"></div><h3>Шотландская вислоухая</h3><p>Ушки-конвертики и мягкий нрав.</p></article></div></section><section class="cta"><div class="cta__inner fx-festive-bokeh" id="iypu1k"><h2 class="cta__title">Готовы завести питомца мечты?</h2><p class="cta__text">Оставьте заявку — и мы подберём котёнка, который станет членом вашей семьи.</p><a href="#contact" class="btn btn--light">Оставить заявку</a></div></section><section id="contact" class="contact"><div class="contact__inner"><div class="contact__info"><h2 class="section-title">Свяжитесь с нами</h2><p class="contact__text">Мы работаем ежедневно с 9:00 до 21:00. Ответим на вопросы и поможем с выбором.</p><ul class="contact__list"><li><span class="contact__label">Телефон</span><a href="tel:+74951234567">+7 (495) 123-45-67</a></li><li><span class="contact__label">Почта</span><a href="mailto:info@felicia-club.ru">info@felicia-club.ru</a></li><li><span class="contact__label">Адрес</span><span>Москва, ул. Кошачья, 12</span></li></ul></div><form action="#" method="post" class="contact__form"><label class="field"><span>Ваше имя</span><input type="text" name="name" placeholder="Анна" required/></label><label class="field"><span>Телефон</span><input type="tel" name="phone" placeholder="+7 (___) ___-__-__" required/></label><label class="field"><span>Комментарий</span><textarea name="message" rows="4" placeholder="Расскажите, какого питомца ищете"></textarea></label><button type="submit" class="btn btn--primary">Отправить заявку</button></form></div></section></main><footer class="footer"><div class="footer__inner"><div class="footer__brand"><span class="logo__text">Филиция Клуб</span><p>Клуб любителей кошек. Забота, знания и любовь с 2008 года.</p></div><nav class="footer__nav"><a href="#about">О клубе</a><a href="#services">Услуги</a><a href="#breeds">Породы</a><a href="#contact">Контакты</a></nav><p class="footer__copy">© 2024 Филиция Клуб. Все права защищены.</p></div></footer></div></body>', '{"assets":[{"type":"image","src":"/media/1/fone_73669b1a.jpg","unitDim":"px","height":0,"width":0,"name":"fone_73669b1a.jpg"},{"type":"image","src":"/media/1/logo_bcf3c00f.png","unitDim":"px","height":0,"width":0,"name":"logo_bcf3c00f.png"},{"type":"image","src":"/media/1/qr.png","unitDim":"px","height":0,"width":0,"name":"qr.png"}],"styles":[{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","padding-top":"0px","padding-right":"0px","padding-bottom":"0px","padding-left":"0px"}},{"selectors":[],"selectorsAdd":"body","style":{"font-family":"Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif","color":"rgb(45, 49, 66)","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 251, 247)","line-height":"1.6","-webkit-font-smoothing":"antialiased"}},{"selectors":[],"selectorsAdd":"a","style":{"color":"inherit","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial"}},{"selectors":[],"selectorsAdd":"img, svg","style":{"display":"block","max-width":"100%"}},{"selectors":["header"],"style":{"position":"sticky","top":"0px","z-index":"50","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgba(255, 251, 247, 0.92)","backdrop-filter":"blur(10px)","border-bottom-width":"1px","border-bottom-style":"solid","border-bottom-color":"rgba(45, 49, 66, 0.06)"}},{"selectors":["header__inner"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","padding-top":"18px","padding-right":"24px","padding-bottom":"18px","padding-left":"24px","display":"flex","align-items":"center","row-gap":"32px","column-gap":"32px"}},{"selectors":["logo"],"style":{"display":"flex","align-items":"center","row-gap":"10px","column-gap":"10px","font-weight":"800","font-size":"20px","letter-spacing":"-0.02em"}},{"selectors":["logo__icon"],"style":{"display":"flex"}},{"selectors":["nav"],"style":{"display":"flex","row-gap":"28px","column-gap":"28px","margin-left":"auto"}},{"selectors":["nav__link"],"style":{"font-weight":"500","font-size":"15px","color":"rgb(74, 78, 105)","transition-behavior":"normal","transition-duration":"0.2s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"color"}},{"selectors":["nav__link"],"style":{"color":"rgb(244, 162, 97)"},"state":"hover"},{"selectors":["btn"],"style":{"display":"inline-flex","align-items":"center","justify-content":"center","padding-top":"14px","padding-right":"28px","padding-bottom":"14px","padding-left":"28px","border-top-left-radius":"999px","border-top-right-radius":"999px","border-bottom-right-radius":"999px","border-bottom-left-radius":"999px","font-weight":"700","font-size":"15px","border-top-width":"initial","border-right-width":"initial","border-bottom-width":"initial","border-left-width":"initial","border-top-style":"none","border-right-style":"none","border-bottom-style":"none","border-left-style":"none","border-top-color":"initial","border-right-color":"initial","border-bottom-color":"initial","border-left-color":"initial","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","cursor":"pointer","transition-behavior":"normal, normal, normal","transition-duration":"0.2s, 0.2s, 0.2s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"transform, box-shadow, background","font-family":"inherit"}},{"selectors":["btn--primary"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(244, 162, 97)","color":"rgb(255, 255, 255)","box-shadow":"rgba(244, 162, 97, 0.35) 0px 8px 20px"}},{"selectors":["btn--primary"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(232, 139, 63)","transform":"translateY(-2px)","box-shadow":"rgba(244, 162, 97, 0.45) 0px 12px 26px"},"state":"hover"},{"selectors":["btn--ghost"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"transparent","color":"rgb(45, 49, 66)","border-top-width":"2px","border-right-width":"2px","border-bottom-width":"2px","border-left-width":"2px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(45, 49, 66, 0.15)","border-right-color":"rgba(45, 49, 66, 0.15)","border-bottom-color":"rgba(45, 49, 66, 0.15)","border-left-color":"rgba(45, 49, 66, 0.15)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial"}},{"selectors":["btn--ghost"],"style":{"border-top-color":"rgb(244, 162, 97)","border-right-color":"rgb(244, 162, 97)","border-bottom-color":"rgb(244, 162, 97)","border-left-color":"rgb(244, 162, 97)","color":"rgb(244, 162, 97)"},"state":"hover"},{"selectors":["btn--light"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)","color":"rgb(45, 49, 66)","box-shadow":"rgba(0, 0, 0, 0.12) 0px 8px 20px"}},{"selectors":["btn--light"],"style":{"transform":"translateY(-2px)"},"state":"hover"},{"selectors":["hero"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","padding-top":"80px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px","display":"grid","grid-template-columns":"1.1fr 1fr","row-gap":"60px","column-gap":"60px","align-items":"center"}},{"selectors":["hero__label"],"style":{"display":"inline-block","padding-top":"8px","padding-right":"16px","padding-bottom":"8px","padding-left":"16px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(253, 240, 230)","color":"rgb(201, 123, 63)","border-top-left-radius":"999px","border-top-right-radius":"999px","border-bottom-right-radius":"999px","border-bottom-left-radius":"999px","font-size":"13px","font-weight":"700","letter-spacing":"0.02em","margin-bottom":"24px"}},{"selectors":["hero__title"],"style":{"font-size":"60px","line-height":"1.05","font-weight":"800","letter-spacing":"-0.03em","margin-bottom":"24px"}},{"selectors":["hero__text"],"style":{"font-size":"18px","color":"rgb(74, 78, 105)","max-width":"520px","margin-bottom":"36px"}},{"selectors":["hero__actions"],"style":{"display":"flex","row-gap":"16px","column-gap":"16px","flex-wrap":"wrap","margin-bottom":"56px"}},{"selectors":["hero__stats"],"style":{"display":"flex","row-gap":"48px","column-gap":"48px","flex-wrap":"wrap"}},{"selectors":["stat"],"style":{"display":"flex","flex-direction":"column"}},{"selectors":["stat__num"],"style":{"font-size":"32px","font-weight":"800","color":"rgb(45, 49, 66)","letter-spacing":"-0.02em"}},{"selectors":["stat__label"],"style":{"font-size":"14px","color":"rgb(138, 143, 163)"}},{"selectors":["hero__visual"],"style":{"position":"relative","display":"flex","justify-content":"center","align-items":"center"}},{"selectors":["hero__circle"],"style":{"position":"absolute","width":"420px","height":"420px","border-top-left-radius":"50%","border-top-right-radius":"50%","border-bottom-right-radius":"50%","border-bottom-left-radius":"50%","background-image":"radial-gradient(circle at 30% 30%, rgb(253, 240, 230), rgb(244, 162, 97))","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","opacity":"0.35","filter":"blur(40px)"}},{"selectors":["hero__image"],"style":{"position":"relative","width":"100%","max-width":"420px","animation-duration":"6s","animation-timing-function":"ease-in-out","animation-delay":"0s","animation-iteration-count":"infinite","animation-direction":"normal","animation-fill-mode":"none","animation-play-state":"running","animation-name":"float","animation-timeline":"auto","animation-range-start":"normal","animation-range-end":"normal"}},{"selectors":[],"selectorsAdd":"0%, 100%","style":{"transform":"translateY(0px)"},"mediaText":"float","atRuleType":"keyframes"},{"selectors":[],"selectorsAdd":"50%","style":{"transform":"translateY(-14px)"},"mediaText":"float","atRuleType":"keyframes"},{"selectors":["section-head"],"style":{"max-width":"720px","margin-top":"0px","margin-right":"auto","margin-bottom":"56px","margin-left":"auto","text-align":"center"}},{"selectors":["section-title"],"style":{"font-size":"40px","font-weight":"800","letter-spacing":"-0.02em","margin-bottom":"16px"}},{"selectors":["section-sub"],"style":{"font-size":"17px","color":"rgb(107, 112, 137)"}},{"selectors":["about"],"style":{"padding-top":"100px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)"}},{"selectors":["about__grid"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","display":"grid","grid-template-columns":"repeat(3, 1fr)","row-gap":"28px","column-gap":"28px"}},{"selectors":["about__card"],"style":{"padding-top":"36px","padding-right":"32px","padding-bottom":"36px","padding-left":"32px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 251, 247)","border-top-left-radius":"24px","border-top-right-radius":"24px","border-bottom-right-radius":"24px","border-bottom-left-radius":"24px","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(45, 49, 66, 0.06)","border-right-color":"rgba(45, 49, 66, 0.06)","border-bottom-color":"rgba(45, 49, 66, 0.06)","border-left-color":"rgba(45, 49, 66, 0.06)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","transition-behavior":"normal, normal","transition-duration":"0.25s, 0.25s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"transform, box-shadow"}},{"selectors":["about__card"],"style":{"transform":"translateY(-6px)","box-shadow":"rgba(45, 49, 66, 0.08) 0px 20px 40px"},"state":"hover"},{"selectors":["about__icon"],"style":{"width":"56px","height":"56px","border-top-left-radius":"16px","border-top-right-radius":"16px","border-bottom-right-radius":"16px","border-bottom-left-radius":"16px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(253, 240, 230)","display":"flex","align-items":"center","justify-content":"center","margin-bottom":"24px"}},{"selectors":[],"selectorsAdd":".about__card h3","style":{"font-size":"20px","font-weight":"700","margin-bottom":"12px"}},{"selectors":[],"selectorsAdd":".about__card p","style":{"color":"rgb(107, 112, 137)","font-size":"15px"}},{"selectors":["services"],"style":{"padding-top":"100px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px"}},{"selectors":["services__grid"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","display":"grid","grid-template-columns":"repeat(2, 1fr)","row-gap":"24px","column-gap":"24px"}},{"selectors":["service"],"style":{"padding-top":"40px","padding-right":"40px","padding-bottom":"40px","padding-left":"40px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)","border-top-left-radius":"24px","border-top-right-radius":"24px","border-bottom-right-radius":"24px","border-bottom-left-radius":"24px","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(45, 49, 66, 0.06)","border-right-color":"rgba(45, 49, 66, 0.06)","border-bottom-color":"rgba(45, 49, 66, 0.06)","border-left-color":"rgba(45, 49, 66, 0.06)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","position":"relative","overflow-x":"hidden","overflow-y":"hidden","transition-behavior":"normal, normal","transition-duration":"0.25s, 0.25s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"transform, box-shadow"}},{"selectors":["service"],"style":{"transform":"translateY(-4px)","box-shadow":"rgba(45, 49, 66, 0.08) 0px 20px 40px"},"state":"hover"},{"selectors":["service__num"],"style":{"font-size":"14px","font-weight":"800","color":"rgb(244, 162, 97)","letter-spacing":"0.1em","margin-bottom":"20px"}},{"selectors":[],"selectorsAdd":".service h3","style":{"font-size":"22px","font-weight":"700","margin-bottom":"12px"}},{"selectors":[],"selectorsAdd":".service p","style":{"color":"rgb(107, 112, 137)","font-size":"15px"}},{"selectors":["breeds"],"style":{"padding-top":"100px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)"}},{"selectors":["breeds__grid"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","display":"grid","grid-template-columns":"repeat(4, 1fr)","row-gap":"24px","column-gap":"24px"}},{"selectors":["breed"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 251, 247)","border-top-left-radius":"24px","border-top-right-radius":"24px","border-bottom-right-radius":"24px","border-bottom-left-radius":"24px","overflow-x":"hidden","overflow-y":"hidden","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(45, 49, 66, 0.06)","border-right-color":"rgba(45, 49, 66, 0.06)","border-bottom-color":"rgba(45, 49, 66, 0.06)","border-left-color":"rgba(45, 49, 66, 0.06)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","transition-behavior":"normal, normal","transition-duration":"0.25s, 0.25s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"transform, box-shadow"}},{"selectors":["breed"],"style":{"transform":"translateY(-6px)","box-shadow":"rgba(45, 49, 66, 0.1) 0px 20px 40px"},"state":"hover"},{"selectors":["breed__image"],"style":{"height":"180px","background-size":"cover","background-position-x":"center","background-position-y":"center"}},{"selectors":["breed__image--1"],"style":{"background-image":"linear-gradient(135deg, rgb(244, 162, 97), rgb(232, 139, 63))","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial"}},{"selectors":["breed__image--2"],"style":{"background-image":"linear-gradient(135deg, rgb(168, 181, 201), rgb(107, 122, 153))","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial"}},{"selectors":["breed__image--3"],"style":{"background-image":"linear-gradient(135deg, rgb(250, 215, 181), rgb(244, 162, 97))","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial"}},{"selectors":["breed__image--4"],"style":{"background-image":"linear-gradient(135deg, rgb(201, 182, 228), rgb(138, 111, 184))","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial"}},{"selectors":[],"selectorsAdd":".breed h3","style":{"font-size":"18px","font-weight":"700","padding-top":"20px","padding-right":"24px","padding-bottom":"8px","padding-left":"24px"}},{"selectors":[],"selectorsAdd":".breed p","style":{"font-size":"14px","color":"rgb(107, 112, 137)","padding-top":"0px","padding-right":"24px","padding-bottom":"24px","padding-left":"24px"}},{"selectors":["cta"],"style":{"padding-top":"80px","padding-right":"24px","padding-bottom":"80px","padding-left":"24px"}},{"selectors":["cta__inner"],"style":{"max-width":"1000px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","padding-top":"72px","padding-right":"48px","padding-bottom":"72px","padding-left":"48px","background-image":"linear-gradient(135deg, rgb(45, 49, 66), rgb(74, 78, 105))","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","border-top-left-radius":"32px","border-top-right-radius":"32px","border-bottom-right-radius":"32px","border-bottom-left-radius":"32px","text-align":"center","color":"rgb(255, 255, 255)","position":"relative","overflow-x":"hidden","overflow-y":"hidden"}},{"selectors":["cta__inner"],"style":{"content":"\"\"","position":"absolute","top":"-80px","right":"-80px","width":"260px","height":"260px","border-top-left-radius":"50%","border-top-right-radius":"50%","border-bottom-right-radius":"50%","border-bottom-left-radius":"50%","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgba(244, 162, 97, 0.25)","filter":"blur(40px)"},"state":":before"},{"selectors":["cta__title"],"style":{"font-size":"38px","font-weight":"800","letter-spacing":"-0.02em","margin-bottom":"16px","position":"relative"}},{"selectors":["cta__text"],"style":{"font-size":"17px","color":"rgba(255, 255, 255, 0.8)","margin-bottom":"32px","position":"relative"}},{"selectors":[],"selectorsAdd":".cta .btn","style":{"position":"relative"}},{"selectors":["contact"],"style":{"padding-top":"100px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)"}},{"selectors":["contact__inner"],"style":{"max-width":"1100px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","display":"grid","grid-template-columns":"1fr 1fr","row-gap":"64px","column-gap":"64px","align-items":"start"}},{"selectors":["contact__text"],"style":{"color":"rgb(107, 112, 137)","margin-top":"16px","margin-right":"0px","margin-bottom":"32px","margin-left":"0px","font-size":"16px"}},{"selectors":["contact__list"],"style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","display":"flex","flex-direction":"column","row-gap":"20px","column-gap":"20px"}},{"selectors":[],"selectorsAdd":".contact__list li","style":{"display":"flex","flex-direction":"column","row-gap":"4px","column-gap":"4px"}},{"selectors":["contact__label"],"style":{"font-size":"13px","font-weight":"700","color":"rgb(138, 143, 163)","text-transform":"uppercase","letter-spacing":"0.06em"}},{"selectors":[],"selectorsAdd":".contact__list a, .contact__list span:last-child","style":{"font-size":"17px","font-weight":"600","color":"rgb(45, 49, 66)"}},{"selectors":[],"selectorsAdd":".contact__list a:hover","style":{"color":"rgb(244, 162, 97)"}},{"selectors":["contact__form"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 251, 247)","padding-top":"40px","padding-right":"40px","padding-bottom":"40px","padding-left":"40px","border-top-left-radius":"24px","border-top-right-radius":"24px","border-bottom-right-radius":"24px","border-bottom-left-radius":"24px","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(45, 49, 66, 0.06)","border-right-color":"rgba(45, 49, 66, 0.06)","border-bottom-color":"rgba(45, 49, 66, 0.06)","border-left-color":"rgba(45, 49, 66, 0.06)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","display":"flex","flex-direction":"column","row-gap":"20px","column-gap":"20px"}},{"selectors":["field"],"style":{"display":"flex","flex-direction":"column","row-gap":"8px","column-gap":"8px"}},{"selectors":[],"selectorsAdd":".field span","style":{"font-size":"14px","font-weight":"600","color":"rgb(74, 78, 105)"}},{"selectors":[],"selectorsAdd":".field input, .field textarea","style":{"padding-top":"14px","padding-right":"16px","padding-bottom":"14px","padding-left":"16px","border-top-width":"1.5px","border-right-width":"1.5px","border-bottom-width":"1.5px","border-left-width":"1.5px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(45, 49, 66, 0.12)","border-right-color":"rgba(45, 49, 66, 0.12)","border-bottom-color":"rgba(45, 49, 66, 0.12)","border-left-color":"rgba(45, 49, 66, 0.12)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","border-top-left-radius":"12px","border-top-right-radius":"12px","border-bottom-right-radius":"12px","border-bottom-left-radius":"12px","font-family":"inherit","font-size":"15px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)","color":"rgb(45, 49, 66)","transition-behavior":"normal, normal","transition-duration":"0.2s, 0.2s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"border-color, box-shadow","resize":"vertical"}},{"selectors":[],"selectorsAdd":".field input:focus, .field textarea:focus","style":{"outline-color":"initial","outline-style":"none","outline-width":"initial","border-top-color":"rgb(244, 162, 97)","border-right-color":"rgb(244, 162, 97)","border-bottom-color":"rgb(244, 162, 97)","border-left-color":"rgb(244, 162, 97)","box-shadow":"rgba(244, 162, 97, 0.15) 0px 0px 0px 4px"}},{"selectors":[],"selectorsAdd":".contact__form .btn","style":{"margin-top":"8px"}},{"selectors":["footer"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(45, 49, 66)","color":"rgba(255, 255, 255, 0.75)","padding-top":"56px","padding-right":"24px","padding-bottom":"32px","padding-left":"24px"}},{"selectors":["footer__inner"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","display":"grid","grid-template-columns":"1.5fr 1fr","row-gap":"40px","column-gap":"40px","align-items":"start"}},{"selectors":[],"selectorsAdd":".footer__brand .logo__text","style":{"color":"rgb(255, 255, 255)","font-size":"22px","font-weight":"800","display":"block","margin-bottom":"12px"}},{"selectors":[],"selectorsAdd":".footer__brand p","style":{"font-size":"15px","max-width":"360px"}},{"selectors":["footer__nav"],"style":{"display":"flex","flex-direction":"column","row-gap":"12px","column-gap":"12px","justify-self":"end"}},{"selectors":[],"selectorsAdd":".footer__nav a","style":{"font-size":"15px","transition-behavior":"normal","transition-duration":"0.2s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"color"}},{"selectors":[],"selectorsAdd":".footer__nav a:hover","style":{"color":"rgb(244, 162, 97)"}},{"selectors":["footer__copy"],"style":{"grid-column-start":"1","grid-column-end":"-1","padding-top":"32px","border-top-width":"1px","border-top-style":"solid","border-top-color":"rgba(255, 255, 255, 0.1)","font-size":"14px","color":"rgba(255, 255, 255, 0.5)"}},{"selectors":["hero"],"style":{"grid-template-columns":"1fr","padding-top":"60px","padding-right":"24px","padding-bottom":"80px","padding-left":"24px","row-gap":"40px","column-gap":"40px"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["hero__title"],"style":{"font-size":"48px"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["hero__visual"],"style":{"order":"-1"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["hero__image"],"style":{"max-width":"320px"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["about__grid"],"style":{"grid-template-columns":"repeat(2, 1fr)"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["breeds__grid"],"style":{"grid-template-columns":"repeat(2, 1fr)"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["contact__inner"],"style":{"grid-template-columns":"1fr","row-gap":"40px","column-gap":"40px"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["footer__inner"],"style":{"grid-template-columns":"1fr"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["footer__nav"],"style":{"justify-self":"start"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["header__inner"],"style":{"padding-top":"14px","padding-right":"20px","padding-bottom":"14px","padding-left":"20px","row-gap":"16px","column-gap":"16px","flex-wrap":"wrap"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["nav"],"style":{"display":"none"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["header__cta"],"style":{"margin-left":"auto","padding-top":"10px","padding-right":"20px","padding-bottom":"10px","padding-left":"20px","font-size":"14px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero"],"style":{"padding-top":"40px","padding-right":"20px","padding-bottom":"60px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero__title"],"style":{"font-size":"36px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero__text"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero__stats"],"style":{"row-gap":"28px","column-gap":"28px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["stat__num"],"style":{"font-size":"26px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["section-title"],"style":{"font-size":"30px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["section-sub"],"style":{"font-size":"15px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["breeds"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contact"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about__grid"],"style":{"grid-template-columns":"1fr"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services__grid"],"style":{"grid-template-columns":"1fr"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["breeds__grid"],"style":{"grid-template-columns":"1fr"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about__card"],"style":{"padding-top":"28px","padding-right":"24px","padding-bottom":"28px","padding-left":"24px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["service"],"style":{"padding-top":"28px","padding-right":"24px","padding-bottom":"28px","padding-left":"24px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["cta"],"style":{"padding-top":"48px","padding-right":"20px","padding-bottom":"48px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["cta__inner"],"style":{"padding-top":"48px","padding-right":"24px","padding-bottom":"48px","padding-left":"24px","border-top-left-radius":"24px","border-top-right-radius":"24px","border-bottom-right-radius":"24px","border-bottom-left-radius":"24px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["cta__title"],"style":{"font-size":"28px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contact__form"],"style":{"padding-top":"28px","padding-right":"24px","padding-bottom":"28px","padding-left":"24px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["footer"],"style":{"padding-top":"40px","padding-right":"20px","padding-bottom":"24px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["btn"],"style":{"padding-top":"12px","padding-right":"24px","padding-bottom":"12px","padding-left":"24px"},"mediaText":"(max-width: 768px)","atRuleType":"media"}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"attributes":{"id":"iqw7"},"components":[{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"header","classes":["header"],"components":[{"classes":["header__inner"],"components":[{"type":"link","classes":["logo"],"attributes":{"href":"#"},"components":[{"tagName":"span","classes":["logo__icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"width":"36","height":"36","viewBox":"0 0 36 36","fill":"none","xmlns":"http://www.w3.org/2000/svg"},"components":[{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"18","cy":"18","r":"18","fill":"#F4A261"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M11 22c0-4 3-7 7-7s7 3 7 7","stroke":"#fff","stroke-width":"2.5","stroke-linecap":"round"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"14","cy":"14","r":"1.8","fill":"#fff"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"22","cy":"14","r":"1.8","fill":"#fff"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M18 19v3","stroke":"#fff","stroke-width":"2","stroke-linecap":"round"}}]}]},{"tagName":"span","type":"text","classes":["logo__text"],"components":[{"type":"textnode","content":"Филиция Клуб"}]}]},{"tagName":"nav","classes":["nav"],"components":[{"type":"link","classes":["nav__link"],"attributes":{"href":"#about"},"components":[{"type":"textnode","content":"О клубе"}]},{"type":"link","classes":["nav__link"],"attributes":{"href":"#services"},"components":[{"type":"textnode","content":"Услуги"}]},{"type":"link","classes":["nav__link"],"attributes":{"href":"#breeds"},"components":[{"type":"textnode","content":"Породы"}]},{"type":"link","classes":["nav__link"],"attributes":{"href":"#contact"},"components":[{"type":"textnode","content":"Контакты"}]}]},{"type":"link","classes":["btn","btn--primary","header__cta"],"attributes":{"href":"#contact"},"components":[{"type":"textnode","content":"Записаться"}]}]}]},{"tagName":"main","components":[{"tagName":"section","classes":["hero"],"components":[{"classes":["hero__content"],"components":[{"tagName":"p","type":"text","classes":["hero__label"],"components":[{"type":"textnode","content":"Клуб любителей кошек с 2008 года"}]},{"tagName":"h1","type":"text","classes":["hero__title"],"components":[{"type":"textnode","content":"Ваш кот заслуживает лучшего"}]},{"tagName":"p","type":"text","classes":["hero__text"],"components":[{"type":"textnode","content":"Мы объединяем заводчиков, ветеринаров и просто любителей кошек. Помогаем найти породистого котёнка, подготовить питомца к выставке и обеспечить ему здоровую жизнь."}]},{"classes":["hero__actions"],"components":[{"type":"link","classes":["btn","btn--primary"],"attributes":{"href":"#services"},"components":[{"type":"textnode","content":"Наши услуги"}]},{"type":"link","classes":["btn","btn--ghost"],"attributes":{"href":"#about"},"components":[{"type":"textnode","content":"Узнать больше"}]}]},{"classes":["hero__stats"],"components":[{"classes":["stat"],"components":[{"tagName":"span","type":"text","classes":["stat__num"],"components":[{"type":"textnode","content":"1 200+"}]},{"tagName":"span","type":"text","classes":["stat__label"],"components":[{"type":"textnode","content":"счастливых владельцев"}]}]},{"classes":["stat"],"components":[{"tagName":"span","type":"text","classes":["stat__num"],"components":[{"type":"textnode","content":"48"}]},{"tagName":"span","type":"text","classes":["stat__label"],"components":[{"type":"textnode","content":"пород в клубе"}]}]},{"classes":["stat"],"components":[{"tagName":"span","type":"text","classes":["stat__num"],"components":[{"type":"textnode","content":"15"}]},{"tagName":"span","type":"text","classes":["stat__label"],"components":[{"type":"textnode","content":"лет опыта"}]}]}]}]},{"classes":["hero__visual"],"components":[{"classes":["hero__circle"]},{"classes":["hero__image"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 400 400","fill":"none","xmlns":"http://www.w3.org/2000/svg"},"components":[{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"200","cy":"200","r":"200","fill":"#FDF0E6"}},{"tagName":"ellipse","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"200","cy":"260","rx":"90","ry":"70","fill":"#F4A261"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"200","cy":"180","r":"75","fill":"#F4A261"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M140 130 L120 70 L170 110 Z","fill":"#F4A261"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M260 130 L280 70 L230 110 Z","fill":"#F4A261"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M148 135 L135 95 L168 118 Z","fill":"#FAD7B5"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M252 135 L265 95 L232 118 Z","fill":"#FAD7B5"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"175","cy":"175","r":"10","fill":"#2D3142"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"225","cy":"175","r":"10","fill":"#2D3142"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"178","cy":"172","r":"3","fill":"#fff"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"228","cy":"172","r":"3","fill":"#fff"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M195 200 Q200 208 205 200","stroke":"#2D3142","stroke-width":"3","fill":"none","stroke-linecap":"round"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M200 205 L200 215","stroke":"#2D3142","stroke-width":"2.5","stroke-linecap":"round"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M185 218 Q200 228 215 218","stroke":"#2D3142","stroke-width":"2.5","fill":"none","stroke-linecap":"round"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M160 195 L130 190 M160 205 L128 205 M160 215 L130 220","stroke":"#2D3142","stroke-width":"2","stroke-linecap":"round"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M240 195 L270 190 M240 205 L272 205 M240 215 L270 220","stroke":"#2D3142","stroke-width":"2","stroke-linecap":"round"}}]}]}]}]},{"tagName":"section","classes":["about"],"attributes":{"id":"about"},"components":[{"classes":["section-head"],"components":[{"tagName":"h2","type":"text","classes":["section-title"],"components":[{"type":"textnode","content":"О клубе «Филиция»"}]},{"tagName":"p","type":"text","classes":["section-sub"],"components":[{"type":"textnode","content":"Мы создаём сообщество, где каждый кот получает заботу, а каждый владелец — поддержку и знания."}]}]},{"classes":["about__grid"],"components":[{"tagName":"article","classes":["about__card"],"components":[{"classes":["about__icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"width":"32","height":"32","viewBox":"0 0 32 32","fill":"none"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M16 4 L20 12 L28 13 L22 19 L24 27 L16 23 L8 27 L10 19 L4 13 L12 12 Z","fill":"#F4A261"}}]}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Помощь в выборе"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Подберём породу и конкретного котёнка под ваш образ жизни, характер и жилищные условия."}]}]},{"tagName":"article","classes":["about__card"],"components":[{"classes":["about__icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"width":"32","height":"32","viewBox":"0 0 32 32","fill":"none"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"6","y":"6","width":"20","height":"20","rx":"4","stroke":"#F4A261","stroke-width":"2.5"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M11 16 L15 20 L22 12","stroke":"#F4A261","stroke-width":"2.5","stroke-linecap":"round","stroke-linejoin":"round"}}]}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Ветеринарный контроль"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Все питомцы клуба проходят осмотр, вакцинацию и получают полный пакет документов."}]}]},{"tagName":"article","classes":["about__card"],"components":[{"classes":["about__icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"width":"32","height":"32","viewBox":"0 0 32 32","fill":"none"},"components":[{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"16","cy":"16","r":"12","stroke":"#F4A261","stroke-width":"2.5"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M16 8 V16 L22 20","stroke":"#F4A261","stroke-width":"2.5","stroke-linecap":"round"}}]}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Поддержка 24/7"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Консультации по уходу, кормлению и воспитанию — в любое время, пока питомец с вами."}]}]}]}]},{"tagName":"section","classes":["services"],"attributes":{"id":"services"},"components":[{"classes":["section-head"],"components":[{"tagName":"h2","type":"text","classes":["section-title"],"components":[{"type":"textnode","content":"Наши услуги"}]},{"tagName":"p","type":"text","classes":["section-sub"],"components":[{"type":"textnode","content":"Полный спектр заботы о вашем питомце — от выбора до выставки."}]}]},{"classes":["services__grid"],"components":[{"tagName":"article","classes":["service"],"components":[{"type":"text","classes":["service__num"],"components":[{"type":"textnode","content":"01"}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Подбор котёнка"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Поможем найти здорового котёнка нужной породы у проверенных заводчиков клуба."}]}]},{"tagName":"article","classes":["service"],"components":[{"type":"text","classes":["service__num"],"components":[{"type":"textnode","content":"02"}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Подготовка к выставке"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Груминг, хендлинг и тренировка — ваш кот будет готов блистать на ринге."}]}]},{"tagName":"article","classes":["service"],"components":[{"type":"text","classes":["service__num"],"components":[{"type":"textnode","content":"03"}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Ветеринарные консультации"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Приём у профильных специалистов, вакцинация, чипирование и оформление документов."}]}]},{"tagName":"article","classes":["service"],"components":[{"type":"text","classes":["service__num"],"components":[{"type":"textnode","content":"04"}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Кинология для кошек"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Курсы по воспитанию, коррекции поведения и социализации для владельцев."}]}]}]}]},{"tagName":"section","classes":["breeds"],"attributes":{"id":"breeds"},"components":[{"classes":["section-head"],"components":[{"tagName":"h2","type":"text","classes":["section-title"],"components":[{"type":"textnode","content":"Популярные породы"}]},{"tagName":"p","type":"text","classes":["section-sub"],"components":[{"type":"textnode","content":"В нашем клубе представлены десятки пород — от классики до редких линий."}]}]},{"classes":["breeds__grid"],"components":[{"tagName":"article","classes":["breed"],"components":[{"classes":["breed__image","breed__image--1"]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Мейн-кун"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Величественный гигант с добрым сердцем."}]}]},{"tagName":"article","classes":["breed"],"components":[{"classes":["breed__image","breed__image--2"]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Британская короткошёрстная"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Плюшевый характер и аристократичная внешность."}]}]},{"tagName":"article","classes":["breed"],"components":[{"classes":["breed__image","breed__image--3"]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Сфинкс"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Тёплый на ощупь и бесконечно преданный."}]}]},{"tagName":"article","classes":["breed"],"components":[{"classes":["breed__image","breed__image--4"]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Шотландская вислоухая"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Ушки-конвертики и мягкий нрав."}]}]}]}]},{"tagName":"section","classes":["cta"],"components":[{"classes":["cta__inner","fx-festive-bokeh"],"attributes":{"id":"iypu1k"},"components":[{"tagName":"h2","type":"text","classes":["cta__title"],"components":[{"type":"textnode","content":"Готовы завести питомца мечты?"}]},{"tagName":"p","type":"text","classes":["cta__text"],"components":[{"type":"textnode","content":"Оставьте заявку — и мы подберём котёнка, который станет членом вашей семьи."}]},{"type":"link","classes":["btn","btn--light"],"attributes":{"href":"#contact"},"components":[{"type":"textnode","content":"Оставить заявку"}]}]}]},{"tagName":"section","classes":["contact"],"attributes":{"id":"contact"},"components":[{"classes":["contact__inner"],"components":[{"classes":["contact__info"],"components":[{"tagName":"h2","type":"text","classes":["section-title"],"components":[{"type":"textnode","content":"Свяжитесь с нами"}]},{"tagName":"p","type":"text","classes":["contact__text"],"components":[{"type":"textnode","content":"Мы работаем ежедневно с 9:00 до 21:00. Ответим на вопросы и поможем с выбором."}]},{"tagName":"ul","classes":["contact__list"],"components":[{"tagName":"li","components":[{"tagName":"span","type":"text","classes":["contact__label"],"components":[{"type":"textnode","content":"Телефон"}]},{"type":"link","attributes":{"href":"tel:+74951234567"},"components":[{"type":"textnode","content":"+7 (495) 123-45-67"}]}]},{"tagName":"li","components":[{"tagName":"span","type":"text","classes":["contact__label"],"components":[{"type":"textnode","content":"Почта"}]},{"type":"link","attributes":{"href":"mailto:info@felicia-club.ru"},"components":[{"type":"textnode","content":"info@felicia-club.ru"}]}]},{"tagName":"li","components":[{"tagName":"span","type":"text","classes":["contact__label"],"components":[{"type":"textnode","content":"Адрес"}]},{"tagName":"span","type":"text","components":[{"type":"textnode","content":"Москва, ул. Кошачья, 12"}]}]}]}]},{"tagName":"form","classes":["contact__form"],"attributes":{"action":"#","method":"post"},"components":[{"type":"label","classes":["field"],"components":[{"tagName":"span","type":"text","components":[{"type":"textnode","content":"Ваше имя"}]},{"tagName":"input","void":true,"attributes":{"type":"text","name":"name","placeholder":"Анна","required":true}}]},{"type":"label","classes":["field"],"components":[{"tagName":"span","type":"text","components":[{"type":"textnode","content":"Телефон"}]},{"tagName":"input","void":true,"attributes":{"type":"tel","name":"phone","placeholder":"+7 (___) ___-__-__","required":true}}]},{"type":"label","classes":["field"],"components":[{"tagName":"span","type":"text","components":[{"type":"textnode","content":"Комментарий"}]},{"tagName":"textarea","attributes":{"name":"message","rows":"4","placeholder":"Расскажите, какого питомца ищете"}}]},{"tagName":"button","type":"text","classes":["btn","btn--primary"],"attributes":{"type":"submit"},"components":[{"type":"textnode","content":"Отправить заявку"}]}]}]}]}]},{"tagName":"footer","classes":["footer"],"components":[{"classes":["footer__inner"],"components":[{"classes":["footer__brand"],"components":[{"tagName":"span","type":"text","classes":["logo__text"],"components":[{"type":"textnode","content":"Филиция Клуб"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Клуб любителей кошек. Забота, знания и любовь с 2008 года."}]}]},{"tagName":"nav","classes":["footer__nav"],"components":[{"type":"link","attributes":{"href":"#about"},"components":[{"type":"textnode","content":"О клубе"}]},{"type":"link","attributes":{"href":"#services"},"components":[{"type":"textnode","content":"Услуги"}]},{"type":"link","attributes":{"href":"#breeds"},"components":[{"type":"textnode","content":"Породы"}]},{"type":"link","attributes":{"href":"#contact"},"components":[{"type":"textnode","content":"Контакты"}]}]},{"tagName":"p","type":"text","classes":["footer__copy"],"components":[{"type":"textnode","content":"© 2024 Филиция Клуб. Все права защищены."}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"ZrCDovheAzIG4mJv"}],"id":"NXm6x76SCGQx0RGS"}],"symbols":[]}', 1, 0, '2026-09-29 18:58:57.719356', '2026-09-30 16:51:50.774659', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
 
 /**
  * Content — theme variables + shared atoms + layout for CONTENT pages.
@@ -19356,7 +19356,2763 @@ INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo",
     }
 }
 
+/* app/core/engine/lib/word/editor/blocks/ready.css */
+
+/**
+ * Ready — styles for the "Секции" (sections) blocks.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Covers section-specific classes from blocks/ready.js:
+ *   - .hero, .hero__inner, .hero__title, .hero__lead, .hero__btn
+ *   - .features, .features__title, .features__grid, .features__item
+ *   - .steps, .steps__title, .steps__grid, .steps__item, .steps__num
+ *   - .text-image, .text-image__grid, .text-image__text, .text-image__media
+ *   - .image-text, .image-text__grid, .image-text__text, .image-text__media
+ *   - .gallery, .gallery__title, .gallery__grid, .gallery__item
+ *   - .faq, .faq__title, .faq__list, .faq__item, .faq__question, .faq__answer
+ *   - .cta, .cta__inner, .cta__title, .cta__text, .cta__btn
+ *   - .contacts, .contacts__title, .contacts__grid, .contacts__item,
+ *     .contacts__label, .contacts__value
+ *   - .footer, .footer__inner, .footer__brand, .footer__nav, .footer__link
+ *   - .article-catalog, .article-catalog__heading, .article-catalog__card,
+ *     .article-catalog__glow, .article-catalog__logo, .article-catalog__body,
+ *     .article-catalog__title, .article-catalog__desc, .article-catalog__date
+ *
+ * Shared atom classes (.h1, .h2, .text, .lead, .btn, .card, .image)
+ * and layout classes (.section, .container, .grid) live in
+ * editor/css/content.css — they are loaded globally.
+ *
+ * Uses ONLY --theme-* variables (see theme.css).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   HERO — .hero
+   ============================================ */
+
+.core-engine-lib-word-blocks .hero__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .hero__title {
+    margin: 0;
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .hero__lead {
+    margin: 0;
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .hero__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   FEATURES — .features
+   ============================================ */
+
+.core-engine-lib-word-blocks .features__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .features__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .features__item {
+    /* uses .card from content.css */
+    height: 100%;
+}
+
+
+/* ============================================
+   STEPS — .steps
+   ============================================ */
+
+.core-engine-lib-word-blocks .steps__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .steps__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .steps__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-bold);
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__item-title {
+    margin: 0;
+}
+
+
+/* ============================================
+   TEXT + IMAGE — .text-image
+   ============================================ */
+
+.core-engine-lib-word-blocks .text-image__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .text-image__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .text-image__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .text-image__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   IMAGE + TEXT — .image-text
+   ============================================ */
+
+.core-engine-lib-word-blocks .image-text__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .image-text__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .image-text__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .image-text__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   GALLERY — .gallery
+   ============================================ */
+
+.core-engine-lib-word-blocks .gallery__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .gallery__grid {
+    /* uses .grid.grid--auto from content.css */
+}
+
+.core-engine-lib-word-blocks .gallery__item {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+
+/* ============================================
+   FAQ — .faq
+   ============================================ */
+
+.core-engine-lib-word-blocks .faq__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-6);
+    max-width: 48rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.core-engine-lib-word-blocks .faq__item {
+    padding-bottom: var(--theme-space-5);
+    border-bottom: 1px solid var(--theme-border);
+}
+
+.core-engine-lib-word-blocks .faq__item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.core-engine-lib-word-blocks .faq__question {
+    margin: 0 0 var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .faq__answer {
+    margin: 0;
+}
+
+
+/* ============================================
+   CTA — .cta
+   ============================================ */
+
+.core-engine-lib-word-blocks .cta {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+}
+
+.core-engine-lib-word-blocks .cta__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .cta__title {
+    margin: 0;
+    color: var(--theme-text, #1e293b);
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .cta__text {
+    margin: 0;
+    color: var(--theme-text-muted, #64748b);
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .cta__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   CONTACTS — .contacts
+   ============================================ */
+
+.core-engine-lib-word-blocks .contacts__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .contacts__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .contacts__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-1);
+}
+
+.core-engine-lib-word-blocks .contacts__label {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .contacts__value {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   FOOTER — .footer
+   ============================================ */
+
+.core-engine-lib-word-blocks .footer {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+    padding-top: var(--theme-space-6);
+    padding-bottom: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .footer__brand {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+}
+
+.core-engine-lib-word-blocks .footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .footer__link {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .footer__link:hover {
+    opacity: 1;
+}
+
+
+/* ============================================
+   ARTICLE CATALOG — .article-catalog
+   ============================================ */
+
+.core-engine-lib-word-blocks .article-catalog__heading {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .article-catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--theme-space-5);
+    align-content: start;
+}
+
+/* --- Ссылка-карточка --- */
+
+.core-engine-lib-word-blocks .article-catalog__card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 104px 1fr;   /* логотип | текст */
+    gap: var(--theme-space-4);
+    align-items: start;
+    padding: var(--theme-space-5);
+    border-radius: var(--theme-radius-lg);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 4px 16px rgba(15, 23, 42, 0.04),
+        0 1px 3px rgba(15, 23, 42, 0.06);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 12px 32px rgba(59, 130, 246, 0.12),
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:active {
+    transform: translateY(-2px) scale(0.99);
+}
+
+/* --- Свечение (при наведении) --- */
+
+.core-engine-lib-word-blocks .article-catalog__glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    background: radial-gradient(
+        600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(59, 130, 246, 0.15),
+        rgba(139, 92, 246, 0.08) 40%,
+        transparent 60%
+    );
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__glow {
+    opacity: 1;
+}
+
+/* --- Логотип — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__logo {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    border-radius: var(--theme-radius-lg);
+    overflow: hidden;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+    z-index: 1;
+}
+
+.core-engine-lib-word-blocks .article-catalog__logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__logo img {
+    transform: scale(1.05);
+}
+
+/* --- Тело — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__body {
+    position: relative;
+    z-index: 1;
+    min-width: 0;   /* важно: обрезка текста внутри grid работает */
+}
+
+.core-engine-lib-word-blocks .article-catalog__title {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: 1.25;
+    color: var(--theme-text, #0f172a);
+    letter-spacing: -0.01em;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__title {
+    color: var(--theme-accent, #3b82f6);
+}
+
+.core-engine-lib-word-blocks .article-catalog__desc {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    line-height: 1.5;
+    color: var(--theme-text-muted, #64748b);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__date {
+    display: block;
+    margin-top: var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text-muted, #94a3b8);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Адаптив --- */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .article-catalog {
+        grid-template-columns: 1fr;
+        gap: var(--theme-space-4);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-4);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 100px 1fr;
+        gap: var(--theme-space-3);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 100px;
+        height: 100px;
+        border-radius: var(--theme-radius-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-3);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 88px 1fr;
+        gap: var(--theme-space-2);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 88px;
+        height: 88px;
+        border-radius: var(--theme-radius-md);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__title {
+        font-size: var(--theme-font-size-lg);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__desc {
+        font-size: var(--theme-font-size-base);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__date {
+        font-size: var(--theme-font-size-sm);
+    }
+}
+
+/* --- prefers-reduced-motion --- */
+
+@media (prefers-reduced-motion: reduce) {
+    .core-engine-lib-word-blocks .article-catalog__card,
+    .core-engine-lib-word-blocks .article-catalog__logo img,
+    .core-engine-lib-word-blocks .article-catalog__glow {
+        transition: none;
+    }
+}
+
+.core-engine-lib-word-blocks .fx-festive-bokeh { position: relative; background-image: radial-gradient(circle at 50% 50%, rgba(251,207,232,0.42) 0 20%, rgba(251,207,232,0) 62%), radial-gradient(circle at 50% 50%, rgba(186,230,253,0.38) 0 18%, rgba(186,230,253,0) 60%), radial-gradient(circle at 50% 50%, rgba(253,230,138,0.36) 0 16%, rgba(253,230,138,0) 58%), radial-gradient(circle at 50% 50%, rgba(167,243,208,0.34) 0 14%, rgba(167,243,208,0) 56%); background-size: 120px 120px, 160px 160px, 200px 200px, 260px 260px; background-position: 10px 20px, 80px 90px, 40px 140px, 150px 30px; animation: fx-festive-bokeh-drift 18s linear infinite; } .core-engine-lib-word-blocks .fx-festive-bokeh::before { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(circle at 50% 50%, rgba(221,214,254,0.36) 0 14%, rgba(221,214,254,0) 56%), radial-gradient(circle at 50% 50%, rgba(254,205,211,0.34) 0 12%, rgba(254,205,211,0) 54%); background-size: 180px 180px, 240px 240px; background-position: 60px 40px, 140px 120px; animation: fx-festive-bokeh-twinkle 7s ease-in-out infinite; } @keyframes fx-festive-bokeh-drift { 0% { background-position: 10px 20px, 80px 90px, 40px 140px, 150px 30px; } 100% { background-position: 130px 140px, 240px 250px, 240px 340px, 410px 290px; } } @keyframes fx-festive-bokeh-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.85; } }
+
+* { box-sizing: border-box; } body {margin: 0;}*{box-sizing:border-box;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;}body{font-family:Manrope, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;color:rgb(45, 49, 66);background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 251, 247);line-height:1.6;-webkit-font-smoothing:antialiased;}a{color:inherit;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;}img, svg{display:block;max-width:100%;}.header{position:sticky;top:0px;z-index:50;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgba(255, 251, 247, 0.92);backdrop-filter:blur(10px);border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:rgba(45, 49, 66, 0.06);}.header__inner{max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;padding-top:18px;padding-right:24px;padding-bottom:18px;padding-left:24px;display:flex;align-items:center;row-gap:32px;column-gap:32px;}.logo{display:flex;align-items:center;row-gap:10px;column-gap:10px;font-weight:800;font-size:20px;letter-spacing:-0.02em;}.logo__icon{display:flex;}.nav{display:flex;row-gap:28px;column-gap:28px;margin-left:auto;}.nav__link{font-weight:500;font-size:15px;color:rgb(74, 78, 105);transition-behavior:normal;transition-duration:0.2s;transition-timing-function:ease;transition-delay:0s;transition-property:color;}.nav__link:hover{color:rgb(244, 162, 97);}.btn{display:inline-flex;align-items:center;justify-content:center;padding-top:14px;padding-right:28px;padding-bottom:14px;padding-left:28px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;font-weight:700;font-size:15px;border-top-width:initial;border-right-width:initial;border-bottom-width:initial;border-left-width:initial;border-top-style:none;border-right-style:none;border-bottom-style:none;border-left-style:none;border-top-color:initial;border-right-color:initial;border-bottom-color:initial;border-left-color:initial;border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;cursor:pointer;transition-behavior:normal, normal, normal;transition-duration:0.2s, 0.2s, 0.2s;transition-timing-function:ease, ease, ease;transition-delay:0s, 0s, 0s;transition-property:transform, box-shadow, background;font-family:inherit;}.btn--primary{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(244, 162, 97);color:rgb(255, 255, 255);box-shadow:rgba(244, 162, 97, 0.35) 0px 8px 20px;}.btn--primary:hover{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(232, 139, 63);transform:translateY(-2px);box-shadow:rgba(244, 162, 97, 0.45) 0px 12px 26px;}.btn--ghost{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:transparent;color:rgb(45, 49, 66);border-top-width:2px;border-right-width:2px;border-bottom-width:2px;border-left-width:2px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(45, 49, 66, 0.15);border-right-color:rgba(45, 49, 66, 0.15);border-bottom-color:rgba(45, 49, 66, 0.15);border-left-color:rgba(45, 49, 66, 0.15);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;}.btn--ghost:hover{border-top-color:rgb(244, 162, 97);border-right-color:rgb(244, 162, 97);border-bottom-color:rgb(244, 162, 97);border-left-color:rgb(244, 162, 97);color:rgb(244, 162, 97);}.btn--light{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 255, 255);color:rgb(45, 49, 66);box-shadow:rgba(0, 0, 0, 0.12) 0px 8px 20px;}.btn--light:hover{transform:translateY(-2px);}.hero{max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;padding-top:80px;padding-right:24px;padding-bottom:100px;padding-left:24px;display:grid;grid-template-columns:1.1fr 1fr;row-gap:60px;column-gap:60px;align-items:center;}.hero__label{display:inline-block;padding-top:8px;padding-right:16px;padding-bottom:8px;padding-left:16px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(253, 240, 230);color:rgb(201, 123, 63);border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;font-size:13px;font-weight:700;letter-spacing:0.02em;margin-bottom:24px;}.hero__title{font-size:60px;line-height:1.05;font-weight:800;letter-spacing:-0.03em;margin-bottom:24px;}.hero__text{font-size:18px;color:rgb(74, 78, 105);max-width:520px;margin-bottom:36px;}.hero__actions{display:flex;row-gap:16px;column-gap:16px;flex-wrap:wrap;margin-bottom:56px;}.hero__stats{display:flex;row-gap:48px;column-gap:48px;flex-wrap:wrap;}.stat{display:flex;flex-direction:column;}.stat__num{font-size:32px;font-weight:800;color:rgb(45, 49, 66);letter-spacing:-0.02em;}.stat__label{font-size:14px;color:rgb(138, 143, 163);}.hero__visual{position:relative;display:flex;justify-content:center;align-items:center;}.hero__circle{position:absolute;width:420px;height:420px;border-top-left-radius:50%;border-top-right-radius:50%;border-bottom-right-radius:50%;border-bottom-left-radius:50%;background-image:radial-gradient(circle at 30% 30%, rgb(253, 240, 230), rgb(244, 162, 97));background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;opacity:0.35;filter:blur(40px);}.hero__image{position:relative;width:100%;max-width:420px;animation-duration:6s;animation-timing-function:ease-in-out;animation-delay:0s;animation-iteration-count:infinite;animation-direction:normal;animation-fill-mode:none;animation-play-state:running;animation-name:float;animation-timeline:auto;animation-range-start:normal;animation-range-end:normal;}.section-head{max-width:720px;margin-top:0px;margin-right:auto;margin-bottom:56px;margin-left:auto;text-align:center;}.section-title{font-size:40px;font-weight:800;letter-spacing:-0.02em;margin-bottom:16px;}.section-sub{font-size:17px;color:rgb(107, 112, 137);}.about{padding-top:100px;padding-right:24px;padding-bottom:100px;padding-left:24px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 255, 255);}.about__grid{max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;display:grid;grid-template-columns:repeat(3, 1fr);row-gap:28px;column-gap:28px;}.about__card{padding-top:36px;padding-right:32px;padding-bottom:36px;padding-left:32px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 251, 247);border-top-left-radius:24px;border-top-right-radius:24px;border-bottom-right-radius:24px;border-bottom-left-radius:24px;border-top-width:1px;border-right-width:1px;border-bottom-width:1px;border-left-width:1px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(45, 49, 66, 0.06);border-right-color:rgba(45, 49, 66, 0.06);border-bottom-color:rgba(45, 49, 66, 0.06);border-left-color:rgba(45, 49, 66, 0.06);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;transition-behavior:normal, normal;transition-duration:0.25s, 0.25s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:transform, box-shadow;}.about__card:hover{transform:translateY(-6px);box-shadow:rgba(45, 49, 66, 0.08) 0px 20px 40px;}.about__icon{width:56px;height:56px;border-top-left-radius:16px;border-top-right-radius:16px;border-bottom-right-radius:16px;border-bottom-left-radius:16px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(253, 240, 230);display:flex;align-items:center;justify-content:center;margin-bottom:24px;}.about__card h3{font-size:20px;font-weight:700;margin-bottom:12px;}.about__card p{color:rgb(107, 112, 137);font-size:15px;}.services{padding-top:100px;padding-right:24px;padding-bottom:100px;padding-left:24px;}.services__grid{max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;display:grid;grid-template-columns:repeat(2, 1fr);row-gap:24px;column-gap:24px;}.service{padding-top:40px;padding-right:40px;padding-bottom:40px;padding-left:40px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 255, 255);border-top-left-radius:24px;border-top-right-radius:24px;border-bottom-right-radius:24px;border-bottom-left-radius:24px;border-top-width:1px;border-right-width:1px;border-bottom-width:1px;border-left-width:1px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(45, 49, 66, 0.06);border-right-color:rgba(45, 49, 66, 0.06);border-bottom-color:rgba(45, 49, 66, 0.06);border-left-color:rgba(45, 49, 66, 0.06);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;position:relative;overflow-x:hidden;overflow-y:hidden;transition-behavior:normal, normal;transition-duration:0.25s, 0.25s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:transform, box-shadow;}.service:hover{transform:translateY(-4px);box-shadow:rgba(45, 49, 66, 0.08) 0px 20px 40px;}.service__num{font-size:14px;font-weight:800;color:rgb(244, 162, 97);letter-spacing:0.1em;margin-bottom:20px;}.service h3{font-size:22px;font-weight:700;margin-bottom:12px;}.service p{color:rgb(107, 112, 137);font-size:15px;}.breeds{padding-top:100px;padding-right:24px;padding-bottom:100px;padding-left:24px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 255, 255);}.breeds__grid{max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;display:grid;grid-template-columns:repeat(4, 1fr);row-gap:24px;column-gap:24px;}.breed{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 251, 247);border-top-left-radius:24px;border-top-right-radius:24px;border-bottom-right-radius:24px;border-bottom-left-radius:24px;overflow-x:hidden;overflow-y:hidden;border-top-width:1px;border-right-width:1px;border-bottom-width:1px;border-left-width:1px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(45, 49, 66, 0.06);border-right-color:rgba(45, 49, 66, 0.06);border-bottom-color:rgba(45, 49, 66, 0.06);border-left-color:rgba(45, 49, 66, 0.06);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;transition-behavior:normal, normal;transition-duration:0.25s, 0.25s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:transform, box-shadow;}.breed:hover{transform:translateY(-6px);box-shadow:rgba(45, 49, 66, 0.1) 0px 20px 40px;}.breed__image{height:180px;background-size:cover;background-position-x:center;background-position-y:center;}.breed__image--1{background-image:linear-gradient(135deg, rgb(244, 162, 97), rgb(232, 139, 63));background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;}.breed__image--2{background-image:linear-gradient(135deg, rgb(168, 181, 201), rgb(107, 122, 153));background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;}.breed__image--3{background-image:linear-gradient(135deg, rgb(250, 215, 181), rgb(244, 162, 97));background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;}.breed__image--4{background-image:linear-gradient(135deg, rgb(201, 182, 228), rgb(138, 111, 184));background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;}.breed h3{font-size:18px;font-weight:700;padding-top:20px;padding-right:24px;padding-bottom:8px;padding-left:24px;}.breed p{font-size:14px;color:rgb(107, 112, 137);padding-top:0px;padding-right:24px;padding-bottom:24px;padding-left:24px;}.cta{padding-top:80px;padding-right:24px;padding-bottom:80px;padding-left:24px;}.cta__inner{max-width:1000px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;padding-top:72px;padding-right:48px;padding-bottom:72px;padding-left:48px;background-image:linear-gradient(135deg, rgb(45, 49, 66), rgb(74, 78, 105));background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;border-top-left-radius:32px;border-top-right-radius:32px;border-bottom-right-radius:32px;border-bottom-left-radius:32px;text-align:center;color:rgb(255, 255, 255);position:relative;overflow-x:hidden;overflow-y:hidden;}.cta__inner::before{content:"";position:absolute;top:-80px;right:-80px;width:260px;height:260px;border-top-left-radius:50%;border-top-right-radius:50%;border-bottom-right-radius:50%;border-bottom-left-radius:50%;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgba(244, 162, 97, 0.25);filter:blur(40px);}.cta__title{font-size:38px;font-weight:800;letter-spacing:-0.02em;margin-bottom:16px;position:relative;}.cta__text{font-size:17px;color:rgba(255, 255, 255, 0.8);margin-bottom:32px;position:relative;}.cta .btn{position:relative;}.contact{padding-top:100px;padding-right:24px;padding-bottom:100px;padding-left:24px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 255, 255);}.contact__inner{max-width:1100px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;display:grid;grid-template-columns:1fr 1fr;row-gap:64px;column-gap:64px;align-items:start;}.contact__text{color:rgb(107, 112, 137);margin-top:16px;margin-right:0px;margin-bottom:32px;margin-left:0px;font-size:16px;}.contact__list{list-style-position:initial;list-style-image:initial;list-style-type:none;display:flex;flex-direction:column;row-gap:20px;column-gap:20px;}.contact__list li{display:flex;flex-direction:column;row-gap:4px;column-gap:4px;}.contact__label{font-size:13px;font-weight:700;color:rgb(138, 143, 163);text-transform:uppercase;letter-spacing:0.06em;}.contact__list a, .contact__list span:last-child{font-size:17px;font-weight:600;color:rgb(45, 49, 66);}.contact__list a:hover{color:rgb(244, 162, 97);}.contact__form{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 251, 247);padding-top:40px;padding-right:40px;padding-bottom:40px;padding-left:40px;border-top-left-radius:24px;border-top-right-radius:24px;border-bottom-right-radius:24px;border-bottom-left-radius:24px;border-top-width:1px;border-right-width:1px;border-bottom-width:1px;border-left-width:1px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(45, 49, 66, 0.06);border-right-color:rgba(45, 49, 66, 0.06);border-bottom-color:rgba(45, 49, 66, 0.06);border-left-color:rgba(45, 49, 66, 0.06);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;display:flex;flex-direction:column;row-gap:20px;column-gap:20px;}.field{display:flex;flex-direction:column;row-gap:8px;column-gap:8px;}.field span{font-size:14px;font-weight:600;color:rgb(74, 78, 105);}.field input, .field textarea{padding-top:14px;padding-right:16px;padding-bottom:14px;padding-left:16px;border-top-width:1.5px;border-right-width:1.5px;border-bottom-width:1.5px;border-left-width:1.5px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(45, 49, 66, 0.12);border-right-color:rgba(45, 49, 66, 0.12);border-bottom-color:rgba(45, 49, 66, 0.12);border-left-color:rgba(45, 49, 66, 0.12);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;border-top-left-radius:12px;border-top-right-radius:12px;border-bottom-right-radius:12px;border-bottom-left-radius:12px;font-family:inherit;font-size:15px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 255, 255);color:rgb(45, 49, 66);transition-behavior:normal, normal;transition-duration:0.2s, 0.2s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:border-color, box-shadow;resize:vertical;}.field input:focus, .field textarea:focus{outline-color:initial;outline-style:none;outline-width:initial;border-top-color:rgb(244, 162, 97);border-right-color:rgb(244, 162, 97);border-bottom-color:rgb(244, 162, 97);border-left-color:rgb(244, 162, 97);box-shadow:rgba(244, 162, 97, 0.15) 0px 0px 0px 4px;}.contact__form .btn{margin-top:8px;}.footer{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(45, 49, 66);color:rgba(255, 255, 255, 0.75);padding-top:56px;padding-right:24px;padding-bottom:32px;padding-left:24px;}.footer__inner{max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;display:grid;grid-template-columns:1.5fr 1fr;row-gap:40px;column-gap:40px;align-items:start;}.footer__brand .logo__text{color:rgb(255, 255, 255);font-size:22px;font-weight:800;display:block;margin-bottom:12px;}.footer__brand p{font-size:15px;max-width:360px;}.footer__nav{display:flex;flex-direction:column;row-gap:12px;column-gap:12px;justify-self:end;}.footer__nav a{font-size:15px;transition-behavior:normal;transition-duration:0.2s;transition-timing-function:ease;transition-delay:0s;transition-property:color;}.footer__nav a:hover{color:rgb(244, 162, 97);}.footer__copy{grid-column-start:1;grid-column-end:-1;padding-top:32px;border-top-width:1px;border-top-style:solid;border-top-color:rgba(255, 255, 255, 0.1);font-size:14px;color:rgba(255, 255, 255, 0.5);}@keyframes float{0%, 100%{transform:translateY(0px);}50%{transform:translateY(-14px);}}@media (max-width: 1024px){.hero{grid-template-columns:1fr;padding-top:60px;padding-right:24px;padding-bottom:80px;padding-left:24px;row-gap:40px;column-gap:40px;}.hero__title{font-size:48px;}.hero__visual{order:-1;}.hero__image{max-width:320px;}.about__grid{grid-template-columns:repeat(2, 1fr);}.breeds__grid{grid-template-columns:repeat(2, 1fr);}.contact__inner{grid-template-columns:1fr;row-gap:40px;column-gap:40px;}.footer__inner{grid-template-columns:1fr;}.footer__nav{justify-self:start;}}@media (max-width: 768px){.header__inner{padding-top:14px;padding-right:20px;padding-bottom:14px;padding-left:20px;row-gap:16px;column-gap:16px;flex-wrap:wrap;}.nav{display:none;}.header__cta{margin-left:auto;padding-top:10px;padding-right:20px;padding-bottom:10px;padding-left:20px;font-size:14px;}.hero{padding-top:40px;padding-right:20px;padding-bottom:60px;padding-left:20px;}.hero__title{font-size:36px;}.hero__text{font-size:16px;}.hero__stats{row-gap:28px;column-gap:28px;}.stat__num{font-size:26px;}.section-title{font-size:30px;}.section-sub{font-size:15px;}.about{padding-top:64px;padding-right:20px;padding-bottom:64px;padding-left:20px;}.services{padding-top:64px;padding-right:20px;padding-bottom:64px;padding-left:20px;}.breeds{padding-top:64px;padding-right:20px;padding-bottom:64px;padding-left:20px;}.contact{padding-top:64px;padding-right:20px;padding-bottom:64px;padding-left:20px;}.about__grid{grid-template-columns:1fr;}.services__grid{grid-template-columns:1fr;}.breeds__grid{grid-template-columns:1fr;}.about__card{padding-top:28px;padding-right:24px;padding-bottom:28px;padding-left:24px;}.service{padding-top:28px;padding-right:24px;padding-bottom:28px;padding-left:24px;}.cta{padding-top:48px;padding-right:20px;padding-bottom:48px;padding-left:20px;}.cta__inner{padding-top:48px;padding-right:24px;padding-bottom:48px;padding-left:24px;border-top-left-radius:24px;border-top-right-radius:24px;border-bottom-right-radius:24px;border-bottom-left-radius:24px;}.cta__title{font-size:28px;}.contact__form{padding-top:28px;padding-right:24px;padding-bottom:28px;padding-left:24px;}.footer{padding-top:40px;padding-right:20px;padding-bottom:24px;padding-left:20px;}.btn{padding-top:12px;padding-right:24px;padding-bottom:12px;padding-left:24px;}}');
+INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (35, 1, '2026-09-30 16:53:10.462841', 'Свежеобжаренный кофе с доставкой', 'Отбираем зерно на лучших плантациях', '/static/core/engine/lib/word/editor/images/files/img-74f20ef4.svg', '<body><section data-block="core-hero" class="section hero fx-starfield-earth" id="ie4z"><div class="container hero__inner"><h1 class="h1 hero__title" id="ic45">Свежеобжаренный кофе с доставкой</h1><p class="lead hero__lead" id="iu7o">Отбираем зерно на лучших плантациях, обжариваем небольшими партиями и привозим вам в течение 48 часов после обжарки.</p><a href="page:catalog" class="btn hero__btn">Выбрать кофе</a></div></section><section data-block="core-features" class="section features fx-soft-diagonal-hatch"><div class="container"><h2 class="h2 features__title">Почему выбирают нас</h2><div class="grid grid--3 features__grid"><div class="card features__item"><h3 class="card__title">Свежая обжарка</h3><p class="card__text">Обжариваем зерно под каждый заказ и отправляем в течение 48 часов.</p></div><div class="card features__item"><h3 class="card__title">Прямые поставки</h3><p class="card__text">Работаем с фермами напрямую, без посредников и лишних наценок.</p></div><div class="card features__item"><h3 class="card__title">Подбор под вкус</h3><p class="card__text">Поможем выбрать зерно и способ приготовления под ваши предпочтения.</p></div></div></div></section><section data-block="core-text-image" class="section text-image fx-aurora-weave" id="i4brm"><div class="container"><div class="grid grid--2 text-image__grid"><div class="text-image__text"><h2 class="h2">Обжарка небольшими партиями</h2><p class="text">Мы обжариваем зерно на собственной ростерии партиями до 12 кг — так каждая партия сохраняет аромат и вкусовой профиль.</p><p class="text text--muted">На упаковке указываем дату обжарки и рекомендуемый способ приготовления.</p></div><div class="text-image__media"><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Обжарка кофейных зёрен на ростерии" class="image"><rect x="250" y="180" width="300" height="240" rx="20" fill="var(--theme-bg-soft, #f1f5f9)" stroke="var(--theme-text, #1e293b)" stroke-width="6"></rect><rect x="290" y="220" width="220" height="160" rx="12" fill="var(--theme-accent, #3b82f6)" opacity="0.15"></rect><circle cx="400" cy="300" r="60" fill="var(--theme-accent, #3b82f6)" opacity="0.3"></circle><circle cx="400" cy="300" r="40" fill="var(--theme-accent, #3b82f6)" opacity="0.5"></circle><circle cx="400" cy="300" r="20" fill="var(--theme-accent, #3b82f6)"></circle><path d="M340 240 Q400 200 460 240" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="4" fill="none"></path><path d="M340 360 Q400 400 460 360" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="4" fill="none"></path><rect x="370" y="420" width="60" height="40" rx="8" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="360" y="460" width="80" height="20" rx="6" fill="var(--theme-text, #1e293b)" opacity="0.6"></rect><circle cx="320" cy="200" r="12" fill="var(--theme-accent, #3b82f6)" opacity="0.4"></circle><circle cx="480" cy="200" r="12" fill="var(--theme-accent, #3b82f6)" opacity="0.4"></circle><circle cx="320" cy="400" r="12" fill="var(--theme-accent, #3b82f6)" opacity="0.4"></circle><circle cx="480" cy="400" r="12" fill="var(--theme-accent, #3b82f6)" opacity="0.4"></circle></svg></div></div></div></section><section data-block="core-gallery" class="section gallery fx-vinyl-grooves"><div class="container"><h2 class="h2 gallery__title">Галерея</h2><div class="grid grid--auto gallery__grid"><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Зёрна арабики крупным планом" class="image gallery__item"><ellipse cx="400" cy="300" rx="150" ry="110" fill="var(--theme-accent, #6f4e37)"></ellipse><path d="M400 190 Q430 300 400 410 Q370 300 400 190 Z" fill="var(--theme-bg-soft, #f1f5f9)"></path><ellipse cx="250" cy="420" rx="90" ry="65" fill="var(--theme-accent, #6f4e37)"></ellipse><path d="M250 355 Q270 420 250 485 Q230 420 250 355 Z" fill="var(--theme-bg-soft, #f1f5f9)"></path><ellipse cx="560" cy="180" rx="80" ry="58" fill="var(--theme-accent, #6f4e37)"></ellipse><path d="M560 122 Q578 180 560 238 Q542 180 560 122 Z" fill="var(--theme-bg-soft, #f1f5f9)"></path><ellipse cx="600" cy="440" rx="70" ry="50" fill="var(--theme-accent, #6f4e37)"></ellipse><path d="M600 390 Q615 440 600 490 Q585 440 600 390 Z" fill="var(--theme-bg-soft, #f1f5f9)"></path></svg><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Чашка свежесваренного эспрессо" class="image gallery__item"><ellipse cx="400" cy="470" rx="180" ry="30" fill="var(--theme-bg-soft, #f1f5f9)"></ellipse><path d="M250 250 L550 250 L520 430 Q515 470 470 470 L330 470 Q285 470 280 430 Z" fill="var(--theme-accent, #3b82f6)"></path><path d="M250 250 L550 250 L545 290 L255 290 Z" fill="var(--theme-text, #1e293b)"></path><ellipse cx="400" cy="250" rx="150" ry="28" fill="var(--theme-text, #1e293b)"></ellipse><ellipse cx="400" cy="252" rx="130" ry="20" fill="var(--theme-accent, #3b82f6)"></ellipse><path d="M550 300 Q640 300 640 360 Q640 420 550 420" fill="none" stroke="var(--theme-accent, #3b82f6)" stroke-width="26" stroke-linecap="round"></path><path d="M360 200 Q350 170 365 145" fill="none" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="8" stroke-linecap="round"></path><path d="M400 195 Q390 160 405 130" fill="none" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="8" stroke-linecap="round"></path><path d="M440 200 Q430 170 445 145" fill="none" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="8" stroke-linecap="round"></path></svg><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ростер для обжарки кофе" class="image gallery__item"><rect x="250" y="120" width="300" height="260" rx="24" fill="var(--theme-accent, #3b82f6)"></rect><rect x="290" y="160" width="220" height="120" rx="12" fill="var(--theme-bg-soft, #f1f5f9)"></rect><circle cx="400" cy="220" r="42" fill="var(--theme-text, #1e293b)"></circle><circle cx="400" cy="220" r="18" fill="var(--theme-bg-soft, #f1f5f9)"></circle><rect x="330" y="300" width="140" height="16" rx="8" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="360" y="380" width="80" height="90" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="300" y="470" width="200" height="20" rx="10" fill="var(--theme-text, #1e293b)"></rect><path d="M250 150 L180 90 L180 130 L120 130" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M550 150 L620 90 L620 130 L680 130" stroke="var(--theme-text-muted, #94a3b8)" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="400" cy="220" r="6" fill="var(--theme-accent, #3b82f6)"></circle></svg><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Упаковка кофе с указанием даты обжарки" class="image gallery__item"><rect x="300" y="140" width="200" height="320" rx="14" fill="var(--theme-accent, #3b82f6)"></rect><rect x="300" y="140" width="200" height="70" rx="14" fill="var(--theme-text, #1e293b)"></rect><rect x="330" y="250" width="140" height="90" rx="8" fill="var(--theme-bg-soft, #f1f5f9)"></rect><circle cx="400" cy="295" r="26" fill="var(--theme-text, #1e293b)"></circle><line x1="400" y1="295" x2="400" y2="277" stroke="var(--theme-bg-soft, #f1f5f9)" stroke-width="4" stroke-linecap="round"></line><line x1="400" y1="295" x2="414" y2="303" stroke="var(--theme-bg-soft, #f1f5f9)" stroke-width="4" stroke-linecap="round"></line><rect x="340" y="370" width="120" height="12" rx="6" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="340" y="396" width="80" height="12" rx="6" fill="var(--theme-bg-soft, #f1f5f9)"></rect><rect x="340" y="422" width="100" height="12" rx="6" fill="var(--theme-bg-soft, #f1f5f9)"></rect></svg><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Альтернативный способ заваривания — воронка V60" class="image gallery__item"><path d="M300 150 L500 150 L400 350 Z" fill="var(--theme-bg-soft, #f1f5f9)" stroke="var(--theme-text, #1e293b)" stroke-width="8"></path><rect x="380" y="350" width="40" height="150" fill="var(--theme-text-muted, #94a3b8)"></rect><rect x="350" y="500" width="100" height="20" fill="var(--theme-text, #1e293b)"></rect><circle cx="400" cy="120" r="30" fill="var(--theme-accent, #3b82f6)"></circle><path d="M370 120 Q400 90 430 120" stroke="var(--theme-text, #1e293b)" stroke-width="6" fill="none"></path><rect x="390" y="350" width="20" height="20" fill="var(--theme-accent, #3b82f6)"></rect></svg><svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Кофейная плантация на склоне горы" class="image gallery__item"><rect x="0" y="350" width="800" height="250" fill="var(--theme-bg-soft, #f1f5f9)"></rect><path d="M0 350 L200 150 L400 350 Z" fill="var(--theme-text-muted, #94a3b8)"></path><path d="M300 350 L500 100 L700 350 Z" fill="var(--theme-text-muted, #94a3b8)"></path><path d="M550 350 L700 200 L800 350 Z" fill="var(--theme-text-muted, #94a3b8)"></path><circle cx="200" cy="250" r="15" fill="var(--theme-accent, #3b82f6)"></circle><circle cx="500" cy="200" r="15" fill="var(--theme-accent, #3b82f6)"></circle><circle cx="700" cy="280" r="15" fill="var(--theme-accent, #3b82f6)"></circle><rect x="150" y="300" width="100" height="50" fill="var(--theme-accent, #3b82f6)" opacity="0.5"></rect><rect x="450" y="250" width="100" height="50" fill="var(--theme-accent, #3b82f6)" opacity="0.5"></rect><rect x="650" y="320" width="100" height="50" fill="var(--theme-accent, #3b82f6)" opacity="0.5"></rect></svg></div></div></section><section data-block="core-steps" class="section steps fx-soft-diagonal-hatch"><div class="container"><h2 class="h2 steps__title">Как оформить заказ</h2><div class="grid grid--3 steps__grid"><div class="steps__item"><div class="steps__num">1</div><h3 class="h3 steps__item-title">Выберите кофе</h3><p class="text text--muted">Откройте каталог и подберите зерно по вкусу и способу приготовления.</p></div><div class="steps__item"><div class="steps__num">2</div><h3 class="h3 steps__item-title">Оформите заказ</h3><p class="text text--muted">Укажите объём, помол и адрес доставки — это займёт пару минут.</p></div><div class="steps__item"><div class="steps__num">3</div><h3 class="h3 steps__item-title">Получите свежую обжарку</h3><p class="text text--muted">Обжарим зерно под ваш заказ и доставим в течение 48 часов.</p></div></div></div></section><section data-block="core-faq" class="section faq fx-office-grid"><div class="container"><h2 class="h2 faq__title">Частые вопросы</h2><div class="faq__list"><div class="faq__item"><h3 class="h3 faq__question">Какой срок доставки?</h3><p class="text text--muted faq__answer">Отправляем заказы в течение 48 часов после обжарки. По Москве и Санкт-Петербургу доставка занимает 1–2 дня, по России — от 3 до 7 дней.</p></div><div class="faq__item"><h3 class="h3 faq__question">Можно ли заказать помол?</h3><p class="text text--muted faq__answer">Да, при оформлении заказа выберите подходящий помол: для эспрессо, воронки, френч-пресса или гейзерной кофеварки.</p></div><div class="faq__item"><h3 class="h3 faq__question">Как хранить кофе?</h3><p class="text text--muted faq__answer">Храните зерно в закрытой упаковке в тёмном прохладном месте. Оптимально раскрыть вкус в течение 2–4 недель после даты обжарки.</p></div></div></div></section><section data-block="core-cta" class="section cta fx-aurora-drift"><div class="container cta__inner"><h2 class="h2 cta__title">Готовы попробовать свежую обжарку?</h2><p class="text cta__text">Оставьте заявку — поможем подобрать зерно под ваш вкус и способ приготовления.</p><a href="page:contacts" class="btn cta__btn">Оставить заявку</a></div></section><section data-block="core-contacts" class="section contacts fx-office-grid"><div class="container"><h2 class="h2 contacts__title">Контакты</h2><div class="grid grid--3 contacts__grid"><div class="contacts__item"><div class="contacts__label">Адрес</div><div class="contacts__value">Москва, ул. Кофейная, 12</div></div><div class="contacts__item"><div class="contacts__label">Телефон</div><div class="contacts__value">+7 (495) 123-45-67</div></div><div class="contacts__item"><div class="contacts__label">Email</div><div class="contacts__value">hello@coffee.example</div></div></div></div></section><footer data-block="core-footer" class="section footer fx-shadow-top-n"><div class="container footer__inner"><div class="footer__brand">© Кофейная ростерия</div><nav class="footer__nav"><a href="page:home" class="footer__link">Главная</a><a href="page:catalog" class="footer__link">Каталог</a><a href="page:contacts" class="footer__link">Контакты</a></nav></div></footer></body>', '{"assets":[{"type":"image","src":"/media/1/0011d3540f024690b41bcab1c1066185.png","unitDim":"px","height":0,"width":0,"name":"0011d3540f024690b41bcab1c1066185.png"},{"type":"image","src":"/media/1/005204288b374e0bb497c8c2f4959697.jpg","unitDim":"px","height":0,"width":0,"name":"005204288b374e0bb497c8c2f4959697.jpg"},{"type":"image","src":"/media/1/00d40f05eed5483db643ff64bdb74089.png","unitDim":"px","height":0,"width":0,"name":"00d40f05eed5483db643ff64bdb74089.png"},{"type":"image","src":"/media/1/010d02f6f4ad43a6849f152eef3f8cb7.jpg","unitDim":"px","height":0,"width":0,"name":"010d02f6f4ad43a6849f152eef3f8cb7.jpg"},{"type":"image","src":"/media/1/01a982f272e14fc497ebcd98297a0ccc.jpg","unitDim":"px","height":0,"width":0,"name":"01a982f272e14fc497ebcd98297a0ccc.jpg"},{"type":"image","src":"/media/1/0269f8e7fbad4939a16e2ecc2627fe7d.jpg","unitDim":"px","height":0,"width":0,"name":"0269f8e7fbad4939a16e2ecc2627fe7d.jpg"},{"type":"image","src":"/media/1/03a305da08ae4c03b120704162faa892.svg","unitDim":"px","height":0,"width":0,"name":"03a305da08ae4c03b120704162faa892.svg"},{"type":"image","src":"/media/1/045e8dd55f4e490db9bb94c66d0f5834.jpg","unitDim":"px","height":0,"width":0,"name":"045e8dd55f4e490db9bb94c66d0f5834.jpg"},{"type":"image","src":"/media/1/059c9fbf076b442689da18ea970b0e8c.svg","unitDim":"px","height":0,"width":0,"name":"059c9fbf076b442689da18ea970b0e8c.svg"},{"type":"image","src":"/media/1/060a9822c6bd4e80a95bb969fccca961.svg","unitDim":"px","height":0,"width":0,"name":"060a9822c6bd4e80a95bb969fccca961.svg"},{"type":"image","src":"/media/1/07c5e3ce8c9d441bbfdba206671748d9.svg","unitDim":"px","height":0,"width":0,"name":"07c5e3ce8c9d441bbfdba206671748d9.svg"},{"type":"image","src":"/media/1/086cae858708428aabd84f4d367a9c8a.jpg","unitDim":"px","height":0,"width":0,"name":"086cae858708428aabd84f4d367a9c8a.jpg"},{"type":"image","src":"/media/1/08fe416bab75497bb47b5b6e9229332c.jpg","unitDim":"px","height":0,"width":0,"name":"08fe416bab75497bb47b5b6e9229332c.jpg"},{"type":"image","src":"/media/1/0a247e12b1af4677903ef91db6116394.png","unitDim":"px","height":0,"width":0,"name":"0a247e12b1af4677903ef91db6116394.png"},{"type":"image","src":"/media/1/0a30deaa749c4cb093bfc5e04b7efd8e.svg","unitDim":"px","height":0,"width":0,"name":"0a30deaa749c4cb093bfc5e04b7efd8e.svg"},{"type":"image","src":"/media/1/0ae11c4468b34edf98ed299af4fc2449.svg","unitDim":"px","height":0,"width":0,"name":"0ae11c4468b34edf98ed299af4fc2449.svg"},{"type":"image","src":"/media/1/0b2f761928bc472d8a0870131f6b678f.jpg","unitDim":"px","height":0,"width":0,"name":"0b2f761928bc472d8a0870131f6b678f.jpg"},{"type":"image","src":"/media/1/0b8c7951fd7e42bda6784fd487e29ad4.svg","unitDim":"px","height":0,"width":0,"name":"0b8c7951fd7e42bda6784fd487e29ad4.svg"},{"type":"image","src":"/media/1/0b9ce473d5e14c008ed712e3b5c2e91f.jpg","unitDim":"px","height":0,"width":0,"name":"0b9ce473d5e14c008ed712e3b5c2e91f.jpg"},{"type":"image","src":"/media/1/0e3907188d8443ce9dd054b27a69cba0.svg","unitDim":"px","height":0,"width":0,"name":"0e3907188d8443ce9dd054b27a69cba0.svg"},{"type":"image","src":"/media/1/0e44b0df923d4c4c8cc7c341e333e26a.svg","unitDim":"px","height":0,"width":0,"name":"0e44b0df923d4c4c8cc7c341e333e26a.svg"},{"type":"image","src":"/media/1/0f4209bd13644036bdd40f983ad8b3ba.jpg","unitDim":"px","height":0,"width":0,"name":"0f4209bd13644036bdd40f983ad8b3ba.jpg"},{"type":"image","src":"/media/1/10f8ad5407e5498790009f93d41d7338.jpg","unitDim":"px","height":0,"width":0,"name":"10f8ad5407e5498790009f93d41d7338.jpg"},{"type":"image","src":"/media/1/11f89a23a24e43468a82c759c43d3cd7.svg","unitDim":"px","height":0,"width":0,"name":"11f89a23a24e43468a82c759c43d3cd7.svg"},{"type":"image","src":"/media/1/12c2f34e27aa41a8a887b71fa2ecb7b6.jpg","unitDim":"px","height":0,"width":0,"name":"12c2f34e27aa41a8a887b71fa2ecb7b6.jpg"},{"type":"image","src":"/media/1/13b9e1c5fb1a49519660cc3b113d2ebd.jpg","unitDim":"px","height":0,"width":0,"name":"13b9e1c5fb1a49519660cc3b113d2ebd.jpg"},{"type":"image","src":"/media/1/14999964d344419ca041db46be2f2a31.png","unitDim":"px","height":0,"width":0,"name":"14999964d344419ca041db46be2f2a31.png"},{"type":"image","src":"/media/1/14d0fa25815e4bf8bd77e557c7965dce.jpg","unitDim":"px","height":0,"width":0,"name":"14d0fa25815e4bf8bd77e557c7965dce.jpg"},{"type":"image","src":"/media/1/156c42a278144ffc9a6d5acdc8d84065.png","unitDim":"px","height":0,"width":0,"name":"156c42a278144ffc9a6d5acdc8d84065.png"},{"type":"image","src":"/media/1/162a57495ec94f909fd3f6344fff60f2.svg","unitDim":"px","height":0,"width":0,"name":"162a57495ec94f909fd3f6344fff60f2.svg"},{"type":"image","src":"/media/1/16756c08fb4e454eb6e17427ceeb5384.svg","unitDim":"px","height":0,"width":0,"name":"16756c08fb4e454eb6e17427ceeb5384.svg"},{"type":"image","src":"/media/1/16de4075b55c45028b260e0fc47e3893.png","unitDim":"px","height":0,"width":0,"name":"16de4075b55c45028b260e0fc47e3893.png"},{"type":"image","src":"/media/1/181e9a42e673409cbc272cae051e12ec.png","unitDim":"px","height":0,"width":0,"name":"181e9a42e673409cbc272cae051e12ec.png"},{"type":"image","src":"/media/1/183bc52b144d48bc8340829f6d9e5e30.svg","unitDim":"px","height":0,"width":0,"name":"183bc52b144d48bc8340829f6d9e5e30.svg"},{"type":"image","src":"/media/1/186a0984b3e1499c85b79f7fa4c4d94d.jpg","unitDim":"px","height":0,"width":0,"name":"186a0984b3e1499c85b79f7fa4c4d94d.jpg"},{"type":"image","src":"/media/1/1a6a384bec624063b6d41def534ebe54.jpg","unitDim":"px","height":0,"width":0,"name":"1a6a384bec624063b6d41def534ebe54.jpg"},{"type":"image","src":"/media/1/1ac7fa4a71ff44169be44226a9bb42c5.png","unitDim":"px","height":0,"width":0,"name":"1ac7fa4a71ff44169be44226a9bb42c5.png"},{"type":"image","src":"/media/1/1b50a8ef77804dfab9bf2b49a2674bc2.jpg","unitDim":"px","height":0,"width":0,"name":"1b50a8ef77804dfab9bf2b49a2674bc2.jpg"},{"type":"image","src":"/media/1/1bec6280d7d647d7916e677afc814d2e.svg","unitDim":"px","height":0,"width":0,"name":"1bec6280d7d647d7916e677afc814d2e.svg"},{"type":"image","src":"/media/1/1ccd9b86cc3c4f0790f2afda9993cbd0.jpg","unitDim":"px","height":0,"width":0,"name":"1ccd9b86cc3c4f0790f2afda9993cbd0.jpg"},{"type":"image","src":"/media/1/20761040e00c49698dee96a890d43779.jpg","unitDim":"px","height":0,"width":0,"name":"20761040e00c49698dee96a890d43779.jpg"},{"type":"image","src":"/media/1/2182d38446294c54aefaa7167386c651.png","unitDim":"px","height":0,"width":0,"name":"2182d38446294c54aefaa7167386c651.png"},{"type":"image","src":"/media/1/21f219cbbda44959aac4930f5239d2cf.jpg","unitDim":"px","height":0,"width":0,"name":"21f219cbbda44959aac4930f5239d2cf.jpg"},{"type":"image","src":"/media/1/22225b995c07434ea32cdd9c7bc643a3.png","unitDim":"px","height":0,"width":0,"name":"22225b995c07434ea32cdd9c7bc643a3.png"},{"type":"image","src":"/media/1/22c1b410c8974000b767706e14665d9d.jpg","unitDim":"px","height":0,"width":0,"name":"22c1b410c8974000b767706e14665d9d.jpg"},{"type":"image","src":"/media/1/247631f39ddc48c7b4d84bc74f8369ea.svg","unitDim":"px","height":0,"width":0,"name":"247631f39ddc48c7b4d84bc74f8369ea.svg"},{"type":"image","src":"/media/1/251c87f65d7342a3a5b249d82a27b8aa.jpg","unitDim":"px","height":0,"width":0,"name":"251c87f65d7342a3a5b249d82a27b8aa.jpg"},{"type":"image","src":"/media/1/251e2079e63b44e58e11259364e67a19.jpg","unitDim":"px","height":0,"width":0,"name":"251e2079e63b44e58e11259364e67a19.jpg"},{"type":"image","src":"/media/1/26cfc82036834dc78acc85dd6d7a8dc9.svg","unitDim":"px","height":0,"width":0,"name":"26cfc82036834dc78acc85dd6d7a8dc9.svg"},{"type":"image","src":"/media/1/2791630e0fc04914834a006dd1c7ca26.svg","unitDim":"px","height":0,"width":0,"name":"2791630e0fc04914834a006dd1c7ca26.svg"},{"type":"image","src":"/media/1/27f25598f51d4b3791b88414dd2bf755.svg","unitDim":"px","height":0,"width":0,"name":"27f25598f51d4b3791b88414dd2bf755.svg"},{"type":"image","src":"/media/1/2863acfd005140ab8857ef9d93ca405c.jpg","unitDim":"px","height":0,"width":0,"name":"2863acfd005140ab8857ef9d93ca405c.jpg"},{"type":"image","src":"/media/1/29ea738f29154eceb9754b43fd31071e.svg","unitDim":"px","height":0,"width":0,"name":"29ea738f29154eceb9754b43fd31071e.svg"},{"type":"image","src":"/media/1/2a2a1cb370c44382bb2b0820b83159cd.jpg","unitDim":"px","height":0,"width":0,"name":"2a2a1cb370c44382bb2b0820b83159cd.jpg"},{"type":"image","src":"/media/1/2adda6bb4b5a4b2a9e2e91c8fb933f06.png","unitDim":"px","height":0,"width":0,"name":"2adda6bb4b5a4b2a9e2e91c8fb933f06.png"},{"type":"image","src":"/media/1/2aee7f5f48ad4bf5a3918e642a78261d.png","unitDim":"px","height":0,"width":0,"name":"2aee7f5f48ad4bf5a3918e642a78261d.png"},{"type":"image","src":"/media/1/2c0b8d1de9dd43e3846c88b0cd203ad4.svg","unitDim":"px","height":0,"width":0,"name":"2c0b8d1de9dd43e3846c88b0cd203ad4.svg"},{"type":"image","src":"/media/1/2c25a28054e343c5a36b940398f66102.png","unitDim":"px","height":0,"width":0,"name":"2c25a28054e343c5a36b940398f66102.png"},{"type":"image","src":"/media/1/2d5fd315376a4481b423c02cebc84201.svg","unitDim":"px","height":0,"width":0,"name":"2d5fd315376a4481b423c02cebc84201.svg"},{"type":"image","src":"/media/1/2e4de307d9ba4cd0bb9cd463f4d338d3.svg","unitDim":"px","height":0,"width":0,"name":"2e4de307d9ba4cd0bb9cd463f4d338d3.svg"},{"type":"image","src":"/media/1/314ccee6564a46bf99c8b788f1e48ef0.svg","unitDim":"px","height":0,"width":0,"name":"314ccee6564a46bf99c8b788f1e48ef0.svg"},{"type":"image","src":"/media/1/317e9975bf094136b5ab4d5e866665dc.png","unitDim":"px","height":0,"width":0,"name":"317e9975bf094136b5ab4d5e866665dc.png"},{"type":"image","src":"/media/1/3258c2d6a9d34551ac3275d1af28d7b1.png","unitDim":"px","height":0,"width":0,"name":"3258c2d6a9d34551ac3275d1af28d7b1.png"},{"type":"image","src":"/media/1/340ad732c44d4eb696133829e1be4948.jpg","unitDim":"px","height":0,"width":0,"name":"340ad732c44d4eb696133829e1be4948.jpg"},{"type":"image","src":"/media/1/349423fe14e5474393d93fc472254c92.png","unitDim":"px","height":0,"width":0,"name":"349423fe14e5474393d93fc472254c92.png"},{"type":"image","src":"/media/1/34f49e6bc46443f5b47f219ee7806b12.jpg","unitDim":"px","height":0,"width":0,"name":"34f49e6bc46443f5b47f219ee7806b12.jpg"},{"type":"image","src":"/media/1/35528203c20a478c9747a7febfd356d0.svg","unitDim":"px","height":0,"width":0,"name":"35528203c20a478c9747a7febfd356d0.svg"},{"type":"image","src":"/media/1/379396dc5a0046cfab9fb1b269a2f459.svg","unitDim":"px","height":0,"width":0,"name":"379396dc5a0046cfab9fb1b269a2f459.svg"},{"type":"image","src":"/media/1/37bb844a3f4a4ce899c445c169f40213.png","unitDim":"px","height":0,"width":0,"name":"37bb844a3f4a4ce899c445c169f40213.png"},{"type":"image","src":"/media/1/3821ed446cbb41089fefbc3738e0b92c.svg","unitDim":"px","height":0,"width":0,"name":"3821ed446cbb41089fefbc3738e0b92c.svg"},{"type":"image","src":"/media/1/3985787300fb4a31bc28151a2685aa9c.svg","unitDim":"px","height":0,"width":0,"name":"3985787300fb4a31bc28151a2685aa9c.svg"},{"type":"image","src":"/media/1/3a1d521a99bc447696f049bb6c44f624.png","unitDim":"px","height":0,"width":0,"name":"3a1d521a99bc447696f049bb6c44f624.png"},{"type":"image","src":"/media/1/3a819c1804e14c569d8fa5b506104f53.jpg","unitDim":"px","height":0,"width":0,"name":"3a819c1804e14c569d8fa5b506104f53.jpg"},{"type":"image","src":"/media/1/3abba62abd2d4ed39d7af1894e74581c.png","unitDim":"px","height":0,"width":0,"name":"3abba62abd2d4ed39d7af1894e74581c.png"},{"type":"image","src":"/media/1/3ae19277fbd5439f9f28aad215a89972.jpg","unitDim":"px","height":0,"width":0,"name":"3ae19277fbd5439f9f28aad215a89972.jpg"},{"type":"image","src":"/media/1/3c26d202caf24dfdb820b85074d89872.jpg","unitDim":"px","height":0,"width":0,"name":"3c26d202caf24dfdb820b85074d89872.jpg"},{"type":"image","src":"/media/1/3c6535b5ba42422faf43077b2c81f7b5.jpg","unitDim":"px","height":0,"width":0,"name":"3c6535b5ba42422faf43077b2c81f7b5.jpg"},{"type":"image","src":"/media/1/3c77deda8ba845d28eac57e0dbb6175c.jpg","unitDim":"px","height":0,"width":0,"name":"3c77deda8ba845d28eac57e0dbb6175c.jpg"},{"type":"image","src":"/media/1/3d7bf3de847e497a9bd3bbb55f0391cc.svg","unitDim":"px","height":0,"width":0,"name":"3d7bf3de847e497a9bd3bbb55f0391cc.svg"},{"type":"image","src":"/media/1/3fb418a681954c7eabb4abc7efb35145.jpg","unitDim":"px","height":0,"width":0,"name":"3fb418a681954c7eabb4abc7efb35145.jpg"},{"type":"image","src":"/media/1/401fd43e591e4bc083142b2035dcd2f7.png","unitDim":"px","height":0,"width":0,"name":"401fd43e591e4bc083142b2035dcd2f7.png"},{"type":"image","src":"/media/1/43fec4d79f7d43ee8265b2882b6a0d25.svg","unitDim":"px","height":0,"width":0,"name":"43fec4d79f7d43ee8265b2882b6a0d25.svg"},{"type":"image","src":"/media/1/4499f8cacb354e8dbcdc4fd7ba0ac0ca.svg","unitDim":"px","height":0,"width":0,"name":"4499f8cacb354e8dbcdc4fd7ba0ac0ca.svg"},{"type":"image","src":"/media/1/44b890c5f971428ea4c97289ff3180cb.jpg","unitDim":"px","height":0,"width":0,"name":"44b890c5f971428ea4c97289ff3180cb.jpg"},{"type":"image","src":"/media/1/46157be74c6e4a218d1da48b4a0604de.svg","unitDim":"px","height":0,"width":0,"name":"46157be74c6e4a218d1da48b4a0604de.svg"},{"type":"image","src":"/media/1/471adca7bcae4996a9baed34003fd3c0.png","unitDim":"px","height":0,"width":0,"name":"471adca7bcae4996a9baed34003fd3c0.png"},{"type":"image","src":"/media/1/4829d08efed74fa58c8176d84c4bfdfe.svg","unitDim":"px","height":0,"width":0,"name":"4829d08efed74fa58c8176d84c4bfdfe.svg"},{"type":"image","src":"/media/1/483143746a1e4819a1d05ca8c71665a2.svg","unitDim":"px","height":0,"width":0,"name":"483143746a1e4819a1d05ca8c71665a2.svg"},{"type":"image","src":"/media/1/4972aa4a81384405904105073247c43a.svg","unitDim":"px","height":0,"width":0,"name":"4972aa4a81384405904105073247c43a.svg"},{"type":"image","src":"/media/1/49e04636839b4369905747db9958f13f.svg","unitDim":"px","height":0,"width":0,"name":"49e04636839b4369905747db9958f13f.svg"},{"type":"image","src":"/media/1/4a2b05688c20423f844389de4d96e138.jpg","unitDim":"px","height":0,"width":0,"name":"4a2b05688c20423f844389de4d96e138.jpg"},{"type":"image","src":"/media/1/4a6bc470c4e447d9830098e635eb27f4.jpg","unitDim":"px","height":0,"width":0,"name":"4a6bc470c4e447d9830098e635eb27f4.jpg"},{"type":"image","src":"/media/1/4aabafab3402428ba7127d47e84e159c.png","unitDim":"px","height":0,"width":0,"name":"4aabafab3402428ba7127d47e84e159c.png"},{"type":"image","src":"/media/1/4afcd5d515164e8783c28242f6d8b54b.jpg","unitDim":"px","height":0,"width":0,"name":"4afcd5d515164e8783c28242f6d8b54b.jpg"},{"type":"image","src":"/media/1/4b38648558814b7094cc73f497f507b4.jpg","unitDim":"px","height":0,"width":0,"name":"4b38648558814b7094cc73f497f507b4.jpg"},{"type":"image","src":"/media/1/4cec5fa55c3e4cd3b55c1d5668ba51a2.jpg","unitDim":"px","height":0,"width":0,"name":"4cec5fa55c3e4cd3b55c1d5668ba51a2.jpg"},{"type":"image","src":"/media/1/4d420da48b774e23a5995520654047b4.jpg","unitDim":"px","height":0,"width":0,"name":"4d420da48b774e23a5995520654047b4.jpg"},{"type":"image","src":"/media/1/4e1f6a00533349cfadf29c2776062da0.jpg","unitDim":"px","height":0,"width":0,"name":"4e1f6a00533349cfadf29c2776062da0.jpg"},{"type":"image","src":"/media/1/4e5bfdb299f54f76aefed4fbb18c0b98.jpg","unitDim":"px","height":0,"width":0,"name":"4e5bfdb299f54f76aefed4fbb18c0b98.jpg"},{"type":"image","src":"/media/1/4e6ccf01044446cab212c9c3b7e9b6de.jpg","unitDim":"px","height":0,"width":0,"name":"4e6ccf01044446cab212c9c3b7e9b6de.jpg"},{"type":"image","src":"/media/1/4e7724b2e08c4b1687a39d2ff40c0dbc.jpg","unitDim":"px","height":0,"width":0,"name":"4e7724b2e08c4b1687a39d2ff40c0dbc.jpg"},{"type":"image","src":"/media/1/50a506af643a4918aa1f327e0ca410a0.jpg","unitDim":"px","height":0,"width":0,"name":"50a506af643a4918aa1f327e0ca410a0.jpg"},{"type":"image","src":"/media/1/53755752ef594772bb7c320ce24fa4eb.png","unitDim":"px","height":0,"width":0,"name":"53755752ef594772bb7c320ce24fa4eb.png"},{"type":"image","src":"/media/1/54bfe3def6e14b44b8a8493418498aca.png","unitDim":"px","height":0,"width":0,"name":"54bfe3def6e14b44b8a8493418498aca.png"},{"type":"image","src":"/media/1/554e258a470c41038341e1c8f9f2fc5f.jpg","unitDim":"px","height":0,"width":0,"name":"554e258a470c41038341e1c8f9f2fc5f.jpg"},{"type":"image","src":"/media/1/557d1a2d339e4c429b3b4a21ea483439.png","unitDim":"px","height":0,"width":0,"name":"557d1a2d339e4c429b3b4a21ea483439.png"},{"type":"image","src":"/media/1/56075ece00a841d88ec6440e5f34267a.jpg","unitDim":"px","height":0,"width":0,"name":"56075ece00a841d88ec6440e5f34267a.jpg"},{"type":"image","src":"/media/1/5688de7fa7f54704a72b5a56bf3e2f82.png","unitDim":"px","height":0,"width":0,"name":"5688de7fa7f54704a72b5a56bf3e2f82.png"},{"type":"image","src":"/media/1/5b893f4b6b3c43309674b835267221a5.svg","unitDim":"px","height":0,"width":0,"name":"5b893f4b6b3c43309674b835267221a5.svg"},{"type":"image","src":"/media/1/5bd75d9203dc4917be46af8054cc7d76.jpg","unitDim":"px","height":0,"width":0,"name":"5bd75d9203dc4917be46af8054cc7d76.jpg"},{"type":"image","src":"/media/1/5bdf3a44ef30493ebededd5914db44e9.png","unitDim":"px","height":0,"width":0,"name":"5bdf3a44ef30493ebededd5914db44e9.png"},{"type":"image","src":"/media/1/5d7e40623ebd4f4bbed1f283c0ce515c.jpg","unitDim":"px","height":0,"width":0,"name":"5d7e40623ebd4f4bbed1f283c0ce515c.jpg"},{"type":"image","src":"/media/1/60d166555d6e4bcf8654126fd58b6d6a.jpg","unitDim":"px","height":0,"width":0,"name":"60d166555d6e4bcf8654126fd58b6d6a.jpg"},{"type":"image","src":"/media/1/61d98070623e46fbb42e7cb87cb0f9db.jpg","unitDim":"px","height":0,"width":0,"name":"61d98070623e46fbb42e7cb87cb0f9db.jpg"},{"type":"image","src":"/media/1/622939eabfd94f95b73800e99b8ed95c.svg","unitDim":"px","height":0,"width":0,"name":"622939eabfd94f95b73800e99b8ed95c.svg"},{"type":"image","src":"/media/1/631e1f7d971e496e96bf27ee0efda18e.jpg","unitDim":"px","height":0,"width":0,"name":"631e1f7d971e496e96bf27ee0efda18e.jpg"},{"type":"image","src":"/media/1/6381e7c8779c49bbaf15874b8a82e62a.jpg","unitDim":"px","height":0,"width":0,"name":"6381e7c8779c49bbaf15874b8a82e62a.jpg"},{"type":"image","src":"/media/1/63cb9ca434c6473eb6541df9e21d4360.png","unitDim":"px","height":0,"width":0,"name":"63cb9ca434c6473eb6541df9e21d4360.png"},{"type":"image","src":"/media/1/63fb609c752846c1ab93b5d9c0628f57.svg","unitDim":"px","height":0,"width":0,"name":"63fb609c752846c1ab93b5d9c0628f57.svg"},{"type":"image","src":"/media/1/65a571e8412447ffbf317172b94213ab.svg","unitDim":"px","height":0,"width":0,"name":"65a571e8412447ffbf317172b94213ab.svg"},{"type":"image","src":"/media/1/65bb1fb844a74fcb8e82b80e41220d44.svg","unitDim":"px","height":0,"width":0,"name":"65bb1fb844a74fcb8e82b80e41220d44.svg"},{"type":"image","src":"/media/1/6728a95224214b1998e171584f8cec29.png","unitDim":"px","height":0,"width":0,"name":"6728a95224214b1998e171584f8cec29.png"},{"type":"image","src":"/media/1/69b0f3326c4f4f608dd7ed4035d0fe06.jpg","unitDim":"px","height":0,"width":0,"name":"69b0f3326c4f4f608dd7ed4035d0fe06.jpg"},{"type":"image","src":"/media/1/6a40a9a574e84d5bb9b6425d108504ac.jpg","unitDim":"px","height":0,"width":0,"name":"6a40a9a574e84d5bb9b6425d108504ac.jpg"},{"type":"image","src":"/media/1/6a7784de6f4c4b6fa0961d30091e24f1.png","unitDim":"px","height":0,"width":0,"name":"6a7784de6f4c4b6fa0961d30091e24f1.png"},{"type":"image","src":"/media/1/6aa9d0cf43154b6981de3c6671cc1b3a.jpg","unitDim":"px","height":0,"width":0,"name":"6aa9d0cf43154b6981de3c6671cc1b3a.jpg"},{"type":"image","src":"/media/1/6ab10be3484b4c11812e22ada23003fd.png","unitDim":"px","height":0,"width":0,"name":"6ab10be3484b4c11812e22ada23003fd.png"},{"type":"image","src":"/media/1/6aed6cb0bfda4925828b8fd7f96da7e2.svg","unitDim":"px","height":0,"width":0,"name":"6aed6cb0bfda4925828b8fd7f96da7e2.svg"},{"type":"image","src":"/media/1/6be415835694452fbbd8d132c34f1171.svg","unitDim":"px","height":0,"width":0,"name":"6be415835694452fbbd8d132c34f1171.svg"},{"type":"image","src":"/media/1/6c2b993f4a5a4bf9a30b5bb3ecc66c48.jpg","unitDim":"px","height":0,"width":0,"name":"6c2b993f4a5a4bf9a30b5bb3ecc66c48.jpg"},{"type":"image","src":"/media/1/6d4ac02cdca940f58b27e2d5f2dc2d49.jpg","unitDim":"px","height":0,"width":0,"name":"6d4ac02cdca940f58b27e2d5f2dc2d49.jpg"},{"type":"image","src":"/media/1/6fe349151e864c81b07db99682206115.svg","unitDim":"px","height":0,"width":0,"name":"6fe349151e864c81b07db99682206115.svg"},{"type":"image","src":"/media/1/72e7b6c398e1485a8ed14d3723b08cf4.png","unitDim":"px","height":0,"width":0,"name":"72e7b6c398e1485a8ed14d3723b08cf4.png"},{"type":"image","src":"/media/1/73ce5669c60a41968a04754b3dadb65d.jpg","unitDim":"px","height":0,"width":0,"name":"73ce5669c60a41968a04754b3dadb65d.jpg"},{"type":"image","src":"/media/1/742d4ed5a30c42f59a2f44e0085047f7.svg","unitDim":"px","height":0,"width":0,"name":"742d4ed5a30c42f59a2f44e0085047f7.svg"},{"type":"image","src":"/media/1/7525b8634c6b472dad8519ad5b141224.jpg","unitDim":"px","height":0,"width":0,"name":"7525b8634c6b472dad8519ad5b141224.jpg"},{"type":"image","src":"/media/1/76974521800947f086867c61e0c852f9.png","unitDim":"px","height":0,"width":0,"name":"76974521800947f086867c61e0c852f9.png"},{"type":"image","src":"/media/1/76aeaac58bda4cb1895baa9a8bc6bff5.jpg","unitDim":"px","height":0,"width":0,"name":"76aeaac58bda4cb1895baa9a8bc6bff5.jpg"},{"type":"image","src":"/media/1/774978540a8d4946b137f15fd28e5af4.png","unitDim":"px","height":0,"width":0,"name":"774978540a8d4946b137f15fd28e5af4.png"},{"type":"image","src":"/media/1/77533764ddf042cd91037ec63c6c64eb.svg","unitDim":"px","height":0,"width":0,"name":"77533764ddf042cd91037ec63c6c64eb.svg"},{"type":"image","src":"/media/1/78876863ff814f63bde93186a9314ff0.jpg","unitDim":"px","height":0,"width":0,"name":"78876863ff814f63bde93186a9314ff0.jpg"},{"type":"image","src":"/media/1/789b4baf0a8b4f22b564edfc2102ebcb.png","unitDim":"px","height":0,"width":0,"name":"789b4baf0a8b4f22b564edfc2102ebcb.png"},{"type":"image","src":"/media/1/78d119ddbcc04910a8e9781309f34288.png","unitDim":"px","height":0,"width":0,"name":"78d119ddbcc04910a8e9781309f34288.png"},{"type":"image","src":"/media/1/7a0a628b9df9435d82fcd43394ec09ff.jpg","unitDim":"px","height":0,"width":0,"name":"7a0a628b9df9435d82fcd43394ec09ff.jpg"},{"type":"image","src":"/media/1/7a82603c5e0645ed97dbe077172cca98.svg","unitDim":"px","height":0,"width":0,"name":"7a82603c5e0645ed97dbe077172cca98.svg"},{"type":"image","src":"/media/1/7b5d256914014acd93e0cf136b239670.png","unitDim":"px","height":0,"width":0,"name":"7b5d256914014acd93e0cf136b239670.png"},{"type":"image","src":"/media/1/7b8bc51b30a04d9091a5e02b9f4db630.jpg","unitDim":"px","height":0,"width":0,"name":"7b8bc51b30a04d9091a5e02b9f4db630.jpg"},{"type":"image","src":"/media/1/7cd8828cad604e5ca3d85215813389ef.jpg","unitDim":"px","height":0,"width":0,"name":"7cd8828cad604e5ca3d85215813389ef.jpg"},{"type":"image","src":"/media/1/7d616e238be243ecb3db4de47083786f.png","unitDim":"px","height":0,"width":0,"name":"7d616e238be243ecb3db4de47083786f.png"},{"type":"image","src":"/media/1/7e3b4fd91b8e4ea491dd48069f1c5062.svg","unitDim":"px","height":0,"width":0,"name":"7e3b4fd91b8e4ea491dd48069f1c5062.svg"},{"type":"image","src":"/media/1/7e4bbc5221174cbca7aa5f79546ea41b.svg","unitDim":"px","height":0,"width":0,"name":"7e4bbc5221174cbca7aa5f79546ea41b.svg"},{"type":"image","src":"/media/1/7f9421aa3d594f938611a46c8944dcba.svg","unitDim":"px","height":0,"width":0,"name":"7f9421aa3d594f938611a46c8944dcba.svg"},{"type":"image","src":"/media/1/822a34f3860440898d150c5930579bfb.jpg","unitDim":"px","height":0,"width":0,"name":"822a34f3860440898d150c5930579bfb.jpg"},{"type":"image","src":"/media/1/82a56f1fe2ae41b8a9c3c8b81983b2bc.jpg","unitDim":"px","height":0,"width":0,"name":"82a56f1fe2ae41b8a9c3c8b81983b2bc.jpg"},{"type":"image","src":"/media/1/83cd5cf678bd4342afad981f2112a976.png","unitDim":"px","height":0,"width":0,"name":"83cd5cf678bd4342afad981f2112a976.png"},{"type":"image","src":"/media/1/8537795b3bde491faf22e56b3167685b.jpg","unitDim":"px","height":0,"width":0,"name":"8537795b3bde491faf22e56b3167685b.jpg"},{"type":"image","src":"/media/1/85cf2881adb949ea974ab8f43fe0270c.svg","unitDim":"px","height":0,"width":0,"name":"85cf2881adb949ea974ab8f43fe0270c.svg"},{"type":"image","src":"/media/1/887e9ec3f7fd4608a65e41073b783b65.jpg","unitDim":"px","height":0,"width":0,"name":"887e9ec3f7fd4608a65e41073b783b65.jpg"},{"type":"image","src":"/media/1/8a3a0d65845543849969c2d43b174bfe.jpg","unitDim":"px","height":0,"width":0,"name":"8a3a0d65845543849969c2d43b174bfe.jpg"},{"type":"image","src":"/media/1/8aee94ee29ef4b93be40d3ab8f3f622e.jpg","unitDim":"px","height":0,"width":0,"name":"8aee94ee29ef4b93be40d3ab8f3f622e.jpg"},{"type":"image","src":"/media/1/8b355eb74aff4bb8aa824368212a5f07.png","unitDim":"px","height":0,"width":0,"name":"8b355eb74aff4bb8aa824368212a5f07.png"},{"type":"image","src":"/media/1/8b7fea3732654011a6a160b5ece07be7.svg","unitDim":"px","height":0,"width":0,"name":"8b7fea3732654011a6a160b5ece07be7.svg"},{"type":"image","src":"/media/1/8d11006509044e42a43b2aa570a3b2d3.jpg","unitDim":"px","height":0,"width":0,"name":"8d11006509044e42a43b2aa570a3b2d3.jpg"},{"type":"image","src":"/media/1/91cc13dc4b27490e95a63e59cbe53cbb.svg","unitDim":"px","height":0,"width":0,"name":"91cc13dc4b27490e95a63e59cbe53cbb.svg"},{"type":"image","src":"/media/1/92799544e8f14693b11ccc1af7690306.jpg","unitDim":"px","height":0,"width":0,"name":"92799544e8f14693b11ccc1af7690306.jpg"},{"type":"image","src":"/media/1/92eef2b025da4fad8844d5b899bf0fc0.png","unitDim":"px","height":0,"width":0,"name":"92eef2b025da4fad8844d5b899bf0fc0.png"},{"type":"image","src":"/media/1/95e4d1f65a31442b94f31ba2d4d2a813.jpg","unitDim":"px","height":0,"width":0,"name":"95e4d1f65a31442b94f31ba2d4d2a813.jpg"},{"type":"image","src":"/media/1/963712bce7004d5c9d3ba77d80b108b8.jpg","unitDim":"px","height":0,"width":0,"name":"963712bce7004d5c9d3ba77d80b108b8.jpg"},{"type":"image","src":"/media/1/969f163df625479fb6128737b221e914.svg","unitDim":"px","height":0,"width":0,"name":"969f163df625479fb6128737b221e914.svg"},{"type":"image","src":"/media/1/972caf8202c24387b31d342fa0010b08.png","unitDim":"px","height":0,"width":0,"name":"972caf8202c24387b31d342fa0010b08.png"},{"type":"image","src":"/media/1/97ae421a0a5e46ce998cee852e292fbe.png","unitDim":"px","height":0,"width":0,"name":"97ae421a0a5e46ce998cee852e292fbe.png"},{"type":"image","src":"/media/1/987eb6a882f24168a0472c2ba71985c9.jpg","unitDim":"px","height":0,"width":0,"name":"987eb6a882f24168a0472c2ba71985c9.jpg"},{"type":"image","src":"/media/1/98a83c8f68e946e28797318bb86d6ac0.svg","unitDim":"px","height":0,"width":0,"name":"98a83c8f68e946e28797318bb86d6ac0.svg"},{"type":"image","src":"/media/1/99a814f62f0547df99cdfa5b541e9243.jpg","unitDim":"px","height":0,"width":0,"name":"99a814f62f0547df99cdfa5b541e9243.jpg"},{"type":"image","src":"/media/1/99ddd5ab2b404c6d99b951fbf836a4bb.png","unitDim":"px","height":0,"width":0,"name":"99ddd5ab2b404c6d99b951fbf836a4bb.png"},{"type":"image","src":"/media/1/9c7d7e3037d94d7db8802cc12e3fdce3.png","unitDim":"px","height":0,"width":0,"name":"9c7d7e3037d94d7db8802cc12e3fdce3.png"},{"type":"image","src":"/media/1/9c8c4c178cd84dcb8d867c12fd200bac.svg","unitDim":"px","height":0,"width":0,"name":"9c8c4c178cd84dcb8d867c12fd200bac.svg"},{"type":"image","src":"/media/1/9dd199ddece2401686f09586c18535eb.jpg","unitDim":"px","height":0,"width":0,"name":"9dd199ddece2401686f09586c18535eb.jpg"},{"type":"image","src":"/media/1/9e0ede3ae08d48079e08481dc10a657c.png","unitDim":"px","height":0,"width":0,"name":"9e0ede3ae08d48079e08481dc10a657c.png"},{"type":"image","src":"/media/1/9fe2caa00e434ec4b1200de12a91a99f.svg","unitDim":"px","height":0,"width":0,"name":"9fe2caa00e434ec4b1200de12a91a99f.svg"},{"type":"image","src":"/media/1/________-20260930-215020_25039293.jpg","unitDim":"px","height":0,"width":0,"name":"________-20260930-215020_25039293.jpg"},{"type":"image","src":"/media/1/a01004327bef41648d7243145d1a8e74.png","unitDim":"px","height":0,"width":0,"name":"a01004327bef41648d7243145d1a8e74.png"},{"type":"image","src":"/media/1/a0b7fb517fa646f08e9c0299a166b7da.svg","unitDim":"px","height":0,"width":0,"name":"a0b7fb517fa646f08e9c0299a166b7da.svg"},{"type":"image","src":"/media/1/a0c4041e41034a6291aa2766eb4cb41c.jpg","unitDim":"px","height":0,"width":0,"name":"a0c4041e41034a6291aa2766eb4cb41c.jpg"},{"type":"image","src":"/media/1/a0ce60738c90424ab080ed9721fe36da.jpg","unitDim":"px","height":0,"width":0,"name":"a0ce60738c90424ab080ed9721fe36da.jpg"},{"type":"image","src":"/media/1/a0f235c8b52b4e5b9fa3a2bf70d71777.jpg","unitDim":"px","height":0,"width":0,"name":"a0f235c8b52b4e5b9fa3a2bf70d71777.jpg"},{"type":"image","src":"/media/1/a1bba0f5da8f4e5db9bbb946e9b847bb.jpg","unitDim":"px","height":0,"width":0,"name":"a1bba0f5da8f4e5db9bbb946e9b847bb.jpg"},{"type":"image","src":"/media/1/a36971b2be694cb5a072d1b82f9a9919.png","unitDim":"px","height":0,"width":0,"name":"a36971b2be694cb5a072d1b82f9a9919.png"},{"type":"image","src":"/media/1/a3f84bee46c94243b0179a365fda337c.jpg","unitDim":"px","height":0,"width":0,"name":"a3f84bee46c94243b0179a365fda337c.jpg"},{"type":"image","src":"/media/1/a410bfc9503149dea7becf1db07f63a8.jpg","unitDim":"px","height":0,"width":0,"name":"a410bfc9503149dea7becf1db07f63a8.jpg"},{"type":"image","src":"/media/1/a467f64d151e4f1d87dfaa21fb3b718b.png","unitDim":"px","height":0,"width":0,"name":"a467f64d151e4f1d87dfaa21fb3b718b.png"},{"type":"image","src":"/media/1/a486eec60d7149e88efdb3a866d3314b.svg","unitDim":"px","height":0,"width":0,"name":"a486eec60d7149e88efdb3a866d3314b.svg"},{"type":"image","src":"/media/1/a48ea78534884eeead2b79212497b38a.svg","unitDim":"px","height":0,"width":0,"name":"a48ea78534884eeead2b79212497b38a.svg"},{"type":"image","src":"/media/1/a4ab1cbb1de3459c82d08468f43962a2.png","unitDim":"px","height":0,"width":0,"name":"a4ab1cbb1de3459c82d08468f43962a2.png"},{"type":"image","src":"/media/1/a5789820db8a4f2b967122c963453753.png","unitDim":"px","height":0,"width":0,"name":"a5789820db8a4f2b967122c963453753.png"},{"type":"image","src":"/media/1/a58950d1e8c54779be7037fd35370d60.png","unitDim":"px","height":0,"width":0,"name":"a58950d1e8c54779be7037fd35370d60.png"},{"type":"image","src":"/media/1/a5ace50bf88042da80f30e9da6c97abc.jpg","unitDim":"px","height":0,"width":0,"name":"a5ace50bf88042da80f30e9da6c97abc.jpg"},{"type":"image","src":"/media/1/a8e7cfbae59b464a82e783ced5d59a95.png","unitDim":"px","height":0,"width":0,"name":"a8e7cfbae59b464a82e783ced5d59a95.png"},{"type":"image","src":"/media/1/a8ecea0bd88249a6997a83f47cac77e9.jpg","unitDim":"px","height":0,"width":0,"name":"a8ecea0bd88249a6997a83f47cac77e9.jpg"},{"type":"image","src":"/media/1/aace1c2988b749d3b914626f358dd6ed.png","unitDim":"px","height":0,"width":0,"name":"aace1c2988b749d3b914626f358dd6ed.png"},{"type":"image","src":"/media/1/ab23320319214670bf9d3e9a899d8c87.png","unitDim":"px","height":0,"width":0,"name":"ab23320319214670bf9d3e9a899d8c87.png"},{"type":"image","src":"/media/1/ab2e9da6598546ae8f8866a13b507179.svg","unitDim":"px","height":0,"width":0,"name":"ab2e9da6598546ae8f8866a13b507179.svg"},{"type":"image","src":"/media/1/ac3208c6bc694e34a02d9a369f31edd3.png","unitDim":"px","height":0,"width":0,"name":"ac3208c6bc694e34a02d9a369f31edd3.png"},{"type":"image","src":"/media/1/ada5564161694020b35227a92b90d346.png","unitDim":"px","height":0,"width":0,"name":"ada5564161694020b35227a92b90d346.png"},{"type":"image","src":"/media/1/aec80c308f054a2796cdfe31a9f31d57.svg","unitDim":"px","height":0,"width":0,"name":"aec80c308f054a2796cdfe31a9f31d57.svg"},{"type":"image","src":"/media/1/af30d44f6ebd4a68ac42ea4ab4ef1a17.png","unitDim":"px","height":0,"width":0,"name":"af30d44f6ebd4a68ac42ea4ab4ef1a17.png"},{"type":"image","src":"/media/1/b004e9ae55344bc698810f4a2be4e868.jpg","unitDim":"px","height":0,"width":0,"name":"b004e9ae55344bc698810f4a2be4e868.jpg"},{"type":"image","src":"/media/1/b2276177cff740f0998a3cc3f2999993.png","unitDim":"px","height":0,"width":0,"name":"b2276177cff740f0998a3cc3f2999993.png"},{"type":"image","src":"/media/1/b3c78e55d8df4a118d7dfe9c65829a86.jpg","unitDim":"px","height":0,"width":0,"name":"b3c78e55d8df4a118d7dfe9c65829a86.jpg"},{"type":"image","src":"/media/1/b49ad2a7479b44499a8c4d98d3760918.png","unitDim":"px","height":0,"width":0,"name":"b49ad2a7479b44499a8c4d98d3760918.png"},{"type":"image","src":"/media/1/b61f4f0d53e145559cc0e61ebf0e03a7.png","unitDim":"px","height":0,"width":0,"name":"b61f4f0d53e145559cc0e61ebf0e03a7.png"},{"type":"image","src":"/media/1/b624ae76b3ef491586c62778097de79f.svg","unitDim":"px","height":0,"width":0,"name":"b624ae76b3ef491586c62778097de79f.svg"},{"type":"image","src":"/media/1/b6d012be962440eb9b6cd91eaf041578.svg","unitDim":"px","height":0,"width":0,"name":"b6d012be962440eb9b6cd91eaf041578.svg"},{"type":"image","src":"/media/1/b6e66ee358564def84df0a66ffc37353.jpg","unitDim":"px","height":0,"width":0,"name":"b6e66ee358564def84df0a66ffc37353.jpg"},{"type":"image","src":"/media/1/b83a807d8ac6480eaff8f128e8352198.png","unitDim":"px","height":0,"width":0,"name":"b83a807d8ac6480eaff8f128e8352198.png"},{"type":"image","src":"/media/1/b8c99cfd6db94054b4ce18cb42a44de8.png","unitDim":"px","height":0,"width":0,"name":"b8c99cfd6db94054b4ce18cb42a44de8.png"},{"type":"image","src":"/media/1/b96c2ee665c64a30948ac96eb20dd343.jpg","unitDim":"px","height":0,"width":0,"name":"b96c2ee665c64a30948ac96eb20dd343.jpg"},{"type":"image","src":"/media/1/ba157abac4314cc6ba291a56a859b313.jpg","unitDim":"px","height":0,"width":0,"name":"ba157abac4314cc6ba291a56a859b313.jpg"},{"type":"image","src":"/media/1/ba7645d2f905432b91907c07f4ce4881.png","unitDim":"px","height":0,"width":0,"name":"ba7645d2f905432b91907c07f4ce4881.png"},{"type":"image","src":"/media/1/bb90f7049d4e4837b059c0e9ff6d5da3.gif","unitDim":"px","height":0,"width":0,"name":"bb90f7049d4e4837b059c0e9ff6d5da3.gif"},{"type":"image","src":"/media/1/bdb8aacabbdf40a7b7a4cbf904b675c7.png","unitDim":"px","height":0,"width":0,"name":"bdb8aacabbdf40a7b7a4cbf904b675c7.png"},{"type":"image","src":"/media/1/bdd667a04fe84fc28948faf3cd82a8e5.svg","unitDim":"px","height":0,"width":0,"name":"bdd667a04fe84fc28948faf3cd82a8e5.svg"},{"type":"image","src":"/media/1/bffbf9a7b35448b190620193ad389e08.png","unitDim":"px","height":0,"width":0,"name":"bffbf9a7b35448b190620193ad389e08.png"},{"type":"image","src":"/media/1/c0ab0b86eff141e9a1c6fc8f831cce44.jpg","unitDim":"px","height":0,"width":0,"name":"c0ab0b86eff141e9a1c6fc8f831cce44.jpg"},{"type":"image","src":"/media/1/c0b9764a61f544ae9fbafaa9aea30274.jpg","unitDim":"px","height":0,"width":0,"name":"c0b9764a61f544ae9fbafaa9aea30274.jpg"},{"type":"image","src":"/media/1/c0eeb8a3889a4810a628046d86880df8.jpg","unitDim":"px","height":0,"width":0,"name":"c0eeb8a3889a4810a628046d86880df8.jpg"},{"type":"image","src":"/media/1/c1ffad91911c4d569052e18cc94d8b72.jpg","unitDim":"px","height":0,"width":0,"name":"c1ffad91911c4d569052e18cc94d8b72.jpg"},{"type":"image","src":"/media/1/c2e5efb2715e4b76ad5d7b6098a31981.jpg","unitDim":"px","height":0,"width":0,"name":"c2e5efb2715e4b76ad5d7b6098a31981.jpg"},{"type":"image","src":"/media/1/c3b2f852da6941a98e61c02be3533b5c.png","unitDim":"px","height":0,"width":0,"name":"c3b2f852da6941a98e61c02be3533b5c.png"},{"type":"image","src":"/media/1/c430620657f84a8d8884e83b282c664a.jpg","unitDim":"px","height":0,"width":0,"name":"c430620657f84a8d8884e83b282c664a.jpg"},{"type":"image","src":"/media/1/c5262af87e6f4cddbb04c5085da4f323.png","unitDim":"px","height":0,"width":0,"name":"c5262af87e6f4cddbb04c5085da4f323.png"},{"type":"image","src":"/media/1/c5fb808802df4333aa77578a547023b3.jpg","unitDim":"px","height":0,"width":0,"name":"c5fb808802df4333aa77578a547023b3.jpg"},{"type":"image","src":"/media/1/c60bddf29d43408588d7349ef5fed921.svg","unitDim":"px","height":0,"width":0,"name":"c60bddf29d43408588d7349ef5fed921.svg"},{"type":"image","src":"/media/1/c6d94ad671864605a8b94252f9e61ab4.jpg","unitDim":"px","height":0,"width":0,"name":"c6d94ad671864605a8b94252f9e61ab4.jpg"},{"type":"image","src":"/media/1/c8b9cb81f93d4303be48bd8c1ebd7b17.svg","unitDim":"px","height":0,"width":0,"name":"c8b9cb81f93d4303be48bd8c1ebd7b17.svg"},{"type":"image","src":"/media/1/c94d520b215b48a0a32837e9f927413d.svg","unitDim":"px","height":0,"width":0,"name":"c94d520b215b48a0a32837e9f927413d.svg"},{"type":"image","src":"/media/1/c9e802034a344692bff6d43143224efa.jpg","unitDim":"px","height":0,"width":0,"name":"c9e802034a344692bff6d43143224efa.jpg"},{"type":"image","src":"/media/1/ca652d2ab9dd478fb1bc1cbe93403045.png","unitDim":"px","height":0,"width":0,"name":"ca652d2ab9dd478fb1bc1cbe93403045.png"},{"type":"image","src":"/media/1/ca8741696a7a4c90a54bef9804a54c56.jpg","unitDim":"px","height":0,"width":0,"name":"ca8741696a7a4c90a54bef9804a54c56.jpg"},{"type":"image","src":"/media/1/cb8552ad0efc45cb8dab8ad482faf93a.jpg","unitDim":"px","height":0,"width":0,"name":"cb8552ad0efc45cb8dab8ad482faf93a.jpg"},{"type":"image","src":"/media/1/cbd740b3f72e432b8c403a81cf882835.png","unitDim":"px","height":0,"width":0,"name":"cbd740b3f72e432b8c403a81cf882835.png"},{"type":"image","src":"/media/1/cc07e3caedbe4b9aa8f01c96f0e707ae.jpg","unitDim":"px","height":0,"width":0,"name":"cc07e3caedbe4b9aa8f01c96f0e707ae.jpg"},{"type":"image","src":"/media/1/cd1bea832625477d9a7867cdbf232bac.png","unitDim":"px","height":0,"width":0,"name":"cd1bea832625477d9a7867cdbf232bac.png"},{"type":"image","src":"/media/1/ce1c14ad927e423a895435fbb9cf7062.svg","unitDim":"px","height":0,"width":0,"name":"ce1c14ad927e423a895435fbb9cf7062.svg"},{"type":"image","src":"/media/1/d0d69cba833e42769b71612958c34b2b.jpg","unitDim":"px","height":0,"width":0,"name":"d0d69cba833e42769b71612958c34b2b.jpg"},{"type":"image","src":"/media/1/d10aa62be615484bbfd212118aecc669.png","unitDim":"px","height":0,"width":0,"name":"d10aa62be615484bbfd212118aecc669.png"},{"type":"image","src":"/media/1/d11d5f4050db476182e3855ff18b8c8a.jpg","unitDim":"px","height":0,"width":0,"name":"d11d5f4050db476182e3855ff18b8c8a.jpg"},{"type":"image","src":"/media/1/d25236209337440095b4cf3ee8540436.svg","unitDim":"px","height":0,"width":0,"name":"d25236209337440095b4cf3ee8540436.svg"},{"type":"image","src":"/media/1/d59a1e8e62e349fabee827ce3bf9d86b.svg","unitDim":"px","height":0,"width":0,"name":"d59a1e8e62e349fabee827ce3bf9d86b.svg"},{"type":"image","src":"/media/1/d6cf60110b0d417f8d76a8bce3d6bfa2.png","unitDim":"px","height":0,"width":0,"name":"d6cf60110b0d417f8d76a8bce3d6bfa2.png"},{"type":"image","src":"/media/1/d71655f22d6f4034b2a70e8b915921fb.jpg","unitDim":"px","height":0,"width":0,"name":"d71655f22d6f4034b2a70e8b915921fb.jpg"},{"type":"image","src":"/media/1/d781aedec85a473f9b619f8c1f23d4e5.svg","unitDim":"px","height":0,"width":0,"name":"d781aedec85a473f9b619f8c1f23d4e5.svg"},{"type":"image","src":"/media/1/d7da4207517643f7a1039ad756ef2499.png","unitDim":"px","height":0,"width":0,"name":"d7da4207517643f7a1039ad756ef2499.png"},{"type":"image","src":"/media/1/d83dd76531104d54b67d974ceb734e73.svg","unitDim":"px","height":0,"width":0,"name":"d83dd76531104d54b67d974ceb734e73.svg"},{"type":"image","src":"/media/1/d922e499bc0844f4b475c91ff86715f2.png","unitDim":"px","height":0,"width":0,"name":"d922e499bc0844f4b475c91ff86715f2.png"},{"type":"image","src":"/media/1/dae9efa4042c44518278e38db8563e20.jpg","unitDim":"px","height":0,"width":0,"name":"dae9efa4042c44518278e38db8563e20.jpg"},{"type":"image","src":"/media/1/db6357d86aee4d718225ead800c0817b.jpg","unitDim":"px","height":0,"width":0,"name":"db6357d86aee4d718225ead800c0817b.jpg"},{"type":"image","src":"/media/1/dd804e777bf94245b2c75d76f325f097.png","unitDim":"px","height":0,"width":0,"name":"dd804e777bf94245b2c75d76f325f097.png"},{"type":"image","src":"/media/1/ddf502728c5e41548cf86b6857aa63ad.png","unitDim":"px","height":0,"width":0,"name":"ddf502728c5e41548cf86b6857aa63ad.png"},{"type":"image","src":"/media/1/de9beebd2e8e4b869b3ef21bd7ee36b9.jpg","unitDim":"px","height":0,"width":0,"name":"de9beebd2e8e4b869b3ef21bd7ee36b9.jpg"},{"type":"image","src":"/media/1/deb6daf89c1043a582233bf130fe6340.svg","unitDim":"px","height":0,"width":0,"name":"deb6daf89c1043a582233bf130fe6340.svg"},{"type":"image","src":"/media/1/dee8b65be8e64a78b0c243eaf359ce7f.jpg","unitDim":"px","height":0,"width":0,"name":"dee8b65be8e64a78b0c243eaf359ce7f.jpg"},{"type":"image","src":"/media/1/df11181babe848b58c75f51809ff5125.jpg","unitDim":"px","height":0,"width":0,"name":"df11181babe848b58c75f51809ff5125.jpg"},{"type":"image","src":"/media/1/e03786a9e4084e03b168d6d14effe857.jpg","unitDim":"px","height":0,"width":0,"name":"e03786a9e4084e03b168d6d14effe857.jpg"},{"type":"image","src":"/media/1/e03e9f4e02814be19850415f2705ef70.svg","unitDim":"px","height":0,"width":0,"name":"e03e9f4e02814be19850415f2705ef70.svg"},{"type":"image","src":"/media/1/e0657fac794c479ca89ea8dcac2ee906.svg","unitDim":"px","height":0,"width":0,"name":"e0657fac794c479ca89ea8dcac2ee906.svg"},{"type":"image","src":"/media/1/e094db9460c24735a07a5f1ea04661be.jpg","unitDim":"px","height":0,"width":0,"name":"e094db9460c24735a07a5f1ea04661be.jpg"},{"type":"image","src":"/media/1/e0e4a7b5facf4f2b857ae1d45fa39b80.jpg","unitDim":"px","height":0,"width":0,"name":"e0e4a7b5facf4f2b857ae1d45fa39b80.jpg"},{"type":"image","src":"/media/1/e15cd6b95e5d49188dcdb336cd5b97d2.svg","unitDim":"px","height":0,"width":0,"name":"e15cd6b95e5d49188dcdb336cd5b97d2.svg"},{"type":"image","src":"/media/1/e192131283fe4e59a84eb5155d6ca8c2.png","unitDim":"px","height":0,"width":0,"name":"e192131283fe4e59a84eb5155d6ca8c2.png"},{"type":"image","src":"/media/1/e224cc99729a433d9c4be597adcd704a.png","unitDim":"px","height":0,"width":0,"name":"e224cc99729a433d9c4be597adcd704a.png"},{"type":"image","src":"/media/1/e2ddb2a534d34ee2b9cfa80f777dc064.jpg","unitDim":"px","height":0,"width":0,"name":"e2ddb2a534d34ee2b9cfa80f777dc064.jpg"},{"type":"image","src":"/media/1/e405fd27baa24a83a9e78ceb61fe9ee1.png","unitDim":"px","height":0,"width":0,"name":"e405fd27baa24a83a9e78ceb61fe9ee1.png"},{"type":"image","src":"/media/1/e4d98336dc9a4a8bbd24a4c42e360d14.jpg","unitDim":"px","height":0,"width":0,"name":"e4d98336dc9a4a8bbd24a4c42e360d14.jpg"},{"type":"image","src":"/media/1/e57dfe4b66ad4d7088ab6f2e8971f068.jpg","unitDim":"px","height":0,"width":0,"name":"e57dfe4b66ad4d7088ab6f2e8971f068.jpg"},{"type":"image","src":"/media/1/e70b6b13cb2a49d9aed4fecf649778b8.jpg","unitDim":"px","height":0,"width":0,"name":"e70b6b13cb2a49d9aed4fecf649778b8.jpg"},{"type":"image","src":"/media/1/e7c97ca567994406a6a4d667d1b4a9f4.svg","unitDim":"px","height":0,"width":0,"name":"e7c97ca567994406a6a4d667d1b4a9f4.svg"},{"type":"image","src":"/media/1/e9c8fbe760ea45e28c18158dffa3203f.jpg","unitDim":"px","height":0,"width":0,"name":"e9c8fbe760ea45e28c18158dffa3203f.jpg"},{"type":"image","src":"/media/1/ea1dcdf3e5b54c458b1db16dea5357ef.png","unitDim":"px","height":0,"width":0,"name":"ea1dcdf3e5b54c458b1db16dea5357ef.png"},{"type":"image","src":"/media/1/ed4933ca40014669be7ca1cb1ac55d44.svg","unitDim":"px","height":0,"width":0,"name":"ed4933ca40014669be7ca1cb1ac55d44.svg"},{"type":"image","src":"/media/1/ef9a5b7fbe3e4d5bb0748b9508705d2b.png","unitDim":"px","height":0,"width":0,"name":"ef9a5b7fbe3e4d5bb0748b9508705d2b.png"},{"type":"image","src":"/media/1/f09b6803eb404749b73f2f580a2d9238.png","unitDim":"px","height":0,"width":0,"name":"f09b6803eb404749b73f2f580a2d9238.png"},{"type":"image","src":"/media/1/f267eeac39f7499b9d9965010f867061.png","unitDim":"px","height":0,"width":0,"name":"f267eeac39f7499b9d9965010f867061.png"},{"type":"image","src":"/media/1/f3db2b1c1a4a4c808e59ca5fdfc15d1a.png","unitDim":"px","height":0,"width":0,"name":"f3db2b1c1a4a4c808e59ca5fdfc15d1a.png"},{"type":"image","src":"/media/1/f43ddb39c7da48679ecf1566ff8e877f.svg","unitDim":"px","height":0,"width":0,"name":"f43ddb39c7da48679ecf1566ff8e877f.svg"},{"type":"image","src":"/media/1/f4b9ef1128904dca9976ee77c5678f86.jpg","unitDim":"px","height":0,"width":0,"name":"f4b9ef1128904dca9976ee77c5678f86.jpg"},{"type":"image","src":"/media/1/f558151bb4e94a08b0bbf5888a6b0edc.png","unitDim":"px","height":0,"width":0,"name":"f558151bb4e94a08b0bbf5888a6b0edc.png"},{"type":"image","src":"/media/1/f5f1dd652b3c471b8402cf3f72a1dab8.jpg","unitDim":"px","height":0,"width":0,"name":"f5f1dd652b3c471b8402cf3f72a1dab8.jpg"},{"type":"image","src":"/media/1/f61aa13f795141ba96e8d57687289f48.png","unitDim":"px","height":0,"width":0,"name":"f61aa13f795141ba96e8d57687289f48.png"},{"type":"image","src":"/media/1/f75074e32ad149bca3bf4ce3d60a187a.png","unitDim":"px","height":0,"width":0,"name":"f75074e32ad149bca3bf4ce3d60a187a.png"},{"type":"image","src":"/media/1/f780f586f16b4e7994d56477eaa6eb80.jpg","unitDim":"px","height":0,"width":0,"name":"f780f586f16b4e7994d56477eaa6eb80.jpg"},{"type":"image","src":"/media/1/f896161f008346148df92a4539555d78.jpg","unitDim":"px","height":0,"width":0,"name":"f896161f008346148df92a4539555d78.jpg"},{"type":"image","src":"/media/1/fa967a15c48b4ca790c47bfc1135f816.jpg","unitDim":"px","height":0,"width":0,"name":"fa967a15c48b4ca790c47bfc1135f816.jpg"},{"type":"image","src":"/media/1/fb20fc97da5f4ff9a5e94803ae90ea71.jpg","unitDim":"px","height":0,"width":0,"name":"fb20fc97da5f4ff9a5e94803ae90ea71.jpg"},{"type":"image","src":"/media/1/fd029818b0824d3ea9404687aae7c5bc.png","unitDim":"px","height":0,"width":0,"name":"fd029818b0824d3ea9404687aae7c5bc.png"},{"type":"image","src":"/media/1/fdba6af756674e6d8c96d45d0809a545.jpg","unitDim":"px","height":0,"width":0,"name":"fdba6af756674e6d8c96d45d0809a545.jpg"},{"type":"image","src":"/media/1/fdd0e5ff51dd435485d195dc7d7fe8fe.svg","unitDim":"px","height":0,"width":0,"name":"fdd0e5ff51dd435485d195dc7d7fe8fe.svg"},{"type":"image","src":"/media/1/ffc269d30bb24e2ebec5b347972f39b5.jpg","unitDim":"px","height":0,"width":0,"name":"ffc269d30bb24e2ebec5b347972f39b5.jpg"},{"type":"image","src":"/media/1/fone_73669b1a.jpg","unitDim":"px","height":0,"width":0,"name":"fone_73669b1a.jpg"},{"type":"image","src":"/media/1/logo_bcf3c00f.png","unitDim":"px","height":0,"width":0,"name":"logo_bcf3c00f.png"},{"type":"image","src":"/media/1/qr.png","unitDim":"px","height":0,"width":0,"name":"qr.png"}],"styles":[],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"tagName":"section","classes":["section","hero","fx-starfield-earth"],"attributes":{"data-block":"core-hero","id":"ie4z"},"components":[{"classes":["container","hero__inner"],"components":[{"tagName":"h1","type":"text","classes":["h1","hero__title"],"attributes":{"id":"ic45"},"components":[{"type":"textnode","content":"Свежеобжаренный кофе с доставкой"}]},{"tagName":"p","type":"text","classes":["lead","hero__lead"],"attributes":{"id":"iu7o"},"components":[{"type":"textnode","content":"Отбираем зерно на лучших плантациях, обжариваем небольшими партиями и привозим вам в течение 48 часов после обжарки."}]},{"type":"link","classes":["btn","hero__btn"],"attributes":{"href":"page:catalog"},"components":[{"type":"textnode","content":"Выбрать кофе"}]}]}]},{"tagName":"section","classes":["section","features","fx-soft-diagonal-hatch"],"attributes":{"data-block":"core-features"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","features__title"],"components":[{"type":"textnode","content":"Почему выбирают нас"}]},{"classes":["grid","grid--3","features__grid"],"components":[{"classes":["card","features__item"],"components":[{"tagName":"h3","type":"text","classes":["card__title"],"components":[{"type":"textnode","content":"Свежая обжарка"}]},{"tagName":"p","type":"text","classes":["card__text"],"components":[{"type":"textnode","content":"Обжариваем зерно под каждый заказ и отправляем в течение 48 часов."}]}]},{"classes":["card","features__item"],"components":[{"tagName":"h3","type":"text","classes":["card__title"],"components":[{"type":"textnode","content":"Прямые поставки"}]},{"tagName":"p","type":"text","classes":["card__text"],"components":[{"type":"textnode","content":"Работаем с фермами напрямую, без посредников и лишних наценок."}]}]},{"classes":["card","features__item"],"components":[{"tagName":"h3","type":"text","classes":["card__title"],"components":[{"type":"textnode","content":"Подбор под вкус"}]},{"tagName":"p","type":"text","classes":["card__text"],"components":[{"type":"textnode","content":"Поможем выбрать зерно и способ приготовления под ваши предпочтения."}]}]}]}]}]},{"tagName":"section","classes":["section","text-image","fx-aurora-weave"],"attributes":{"data-block":"core-text-image","id":"i4brm"},"components":[{"classes":["container"],"components":[{"classes":["grid","grid--2","text-image__grid"],"components":[{"classes":["text-image__text"],"components":[{"tagName":"h2","type":"text","classes":["h2"],"components":[{"type":"textnode","content":"Обжарка небольшими партиями"}]},{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Мы обжариваем зерно на собственной ростерии партиями до 12 кг — так каждая партия сохраняет аромат и вкусовой профиль."}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"На упаковке указываем дату обжарки и рекомендуемый способ приготовления."}]}]},{"classes":["text-image__media"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"classes":["image"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Обжарка кофейных зёрен на ростерии"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"250","y":"180","width":"300","height":"240","rx":"20","fill":"var(--theme-bg-soft, #f1f5f9)","stroke":"var(--theme-text, #1e293b)","stroke-width":"6"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"290","y":"220","width":"220","height":"160","rx":"12","fill":"var(--theme-accent, #3b82f6)","opacity":"0.15"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"300","r":"60","fill":"var(--theme-accent, #3b82f6)","opacity":"0.3"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"300","r":"40","fill":"var(--theme-accent, #3b82f6)","opacity":"0.5"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"300","r":"20","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M340 240 Q400 200 460 240","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"4","fill":"none"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M340 360 Q400 400 460 360","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"4","fill":"none"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"370","y":"420","width":"60","height":"40","rx":"8","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"360","y":"460","width":"80","height":"20","rx":"6","fill":"var(--theme-text, #1e293b)","opacity":"0.6"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"320","cy":"200","r":"12","fill":"var(--theme-accent, #3b82f6)","opacity":"0.4"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"480","cy":"200","r":"12","fill":"var(--theme-accent, #3b82f6)","opacity":"0.4"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"320","cy":"400","r":"12","fill":"var(--theme-accent, #3b82f6)","opacity":"0.4"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"480","cy":"400","r":"12","fill":"var(--theme-accent, #3b82f6)","opacity":"0.4"}}]}]}]}]}]},{"tagName":"section","classes":["section","gallery","fx-vinyl-grooves"],"attributes":{"data-block":"core-gallery"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","gallery__title"],"components":[{"type":"textnode","content":"Галерея"}]},{"classes":["grid","grid--auto","gallery__grid"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Зёрна арабики крупным планом"},"components":[{"tagName":"ellipse","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"300","rx":"150","ry":"110","fill":"var(--theme-accent, #6f4e37)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M400 190 Q430 300 400 410 Q370 300 400 190 Z","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"ellipse","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"250","cy":"420","rx":"90","ry":"65","fill":"var(--theme-accent, #6f4e37)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M250 355 Q270 420 250 485 Q230 420 250 355 Z","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"ellipse","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"560","cy":"180","rx":"80","ry":"58","fill":"var(--theme-accent, #6f4e37)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M560 122 Q578 180 560 238 Q542 180 560 122 Z","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"ellipse","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"600","cy":"440","rx":"70","ry":"50","fill":"var(--theme-accent, #6f4e37)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M600 390 Q615 440 600 490 Q585 440 600 390 Z","fill":"var(--theme-bg-soft, #f1f5f9)"}}]},{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Чашка свежесваренного эспрессо"},"components":[{"tagName":"ellipse","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"470","rx":"180","ry":"30","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M250 250 L550 250 L520 430 Q515 470 470 470 L330 470 Q285 470 280 430 Z","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M250 250 L550 250 L545 290 L255 290 Z","fill":"var(--theme-text, #1e293b)"}},{"tagName":"ellipse","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"250","rx":"150","ry":"28","fill":"var(--theme-text, #1e293b)"}},{"tagName":"ellipse","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"252","rx":"130","ry":"20","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M550 300 Q640 300 640 360 Q640 420 550 420","fill":"none","stroke":"var(--theme-accent, #3b82f6)","stroke-width":"26","stroke-linecap":"round"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M360 200 Q350 170 365 145","fill":"none","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"8","stroke-linecap":"round"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M400 195 Q390 160 405 130","fill":"none","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"8","stroke-linecap":"round"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M440 200 Q430 170 445 145","fill":"none","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"8","stroke-linecap":"round"}}]},{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Ростер для обжарки кофе"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"250","y":"120","width":"300","height":"260","rx":"24","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"290","y":"160","width":"220","height":"120","rx":"12","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"220","r":"42","fill":"var(--theme-text, #1e293b)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"220","r":"18","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"330","y":"300","width":"140","height":"16","rx":"8","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"360","y":"380","width":"80","height":"90","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"300","y":"470","width":"200","height":"20","rx":"10","fill":"var(--theme-text, #1e293b)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M250 150 L180 90 L180 130 L120 130","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"14","fill":"none","stroke-linecap":"round","stroke-linejoin":"round"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M550 150 L620 90 L620 130 L680 130","stroke":"var(--theme-text-muted, #94a3b8)","stroke-width":"14","fill":"none","stroke-linecap":"round","stroke-linejoin":"round"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"220","r":"6","fill":"var(--theme-accent, #3b82f6)"}}]},{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Упаковка кофе с указанием даты обжарки"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"300","y":"140","width":"200","height":"320","rx":"14","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"300","y":"140","width":"200","height":"70","rx":"14","fill":"var(--theme-text, #1e293b)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"330","y":"250","width":"140","height":"90","rx":"8","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"295","r":"26","fill":"var(--theme-text, #1e293b)"}},{"tagName":"line","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x1":"400","y1":"295","x2":"400","y2":"277","stroke":"var(--theme-bg-soft, #f1f5f9)","stroke-width":"4","stroke-linecap":"round"}},{"tagName":"line","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x1":"400","y1":"295","x2":"414","y2":"303","stroke":"var(--theme-bg-soft, #f1f5f9)","stroke-width":"4","stroke-linecap":"round"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"340","y":"370","width":"120","height":"12","rx":"6","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"340","y":"396","width":"80","height":"12","rx":"6","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"340","y":"422","width":"100","height":"12","rx":"6","fill":"var(--theme-bg-soft, #f1f5f9)"}}]},{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Альтернативный способ заваривания — воронка V60"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M300 150 L500 150 L400 350 Z","fill":"var(--theme-bg-soft, #f1f5f9)","stroke":"var(--theme-text, #1e293b)","stroke-width":"8"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"380","y":"350","width":"40","height":"150","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"350","y":"500","width":"100","height":"20","fill":"var(--theme-text, #1e293b)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"400","cy":"120","r":"30","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M370 120 Q400 90 430 120","stroke":"var(--theme-text, #1e293b)","stroke-width":"6","fill":"none"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"390","y":"350","width":"20","height":"20","fill":"var(--theme-accent, #3b82f6)"}}]},{"type":"svg","resizable":{"ratioDefault":true},"classes":["image","gallery__item"],"attributes":{"viewBox":"0 0 800 600","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Кофейная плантация на склоне горы"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"0","y":"350","width":"800","height":"250","fill":"var(--theme-bg-soft, #f1f5f9)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M0 350 L200 150 L400 350 Z","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M300 350 L500 100 L700 350 Z","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M550 350 L700 200 L800 350 Z","fill":"var(--theme-text-muted, #94a3b8)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"200","cy":"250","r":"15","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"500","cy":"200","r":"15","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"700","cy":"280","r":"15","fill":"var(--theme-accent, #3b82f6)"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"150","y":"300","width":"100","height":"50","fill":"var(--theme-accent, #3b82f6)","opacity":"0.5"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"450","y":"250","width":"100","height":"50","fill":"var(--theme-accent, #3b82f6)","opacity":"0.5"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"650","y":"320","width":"100","height":"50","fill":"var(--theme-accent, #3b82f6)","opacity":"0.5"}}]}]}]}]},{"tagName":"section","classes":["section","steps","fx-soft-diagonal-hatch"],"attributes":{"data-block":"core-steps"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","steps__title"],"components":[{"type":"textnode","content":"Как оформить заказ"}]},{"classes":["grid","grid--3","steps__grid"],"components":[{"classes":["steps__item"],"components":[{"type":"text","classes":["steps__num"],"components":[{"type":"textnode","content":"1"}]},{"tagName":"h3","type":"text","classes":["h3","steps__item-title"],"components":[{"type":"textnode","content":"Выберите кофе"}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Откройте каталог и подберите зерно по вкусу и способу приготовления."}]}]},{"classes":["steps__item"],"components":[{"type":"text","classes":["steps__num"],"components":[{"type":"textnode","content":"2"}]},{"tagName":"h3","type":"text","classes":["h3","steps__item-title"],"components":[{"type":"textnode","content":"Оформите заказ"}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Укажите объём, помол и адрес доставки — это займёт пару минут."}]}]},{"classes":["steps__item"],"components":[{"type":"text","classes":["steps__num"],"components":[{"type":"textnode","content":"3"}]},{"tagName":"h3","type":"text","classes":["h3","steps__item-title"],"components":[{"type":"textnode","content":"Получите свежую обжарку"}]},{"tagName":"p","type":"text","classes":["text","text--muted"],"components":[{"type":"textnode","content":"Обжарим зерно под ваш заказ и доставим в течение 48 часов."}]}]}]}]}]},{"tagName":"section","classes":["section","faq","fx-office-grid"],"attributes":{"data-block":"core-faq"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","faq__title"],"components":[{"type":"textnode","content":"Частые вопросы"}]},{"classes":["faq__list"],"components":[{"classes":["faq__item"],"components":[{"tagName":"h3","type":"text","classes":["h3","faq__question"],"components":[{"type":"textnode","content":"Какой срок доставки?"}]},{"tagName":"p","type":"text","classes":["text","text--muted","faq__answer"],"components":[{"type":"textnode","content":"Отправляем заказы в течение 48 часов после обжарки. По Москве и Санкт-Петербургу доставка занимает 1–2 дня, по России — от 3 до 7 дней."}]}]},{"classes":["faq__item"],"components":[{"tagName":"h3","type":"text","classes":["h3","faq__question"],"components":[{"type":"textnode","content":"Можно ли заказать помол?"}]},{"tagName":"p","type":"text","classes":["text","text--muted","faq__answer"],"components":[{"type":"textnode","content":"Да, при оформлении заказа выберите подходящий помол: для эспрессо, воронки, френч-пресса или гейзерной кофеварки."}]}]},{"classes":["faq__item"],"components":[{"tagName":"h3","type":"text","classes":["h3","faq__question"],"components":[{"type":"textnode","content":"Как хранить кофе?"}]},{"tagName":"p","type":"text","classes":["text","text--muted","faq__answer"],"components":[{"type":"textnode","content":"Храните зерно в закрытой упаковке в тёмном прохладном месте. Оптимально раскрыть вкус в течение 2–4 недель после даты обжарки."}]}]}]}]}]},{"tagName":"section","classes":["section","cta","fx-aurora-drift"],"attributes":{"data-block":"core-cta"},"components":[{"classes":["container","cta__inner"],"components":[{"tagName":"h2","type":"text","classes":["h2","cta__title"],"components":[{"type":"textnode","content":"Готовы попробовать свежую обжарку?"}]},{"tagName":"p","type":"text","classes":["text","cta__text"],"components":[{"type":"textnode","content":"Оставьте заявку — поможем подобрать зерно под ваш вкус и способ приготовления."}]},{"type":"link","classes":["btn","cta__btn"],"attributes":{"href":"page:contacts"},"components":[{"type":"textnode","content":"Оставить заявку"}]}]}]},{"tagName":"section","classes":["section","contacts","fx-office-grid"],"attributes":{"data-block":"core-contacts"},"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","contacts__title"],"components":[{"type":"textnode","content":"Контакты"}]},{"classes":["grid","grid--3","contacts__grid"],"components":[{"classes":["contacts__item"],"components":[{"type":"text","classes":["contacts__label"],"components":[{"type":"textnode","content":"Адрес"}]},{"type":"text","classes":["contacts__value"],"components":[{"type":"textnode","content":"Москва, ул. Кофейная, 12"}]}]},{"classes":["contacts__item"],"components":[{"type":"text","classes":["contacts__label"],"components":[{"type":"textnode","content":"Телефон"}]},{"type":"text","classes":["contacts__value"],"components":[{"type":"textnode","content":"+7 (495) 123-45-67"}]}]},{"classes":["contacts__item"],"components":[{"type":"text","classes":["contacts__label"],"components":[{"type":"textnode","content":"Email"}]},{"type":"text","classes":["contacts__value"],"components":[{"type":"textnode","content":"hello@coffee.example"}]}]}]}]}]},{"tagName":"footer","classes":["section","footer","fx-shadow-top-n"],"attributes":{"data-block":"core-footer"},"components":[{"classes":["container","footer__inner"],"components":[{"type":"text","classes":["footer__brand"],"components":[{"type":"textnode","content":"© Кофейная ростерия"}]},{"tagName":"nav","classes":["footer__nav"],"components":[{"type":"link","classes":["footer__link"],"attributes":{"href":"page:home"},"components":[{"type":"textnode","content":"Главная"}]},{"type":"link","classes":["footer__link"],"attributes":{"href":"page:catalog"},"components":[{"type":"textnode","content":"Каталог"}]},{"type":"link","classes":["footer__link"],"attributes":{"href":"page:contacts"},"components":[{"type":"textnode","content":"Контакты"}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"QDLUN5h1U2iEuX5K"}],"id":"DG9aIsHQr7gzn7VF"}],"symbols":[]}', 1, 0, '2026-09-30 16:53:10.462868', '2026-09-30 17:06:50.859423', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
+
+/**
+ * Content — theme variables + shared atoms + layout for CONTENT pages.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Uses ONLY --theme-* variables, defined at the top of this file.
+ * Completely independent from base/css/00_variables.css (admin UI):
+ * admin theme changes do NOT affect page content.
+ *
+ * Contents:
+ *   THEME VARIABLES
+ *     --theme-*                 all colors, fonts, radii, spacing
+ *
+ *   ATOMS
+ *     .h1, .h2, .h3             headings
+ *     .text, .text--muted, .text--center
+ *     .lead                     intro paragraph
+ *     .list, .list--check, .list--num
+ *     .btn, .btn--ghost         buttons
+ *     .card, .card__title, .card__text
+ *     .badge, .quote, .image, .icon, .divider
+ *
+ *   LAYOUT
+ *     .section                  vertical rhythm wrapper
+ *     .container                centered max-width wrapper
+ *     .grid, .grid--2/3/4/auto  base grids
+ *     .col                      grid cell
+ *
+ * .flex-shell* lives in blocks/layout.css — it is block-specific
+ * (only used by the flex-shell block).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   THEME VARIABLES — content
+   ============================================ */
+
+/*
+ * Completely independent from base/css/00_variables.css (admin UI).
+ * Admin theme changes do NOT affect these values.
+ *
+ * Scoped under .core-engine-lib-word-blocks — the same class sits
+ * on the canvas <body> in the editor and on the article wrapper
+ * on the public page.
+ */
+.core-engine-lib-word-blocks {
+
+    /* ===== COLORS ===== */
+
+    --theme-bg:             #ffffff;
+    --theme-bg-subtle:      #f8fafc;
+    --theme-bg-dark:        #0f172a;
+    --theme-bg-hover:       #f1f5f9;
+
+    --theme-text:           #1e293b;
+    --theme-text-muted:     #64748b;
+    --theme-text-invert:    #ffffff;
+
+    --theme-accent:         #246eaa;
+    --theme-accent-hover:   #1e5a8a;
+    --theme-accent-soft:    #e0edf7;
+
+    --theme-border:         #e2e8f0;
+    --theme-border-strong:  #cbd5e1;
+
+    --theme-success:        #16a34a;
+    --theme-warning:        #d97706;
+    --theme-danger:         #dc2626;
+
+    /* ===== SHADOWS ===== */
+
+    --theme-shadow-sm:  0 1px 3px rgba(15, 23, 42, 0.06);
+    --theme-shadow-md:  0 4px 12px rgba(15, 23, 42, 0.08);
+    --theme-shadow-lg:  0 12px 32px rgba(15, 23, 42, 0.12);
+
+    /* ===== FONTS ===== */
+
+    --theme-font-family:    ''Inter'', ''Golos Text'', sans-serif;
+    --theme-font-size-xs:   0.75rem;
+    --theme-font-size-sm:   0.875rem;
+    --theme-font-size-base: 1rem;
+    --theme-font-size-lg:   1.125rem;
+    --theme-font-size-xl:   1.25rem;
+    --theme-font-size-2xl:  1.5rem;
+    --theme-font-size-3xl:  2rem;
+    --theme-font-size-4xl:  2.5rem;
+
+    --theme-font-weight-regular:  400;
+    --theme-font-weight-medium:   500;
+    --theme-font-weight-semibold: 600;
+    --theme-font-weight-bold:     700;
+
+    --theme-line-height-tight:  1.25;
+    --theme-line-height-base:   1.6;
+    --theme-line-height-loose:  1.8;
+
+    /* ===== RADII ===== */
+
+    --theme-radius-sm:   0.25rem;
+    --theme-radius-md:   0.5rem;
+    --theme-radius-lg:   0.75rem;
+    --theme-radius-xl:   1rem;
+    --theme-radius-pill: 9999px;
+
+    /* ===== SPACING ===== */
+
+    --theme-space-1:   0.25rem;
+    --theme-space-2:   0.5rem;
+    --theme-space-3:   0.75rem;
+    --theme-space-4:   1rem;
+    --theme-space-5:   1.25rem;
+    --theme-space-6:   1.5rem;
+    --theme-space-8:   2rem;
+    --theme-space-10:  2.5rem;
+    --theme-space-12:  3rem;
+    --theme-space-16:  4rem;
+    --theme-space-20:  5rem;
+
+    --theme-space-section:  4rem;
+    --theme-space-gutter:   1rem;
+    --theme-space-grid:     1rem;
+
+    /* ===== LAYOUT ===== */
+
+    --theme-container-max:  75rem;
+}
+
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+
+.core-engine-lib-word-blocks .h1 {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-4xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.02em;
+}
+
+.core-engine-lib-word-blocks .h2 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-3xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.01em;
+}
+
+.core-engine-lib-word-blocks .h3 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-2xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   TEXT
+   ============================================ */
+
+.core-engine-lib-word-blocks .text {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .text--muted {
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .text--center {
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .text:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================
+   LEAD
+   ============================================ */
+
+.core-engine-lib-word-blocks .lead {
+    margin: 0 0 var(--theme-space-5);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   LISTS
+   ============================================ */
+
+.core-engine-lib-word-blocks .list {
+    margin: 0 0 var(--theme-space-4);
+    padding-left: var(--theme-space-6);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .list li {
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .list li:last-child {
+    margin-bottom: 0;
+}
+
+.core-engine-lib-word-blocks .list li::marker {
+    color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .list--check {
+    list-style: none;
+    padding-left: 0;
+}
+
+.core-engine-lib-word-blocks .list--check li {
+    position: relative;
+    padding-left: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .list--check li::before {
+    content: ''✓'';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-bold);
+}
+
+.core-engine-lib-word-blocks .list--num {
+    list-style: decimal;
+}
+
+.core-engine-lib-word-blocks .list--num li::marker {
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-semibold);
+}
+
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.core-engine-lib-word-blocks .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--theme-space-2);
+    padding: var(--theme-space-3) var(--theme-space-6);
+    border: 2px solid transparent;
+    border-radius: var(--theme-radius-md);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: 1.2;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--theme-accent);
+    color: var(--theme-text-invert);
+    border-color: var(--theme-accent);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.core-engine-lib-word-blocks .btn:hover {
+    background: var(--theme-accent-hover);
+    border-color: var(--theme-accent-hover);
+    color: var(--theme-text-invert);
+}
+
+.core-engine-lib-word-blocks .btn:active {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-word-blocks .btn--ghost {
+    background: transparent;
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .btn--ghost:hover {
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+
+/* ============================================
+   CARD
+   ============================================ */
+
+.core-engine-lib-word-blocks .card {
+    padding: var(--theme-space-6);
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    border-radius: var(--theme-radius-lg);
+    box-shadow: var(--theme-shadow-sm);
+}
+
+.core-engine-lib-word-blocks .card__title {
+    margin: 0 0 var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .card__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   BADGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .badge {
+    display: inline-block;
+    padding: var(--theme-space-1) var(--theme-space-3);
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+}
+
+
+/* ============================================
+   QUOTE
+   ============================================ */
+
+.core-engine-lib-word-blocks .quote {
+    margin: var(--theme-space-6) 0;
+    padding: var(--theme-space-4) var(--theme-space-5);
+    border-left: 4px solid var(--theme-accent);
+    background: var(--theme-bg-subtle);
+    border-radius: 0 var(--theme-radius-md) var(--theme-radius-md) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-style: italic;
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   IMAGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--theme-radius-md);
+    margin: 0;
+}
+
+
+/* ============================================
+   ICON
+   ============================================ */
+
+.core-engine-lib-word-blocks .icon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    color: var(--theme-accent);
+    flex-shrink: 0;
+}
+
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+
+.core-engine-lib-word-blocks .divider {
+    margin: var(--theme-space-8) 0;
+    border: none;
+    height: 1px;
+    background: var(--theme-border);
+}
+
+
+/* ============================================
+   SECTION — vertical rhythm wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .section {
+    padding-top: var(--theme-space-section);
+    padding-bottom: var(--theme-space-section);
+}
+
+
+/* ============================================
+   CONTAINER — centered max-width wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .container {
+    width: 100%;
+    max-width: var(--theme-container-max);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--theme-space-gutter);
+    padding-right: var(--theme-space-gutter);
+    box-sizing: border-box;
+}
+
+
+/* ============================================
+   GRID — base
+   ============================================ */
+
+.core-engine-lib-word-blocks .grid {
+    display: grid;
+    gap: var(--theme-space-grid);
+}
+
+.core-engine-lib-word-blocks .grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--auto {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+
+/* ============================================
+   COLUMN — grid cell
+   ============================================ */
+
+/*
+ * Minimal cell: only prevents overflow. Padding, background, border
+ * are set per block (e.g. .card, .col--tile were removed on purpose).
+ */
+.core-engine-lib-word-blocks .col {
+    min-width: 0;
+}
+
+
+/* ============================================
+   GRID — responsive fallback
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .grid--2,
+    .core-engine-lib-word-blocks .grid--3,
+    .core-engine-lib-word-blocks .grid--4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* app/core/engine/lib/word/editor/blocks/ready.css */
+
+/**
+ * Ready — styles for the "Секции" (sections) blocks.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Covers section-specific classes from blocks/ready.js:
+ *   - .hero, .hero__inner, .hero__title, .hero__lead, .hero__btn
+ *   - .features, .features__title, .features__grid, .features__item
+ *   - .steps, .steps__title, .steps__grid, .steps__item, .steps__num
+ *   - .text-image, .text-image__grid, .text-image__text, .text-image__media
+ *   - .image-text, .image-text__grid, .image-text__text, .image-text__media
+ *   - .gallery, .gallery__title, .gallery__grid, .gallery__item
+ *   - .faq, .faq__title, .faq__list, .faq__item, .faq__question, .faq__answer
+ *   - .cta, .cta__inner, .cta__title, .cta__text, .cta__btn
+ *   - .contacts, .contacts__title, .contacts__grid, .contacts__item,
+ *     .contacts__label, .contacts__value
+ *   - .footer, .footer__inner, .footer__brand, .footer__nav, .footer__link
+ *   - .article-catalog, .article-catalog__heading, .article-catalog__card,
+ *     .article-catalog__glow, .article-catalog__logo, .article-catalog__body,
+ *     .article-catalog__title, .article-catalog__desc, .article-catalog__date
+ *
+ * Shared atom classes (.h1, .h2, .text, .lead, .btn, .card, .image)
+ * and layout classes (.section, .container, .grid) live in
+ * editor/css/content.css — they are loaded globally.
+ *
+ * Uses ONLY --theme-* variables (see theme.css).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   HERO — .hero
+   ============================================ */
+
+.core-engine-lib-word-blocks .hero__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .hero__title {
+    margin: 0;
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .hero__lead {
+    margin: 0;
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .hero__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   FEATURES — .features
+   ============================================ */
+
+.core-engine-lib-word-blocks .features__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .features__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .features__item {
+    /* uses .card from content.css */
+    height: 100%;
+}
+
+
+/* ============================================
+   STEPS — .steps
+   ============================================ */
+
+.core-engine-lib-word-blocks .steps__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .steps__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .steps__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-bold);
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__item-title {
+    margin: 0;
+}
+
+
+/* ============================================
+   TEXT + IMAGE — .text-image
+   ============================================ */
+
+.core-engine-lib-word-blocks .text-image__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .text-image__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .text-image__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .text-image__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   IMAGE + TEXT — .image-text
+   ============================================ */
+
+.core-engine-lib-word-blocks .image-text__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .image-text__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .image-text__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .image-text__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   GALLERY — .gallery
+   ============================================ */
+
+.core-engine-lib-word-blocks .gallery__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .gallery__grid {
+    /* uses .grid.grid--auto from content.css */
+}
+
+.core-engine-lib-word-blocks .gallery__item {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+
+/* ============================================
+   FAQ — .faq
+   ============================================ */
+
+.core-engine-lib-word-blocks .faq__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-6);
+    max-width: 48rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.core-engine-lib-word-blocks .faq__item {
+    padding-bottom: var(--theme-space-5);
+    border-bottom: 1px solid var(--theme-border);
+}
+
+.core-engine-lib-word-blocks .faq__item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.core-engine-lib-word-blocks .faq__question {
+    margin: 0 0 var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .faq__answer {
+    margin: 0;
+}
+
+
+/* ============================================
+   CTA — .cta
+   ============================================ */
+
+.core-engine-lib-word-blocks .cta {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+}
+
+.core-engine-lib-word-blocks .cta__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .cta__title {
+    margin: 0;
+    color: var(--theme-text, #1e293b);
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .cta__text {
+    margin: 0;
+    color: var(--theme-text-muted, #64748b);
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .cta__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   CONTACTS — .contacts
+   ============================================ */
+
+.core-engine-lib-word-blocks .contacts__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .contacts__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .contacts__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-1);
+}
+
+.core-engine-lib-word-blocks .contacts__label {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .contacts__value {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   FOOTER — .footer
+   ============================================ */
+
+.core-engine-lib-word-blocks .footer {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+    padding-top: var(--theme-space-6);
+    padding-bottom: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .footer__brand {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+}
+
+.core-engine-lib-word-blocks .footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .footer__link {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .footer__link:hover {
+    opacity: 1;
+}
+
+
+/* ============================================
+   ARTICLE CATALOG — .article-catalog
+   ============================================ */
+
+.core-engine-lib-word-blocks .article-catalog__heading {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .article-catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--theme-space-5);
+    align-content: start;
+}
+
+/* --- Ссылка-карточка --- */
+
+.core-engine-lib-word-blocks .article-catalog__card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 104px 1fr;   /* логотип | текст */
+    gap: var(--theme-space-4);
+    align-items: start;
+    padding: var(--theme-space-5);
+    border-radius: var(--theme-radius-lg);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 4px 16px rgba(15, 23, 42, 0.04),
+        0 1px 3px rgba(15, 23, 42, 0.06);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 12px 32px rgba(59, 130, 246, 0.12),
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:active {
+    transform: translateY(-2px) scale(0.99);
+}
+
+/* --- Свечение (при наведении) --- */
+
+.core-engine-lib-word-blocks .article-catalog__glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    background: radial-gradient(
+        600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(59, 130, 246, 0.15),
+        rgba(139, 92, 246, 0.08) 40%,
+        transparent 60%
+    );
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__glow {
+    opacity: 1;
+}
+
+/* --- Логотип — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__logo {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    border-radius: var(--theme-radius-lg);
+    overflow: hidden;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+    z-index: 1;
+}
+
+.core-engine-lib-word-blocks .article-catalog__logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__logo img {
+    transform: scale(1.05);
+}
+
+/* --- Тело — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__body {
+    position: relative;
+    z-index: 1;
+    min-width: 0;   /* важно: обрезка текста внутри grid работает */
+}
+
+.core-engine-lib-word-blocks .article-catalog__title {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: 1.25;
+    color: var(--theme-text, #0f172a);
+    letter-spacing: -0.01em;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__title {
+    color: var(--theme-accent, #3b82f6);
+}
+
+.core-engine-lib-word-blocks .article-catalog__desc {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    line-height: 1.5;
+    color: var(--theme-text-muted, #64748b);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__date {
+    display: block;
+    margin-top: var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text-muted, #94a3b8);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Адаптив --- */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .article-catalog {
+        grid-template-columns: 1fr;
+        gap: var(--theme-space-4);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-4);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 100px 1fr;
+        gap: var(--theme-space-3);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 100px;
+        height: 100px;
+        border-radius: var(--theme-radius-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-3);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 88px 1fr;
+        gap: var(--theme-space-2);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 88px;
+        height: 88px;
+        border-radius: var(--theme-radius-md);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__title {
+        font-size: var(--theme-font-size-lg);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__desc {
+        font-size: var(--theme-font-size-base);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__date {
+        font-size: var(--theme-font-size-sm);
+    }
+}
+
+/* --- prefers-reduced-motion --- */
+
+@media (prefers-reduced-motion: reduce) {
+    .core-engine-lib-word-blocks .article-catalog__card,
+    .core-engine-lib-word-blocks .article-catalog__logo img,
+    .core-engine-lib-word-blocks .article-catalog__glow {
+        transition: none;
+    }
+}
+
+/* neurocad/core/engine/lib/word/editor/effects/fx/fx-shadow-top-n.css */
+
+/**
+ * Effect: fx-shadow-top-n — soft shadow along the top edge.
+ *
+ * Scope: .core-engine-lib-word-blocks .fx-shadow-top-n
+ *
+ * Only the shadow is defined here. Background colour and text colour
+ * are NOT part of effects — they belong to the style panel.
+ *
+ * The shadow is an inset box-shadow: darker at the top, fading down.
+ * `inset` keeps it inside the element bounds, so no layout shift.
+ */
+
+.core-engine-lib-word-blocks .fx-shadow-top-n {
+    box-shadow: inset 0 8px 12px -8px rgba(15, 23, 42, 0.15);
+}
+
+.core-engine-lib-word-blocks .fx-starfield-earth { position: relative; overflow: hidden; background-image: radial-gradient(circle at 50% 45%, #ffffff 0%, #e4edfa 75%); } .core-engine-lib-word-blocks .fx-starfield-earth::before { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(1px 1px at 12px 18px, #94a3b8, transparent 1.6px), radial-gradient(1px 1px at 52px 64px, #64748b, transparent 1.6px), radial-gradient(1.4px 1.4px at 78px 26px, #a5b4cb, transparent 2px), radial-gradient(1px 1px at 34px 96px, #7c8da8, transparent 1.6px), radial-gradient(1.4px 1.4px at 104px 112px, #94a3b8, transparent 2px), radial-gradient(1px 1px at 66px 44px, #64748b, transparent 1.6px); background-size: 128px 128px; background-repeat: repeat; animation: fx-starfield-earth-twinkle 4s ease-in-out infinite; } .core-engine-lib-word-blocks .fx-starfield-earth::after { content: ""; position: absolute; right: 12%; bottom: 14%; pointer-events: none; width: 64px; height: 64px; border-radius: 50%; background-image: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.9), rgba(255,255,255,0) 48%), repeating-linear-gradient(90deg, #93c5fd 0 7px, #86efac 7px 11px, #60a5fa 11px 16px); background-size: 100% 100%, 200% 100%; box-shadow: inset -10px -8px 18px rgba(100,116,139,0.35), 0 0 22px rgba(96,165,250,0.35); animation: fx-starfield-earth-spin 9s linear infinite; } @keyframes fx-starfield-earth-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } } @keyframes fx-starfield-earth-spin { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 200% 0; } }
+
+/* neurocad/core/engine/lib/word/editor/effects/fx/fx-soft-diagonal-hatch.css */
+
+/* Мягкие диагональные штрихи по фону с лёгким размытием.
+   Извлечено из pages/11.css (эффекты effect-a7k3 + effect-b9q2). */
+
+.core-engine-lib-word-blocks .fx-soft-diagonal-hatch {
+    position: relative;
+    overflow: hidden;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns=''http://www.w3.org/2000/svg'' width=''90'' height=''90''%3E%3Cg stroke=''%23808080'' stroke-width=''1.6'' stroke-linecap=''round'' opacity=''0.14''%3E%3Cline x1=''10'' y1=''13'' x2=''25'' y2=''19''/%3E%3Cline x1=''48'' y1=''30'' x2=''63'' y2=''35''/%3E%3Cline x1=''16'' y1=''56'' x2=''31'' y2=''62''/%3E%3Cline x1=''60'' y1=''70'' x2=''76'' y2=''63''/%3E%3Cline x1=''40'' y1=''8'' x2=''52'' y2=''15''/%3E%3Cline x1=''70'' y1=''44'' x2=''82'' y2=''50''/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 90px 90px;
+}
+
+.core-engine-lib-word-blocks .fx-soft-diagonal-hatch::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.14;
+    filter: blur(2.5px);
+    background-repeat: repeat;
+    background-image: repeating-linear-gradient(
+        24deg,
+        rgba(148, 163, 184, 0.38) 0 1px,
+        transparent 1px 9px
+    ),
+    repeating-linear-gradient(
+        -18deg,
+        rgba(148, 163, 184, 0.22) 0 1px,
+        transparent 1px 14px
+    ),
+    repeating-linear-gradient(
+        68deg,
+        rgba(148, 163, 184, 0.14) 0 1px,
+        transparent 1px 22px
+    ),
+    repeating-linear-gradient(
+        -52deg,
+        rgba(148, 163, 184, 0.10) 0 1px,
+        transparent 1px 28px
+    );
+    background-size: 220px 120px, 340px 160px, 180px 140px, 420px 200px;
+    background-position-x: 0px, 70px, 130px, 40px;
+    background-position-y: 0px, 60px, 30px, 120px;
+    mask-image: repeating-linear-gradient(
+        -45deg,
+        #000 0px, #000 9px,
+        transparent 9px, transparent 26px
+    );
+    -webkit-mask-image: repeating-linear-gradient(
+        -45deg,
+        #000 0px, #000 9px,
+        transparent 9px, transparent 26px
+    );
+}
+
+.core-engine-lib-word-blocks .fx-soft-diagonal-hatch > * {
+    position: relative;
+    z-index: 1;
+}
+
+.core-engine-lib-word-blocks .fx-aurora-drift { position: relative; overflow: hidden; background-image: radial-gradient(60% 80% at 15% 20%, rgba(148,163,184,0.35), transparent 62%), radial-gradient(55% 70% at 85% 78%, rgba(203,213,225,0.38), transparent 62%), radial-gradient(45% 60% at 60% 5%, rgba(148,163,184,0.18), transparent 62%); background-size: 180% 180%, 170% 170%, 200% 200%; background-repeat: no-repeat, no-repeat, no-repeat; animation: fx-aurora-drift-move 20s ease-in-out infinite alternate; } .core-engine-lib-word-blocks .fx-aurora-drift::after { content: ""; position: absolute; inset: -10%; background-image: radial-gradient(40% 50% at 50% 50%, rgba(203,213,225,0.22), transparent 65%); animation: fx-aurora-drift-breathe 9s ease-in-out infinite; pointer-events: none; } @keyframes fx-aurora-drift-move { 0% { background-position: 0% 0%, 100% 100%, 50% 0%; } 50% { background-position: 32% 42%, 68% 58%, 42% 32%; } 100% { background-position: 62% 82%, 38% 18%, 18% 62%; } } @keyframes fx-aurora-drift-breathe { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.08); } }
+
+.core-engine-lib-word-blocks .fx-aurora-weave { background-image: repeating-linear-gradient(115deg, rgba(148, 163, 184, 0.12) 0px, rgba(148, 163, 184, 0.12) 2px, transparent 2px, transparent 16px), repeating-linear-gradient(65deg, rgba(203, 213, 225, 0.1) 0px, rgba(203, 213, 225, 0.1) 2px, transparent 2px, transparent 22px); background-size: 240% 240%, 200% 200%; animation: fx-aurora-weave-drift 300s ease-in-out infinite alternate; } @keyframes fx-aurora-weave-drift { 0% { background-position: 0% 0%, 100% 100%; } 100% { background-position: 100% 100%, 0% 0%; } }
+
+.core-engine-lib-word-blocks .fx-vinyl-grooves { position: relative; overflow: hidden; } .core-engine-lib-word-blocks .fx-vinyl-grooves::before { content: ""; position: absolute; top: 50%; left: 50%; width: 220%; height: 220%; transform: translate(-50%, -50%); background-image: repeating-radial-gradient(circle at 50% 50%, #94a3b8 0 1px, transparent 1px 13px); opacity: 0.16; pointer-events: none; animation: fx-vinyl-grooves-spin 28s linear infinite; } @keyframes fx-vinyl-grooves-spin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+.core-engine-lib-word-blocks .fx-office-grid { background-image: linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px); background-size: 24px 24px; background-position: -1px -1px; animation: fx-office-grid-flicker 7s ease-in-out infinite; } @keyframes fx-office-grid-flicker { 0%, 88%, 100% { opacity: 0.9; } 90% { opacity: 0.65; } 93% { opacity: 0.95; } 96% { opacity: 0.75; } }
+
 * { box-sizing: border-box; } body {margin: 0;}');
+INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (36, 1, '2026-09-30 16:57:05.011224', 'Юрбюро "Щит"', 'Защищаем ваши интересы — уверенно и профессионально', '/static/core/engine/lib/word/editor/images/files/img-8e1d3344.svg', '<body><div class="core-engine-lib-word-blocks"><header class="header"><div class="header-inner"><a href="#" class="logo"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-icon"><path d="M18 2L33 9V18C33 27 26.5 33.5 18 34C9.5 33.5 3 27 3 18V9L18 2Z" fill="#1a3a5c"></path><path d="M18 6L29 11V18C29 24.5 24.5 29.5 18 30C11.5 29.5 7 24.5 7 18V11L18 6Z" fill="#c9a84c"></path><path d="M13 17L17 21L24 13" stroke="#1a3a5c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="logo-text">Щит</span></a><nav class="nav"><a href="#services">Услуги</a><a href="#about">О бюро</a><a href="#cases">Практика</a><a href="#contacts">Контакты</a></nav><a href="tel:+74951234567" class="header-phone">+7 (495) 123-45-67</a></div></header><main><section class="hero fx-clouds-sun" id="i5o13"><div class="hero-bg"></div><div class="hero-content" id="i6fks"><p class="hero-label">Юридическое бюро полного цикла</p><h1 class="hero-title" id="ii1s1">Защищаем ваши интересы — <span class="accent">уверенно и профессионально</span></h1><p class="hero-text">Более 15 лет мы решаем сложные юридические задачи для бизнеса и частных клиентов. Берём на себя переговоры, суды и защиту ваших прав.</p><div class="hero-actions"><a href="#contacts" class="btn btn-primary">Получить консультацию</a><a href="#services" class="btn btn-outline">Наши услуги</a></div><div class="hero-stats"><div class="stat"><span class="stat-num">15+</span><span class="stat-label">лет практики</span></div><div class="stat"><span class="stat-num">1200</span><span class="stat-label">выигранных дел</span></div><div class="stat"><span class="stat-num">98%</span><span class="stat-label">успешных решений</span></div></div></div></section><section id="services" class="services"><div class="section-head"><h2 class="section-title">Наши услуги</h2><p class="section-sub">Полный спектр юридической поддержки — от консультации до представительства в суде</p></div><div class="services-grid"><article class="service-card"><div class="service-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="22" rx="3" stroke="#c9a84c" stroke-width="2"></rect><path d="M10 12H22M10 17H22M10 22H17" stroke="#c9a84c" stroke-width="2" stroke-linecap="round"></path></svg></div><h3>Корпоративное право</h3><p>Сопровождение сделок, регистрация компаний, корпоративные споры и защита активов бизнеса.</p></article><article class="service-card"><div class="service-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4L28 10V16C28 23 22.5 27.5 16 28C9.5 27.5 4 23 4 16V10L16 4Z" stroke="#c9a84c" stroke-width="2"></path><path d="M11 16L15 20L21 12" stroke="#c9a84c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div><h3>Судебные споры</h3><p>Представительство в арбитражных судах и судах общей юрисдикции любой сложности.</p></article><article class="service-card"><div class="service-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="11" r="6" stroke="#c9a84c" stroke-width="2"></circle><path d="M6 28C6 22 10.5 18 16 18C21.5 18 26 22 26 28" stroke="#c9a84c" stroke-width="2" stroke-linecap="round"></path></svg></div><h3>Семейное право</h3><p>Разводы, раздел имущества, споры о детях, алименты и брачные договоры.</p></article><article class="service-card"><div class="service-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="5" y="10" width="22" height="16" rx="3" stroke="#c9a84c" stroke-width="2"></rect><path d="M5 16H27" stroke="#c9a84c" stroke-width="2"></path><path d="M10 6V10M22 6V10" stroke="#c9a84c" stroke-width="2" stroke-linecap="round"></path></svg></div><h3>Налоговые споры</h3><p>Оспаривание решений ФНС, налоговые проверки, оптимизация налогообложения.</p></article><article class="service-card"><div class="service-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4V28M4 16H28" stroke="#c9a84c" stroke-width="2" stroke-linecap="round"></path><circle cx="16" cy="16" r="12" stroke="#c9a84c" stroke-width="2"></circle></svg></div><h3>Недвижимость</h3><p>Сопровождение сделок, оспаривание кадастровой стоимости, земельные споры.</p></article><article class="service-card"><div class="service-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M8 4H20L26 10V28H8V4Z" stroke="#c9a84c" stroke-width="2" stroke-linejoin="round"></path><path d="M20 4V10H26" stroke="#c9a84c" stroke-width="2" stroke-linejoin="round"></path><path d="M12 16H22M12 21H19" stroke="#c9a84c" stroke-width="2" stroke-linecap="round"></path></svg></div><h3>Юридический аудит</h3><p>Комплексная проверка документов, договоров и рисков перед сделкой.</p></article></div></section><section id="about" class="about"><div class="about-inner"><div class="about-text"><h2 class="section-title">Почему выбирают «Щит»</h2><p>Мы не просто оказываем юридические услуги — мы становимся вашим надёжным партнёром. Каждый клиент получает персонального адвоката, который ведёт дело от начала до конца.</p><ul class="about-list"><li><span class="check">✓</span> Персональный подход к каждому делу</li><li><span class="check">✓</span> Прозрачные условия и фиксированные цены</li><li><span class="check">✓</span> Конфиденциальность и защита данных</li><li><span class="check">✓</span> Опыт работы с федеральными компаниями</li></ul></div><div class="about-visual"><div class="about-card"><div class="about-card-num">15+</div><div class="about-card-text">лет успешной юридической практики</div></div><div class="about-card about-card-alt"><div class="about-card-num">24/7</div><div class="about-card-text">поддержка клиентов в срочных вопросах</div></div></div></div></section><section id="contacts" class="cta"><div class="cta-inner" id="ixzert"><h2>Нужна юридическая помощь?</h2><p id="i1znpj">Оставьте заявку — мы свяжемся с вами в течение 15 минут и предложим решение</p><form class="cta-form" id="iecfkw"><input type="text" placeholder="Ваше имя" required id="ieeexh"/><input type="tel" placeholder="Телефон" required id="i2g6i8"/><button type="submit" class="btn btn-primary">Отправить заявку</button></form><p class="cta-note" id="i8sx0e">Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности</p></div></section></main><footer class="footer" id="ifd9hg"><div class="footer-inner"><div class="footer-col"><div class="logo"><svg width="28" height="28" viewBox="0 0 36 36" fill="none" class="logo-icon"><path d="M18 2L33 9V18C33 27 26.5 33.5 18 34C9.5 33.5 3 27 3 18V9L18 2Z" fill="#c9a84c"></path><path d="M13 17L17 21L24 13" stroke="#1a3a5c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span class="logo-text">Щит</span></div><p class="footer-desc" id="ia5agw">Юридическое бюро полного цикла. Защищаем ваши интересы с 2009 года.</p></div><div class="footer-col" id="i230lv"><h4 id="iib4wn">Услуги</h4><a href="#" id="iqu7l6">Корпоративное право</a><a href="#" id="ic8oln">Судебные споры</a><a href="#" id="igu9fb">Семейное право</a><a href="#" id="iolhbk">Налоговые споры</a></div><div class="footer-col"><h4>Контакты</h4><p id="i68wo2">Москва, ул. Правды, 15</p><p id="ip09ij">+7 (495) 123-45-67</p><p id="i6unxj">info@shield-law.ru</p></div></div><div class="footer-bottom" id="irqdby"><p>© 2025 Юридическое бюро «Щит». Все права защищены.</p></div></footer></div></body>', '{"assets":[{"type":"image","src":"/media/1/0011d3540f024690b41bcab1c1066185.png","unitDim":"px","height":0,"width":0,"name":"0011d3540f024690b41bcab1c1066185.png"},{"type":"image","src":"/media/1/005204288b374e0bb497c8c2f4959697.jpg","unitDim":"px","height":0,"width":0,"name":"005204288b374e0bb497c8c2f4959697.jpg"},{"type":"image","src":"/media/1/00d40f05eed5483db643ff64bdb74089.png","unitDim":"px","height":0,"width":0,"name":"00d40f05eed5483db643ff64bdb74089.png"},{"type":"image","src":"/media/1/010d02f6f4ad43a6849f152eef3f8cb7.jpg","unitDim":"px","height":0,"width":0,"name":"010d02f6f4ad43a6849f152eef3f8cb7.jpg"},{"type":"image","src":"/media/1/01a982f272e14fc497ebcd98297a0ccc.jpg","unitDim":"px","height":0,"width":0,"name":"01a982f272e14fc497ebcd98297a0ccc.jpg"},{"type":"image","src":"/media/1/0269f8e7fbad4939a16e2ecc2627fe7d.jpg","unitDim":"px","height":0,"width":0,"name":"0269f8e7fbad4939a16e2ecc2627fe7d.jpg"},{"type":"image","src":"/media/1/03a305da08ae4c03b120704162faa892.svg","unitDim":"px","height":0,"width":0,"name":"03a305da08ae4c03b120704162faa892.svg"},{"type":"image","src":"/media/1/045e8dd55f4e490db9bb94c66d0f5834.jpg","unitDim":"px","height":0,"width":0,"name":"045e8dd55f4e490db9bb94c66d0f5834.jpg"},{"type":"image","src":"/media/1/059c9fbf076b442689da18ea970b0e8c.svg","unitDim":"px","height":0,"width":0,"name":"059c9fbf076b442689da18ea970b0e8c.svg"},{"type":"image","src":"/media/1/060a9822c6bd4e80a95bb969fccca961.svg","unitDim":"px","height":0,"width":0,"name":"060a9822c6bd4e80a95bb969fccca961.svg"},{"type":"image","src":"/media/1/07c5e3ce8c9d441bbfdba206671748d9.svg","unitDim":"px","height":0,"width":0,"name":"07c5e3ce8c9d441bbfdba206671748d9.svg"},{"type":"image","src":"/media/1/086cae858708428aabd84f4d367a9c8a.jpg","unitDim":"px","height":0,"width":0,"name":"086cae858708428aabd84f4d367a9c8a.jpg"},{"type":"image","src":"/media/1/08fe416bab75497bb47b5b6e9229332c.jpg","unitDim":"px","height":0,"width":0,"name":"08fe416bab75497bb47b5b6e9229332c.jpg"},{"type":"image","src":"/media/1/0a247e12b1af4677903ef91db6116394.png","unitDim":"px","height":0,"width":0,"name":"0a247e12b1af4677903ef91db6116394.png"},{"type":"image","src":"/media/1/0a30deaa749c4cb093bfc5e04b7efd8e.svg","unitDim":"px","height":0,"width":0,"name":"0a30deaa749c4cb093bfc5e04b7efd8e.svg"},{"type":"image","src":"/media/1/0ae11c4468b34edf98ed299af4fc2449.svg","unitDim":"px","height":0,"width":0,"name":"0ae11c4468b34edf98ed299af4fc2449.svg"},{"type":"image","src":"/media/1/0b2f761928bc472d8a0870131f6b678f.jpg","unitDim":"px","height":0,"width":0,"name":"0b2f761928bc472d8a0870131f6b678f.jpg"},{"type":"image","src":"/media/1/0b8c7951fd7e42bda6784fd487e29ad4.svg","unitDim":"px","height":0,"width":0,"name":"0b8c7951fd7e42bda6784fd487e29ad4.svg"},{"type":"image","src":"/media/1/0b9ce473d5e14c008ed712e3b5c2e91f.jpg","unitDim":"px","height":0,"width":0,"name":"0b9ce473d5e14c008ed712e3b5c2e91f.jpg"},{"type":"image","src":"/media/1/0e3907188d8443ce9dd054b27a69cba0.svg","unitDim":"px","height":0,"width":0,"name":"0e3907188d8443ce9dd054b27a69cba0.svg"},{"type":"image","src":"/media/1/0e44b0df923d4c4c8cc7c341e333e26a.svg","unitDim":"px","height":0,"width":0,"name":"0e44b0df923d4c4c8cc7c341e333e26a.svg"},{"type":"image","src":"/media/1/0f4209bd13644036bdd40f983ad8b3ba.jpg","unitDim":"px","height":0,"width":0,"name":"0f4209bd13644036bdd40f983ad8b3ba.jpg"},{"type":"image","src":"/media/1/10f8ad5407e5498790009f93d41d7338.jpg","unitDim":"px","height":0,"width":0,"name":"10f8ad5407e5498790009f93d41d7338.jpg"},{"type":"image","src":"/media/1/11f89a23a24e43468a82c759c43d3cd7.svg","unitDim":"px","height":0,"width":0,"name":"11f89a23a24e43468a82c759c43d3cd7.svg"},{"type":"image","src":"/media/1/12c2f34e27aa41a8a887b71fa2ecb7b6.jpg","unitDim":"px","height":0,"width":0,"name":"12c2f34e27aa41a8a887b71fa2ecb7b6.jpg"},{"type":"image","src":"/media/1/13b9e1c5fb1a49519660cc3b113d2ebd.jpg","unitDim":"px","height":0,"width":0,"name":"13b9e1c5fb1a49519660cc3b113d2ebd.jpg"},{"type":"image","src":"/media/1/14999964d344419ca041db46be2f2a31.png","unitDim":"px","height":0,"width":0,"name":"14999964d344419ca041db46be2f2a31.png"},{"type":"image","src":"/media/1/14d0fa25815e4bf8bd77e557c7965dce.jpg","unitDim":"px","height":0,"width":0,"name":"14d0fa25815e4bf8bd77e557c7965dce.jpg"},{"type":"image","src":"/media/1/156c42a278144ffc9a6d5acdc8d84065.png","unitDim":"px","height":0,"width":0,"name":"156c42a278144ffc9a6d5acdc8d84065.png"},{"type":"image","src":"/media/1/162a57495ec94f909fd3f6344fff60f2.svg","unitDim":"px","height":0,"width":0,"name":"162a57495ec94f909fd3f6344fff60f2.svg"},{"type":"image","src":"/media/1/16756c08fb4e454eb6e17427ceeb5384.svg","unitDim":"px","height":0,"width":0,"name":"16756c08fb4e454eb6e17427ceeb5384.svg"},{"type":"image","src":"/media/1/16de4075b55c45028b260e0fc47e3893.png","unitDim":"px","height":0,"width":0,"name":"16de4075b55c45028b260e0fc47e3893.png"},{"type":"image","src":"/media/1/181e9a42e673409cbc272cae051e12ec.png","unitDim":"px","height":0,"width":0,"name":"181e9a42e673409cbc272cae051e12ec.png"},{"type":"image","src":"/media/1/183bc52b144d48bc8340829f6d9e5e30.svg","unitDim":"px","height":0,"width":0,"name":"183bc52b144d48bc8340829f6d9e5e30.svg"},{"type":"image","src":"/media/1/186a0984b3e1499c85b79f7fa4c4d94d.jpg","unitDim":"px","height":0,"width":0,"name":"186a0984b3e1499c85b79f7fa4c4d94d.jpg"},{"type":"image","src":"/media/1/1a6a384bec624063b6d41def534ebe54.jpg","unitDim":"px","height":0,"width":0,"name":"1a6a384bec624063b6d41def534ebe54.jpg"},{"type":"image","src":"/media/1/1ac7fa4a71ff44169be44226a9bb42c5.png","unitDim":"px","height":0,"width":0,"name":"1ac7fa4a71ff44169be44226a9bb42c5.png"},{"type":"image","src":"/media/1/1b50a8ef77804dfab9bf2b49a2674bc2.jpg","unitDim":"px","height":0,"width":0,"name":"1b50a8ef77804dfab9bf2b49a2674bc2.jpg"},{"type":"image","src":"/media/1/1bec6280d7d647d7916e677afc814d2e.svg","unitDim":"px","height":0,"width":0,"name":"1bec6280d7d647d7916e677afc814d2e.svg"},{"type":"image","src":"/media/1/1ccd9b86cc3c4f0790f2afda9993cbd0.jpg","unitDim":"px","height":0,"width":0,"name":"1ccd9b86cc3c4f0790f2afda9993cbd0.jpg"},{"type":"image","src":"/media/1/20761040e00c49698dee96a890d43779.jpg","unitDim":"px","height":0,"width":0,"name":"20761040e00c49698dee96a890d43779.jpg"},{"type":"image","src":"/media/1/2182d38446294c54aefaa7167386c651.png","unitDim":"px","height":0,"width":0,"name":"2182d38446294c54aefaa7167386c651.png"},{"type":"image","src":"/media/1/21f219cbbda44959aac4930f5239d2cf.jpg","unitDim":"px","height":0,"width":0,"name":"21f219cbbda44959aac4930f5239d2cf.jpg"},{"type":"image","src":"/media/1/22225b995c07434ea32cdd9c7bc643a3.png","unitDim":"px","height":0,"width":0,"name":"22225b995c07434ea32cdd9c7bc643a3.png"},{"type":"image","src":"/media/1/22c1b410c8974000b767706e14665d9d.jpg","unitDim":"px","height":0,"width":0,"name":"22c1b410c8974000b767706e14665d9d.jpg"},{"type":"image","src":"/media/1/247631f39ddc48c7b4d84bc74f8369ea.svg","unitDim":"px","height":0,"width":0,"name":"247631f39ddc48c7b4d84bc74f8369ea.svg"},{"type":"image","src":"/media/1/251c87f65d7342a3a5b249d82a27b8aa.jpg","unitDim":"px","height":0,"width":0,"name":"251c87f65d7342a3a5b249d82a27b8aa.jpg"},{"type":"image","src":"/media/1/251e2079e63b44e58e11259364e67a19.jpg","unitDim":"px","height":0,"width":0,"name":"251e2079e63b44e58e11259364e67a19.jpg"},{"type":"image","src":"/media/1/26cfc82036834dc78acc85dd6d7a8dc9.svg","unitDim":"px","height":0,"width":0,"name":"26cfc82036834dc78acc85dd6d7a8dc9.svg"},{"type":"image","src":"/media/1/2791630e0fc04914834a006dd1c7ca26.svg","unitDim":"px","height":0,"width":0,"name":"2791630e0fc04914834a006dd1c7ca26.svg"},{"type":"image","src":"/media/1/27f25598f51d4b3791b88414dd2bf755.svg","unitDim":"px","height":0,"width":0,"name":"27f25598f51d4b3791b88414dd2bf755.svg"},{"type":"image","src":"/media/1/2863acfd005140ab8857ef9d93ca405c.jpg","unitDim":"px","height":0,"width":0,"name":"2863acfd005140ab8857ef9d93ca405c.jpg"},{"type":"image","src":"/media/1/29ea738f29154eceb9754b43fd31071e.svg","unitDim":"px","height":0,"width":0,"name":"29ea738f29154eceb9754b43fd31071e.svg"},{"type":"image","src":"/media/1/2a2a1cb370c44382bb2b0820b83159cd.jpg","unitDim":"px","height":0,"width":0,"name":"2a2a1cb370c44382bb2b0820b83159cd.jpg"},{"type":"image","src":"/media/1/2adda6bb4b5a4b2a9e2e91c8fb933f06.png","unitDim":"px","height":0,"width":0,"name":"2adda6bb4b5a4b2a9e2e91c8fb933f06.png"},{"type":"image","src":"/media/1/2aee7f5f48ad4bf5a3918e642a78261d.png","unitDim":"px","height":0,"width":0,"name":"2aee7f5f48ad4bf5a3918e642a78261d.png"},{"type":"image","src":"/media/1/2c0b8d1de9dd43e3846c88b0cd203ad4.svg","unitDim":"px","height":0,"width":0,"name":"2c0b8d1de9dd43e3846c88b0cd203ad4.svg"},{"type":"image","src":"/media/1/2c25a28054e343c5a36b940398f66102.png","unitDim":"px","height":0,"width":0,"name":"2c25a28054e343c5a36b940398f66102.png"},{"type":"image","src":"/media/1/2d5fd315376a4481b423c02cebc84201.svg","unitDim":"px","height":0,"width":0,"name":"2d5fd315376a4481b423c02cebc84201.svg"},{"type":"image","src":"/media/1/2e4de307d9ba4cd0bb9cd463f4d338d3.svg","unitDim":"px","height":0,"width":0,"name":"2e4de307d9ba4cd0bb9cd463f4d338d3.svg"},{"type":"image","src":"/media/1/314ccee6564a46bf99c8b788f1e48ef0.svg","unitDim":"px","height":0,"width":0,"name":"314ccee6564a46bf99c8b788f1e48ef0.svg"},{"type":"image","src":"/media/1/317e9975bf094136b5ab4d5e866665dc.png","unitDim":"px","height":0,"width":0,"name":"317e9975bf094136b5ab4d5e866665dc.png"},{"type":"image","src":"/media/1/3258c2d6a9d34551ac3275d1af28d7b1.png","unitDim":"px","height":0,"width":0,"name":"3258c2d6a9d34551ac3275d1af28d7b1.png"},{"type":"image","src":"/media/1/340ad732c44d4eb696133829e1be4948.jpg","unitDim":"px","height":0,"width":0,"name":"340ad732c44d4eb696133829e1be4948.jpg"},{"type":"image","src":"/media/1/349423fe14e5474393d93fc472254c92.png","unitDim":"px","height":0,"width":0,"name":"349423fe14e5474393d93fc472254c92.png"},{"type":"image","src":"/media/1/34f49e6bc46443f5b47f219ee7806b12.jpg","unitDim":"px","height":0,"width":0,"name":"34f49e6bc46443f5b47f219ee7806b12.jpg"},{"type":"image","src":"/media/1/35528203c20a478c9747a7febfd356d0.svg","unitDim":"px","height":0,"width":0,"name":"35528203c20a478c9747a7febfd356d0.svg"},{"type":"image","src":"/media/1/379396dc5a0046cfab9fb1b269a2f459.svg","unitDim":"px","height":0,"width":0,"name":"379396dc5a0046cfab9fb1b269a2f459.svg"},{"type":"image","src":"/media/1/37bb844a3f4a4ce899c445c169f40213.png","unitDim":"px","height":0,"width":0,"name":"37bb844a3f4a4ce899c445c169f40213.png"},{"type":"image","src":"/media/1/3821ed446cbb41089fefbc3738e0b92c.svg","unitDim":"px","height":0,"width":0,"name":"3821ed446cbb41089fefbc3738e0b92c.svg"},{"type":"image","src":"/media/1/3985787300fb4a31bc28151a2685aa9c.svg","unitDim":"px","height":0,"width":0,"name":"3985787300fb4a31bc28151a2685aa9c.svg"},{"type":"image","src":"/media/1/3a1d521a99bc447696f049bb6c44f624.png","unitDim":"px","height":0,"width":0,"name":"3a1d521a99bc447696f049bb6c44f624.png"},{"type":"image","src":"/media/1/3a819c1804e14c569d8fa5b506104f53.jpg","unitDim":"px","height":0,"width":0,"name":"3a819c1804e14c569d8fa5b506104f53.jpg"},{"type":"image","src":"/media/1/3abba62abd2d4ed39d7af1894e74581c.png","unitDim":"px","height":0,"width":0,"name":"3abba62abd2d4ed39d7af1894e74581c.png"},{"type":"image","src":"/media/1/3ae19277fbd5439f9f28aad215a89972.jpg","unitDim":"px","height":0,"width":0,"name":"3ae19277fbd5439f9f28aad215a89972.jpg"},{"type":"image","src":"/media/1/3c26d202caf24dfdb820b85074d89872.jpg","unitDim":"px","height":0,"width":0,"name":"3c26d202caf24dfdb820b85074d89872.jpg"},{"type":"image","src":"/media/1/3c6535b5ba42422faf43077b2c81f7b5.jpg","unitDim":"px","height":0,"width":0,"name":"3c6535b5ba42422faf43077b2c81f7b5.jpg"},{"type":"image","src":"/media/1/3c77deda8ba845d28eac57e0dbb6175c.jpg","unitDim":"px","height":0,"width":0,"name":"3c77deda8ba845d28eac57e0dbb6175c.jpg"},{"type":"image","src":"/media/1/3d7bf3de847e497a9bd3bbb55f0391cc.svg","unitDim":"px","height":0,"width":0,"name":"3d7bf3de847e497a9bd3bbb55f0391cc.svg"},{"type":"image","src":"/media/1/3fb418a681954c7eabb4abc7efb35145.jpg","unitDim":"px","height":0,"width":0,"name":"3fb418a681954c7eabb4abc7efb35145.jpg"},{"type":"image","src":"/media/1/401fd43e591e4bc083142b2035dcd2f7.png","unitDim":"px","height":0,"width":0,"name":"401fd43e591e4bc083142b2035dcd2f7.png"},{"type":"image","src":"/media/1/43fec4d79f7d43ee8265b2882b6a0d25.svg","unitDim":"px","height":0,"width":0,"name":"43fec4d79f7d43ee8265b2882b6a0d25.svg"},{"type":"image","src":"/media/1/4499f8cacb354e8dbcdc4fd7ba0ac0ca.svg","unitDim":"px","height":0,"width":0,"name":"4499f8cacb354e8dbcdc4fd7ba0ac0ca.svg"},{"type":"image","src":"/media/1/44b890c5f971428ea4c97289ff3180cb.jpg","unitDim":"px","height":0,"width":0,"name":"44b890c5f971428ea4c97289ff3180cb.jpg"},{"type":"image","src":"/media/1/46157be74c6e4a218d1da48b4a0604de.svg","unitDim":"px","height":0,"width":0,"name":"46157be74c6e4a218d1da48b4a0604de.svg"},{"type":"image","src":"/media/1/471adca7bcae4996a9baed34003fd3c0.png","unitDim":"px","height":0,"width":0,"name":"471adca7bcae4996a9baed34003fd3c0.png"},{"type":"image","src":"/media/1/4829d08efed74fa58c8176d84c4bfdfe.svg","unitDim":"px","height":0,"width":0,"name":"4829d08efed74fa58c8176d84c4bfdfe.svg"},{"type":"image","src":"/media/1/483143746a1e4819a1d05ca8c71665a2.svg","unitDim":"px","height":0,"width":0,"name":"483143746a1e4819a1d05ca8c71665a2.svg"},{"type":"image","src":"/media/1/4972aa4a81384405904105073247c43a.svg","unitDim":"px","height":0,"width":0,"name":"4972aa4a81384405904105073247c43a.svg"},{"type":"image","src":"/media/1/49e04636839b4369905747db9958f13f.svg","unitDim":"px","height":0,"width":0,"name":"49e04636839b4369905747db9958f13f.svg"},{"type":"image","src":"/media/1/4a2b05688c20423f844389de4d96e138.jpg","unitDim":"px","height":0,"width":0,"name":"4a2b05688c20423f844389de4d96e138.jpg"},{"type":"image","src":"/media/1/4a6bc470c4e447d9830098e635eb27f4.jpg","unitDim":"px","height":0,"width":0,"name":"4a6bc470c4e447d9830098e635eb27f4.jpg"},{"type":"image","src":"/media/1/4aabafab3402428ba7127d47e84e159c.png","unitDim":"px","height":0,"width":0,"name":"4aabafab3402428ba7127d47e84e159c.png"},{"type":"image","src":"/media/1/4afcd5d515164e8783c28242f6d8b54b.jpg","unitDim":"px","height":0,"width":0,"name":"4afcd5d515164e8783c28242f6d8b54b.jpg"},{"type":"image","src":"/media/1/4b38648558814b7094cc73f497f507b4.jpg","unitDim":"px","height":0,"width":0,"name":"4b38648558814b7094cc73f497f507b4.jpg"},{"type":"image","src":"/media/1/4cec5fa55c3e4cd3b55c1d5668ba51a2.jpg","unitDim":"px","height":0,"width":0,"name":"4cec5fa55c3e4cd3b55c1d5668ba51a2.jpg"},{"type":"image","src":"/media/1/4d420da48b774e23a5995520654047b4.jpg","unitDim":"px","height":0,"width":0,"name":"4d420da48b774e23a5995520654047b4.jpg"},{"type":"image","src":"/media/1/4e1f6a00533349cfadf29c2776062da0.jpg","unitDim":"px","height":0,"width":0,"name":"4e1f6a00533349cfadf29c2776062da0.jpg"},{"type":"image","src":"/media/1/4e5bfdb299f54f76aefed4fbb18c0b98.jpg","unitDim":"px","height":0,"width":0,"name":"4e5bfdb299f54f76aefed4fbb18c0b98.jpg"},{"type":"image","src":"/media/1/4e6ccf01044446cab212c9c3b7e9b6de.jpg","unitDim":"px","height":0,"width":0,"name":"4e6ccf01044446cab212c9c3b7e9b6de.jpg"},{"type":"image","src":"/media/1/4e7724b2e08c4b1687a39d2ff40c0dbc.jpg","unitDim":"px","height":0,"width":0,"name":"4e7724b2e08c4b1687a39d2ff40c0dbc.jpg"},{"type":"image","src":"/media/1/50a506af643a4918aa1f327e0ca410a0.jpg","unitDim":"px","height":0,"width":0,"name":"50a506af643a4918aa1f327e0ca410a0.jpg"},{"type":"image","src":"/media/1/53755752ef594772bb7c320ce24fa4eb.png","unitDim":"px","height":0,"width":0,"name":"53755752ef594772bb7c320ce24fa4eb.png"},{"type":"image","src":"/media/1/54bfe3def6e14b44b8a8493418498aca.png","unitDim":"px","height":0,"width":0,"name":"54bfe3def6e14b44b8a8493418498aca.png"},{"type":"image","src":"/media/1/554e258a470c41038341e1c8f9f2fc5f.jpg","unitDim":"px","height":0,"width":0,"name":"554e258a470c41038341e1c8f9f2fc5f.jpg"},{"type":"image","src":"/media/1/557d1a2d339e4c429b3b4a21ea483439.png","unitDim":"px","height":0,"width":0,"name":"557d1a2d339e4c429b3b4a21ea483439.png"},{"type":"image","src":"/media/1/56075ece00a841d88ec6440e5f34267a.jpg","unitDim":"px","height":0,"width":0,"name":"56075ece00a841d88ec6440e5f34267a.jpg"},{"type":"image","src":"/media/1/5688de7fa7f54704a72b5a56bf3e2f82.png","unitDim":"px","height":0,"width":0,"name":"5688de7fa7f54704a72b5a56bf3e2f82.png"},{"type":"image","src":"/media/1/5b893f4b6b3c43309674b835267221a5.svg","unitDim":"px","height":0,"width":0,"name":"5b893f4b6b3c43309674b835267221a5.svg"},{"type":"image","src":"/media/1/5bd75d9203dc4917be46af8054cc7d76.jpg","unitDim":"px","height":0,"width":0,"name":"5bd75d9203dc4917be46af8054cc7d76.jpg"},{"type":"image","src":"/media/1/5bdf3a44ef30493ebededd5914db44e9.png","unitDim":"px","height":0,"width":0,"name":"5bdf3a44ef30493ebededd5914db44e9.png"},{"type":"image","src":"/media/1/5d7e40623ebd4f4bbed1f283c0ce515c.jpg","unitDim":"px","height":0,"width":0,"name":"5d7e40623ebd4f4bbed1f283c0ce515c.jpg"},{"type":"image","src":"/media/1/60d166555d6e4bcf8654126fd58b6d6a.jpg","unitDim":"px","height":0,"width":0,"name":"60d166555d6e4bcf8654126fd58b6d6a.jpg"},{"type":"image","src":"/media/1/61d98070623e46fbb42e7cb87cb0f9db.jpg","unitDim":"px","height":0,"width":0,"name":"61d98070623e46fbb42e7cb87cb0f9db.jpg"},{"type":"image","src":"/media/1/622939eabfd94f95b73800e99b8ed95c.svg","unitDim":"px","height":0,"width":0,"name":"622939eabfd94f95b73800e99b8ed95c.svg"},{"type":"image","src":"/media/1/631e1f7d971e496e96bf27ee0efda18e.jpg","unitDim":"px","height":0,"width":0,"name":"631e1f7d971e496e96bf27ee0efda18e.jpg"},{"type":"image","src":"/media/1/6381e7c8779c49bbaf15874b8a82e62a.jpg","unitDim":"px","height":0,"width":0,"name":"6381e7c8779c49bbaf15874b8a82e62a.jpg"},{"type":"image","src":"/media/1/63cb9ca434c6473eb6541df9e21d4360.png","unitDim":"px","height":0,"width":0,"name":"63cb9ca434c6473eb6541df9e21d4360.png"},{"type":"image","src":"/media/1/63fb609c752846c1ab93b5d9c0628f57.svg","unitDim":"px","height":0,"width":0,"name":"63fb609c752846c1ab93b5d9c0628f57.svg"},{"type":"image","src":"/media/1/65a571e8412447ffbf317172b94213ab.svg","unitDim":"px","height":0,"width":0,"name":"65a571e8412447ffbf317172b94213ab.svg"},{"type":"image","src":"/media/1/65bb1fb844a74fcb8e82b80e41220d44.svg","unitDim":"px","height":0,"width":0,"name":"65bb1fb844a74fcb8e82b80e41220d44.svg"},{"type":"image","src":"/media/1/6728a95224214b1998e171584f8cec29.png","unitDim":"px","height":0,"width":0,"name":"6728a95224214b1998e171584f8cec29.png"},{"type":"image","src":"/media/1/69b0f3326c4f4f608dd7ed4035d0fe06.jpg","unitDim":"px","height":0,"width":0,"name":"69b0f3326c4f4f608dd7ed4035d0fe06.jpg"},{"type":"image","src":"/media/1/6a40a9a574e84d5bb9b6425d108504ac.jpg","unitDim":"px","height":0,"width":0,"name":"6a40a9a574e84d5bb9b6425d108504ac.jpg"},{"type":"image","src":"/media/1/6a7784de6f4c4b6fa0961d30091e24f1.png","unitDim":"px","height":0,"width":0,"name":"6a7784de6f4c4b6fa0961d30091e24f1.png"},{"type":"image","src":"/media/1/6aa9d0cf43154b6981de3c6671cc1b3a.jpg","unitDim":"px","height":0,"width":0,"name":"6aa9d0cf43154b6981de3c6671cc1b3a.jpg"},{"type":"image","src":"/media/1/6ab10be3484b4c11812e22ada23003fd.png","unitDim":"px","height":0,"width":0,"name":"6ab10be3484b4c11812e22ada23003fd.png"},{"type":"image","src":"/media/1/6aed6cb0bfda4925828b8fd7f96da7e2.svg","unitDim":"px","height":0,"width":0,"name":"6aed6cb0bfda4925828b8fd7f96da7e2.svg"},{"type":"image","src":"/media/1/6be415835694452fbbd8d132c34f1171.svg","unitDim":"px","height":0,"width":0,"name":"6be415835694452fbbd8d132c34f1171.svg"},{"type":"image","src":"/media/1/6c2b993f4a5a4bf9a30b5bb3ecc66c48.jpg","unitDim":"px","height":0,"width":0,"name":"6c2b993f4a5a4bf9a30b5bb3ecc66c48.jpg"},{"type":"image","src":"/media/1/6d4ac02cdca940f58b27e2d5f2dc2d49.jpg","unitDim":"px","height":0,"width":0,"name":"6d4ac02cdca940f58b27e2d5f2dc2d49.jpg"},{"type":"image","src":"/media/1/6fe349151e864c81b07db99682206115.svg","unitDim":"px","height":0,"width":0,"name":"6fe349151e864c81b07db99682206115.svg"},{"type":"image","src":"/media/1/72e7b6c398e1485a8ed14d3723b08cf4.png","unitDim":"px","height":0,"width":0,"name":"72e7b6c398e1485a8ed14d3723b08cf4.png"},{"type":"image","src":"/media/1/73ce5669c60a41968a04754b3dadb65d.jpg","unitDim":"px","height":0,"width":0,"name":"73ce5669c60a41968a04754b3dadb65d.jpg"},{"type":"image","src":"/media/1/742d4ed5a30c42f59a2f44e0085047f7.svg","unitDim":"px","height":0,"width":0,"name":"742d4ed5a30c42f59a2f44e0085047f7.svg"},{"type":"image","src":"/media/1/7525b8634c6b472dad8519ad5b141224.jpg","unitDim":"px","height":0,"width":0,"name":"7525b8634c6b472dad8519ad5b141224.jpg"},{"type":"image","src":"/media/1/76974521800947f086867c61e0c852f9.png","unitDim":"px","height":0,"width":0,"name":"76974521800947f086867c61e0c852f9.png"},{"type":"image","src":"/media/1/76aeaac58bda4cb1895baa9a8bc6bff5.jpg","unitDim":"px","height":0,"width":0,"name":"76aeaac58bda4cb1895baa9a8bc6bff5.jpg"},{"type":"image","src":"/media/1/774978540a8d4946b137f15fd28e5af4.png","unitDim":"px","height":0,"width":0,"name":"774978540a8d4946b137f15fd28e5af4.png"},{"type":"image","src":"/media/1/77533764ddf042cd91037ec63c6c64eb.svg","unitDim":"px","height":0,"width":0,"name":"77533764ddf042cd91037ec63c6c64eb.svg"},{"type":"image","src":"/media/1/78876863ff814f63bde93186a9314ff0.jpg","unitDim":"px","height":0,"width":0,"name":"78876863ff814f63bde93186a9314ff0.jpg"},{"type":"image","src":"/media/1/789b4baf0a8b4f22b564edfc2102ebcb.png","unitDim":"px","height":0,"width":0,"name":"789b4baf0a8b4f22b564edfc2102ebcb.png"},{"type":"image","src":"/media/1/78d119ddbcc04910a8e9781309f34288.png","unitDim":"px","height":0,"width":0,"name":"78d119ddbcc04910a8e9781309f34288.png"},{"type":"image","src":"/media/1/7a0a628b9df9435d82fcd43394ec09ff.jpg","unitDim":"px","height":0,"width":0,"name":"7a0a628b9df9435d82fcd43394ec09ff.jpg"},{"type":"image","src":"/media/1/7a82603c5e0645ed97dbe077172cca98.svg","unitDim":"px","height":0,"width":0,"name":"7a82603c5e0645ed97dbe077172cca98.svg"},{"type":"image","src":"/media/1/7b5d256914014acd93e0cf136b239670.png","unitDim":"px","height":0,"width":0,"name":"7b5d256914014acd93e0cf136b239670.png"},{"type":"image","src":"/media/1/7b8bc51b30a04d9091a5e02b9f4db630.jpg","unitDim":"px","height":0,"width":0,"name":"7b8bc51b30a04d9091a5e02b9f4db630.jpg"},{"type":"image","src":"/media/1/7cd8828cad604e5ca3d85215813389ef.jpg","unitDim":"px","height":0,"width":0,"name":"7cd8828cad604e5ca3d85215813389ef.jpg"},{"type":"image","src":"/media/1/7d616e238be243ecb3db4de47083786f.png","unitDim":"px","height":0,"width":0,"name":"7d616e238be243ecb3db4de47083786f.png"},{"type":"image","src":"/media/1/7e3b4fd91b8e4ea491dd48069f1c5062.svg","unitDim":"px","height":0,"width":0,"name":"7e3b4fd91b8e4ea491dd48069f1c5062.svg"},{"type":"image","src":"/media/1/7e4bbc5221174cbca7aa5f79546ea41b.svg","unitDim":"px","height":0,"width":0,"name":"7e4bbc5221174cbca7aa5f79546ea41b.svg"},{"type":"image","src":"/media/1/7f9421aa3d594f938611a46c8944dcba.svg","unitDim":"px","height":0,"width":0,"name":"7f9421aa3d594f938611a46c8944dcba.svg"},{"type":"image","src":"/media/1/822a34f3860440898d150c5930579bfb.jpg","unitDim":"px","height":0,"width":0,"name":"822a34f3860440898d150c5930579bfb.jpg"},{"type":"image","src":"/media/1/82a56f1fe2ae41b8a9c3c8b81983b2bc.jpg","unitDim":"px","height":0,"width":0,"name":"82a56f1fe2ae41b8a9c3c8b81983b2bc.jpg"},{"type":"image","src":"/media/1/83cd5cf678bd4342afad981f2112a976.png","unitDim":"px","height":0,"width":0,"name":"83cd5cf678bd4342afad981f2112a976.png"},{"type":"image","src":"/media/1/8537795b3bde491faf22e56b3167685b.jpg","unitDim":"px","height":0,"width":0,"name":"8537795b3bde491faf22e56b3167685b.jpg"},{"type":"image","src":"/media/1/85cf2881adb949ea974ab8f43fe0270c.svg","unitDim":"px","height":0,"width":0,"name":"85cf2881adb949ea974ab8f43fe0270c.svg"},{"type":"image","src":"/media/1/887e9ec3f7fd4608a65e41073b783b65.jpg","unitDim":"px","height":0,"width":0,"name":"887e9ec3f7fd4608a65e41073b783b65.jpg"},{"type":"image","src":"/media/1/8a3a0d65845543849969c2d43b174bfe.jpg","unitDim":"px","height":0,"width":0,"name":"8a3a0d65845543849969c2d43b174bfe.jpg"},{"type":"image","src":"/media/1/8aee94ee29ef4b93be40d3ab8f3f622e.jpg","unitDim":"px","height":0,"width":0,"name":"8aee94ee29ef4b93be40d3ab8f3f622e.jpg"},{"type":"image","src":"/media/1/8b355eb74aff4bb8aa824368212a5f07.png","unitDim":"px","height":0,"width":0,"name":"8b355eb74aff4bb8aa824368212a5f07.png"},{"type":"image","src":"/media/1/8b7fea3732654011a6a160b5ece07be7.svg","unitDim":"px","height":0,"width":0,"name":"8b7fea3732654011a6a160b5ece07be7.svg"},{"type":"image","src":"/media/1/8d11006509044e42a43b2aa570a3b2d3.jpg","unitDim":"px","height":0,"width":0,"name":"8d11006509044e42a43b2aa570a3b2d3.jpg"},{"type":"image","src":"/media/1/91cc13dc4b27490e95a63e59cbe53cbb.svg","unitDim":"px","height":0,"width":0,"name":"91cc13dc4b27490e95a63e59cbe53cbb.svg"},{"type":"image","src":"/media/1/92799544e8f14693b11ccc1af7690306.jpg","unitDim":"px","height":0,"width":0,"name":"92799544e8f14693b11ccc1af7690306.jpg"},{"type":"image","src":"/media/1/92eef2b025da4fad8844d5b899bf0fc0.png","unitDim":"px","height":0,"width":0,"name":"92eef2b025da4fad8844d5b899bf0fc0.png"},{"type":"image","src":"/media/1/95e4d1f65a31442b94f31ba2d4d2a813.jpg","unitDim":"px","height":0,"width":0,"name":"95e4d1f65a31442b94f31ba2d4d2a813.jpg"},{"type":"image","src":"/media/1/963712bce7004d5c9d3ba77d80b108b8.jpg","unitDim":"px","height":0,"width":0,"name":"963712bce7004d5c9d3ba77d80b108b8.jpg"},{"type":"image","src":"/media/1/969f163df625479fb6128737b221e914.svg","unitDim":"px","height":0,"width":0,"name":"969f163df625479fb6128737b221e914.svg"},{"type":"image","src":"/media/1/972caf8202c24387b31d342fa0010b08.png","unitDim":"px","height":0,"width":0,"name":"972caf8202c24387b31d342fa0010b08.png"},{"type":"image","src":"/media/1/97ae421a0a5e46ce998cee852e292fbe.png","unitDim":"px","height":0,"width":0,"name":"97ae421a0a5e46ce998cee852e292fbe.png"},{"type":"image","src":"/media/1/987eb6a882f24168a0472c2ba71985c9.jpg","unitDim":"px","height":0,"width":0,"name":"987eb6a882f24168a0472c2ba71985c9.jpg"},{"type":"image","src":"/media/1/98a83c8f68e946e28797318bb86d6ac0.svg","unitDim":"px","height":0,"width":0,"name":"98a83c8f68e946e28797318bb86d6ac0.svg"},{"type":"image","src":"/media/1/99a814f62f0547df99cdfa5b541e9243.jpg","unitDim":"px","height":0,"width":0,"name":"99a814f62f0547df99cdfa5b541e9243.jpg"},{"type":"image","src":"/media/1/99ddd5ab2b404c6d99b951fbf836a4bb.png","unitDim":"px","height":0,"width":0,"name":"99ddd5ab2b404c6d99b951fbf836a4bb.png"},{"type":"image","src":"/media/1/9c7d7e3037d94d7db8802cc12e3fdce3.png","unitDim":"px","height":0,"width":0,"name":"9c7d7e3037d94d7db8802cc12e3fdce3.png"},{"type":"image","src":"/media/1/9c8c4c178cd84dcb8d867c12fd200bac.svg","unitDim":"px","height":0,"width":0,"name":"9c8c4c178cd84dcb8d867c12fd200bac.svg"},{"type":"image","src":"/media/1/9dd199ddece2401686f09586c18535eb.jpg","unitDim":"px","height":0,"width":0,"name":"9dd199ddece2401686f09586c18535eb.jpg"},{"type":"image","src":"/media/1/9e0ede3ae08d48079e08481dc10a657c.png","unitDim":"px","height":0,"width":0,"name":"9e0ede3ae08d48079e08481dc10a657c.png"},{"type":"image","src":"/media/1/9fe2caa00e434ec4b1200de12a91a99f.svg","unitDim":"px","height":0,"width":0,"name":"9fe2caa00e434ec4b1200de12a91a99f.svg"},{"type":"image","src":"/media/1/________-20260930-215020_25039293.jpg","unitDim":"px","height":0,"width":0,"name":"________-20260930-215020_25039293.jpg"},{"type":"image","src":"/media/1/a01004327bef41648d7243145d1a8e74.png","unitDim":"px","height":0,"width":0,"name":"a01004327bef41648d7243145d1a8e74.png"},{"type":"image","src":"/media/1/a0b7fb517fa646f08e9c0299a166b7da.svg","unitDim":"px","height":0,"width":0,"name":"a0b7fb517fa646f08e9c0299a166b7da.svg"},{"type":"image","src":"/media/1/a0c4041e41034a6291aa2766eb4cb41c.jpg","unitDim":"px","height":0,"width":0,"name":"a0c4041e41034a6291aa2766eb4cb41c.jpg"},{"type":"image","src":"/media/1/a0ce60738c90424ab080ed9721fe36da.jpg","unitDim":"px","height":0,"width":0,"name":"a0ce60738c90424ab080ed9721fe36da.jpg"},{"type":"image","src":"/media/1/a0f235c8b52b4e5b9fa3a2bf70d71777.jpg","unitDim":"px","height":0,"width":0,"name":"a0f235c8b52b4e5b9fa3a2bf70d71777.jpg"},{"type":"image","src":"/media/1/a1bba0f5da8f4e5db9bbb946e9b847bb.jpg","unitDim":"px","height":0,"width":0,"name":"a1bba0f5da8f4e5db9bbb946e9b847bb.jpg"},{"type":"image","src":"/media/1/a36971b2be694cb5a072d1b82f9a9919.png","unitDim":"px","height":0,"width":0,"name":"a36971b2be694cb5a072d1b82f9a9919.png"},{"type":"image","src":"/media/1/a3f84bee46c94243b0179a365fda337c.jpg","unitDim":"px","height":0,"width":0,"name":"a3f84bee46c94243b0179a365fda337c.jpg"},{"type":"image","src":"/media/1/a410bfc9503149dea7becf1db07f63a8.jpg","unitDim":"px","height":0,"width":0,"name":"a410bfc9503149dea7becf1db07f63a8.jpg"},{"type":"image","src":"/media/1/a467f64d151e4f1d87dfaa21fb3b718b.png","unitDim":"px","height":0,"width":0,"name":"a467f64d151e4f1d87dfaa21fb3b718b.png"},{"type":"image","src":"/media/1/a486eec60d7149e88efdb3a866d3314b.svg","unitDim":"px","height":0,"width":0,"name":"a486eec60d7149e88efdb3a866d3314b.svg"},{"type":"image","src":"/media/1/a48ea78534884eeead2b79212497b38a.svg","unitDim":"px","height":0,"width":0,"name":"a48ea78534884eeead2b79212497b38a.svg"},{"type":"image","src":"/media/1/a4ab1cbb1de3459c82d08468f43962a2.png","unitDim":"px","height":0,"width":0,"name":"a4ab1cbb1de3459c82d08468f43962a2.png"},{"type":"image","src":"/media/1/a5789820db8a4f2b967122c963453753.png","unitDim":"px","height":0,"width":0,"name":"a5789820db8a4f2b967122c963453753.png"},{"type":"image","src":"/media/1/a58950d1e8c54779be7037fd35370d60.png","unitDim":"px","height":0,"width":0,"name":"a58950d1e8c54779be7037fd35370d60.png"},{"type":"image","src":"/media/1/a5ace50bf88042da80f30e9da6c97abc.jpg","unitDim":"px","height":0,"width":0,"name":"a5ace50bf88042da80f30e9da6c97abc.jpg"},{"type":"image","src":"/media/1/a8e7cfbae59b464a82e783ced5d59a95.png","unitDim":"px","height":0,"width":0,"name":"a8e7cfbae59b464a82e783ced5d59a95.png"},{"type":"image","src":"/media/1/a8ecea0bd88249a6997a83f47cac77e9.jpg","unitDim":"px","height":0,"width":0,"name":"a8ecea0bd88249a6997a83f47cac77e9.jpg"},{"type":"image","src":"/media/1/aace1c2988b749d3b914626f358dd6ed.png","unitDim":"px","height":0,"width":0,"name":"aace1c2988b749d3b914626f358dd6ed.png"},{"type":"image","src":"/media/1/ab23320319214670bf9d3e9a899d8c87.png","unitDim":"px","height":0,"width":0,"name":"ab23320319214670bf9d3e9a899d8c87.png"},{"type":"image","src":"/media/1/ab2e9da6598546ae8f8866a13b507179.svg","unitDim":"px","height":0,"width":0,"name":"ab2e9da6598546ae8f8866a13b507179.svg"},{"type":"image","src":"/media/1/ac3208c6bc694e34a02d9a369f31edd3.png","unitDim":"px","height":0,"width":0,"name":"ac3208c6bc694e34a02d9a369f31edd3.png"},{"type":"image","src":"/media/1/ada5564161694020b35227a92b90d346.png","unitDim":"px","height":0,"width":0,"name":"ada5564161694020b35227a92b90d346.png"},{"type":"image","src":"/media/1/aec80c308f054a2796cdfe31a9f31d57.svg","unitDim":"px","height":0,"width":0,"name":"aec80c308f054a2796cdfe31a9f31d57.svg"},{"type":"image","src":"/media/1/af30d44f6ebd4a68ac42ea4ab4ef1a17.png","unitDim":"px","height":0,"width":0,"name":"af30d44f6ebd4a68ac42ea4ab4ef1a17.png"},{"type":"image","src":"/media/1/b004e9ae55344bc698810f4a2be4e868.jpg","unitDim":"px","height":0,"width":0,"name":"b004e9ae55344bc698810f4a2be4e868.jpg"},{"type":"image","src":"/media/1/b2276177cff740f0998a3cc3f2999993.png","unitDim":"px","height":0,"width":0,"name":"b2276177cff740f0998a3cc3f2999993.png"},{"type":"image","src":"/media/1/b3c78e55d8df4a118d7dfe9c65829a86.jpg","unitDim":"px","height":0,"width":0,"name":"b3c78e55d8df4a118d7dfe9c65829a86.jpg"},{"type":"image","src":"/media/1/b49ad2a7479b44499a8c4d98d3760918.png","unitDim":"px","height":0,"width":0,"name":"b49ad2a7479b44499a8c4d98d3760918.png"},{"type":"image","src":"/media/1/b61f4f0d53e145559cc0e61ebf0e03a7.png","unitDim":"px","height":0,"width":0,"name":"b61f4f0d53e145559cc0e61ebf0e03a7.png"},{"type":"image","src":"/media/1/b624ae76b3ef491586c62778097de79f.svg","unitDim":"px","height":0,"width":0,"name":"b624ae76b3ef491586c62778097de79f.svg"},{"type":"image","src":"/media/1/b6d012be962440eb9b6cd91eaf041578.svg","unitDim":"px","height":0,"width":0,"name":"b6d012be962440eb9b6cd91eaf041578.svg"},{"type":"image","src":"/media/1/b6e66ee358564def84df0a66ffc37353.jpg","unitDim":"px","height":0,"width":0,"name":"b6e66ee358564def84df0a66ffc37353.jpg"},{"type":"image","src":"/media/1/b83a807d8ac6480eaff8f128e8352198.png","unitDim":"px","height":0,"width":0,"name":"b83a807d8ac6480eaff8f128e8352198.png"},{"type":"image","src":"/media/1/b8c99cfd6db94054b4ce18cb42a44de8.png","unitDim":"px","height":0,"width":0,"name":"b8c99cfd6db94054b4ce18cb42a44de8.png"},{"type":"image","src":"/media/1/b96c2ee665c64a30948ac96eb20dd343.jpg","unitDim":"px","height":0,"width":0,"name":"b96c2ee665c64a30948ac96eb20dd343.jpg"},{"type":"image","src":"/media/1/ba157abac4314cc6ba291a56a859b313.jpg","unitDim":"px","height":0,"width":0,"name":"ba157abac4314cc6ba291a56a859b313.jpg"},{"type":"image","src":"/media/1/ba7645d2f905432b91907c07f4ce4881.png","unitDim":"px","height":0,"width":0,"name":"ba7645d2f905432b91907c07f4ce4881.png"},{"type":"image","src":"/media/1/bb90f7049d4e4837b059c0e9ff6d5da3.gif","unitDim":"px","height":0,"width":0,"name":"bb90f7049d4e4837b059c0e9ff6d5da3.gif"},{"type":"image","src":"/media/1/bdb8aacabbdf40a7b7a4cbf904b675c7.png","unitDim":"px","height":0,"width":0,"name":"bdb8aacabbdf40a7b7a4cbf904b675c7.png"},{"type":"image","src":"/media/1/bdd667a04fe84fc28948faf3cd82a8e5.svg","unitDim":"px","height":0,"width":0,"name":"bdd667a04fe84fc28948faf3cd82a8e5.svg"},{"type":"image","src":"/media/1/bffbf9a7b35448b190620193ad389e08.png","unitDim":"px","height":0,"width":0,"name":"bffbf9a7b35448b190620193ad389e08.png"},{"type":"image","src":"/media/1/c0ab0b86eff141e9a1c6fc8f831cce44.jpg","unitDim":"px","height":0,"width":0,"name":"c0ab0b86eff141e9a1c6fc8f831cce44.jpg"},{"type":"image","src":"/media/1/c0b9764a61f544ae9fbafaa9aea30274.jpg","unitDim":"px","height":0,"width":0,"name":"c0b9764a61f544ae9fbafaa9aea30274.jpg"},{"type":"image","src":"/media/1/c0eeb8a3889a4810a628046d86880df8.jpg","unitDim":"px","height":0,"width":0,"name":"c0eeb8a3889a4810a628046d86880df8.jpg"},{"type":"image","src":"/media/1/c1ffad91911c4d569052e18cc94d8b72.jpg","unitDim":"px","height":0,"width":0,"name":"c1ffad91911c4d569052e18cc94d8b72.jpg"},{"type":"image","src":"/media/1/c2e5efb2715e4b76ad5d7b6098a31981.jpg","unitDim":"px","height":0,"width":0,"name":"c2e5efb2715e4b76ad5d7b6098a31981.jpg"},{"type":"image","src":"/media/1/c3b2f852da6941a98e61c02be3533b5c.png","unitDim":"px","height":0,"width":0,"name":"c3b2f852da6941a98e61c02be3533b5c.png"},{"type":"image","src":"/media/1/c430620657f84a8d8884e83b282c664a.jpg","unitDim":"px","height":0,"width":0,"name":"c430620657f84a8d8884e83b282c664a.jpg"},{"type":"image","src":"/media/1/c5262af87e6f4cddbb04c5085da4f323.png","unitDim":"px","height":0,"width":0,"name":"c5262af87e6f4cddbb04c5085da4f323.png"},{"type":"image","src":"/media/1/c5fb808802df4333aa77578a547023b3.jpg","unitDim":"px","height":0,"width":0,"name":"c5fb808802df4333aa77578a547023b3.jpg"},{"type":"image","src":"/media/1/c60bddf29d43408588d7349ef5fed921.svg","unitDim":"px","height":0,"width":0,"name":"c60bddf29d43408588d7349ef5fed921.svg"},{"type":"image","src":"/media/1/c6d94ad671864605a8b94252f9e61ab4.jpg","unitDim":"px","height":0,"width":0,"name":"c6d94ad671864605a8b94252f9e61ab4.jpg"},{"type":"image","src":"/media/1/c8b9cb81f93d4303be48bd8c1ebd7b17.svg","unitDim":"px","height":0,"width":0,"name":"c8b9cb81f93d4303be48bd8c1ebd7b17.svg"},{"type":"image","src":"/media/1/c94d520b215b48a0a32837e9f927413d.svg","unitDim":"px","height":0,"width":0,"name":"c94d520b215b48a0a32837e9f927413d.svg"},{"type":"image","src":"/media/1/c9e802034a344692bff6d43143224efa.jpg","unitDim":"px","height":0,"width":0,"name":"c9e802034a344692bff6d43143224efa.jpg"},{"type":"image","src":"/media/1/ca652d2ab9dd478fb1bc1cbe93403045.png","unitDim":"px","height":0,"width":0,"name":"ca652d2ab9dd478fb1bc1cbe93403045.png"},{"type":"image","src":"/media/1/ca8741696a7a4c90a54bef9804a54c56.jpg","unitDim":"px","height":0,"width":0,"name":"ca8741696a7a4c90a54bef9804a54c56.jpg"},{"type":"image","src":"/media/1/cb8552ad0efc45cb8dab8ad482faf93a.jpg","unitDim":"px","height":0,"width":0,"name":"cb8552ad0efc45cb8dab8ad482faf93a.jpg"},{"type":"image","src":"/media/1/cbd740b3f72e432b8c403a81cf882835.png","unitDim":"px","height":0,"width":0,"name":"cbd740b3f72e432b8c403a81cf882835.png"},{"type":"image","src":"/media/1/cc07e3caedbe4b9aa8f01c96f0e707ae.jpg","unitDim":"px","height":0,"width":0,"name":"cc07e3caedbe4b9aa8f01c96f0e707ae.jpg"},{"type":"image","src":"/media/1/cd1bea832625477d9a7867cdbf232bac.png","unitDim":"px","height":0,"width":0,"name":"cd1bea832625477d9a7867cdbf232bac.png"},{"type":"image","src":"/media/1/ce1c14ad927e423a895435fbb9cf7062.svg","unitDim":"px","height":0,"width":0,"name":"ce1c14ad927e423a895435fbb9cf7062.svg"},{"type":"image","src":"/media/1/d0d69cba833e42769b71612958c34b2b.jpg","unitDim":"px","height":0,"width":0,"name":"d0d69cba833e42769b71612958c34b2b.jpg"},{"type":"image","src":"/media/1/d10aa62be615484bbfd212118aecc669.png","unitDim":"px","height":0,"width":0,"name":"d10aa62be615484bbfd212118aecc669.png"},{"type":"image","src":"/media/1/d11d5f4050db476182e3855ff18b8c8a.jpg","unitDim":"px","height":0,"width":0,"name":"d11d5f4050db476182e3855ff18b8c8a.jpg"},{"type":"image","src":"/media/1/d25236209337440095b4cf3ee8540436.svg","unitDim":"px","height":0,"width":0,"name":"d25236209337440095b4cf3ee8540436.svg"},{"type":"image","src":"/media/1/d59a1e8e62e349fabee827ce3bf9d86b.svg","unitDim":"px","height":0,"width":0,"name":"d59a1e8e62e349fabee827ce3bf9d86b.svg"},{"type":"image","src":"/media/1/d6cf60110b0d417f8d76a8bce3d6bfa2.png","unitDim":"px","height":0,"width":0,"name":"d6cf60110b0d417f8d76a8bce3d6bfa2.png"},{"type":"image","src":"/media/1/d71655f22d6f4034b2a70e8b915921fb.jpg","unitDim":"px","height":0,"width":0,"name":"d71655f22d6f4034b2a70e8b915921fb.jpg"},{"type":"image","src":"/media/1/d781aedec85a473f9b619f8c1f23d4e5.svg","unitDim":"px","height":0,"width":0,"name":"d781aedec85a473f9b619f8c1f23d4e5.svg"},{"type":"image","src":"/media/1/d7da4207517643f7a1039ad756ef2499.png","unitDim":"px","height":0,"width":0,"name":"d7da4207517643f7a1039ad756ef2499.png"},{"type":"image","src":"/media/1/d83dd76531104d54b67d974ceb734e73.svg","unitDim":"px","height":0,"width":0,"name":"d83dd76531104d54b67d974ceb734e73.svg"},{"type":"image","src":"/media/1/d922e499bc0844f4b475c91ff86715f2.png","unitDim":"px","height":0,"width":0,"name":"d922e499bc0844f4b475c91ff86715f2.png"},{"type":"image","src":"/media/1/dae9efa4042c44518278e38db8563e20.jpg","unitDim":"px","height":0,"width":0,"name":"dae9efa4042c44518278e38db8563e20.jpg"},{"type":"image","src":"/media/1/db6357d86aee4d718225ead800c0817b.jpg","unitDim":"px","height":0,"width":0,"name":"db6357d86aee4d718225ead800c0817b.jpg"},{"type":"image","src":"/media/1/dd804e777bf94245b2c75d76f325f097.png","unitDim":"px","height":0,"width":0,"name":"dd804e777bf94245b2c75d76f325f097.png"},{"type":"image","src":"/media/1/ddf502728c5e41548cf86b6857aa63ad.png","unitDim":"px","height":0,"width":0,"name":"ddf502728c5e41548cf86b6857aa63ad.png"},{"type":"image","src":"/media/1/de9beebd2e8e4b869b3ef21bd7ee36b9.jpg","unitDim":"px","height":0,"width":0,"name":"de9beebd2e8e4b869b3ef21bd7ee36b9.jpg"},{"type":"image","src":"/media/1/deb6daf89c1043a582233bf130fe6340.svg","unitDim":"px","height":0,"width":0,"name":"deb6daf89c1043a582233bf130fe6340.svg"},{"type":"image","src":"/media/1/dee8b65be8e64a78b0c243eaf359ce7f.jpg","unitDim":"px","height":0,"width":0,"name":"dee8b65be8e64a78b0c243eaf359ce7f.jpg"},{"type":"image","src":"/media/1/df11181babe848b58c75f51809ff5125.jpg","unitDim":"px","height":0,"width":0,"name":"df11181babe848b58c75f51809ff5125.jpg"},{"type":"image","src":"/media/1/e03786a9e4084e03b168d6d14effe857.jpg","unitDim":"px","height":0,"width":0,"name":"e03786a9e4084e03b168d6d14effe857.jpg"},{"type":"image","src":"/media/1/e03e9f4e02814be19850415f2705ef70.svg","unitDim":"px","height":0,"width":0,"name":"e03e9f4e02814be19850415f2705ef70.svg"},{"type":"image","src":"/media/1/e0657fac794c479ca89ea8dcac2ee906.svg","unitDim":"px","height":0,"width":0,"name":"e0657fac794c479ca89ea8dcac2ee906.svg"},{"type":"image","src":"/media/1/e094db9460c24735a07a5f1ea04661be.jpg","unitDim":"px","height":0,"width":0,"name":"e094db9460c24735a07a5f1ea04661be.jpg"},{"type":"image","src":"/media/1/e0e4a7b5facf4f2b857ae1d45fa39b80.jpg","unitDim":"px","height":0,"width":0,"name":"e0e4a7b5facf4f2b857ae1d45fa39b80.jpg"},{"type":"image","src":"/media/1/e15cd6b95e5d49188dcdb336cd5b97d2.svg","unitDim":"px","height":0,"width":0,"name":"e15cd6b95e5d49188dcdb336cd5b97d2.svg"},{"type":"image","src":"/media/1/e192131283fe4e59a84eb5155d6ca8c2.png","unitDim":"px","height":0,"width":0,"name":"e192131283fe4e59a84eb5155d6ca8c2.png"},{"type":"image","src":"/media/1/e224cc99729a433d9c4be597adcd704a.png","unitDim":"px","height":0,"width":0,"name":"e224cc99729a433d9c4be597adcd704a.png"},{"type":"image","src":"/media/1/e2ddb2a534d34ee2b9cfa80f777dc064.jpg","unitDim":"px","height":0,"width":0,"name":"e2ddb2a534d34ee2b9cfa80f777dc064.jpg"},{"type":"image","src":"/media/1/e405fd27baa24a83a9e78ceb61fe9ee1.png","unitDim":"px","height":0,"width":0,"name":"e405fd27baa24a83a9e78ceb61fe9ee1.png"},{"type":"image","src":"/media/1/e4d98336dc9a4a8bbd24a4c42e360d14.jpg","unitDim":"px","height":0,"width":0,"name":"e4d98336dc9a4a8bbd24a4c42e360d14.jpg"},{"type":"image","src":"/media/1/e57dfe4b66ad4d7088ab6f2e8971f068.jpg","unitDim":"px","height":0,"width":0,"name":"e57dfe4b66ad4d7088ab6f2e8971f068.jpg"},{"type":"image","src":"/media/1/e70b6b13cb2a49d9aed4fecf649778b8.jpg","unitDim":"px","height":0,"width":0,"name":"e70b6b13cb2a49d9aed4fecf649778b8.jpg"},{"type":"image","src":"/media/1/e7c97ca567994406a6a4d667d1b4a9f4.svg","unitDim":"px","height":0,"width":0,"name":"e7c97ca567994406a6a4d667d1b4a9f4.svg"},{"type":"image","src":"/media/1/e9c8fbe760ea45e28c18158dffa3203f.jpg","unitDim":"px","height":0,"width":0,"name":"e9c8fbe760ea45e28c18158dffa3203f.jpg"},{"type":"image","src":"/media/1/ea1dcdf3e5b54c458b1db16dea5357ef.png","unitDim":"px","height":0,"width":0,"name":"ea1dcdf3e5b54c458b1db16dea5357ef.png"},{"type":"image","src":"/media/1/ed4933ca40014669be7ca1cb1ac55d44.svg","unitDim":"px","height":0,"width":0,"name":"ed4933ca40014669be7ca1cb1ac55d44.svg"},{"type":"image","src":"/media/1/ef9a5b7fbe3e4d5bb0748b9508705d2b.png","unitDim":"px","height":0,"width":0,"name":"ef9a5b7fbe3e4d5bb0748b9508705d2b.png"},{"type":"image","src":"/media/1/f09b6803eb404749b73f2f580a2d9238.png","unitDim":"px","height":0,"width":0,"name":"f09b6803eb404749b73f2f580a2d9238.png"},{"type":"image","src":"/media/1/f267eeac39f7499b9d9965010f867061.png","unitDim":"px","height":0,"width":0,"name":"f267eeac39f7499b9d9965010f867061.png"},{"type":"image","src":"/media/1/f3db2b1c1a4a4c808e59ca5fdfc15d1a.png","unitDim":"px","height":0,"width":0,"name":"f3db2b1c1a4a4c808e59ca5fdfc15d1a.png"},{"type":"image","src":"/media/1/f43ddb39c7da48679ecf1566ff8e877f.svg","unitDim":"px","height":0,"width":0,"name":"f43ddb39c7da48679ecf1566ff8e877f.svg"},{"type":"image","src":"/media/1/f4b9ef1128904dca9976ee77c5678f86.jpg","unitDim":"px","height":0,"width":0,"name":"f4b9ef1128904dca9976ee77c5678f86.jpg"},{"type":"image","src":"/media/1/f558151bb4e94a08b0bbf5888a6b0edc.png","unitDim":"px","height":0,"width":0,"name":"f558151bb4e94a08b0bbf5888a6b0edc.png"},{"type":"image","src":"/media/1/f5f1dd652b3c471b8402cf3f72a1dab8.jpg","unitDim":"px","height":0,"width":0,"name":"f5f1dd652b3c471b8402cf3f72a1dab8.jpg"},{"type":"image","src":"/media/1/f61aa13f795141ba96e8d57687289f48.png","unitDim":"px","height":0,"width":0,"name":"f61aa13f795141ba96e8d57687289f48.png"},{"type":"image","src":"/media/1/f75074e32ad149bca3bf4ce3d60a187a.png","unitDim":"px","height":0,"width":0,"name":"f75074e32ad149bca3bf4ce3d60a187a.png"},{"type":"image","src":"/media/1/f780f586f16b4e7994d56477eaa6eb80.jpg","unitDim":"px","height":0,"width":0,"name":"f780f586f16b4e7994d56477eaa6eb80.jpg"},{"type":"image","src":"/media/1/f896161f008346148df92a4539555d78.jpg","unitDim":"px","height":0,"width":0,"name":"f896161f008346148df92a4539555d78.jpg"},{"type":"image","src":"/media/1/fa967a15c48b4ca790c47bfc1135f816.jpg","unitDim":"px","height":0,"width":0,"name":"fa967a15c48b4ca790c47bfc1135f816.jpg"},{"type":"image","src":"/media/1/fb20fc97da5f4ff9a5e94803ae90ea71.jpg","unitDim":"px","height":0,"width":0,"name":"fb20fc97da5f4ff9a5e94803ae90ea71.jpg"},{"type":"image","src":"/media/1/fd029818b0824d3ea9404687aae7c5bc.png","unitDim":"px","height":0,"width":0,"name":"fd029818b0824d3ea9404687aae7c5bc.png"},{"type":"image","src":"/media/1/fdba6af756674e6d8c96d45d0809a545.jpg","unitDim":"px","height":0,"width":0,"name":"fdba6af756674e6d8c96d45d0809a545.jpg"},{"type":"image","src":"/media/1/fdd0e5ff51dd435485d195dc7d7fe8fe.svg","unitDim":"px","height":0,"width":0,"name":"fdd0e5ff51dd435485d195dc7d7fe8fe.svg"},{"type":"image","src":"/media/1/ffc269d30bb24e2ebec5b347972f39b5.jpg","unitDim":"px","height":0,"width":0,"name":"ffc269d30bb24e2ebec5b347972f39b5.jpg"},{"type":"image","src":"/media/1/fone_73669b1a.jpg","unitDim":"px","height":0,"width":0,"name":"fone_73669b1a.jpg"},{"type":"image","src":"/media/1/logo_bcf3c00f.png","unitDim":"px","height":0,"width":0,"name":"logo_bcf3c00f.png"},{"type":"image","src":"/media/1/qr.png","unitDim":"px","height":0,"width":0,"name":"qr.png"}],"styles":[{"selectors":[],"selectorsAdd":"*","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","padding-top":"0px","padding-right":"0px","padding-bottom":"0px","padding-left":"0px","box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"font-family":"Manrope, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif","color":"rgb(26, 43, 60)","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(247, 249, 252)","line-height":"1.6"}},{"selectors":["header"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)","box-shadow":"rgba(26, 58, 92, 0.08) 0px 2px 20px","position":"sticky","top":"0px","z-index":"100"}},{"selectors":["header-inner"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","padding-top":"18px","padding-right":"24px","padding-bottom":"18px","padding-left":"24px","display":"flex","align-items":"center","justify-content":"space-between","row-gap":"24px","column-gap":"24px"}},{"selectors":["logo"],"style":{"display":"flex","align-items":"center","row-gap":"10px","column-gap":"10px","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial"}},{"selectors":["logo-text"],"style":{"font-size":"24px","font-weight":"800","color":"rgb(26, 58, 92)","letter-spacing":"-0.5px"}},{"selectors":["nav"],"style":{"display":"flex","row-gap":"32px","column-gap":"32px"}},{"selectors":[],"selectorsAdd":".nav a","style":{"text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","color":"rgb(74, 91, 108)","font-weight":"500","font-size":"16px","transition-behavior":"normal","transition-duration":"0.2s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"color"}},{"selectors":[],"selectorsAdd":".nav a:hover","style":{"color":"rgb(201, 168, 76)"}},{"selectors":["header-phone"],"style":{"text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","color":"rgb(26, 58, 92)","font-weight":"700","font-size":"16px","white-space-collapse":"collapse","text-wrap":"nowrap"}},{"selectors":["hero"],"style":{"position":"relative","overflow-x":"hidden","overflow-y":"hidden","background-image":"linear-gradient(135deg, rgb(26, 58, 92) 0%, rgb(15, 37, 64) 100%)","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","color":"rgb(255, 255, 255)","padding-top":"100px","padding-right":"24px","padding-bottom":"80px","padding-left":"24px"}},{"selectors":["hero-bg"],"style":{"position":"absolute","top":"-50%","right":"-10%","width":"600px","height":"600px","background-image":"radial-gradient(circle, rgba(201, 168, 76, 0.15) 0%, transparent 70%)","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","border-top-left-radius":"50%","border-top-right-radius":"50%","border-bottom-right-radius":"50%","border-bottom-left-radius":"50%"}},{"selectors":["hero-content"],"style":{"position":"relative","max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["hero-label"],"style":{"display":"inline-block","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgba(201, 168, 76, 0.15)","color":"rgb(201, 168, 76)","padding-top":"8px","padding-right":"18px","padding-bottom":"8px","padding-left":"18px","border-top-left-radius":"100px","border-top-right-radius":"100px","border-bottom-right-radius":"100px","border-bottom-left-radius":"100px","font-size":"14px","font-weight":"600","letter-spacing":"0.5px","text-transform":"uppercase","margin-bottom":"24px"}},{"selectors":["hero-title"],"style":{"font-size":"56px","font-weight":"800","line-height":"1.15","letter-spacing":"-1px","max-width":"800px","margin-bottom":"24px"}},{"selectors":[],"selectorsAdd":".hero-title .accent","style":{"color":"rgb(201, 168, 76)"}},{"selectors":["hero-text"],"style":{"font-size":"18px","color":"rgba(255, 255, 255, 0.8)","max-width":"600px","margin-bottom":"40px"}},{"selectors":["hero-actions"],"style":{"display":"flex","row-gap":"16px","column-gap":"16px","flex-wrap":"wrap","margin-bottom":"64px"}},{"selectors":["btn"],"style":{"display":"inline-block","padding-top":"16px","padding-right":"32px","padding-bottom":"16px","padding-left":"32px","border-top-left-radius":"12px","border-top-right-radius":"12px","border-bottom-right-radius":"12px","border-bottom-left-radius":"12px","font-size":"16px","font-weight":"700","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","cursor":"pointer","border-top-width":"initial","border-right-width":"initial","border-bottom-width":"initial","border-left-width":"initial","border-top-style":"none","border-right-style":"none","border-bottom-style":"none","border-left-style":"none","border-top-color":"initial","border-right-color":"initial","border-bottom-color":"initial","border-left-color":"initial","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","transition-behavior":"normal","transition-duration":"0.25s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"all","font-family":"inherit"}},{"selectors":["btn-primary"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(201, 168, 76)","color":"rgb(26, 58, 92)"}},{"selectors":["btn-primary"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(219, 185, 94)","transform":"translateY(-2px)","box-shadow":"rgba(201, 168, 76, 0.35) 0px 8px 24px"},"state":"hover"},{"selectors":["btn-outline"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"transparent","color":"rgb(255, 255, 255)","border-top-width":"2px","border-right-width":"2px","border-bottom-width":"2px","border-left-width":"2px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(255, 255, 255, 0.3)","border-right-color":"rgba(255, 255, 255, 0.3)","border-bottom-color":"rgba(255, 255, 255, 0.3)","border-left-color":"rgba(255, 255, 255, 0.3)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial"}},{"selectors":["btn-outline"],"style":{"border-top-color":"rgb(201, 168, 76)","border-right-color":"rgb(201, 168, 76)","border-bottom-color":"rgb(201, 168, 76)","border-left-color":"rgb(201, 168, 76)","color":"rgb(201, 168, 76)"},"state":"hover"},{"selectors":["hero-stats"],"style":{"display":"flex","row-gap":"64px","column-gap":"64px","flex-wrap":"wrap"}},{"selectors":["stat"],"style":{"display":"flex","flex-direction":"column"}},{"selectors":["stat-num"],"style":{"font-size":"40px","font-weight":"800","color":"rgb(201, 168, 76)","line-height":"1"}},{"selectors":["stat-label"],"style":{"font-size":"15px","color":"rgba(255, 255, 255, 0.7)","margin-top":"8px"}},{"selectors":["services"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","padding-top":"100px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px"}},{"selectors":["section-head"],"style":{"text-align":"center","margin-bottom":"64px"}},{"selectors":["section-title"],"style":{"font-size":"40px","font-weight":"800","color":"rgb(26, 58, 92)","letter-spacing":"-0.5px","margin-bottom":"16px"}},{"selectors":["section-sub"],"style":{"font-size":"18px","color":"rgb(107, 124, 141)","max-width":"600px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["services-grid"],"style":{"display":"grid","grid-template-columns":"repeat(3, 1fr)","row-gap":"28px","column-gap":"28px"}},{"selectors":["service-card"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)","border-top-left-radius":"20px","border-top-right-radius":"20px","border-bottom-right-radius":"20px","border-bottom-left-radius":"20px","padding-top":"36px","padding-right":"32px","padding-bottom":"36px","padding-left":"32px","box-shadow":"rgba(26, 58, 92, 0.06) 0px 4px 24px","transition-behavior":"normal","transition-duration":"0.3s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"all","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(26, 58, 92, 0.04)","border-right-color":"rgba(26, 58, 92, 0.04)","border-bottom-color":"rgba(26, 58, 92, 0.04)","border-left-color":"rgba(26, 58, 92, 0.04)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial"}},{"selectors":["service-card"],"style":{"transform":"translateY(-6px)","box-shadow":"rgba(26, 58, 92, 0.12) 0px 16px 40px","border-top-color":"rgba(201, 168, 76, 0.3)","border-right-color":"rgba(201, 168, 76, 0.3)","border-bottom-color":"rgba(201, 168, 76, 0.3)","border-left-color":"rgba(201, 168, 76, 0.3)"},"state":"hover"},{"selectors":["service-icon"],"style":{"width":"64px","height":"64px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgba(201, 168, 76, 0.1)","border-top-left-radius":"16px","border-top-right-radius":"16px","border-bottom-right-radius":"16px","border-bottom-left-radius":"16px","display":"flex","align-items":"center","justify-content":"center","margin-bottom":"24px"}},{"selectors":[],"selectorsAdd":".service-card h3","style":{"font-size":"20px","font-weight":"700","color":"rgb(26, 58, 92)","margin-bottom":"12px"}},{"selectors":[],"selectorsAdd":".service-card p","style":{"font-size":"15px","color":"rgb(107, 124, 141)","line-height":"1.6"}},{"selectors":["about"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)","padding-top":"100px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px"}},{"selectors":["about-inner"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","display":"grid","grid-template-columns":"1fr 1fr","row-gap":"80px","column-gap":"80px","align-items":"center"}},{"selectors":[],"selectorsAdd":".about-text .section-title","style":{"text-align":"left","margin-bottom":"24px"}},{"selectors":[],"selectorsAdd":".about-text > p","style":{"font-size":"17px","color":"rgb(74, 91, 108)","margin-bottom":"32px"}},{"selectors":["about-list"],"style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","display":"flex","flex-direction":"column","row-gap":"16px","column-gap":"16px"}},{"selectors":[],"selectorsAdd":".about-list li","style":{"display":"flex","align-items":"center","row-gap":"14px","column-gap":"14px","font-size":"16px","color":"rgb(26, 43, 60)","font-weight":"500"}},{"selectors":["check"],"style":{"display":"inline-flex","align-items":"center","justify-content":"center","width":"28px","height":"28px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(201, 168, 76)","color":"rgb(26, 58, 92)","border-top-left-radius":"50%","border-top-right-radius":"50%","border-bottom-right-radius":"50%","border-bottom-left-radius":"50%","font-weight":"800","font-size":"14px","flex-shrink":"0"}},{"selectors":["about-visual"],"style":{"position":"relative","display":"flex","flex-direction":"column","row-gap":"24px","column-gap":"24px"}},{"selectors":["about-card"],"style":{"background-image":"linear-gradient(135deg, rgb(26, 58, 92), rgb(15, 37, 64))","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","color":"rgb(255, 255, 255)","border-top-left-radius":"20px","border-top-right-radius":"20px","border-bottom-right-radius":"20px","border-bottom-left-radius":"20px","padding-top":"40px","padding-right":"40px","padding-bottom":"40px","padding-left":"40px"}},{"selectors":["about-card-alt"],"style":{"background-image":"linear-gradient(135deg, rgb(201, 168, 76), rgb(184, 149, 47))","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","color":"rgb(26, 58, 92)","margin-left":"48px"}},{"selectors":["about-card-num"],"style":{"font-size":"48px","font-weight":"800","line-height":"1","margin-bottom":"12px"}},{"selectors":["about-card-text"],"style":{"font-size":"16px","opacity":"0.85"}},{"selectors":["cta"],"style":{"background-image":"linear-gradient(135deg, rgb(26, 58, 92) 0%, rgb(15, 37, 64) 100%)","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","padding-top":"100px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px","color":"rgb(255, 255, 255)"}},{"selectors":["cta-inner"],"style":{"max-width":"720px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","text-align":"center"}},{"selectors":[],"selectorsAdd":".cta h2","style":{"font-size":"40px","font-weight":"800","margin-bottom":"16px","letter-spacing":"-0.5px"}},{"selectors":[],"selectorsAdd":".cta > .cta-inner > p","style":{"font-size":"18px","color":"rgba(255, 255, 255, 0.8)","margin-bottom":"40px"}},{"selectors":["cta-form"],"style":{"display":"flex","row-gap":"12px","column-gap":"12px","flex-wrap":"wrap","justify-content":"center"}},{"selectors":[],"selectorsAdd":".cta-form input","style":{"flex-grow":"1","flex-shrink":"1","flex-basis":"0%","min-width":"200px","padding-top":"16px","padding-right":"20px","padding-bottom":"16px","padding-left":"20px","border-top-left-radius":"12px","border-top-right-radius":"12px","border-bottom-right-radius":"12px","border-bottom-left-radius":"12px","border-top-width":"2px","border-right-width":"2px","border-bottom-width":"2px","border-left-width":"2px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(255, 255, 255, 0.15)","border-right-color":"rgba(255, 255, 255, 0.15)","border-bottom-color":"rgba(255, 255, 255, 0.15)","border-left-color":"rgba(255, 255, 255, 0.15)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgba(255, 255, 255, 0.08)","color":"rgb(255, 255, 255)","font-size":"16px","font-family":"inherit","outline-color":"initial","outline-style":"none","outline-width":"initial","transition-behavior":"normal","transition-duration":"0.2s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"border-color"}},{"selectors":[],"selectorsAdd":".cta-form input::placeholder","style":{"color":"rgba(255, 255, 255, 0.5)"}},{"selectors":[],"selectorsAdd":".cta-form input:focus","style":{"border-top-color":"rgb(201, 168, 76)","border-right-color":"rgb(201, 168, 76)","border-bottom-color":"rgb(201, 168, 76)","border-left-color":"rgb(201, 168, 76)"}},{"selectors":["cta-note"],"style":{"font-size":"13px","color":"rgba(255, 255, 255, 0.5)","margin-top":"20px"}},{"selectors":["footer"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(15, 37, 64)","color":"rgb(255, 255, 255)","padding-top":"64px","padding-right":"24px","padding-bottom":"32px","padding-left":"24px"}},{"selectors":["footer-inner"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-left":"auto","display":"grid","grid-template-columns":"2fr 1fr 1fr","row-gap":"48px","column-gap":"48px","margin-bottom":"48px"}},{"selectors":[],"selectorsAdd":".footer-col h4","style":{"font-size":"16px","font-weight":"700","margin-bottom":"20px","color":"rgb(201, 168, 76)"}},{"selectors":[],"selectorsAdd":".footer-col a","style":{"display":"block","color":"rgba(255, 255, 255, 0.7)","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","font-size":"15px","margin-bottom":"12px","transition-behavior":"normal","transition-duration":"0.2s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"color"}},{"selectors":[],"selectorsAdd":".footer-col a:hover","style":{"color":"rgb(201, 168, 76)"}},{"selectors":[],"selectorsAdd":".footer-col p","style":{"color":"rgba(255, 255, 255, 0.7)","font-size":"15px","margin-bottom":"12px"}},{"selectors":["footer-desc"],"style":{"color":"rgba(255, 255, 255, 0.6)","font-size":"15px","margin-top":"16px","max-width":"320px"}},{"selectors":["footer-bottom"],"style":{"max-width":"1200px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","padding-top":"32px","border-top-width":"1px","border-top-style":"solid","border-top-color":"rgba(255, 255, 255, 0.1)","text-align":"center"}},{"selectors":[],"selectorsAdd":".footer-bottom p","style":{"color":"rgba(255, 255, 255, 0.5)","font-size":"14px"}},{"selectors":["hero-title"],"style":{"font-size":"44px"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["services-grid"],"style":{"grid-template-columns":"repeat(2, 1fr)"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["about-inner"],"style":{"grid-template-columns":"1fr","row-gap":"48px","column-gap":"48px"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["about-card-alt"],"style":{"margin-left":"0px"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["footer-inner"],"style":{"grid-template-columns":"1fr 1fr"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["nav"],"style":{"row-gap":"20px","column-gap":"20px"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["header-inner"],"style":{"flex-wrap":"wrap","padding-top":"14px","padding-right":"20px","padding-bottom":"14px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["nav"],"style":{"order":"3","width":"100%","justify-content":"center","row-gap":"16px","column-gap":"16px","flex-wrap":"wrap"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".nav a","style":{"font-size":"14px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["header-phone"],"style":{"font-size":"14px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"56px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-title"],"style":{"font-size":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-text"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-actions"],"style":{"flex-direction":"column"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["btn"],"style":{"width":"100%","text-align":"center"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-stats"],"style":{"row-gap":"32px","column-gap":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["stat-num"],"style":{"font-size":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["section-title"],"style":{"font-size":"28px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["section-sub"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-grid"],"style":{"grid-template-columns":"1fr","row-gap":"20px","column-gap":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["service-card"],"style":{"padding-top":"28px","padding-right":"24px","padding-bottom":"28px","padding-left":"24px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-card"],"style":{"padding-top":"32px","padding-right":"28px","padding-bottom":"32px","padding-left":"28px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-card-num"],"style":{"font-size":"36px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["cta"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".cta h2","style":{"font-size":"28px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["cta-form"],"style":{"flex-direction":"column"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["footer"],"style":{"padding-top":"48px","padding-right":"20px","padding-bottom":"24px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["footer-inner"],"style":{"grid-template-columns":"1fr","row-gap":"32px","column-gap":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["#ii1s1"],"style":{"color":"#22568d"}},{"selectors":["#ia5agw"],"style":{"color":"rgba(12,11,11,0.6)"}},{"selectors":["#ic8oln"],"style":{"color":"#332929"}},{"selectors":["#iqu7l6"],"style":{"color":"#332929"}},{"selectors":["#i230lv"],"style":{"color":"#131010"}},{"selectors":["#ifd9hg"],"style":{"color":"#211212"}},{"selectors":["#igu9fb"],"style":{"color":"#332929"}},{"selectors":["#iolhbk"],"style":{"color":"#332929"}},{"selectors":["#i68wo2"],"style":{"color":"#332929"}},{"selectors":["#ip09ij"],"style":{"color":"#332929"}},{"selectors":["#i6unxj"],"style":{"color":"#332929"}},{"selectors":["#irqdby"],"style":{"color":"#2d2121"}},{"selectors":["#i1znpj"],"style":{"color":"rgba(7,7,8,0.5)"}},{"selectors":["#ieeexh"],"style":{"color":"#110e0e","background-color":"#4f5e83"}},{"selectors":["#i2g6i8"],"style":{"color":"#110e0e","background-color":"#4f5e83"}},{"selectors":["#iecfkw"],"style":{"color":"rgba(7,7,8,0.5)"}},{"selectors":["#i8sx0e"],"style":{"color":"rgba(7,7,8,0.5)"}}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"header","classes":["header"],"components":[{"classes":["header-inner"],"components":[{"type":"link","classes":["logo"],"attributes":{"href":"#"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"classes":["logo-icon"],"attributes":{"width":"36","height":"36","viewBox":"0 0 36 36","fill":"none","xmlns":"http://www.w3.org/2000/svg"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M18 2L33 9V18C33 27 26.5 33.5 18 34C9.5 33.5 3 27 3 18V9L18 2Z","fill":"#1a3a5c"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M18 6L29 11V18C29 24.5 24.5 29.5 18 30C11.5 29.5 7 24.5 7 18V11L18 6Z","fill":"#c9a84c"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M13 17L17 21L24 13","stroke":"#1a3a5c","stroke-width":"2.5","stroke-linecap":"round","stroke-linejoin":"round"}}]},{"tagName":"span","type":"text","classes":["logo-text"],"components":[{"type":"textnode","content":"Щит"}]}]},{"tagName":"nav","classes":["nav"],"components":[{"type":"link","attributes":{"href":"#services"},"components":[{"type":"textnode","content":"Услуги"}]},{"type":"link","attributes":{"href":"#about"},"components":[{"type":"textnode","content":"О бюро"}]},{"type":"link","attributes":{"href":"#cases"},"components":[{"type":"textnode","content":"Практика"}]},{"type":"link","attributes":{"href":"#contacts"},"components":[{"type":"textnode","content":"Контакты"}]}]},{"type":"link","classes":["header-phone"],"attributes":{"href":"tel:+74951234567"},"components":[{"type":"textnode","content":"+7 (495) 123-45-67"}]}]}]},{"tagName":"main","components":[{"tagName":"section","classes":["hero","fx-clouds-sun"],"attributes":{"id":"i5o13"},"components":[{"classes":["hero-bg"]},{"classes":["hero-content"],"attributes":{"id":"i6fks"},"components":[{"tagName":"p","type":"text","classes":["hero-label"],"components":[{"type":"textnode","content":"Юридическое бюро полного цикла"}]},{"tagName":"h1","type":"text","classes":["hero-title"],"attributes":{"id":"ii1s1"},"components":[{"type":"textnode","content":"Защищаем ваши интересы — "},{"tagName":"span","type":"text","classes":["accent"],"components":[{"type":"textnode","content":"уверенно и профессионально"}]}]},{"tagName":"p","type":"text","classes":["hero-text"],"components":[{"type":"textnode","content":"Более 15 лет мы решаем сложные юридические задачи для бизнеса и частных клиентов. Берём на себя переговоры, суды и защиту ваших прав."}]},{"classes":["hero-actions"],"components":[{"type":"link","classes":["btn","btn-primary"],"attributes":{"href":"#contacts"},"components":[{"type":"textnode","content":"Получить консультацию"}]},{"type":"link","classes":["btn","btn-outline"],"attributes":{"href":"#services"},"components":[{"type":"textnode","content":"Наши услуги"}]}]},{"classes":["hero-stats"],"components":[{"classes":["stat"],"components":[{"tagName":"span","type":"text","classes":["stat-num"],"components":[{"type":"textnode","content":"15+"}]},{"tagName":"span","type":"text","classes":["stat-label"],"components":[{"type":"textnode","content":"лет практики"}]}]},{"classes":["stat"],"components":[{"tagName":"span","type":"text","classes":["stat-num"],"components":[{"type":"textnode","content":"1200"}]},{"tagName":"span","type":"text","classes":["stat-label"],"components":[{"type":"textnode","content":"выигранных дел"}]}]},{"classes":["stat"],"components":[{"tagName":"span","type":"text","classes":["stat-num"],"components":[{"type":"textnode","content":"98%"}]},{"tagName":"span","type":"text","classes":["stat-label"],"components":[{"type":"textnode","content":"успешных решений"}]}]}]}]}]},{"tagName":"section","classes":["services"],"attributes":{"id":"services"},"components":[{"classes":["section-head"],"components":[{"tagName":"h2","type":"text","classes":["section-title"],"components":[{"type":"textnode","content":"Наши услуги"}]},{"tagName":"p","type":"text","classes":["section-sub"],"components":[{"type":"textnode","content":"Полный спектр юридической поддержки — от консультации до представительства в суде"}]}]},{"classes":["services-grid"],"components":[{"tagName":"article","classes":["service-card"],"components":[{"classes":["service-icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"width":"32","height":"32","viewBox":"0 0 32 32","fill":"none"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"4","y":"6","width":"24","height":"22","rx":"3","stroke":"#c9a84c","stroke-width":"2"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M10 12H22M10 17H22M10 22H17","stroke":"#c9a84c","stroke-width":"2","stroke-linecap":"round"}}]}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Корпоративное право"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Сопровождение сделок, регистрация компаний, корпоративные споры и защита активов бизнеса."}]}]},{"tagName":"article","classes":["service-card"],"components":[{"classes":["service-icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"width":"32","height":"32","viewBox":"0 0 32 32","fill":"none"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M16 4L28 10V16C28 23 22.5 27.5 16 28C9.5 27.5 4 23 4 16V10L16 4Z","stroke":"#c9a84c","stroke-width":"2"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M11 16L15 20L21 12","stroke":"#c9a84c","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"}}]}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Судебные споры"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Представительство в арбитражных судах и судах общей юрисдикции любой сложности."}]}]},{"tagName":"article","classes":["service-card"],"components":[{"classes":["service-icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"width":"32","height":"32","viewBox":"0 0 32 32","fill":"none"},"components":[{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"16","cy":"11","r":"6","stroke":"#c9a84c","stroke-width":"2"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M6 28C6 22 10.5 18 16 18C21.5 18 26 22 26 28","stroke":"#c9a84c","stroke-width":"2","stroke-linecap":"round"}}]}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Семейное право"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Разводы, раздел имущества, споры о детях, алименты и брачные договоры."}]}]},{"tagName":"article","classes":["service-card"],"components":[{"classes":["service-icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"width":"32","height":"32","viewBox":"0 0 32 32","fill":"none"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"5","y":"10","width":"22","height":"16","rx":"3","stroke":"#c9a84c","stroke-width":"2"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M5 16H27","stroke":"#c9a84c","stroke-width":"2"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M10 6V10M22 6V10","stroke":"#c9a84c","stroke-width":"2","stroke-linecap":"round"}}]}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Налоговые споры"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Оспаривание решений ФНС, налоговые проверки, оптимизация налогообложения."}]}]},{"tagName":"article","classes":["service-card"],"components":[{"classes":["service-icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"width":"32","height":"32","viewBox":"0 0 32 32","fill":"none"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M16 4V28M4 16H28","stroke":"#c9a84c","stroke-width":"2","stroke-linecap":"round"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"16","cy":"16","r":"12","stroke":"#c9a84c","stroke-width":"2"}}]}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Недвижимость"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Сопровождение сделок, оспаривание кадастровой стоимости, земельные споры."}]}]},{"tagName":"article","classes":["service-card"],"components":[{"classes":["service-icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"width":"32","height":"32","viewBox":"0 0 32 32","fill":"none"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M8 4H20L26 10V28H8V4Z","stroke":"#c9a84c","stroke-width":"2","stroke-linejoin":"round"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M20 4V10H26","stroke":"#c9a84c","stroke-width":"2","stroke-linejoin":"round"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M12 16H22M12 21H19","stroke":"#c9a84c","stroke-width":"2","stroke-linecap":"round"}}]}]},{"tagName":"h3","type":"text","components":[{"type":"textnode","content":"Юридический аудит"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Комплексная проверка документов, договоров и рисков перед сделкой."}]}]}]}]},{"tagName":"section","classes":["about"],"attributes":{"id":"about"},"components":[{"classes":["about-inner"],"components":[{"classes":["about-text"],"components":[{"tagName":"h2","type":"text","classes":["section-title"],"components":[{"type":"textnode","content":"Почему выбирают «Щит»"}]},{"tagName":"p","type":"text","components":[{"type":"textnode","content":"Мы не просто оказываем юридические услуги — мы становимся вашим надёжным партнёром. Каждый клиент получает персонального адвоката, который ведёт дело от начала до конца."}]},{"tagName":"ul","classes":["about-list"],"components":[{"tagName":"li","type":"text","components":[{"tagName":"span","type":"text","classes":["check"],"components":[{"type":"textnode","content":"✓"}]},{"type":"textnode","content":" Персональный подход к каждому делу"}]},{"tagName":"li","type":"text","components":[{"tagName":"span","type":"text","classes":["check"],"components":[{"type":"textnode","content":"✓"}]},{"type":"textnode","content":" Прозрачные условия и фиксированные цены"}]},{"tagName":"li","type":"text","components":[{"tagName":"span","type":"text","classes":["check"],"components":[{"type":"textnode","content":"✓"}]},{"type":"textnode","content":" Конфиденциальность и защита данных"}]},{"tagName":"li","type":"text","components":[{"tagName":"span","type":"text","classes":["check"],"components":[{"type":"textnode","content":"✓"}]},{"type":"textnode","content":" Опыт работы с федеральными компаниями"}]}]}]},{"classes":["about-visual"],"components":[{"classes":["about-card"],"components":[{"type":"text","classes":["about-card-num"],"components":[{"type":"textnode","content":"15+"}]},{"type":"text","classes":["about-card-text"],"components":[{"type":"textnode","content":"лет успешной юридической практики"}]}]},{"classes":["about-card","about-card-alt"],"components":[{"type":"text","classes":["about-card-num"],"components":[{"type":"textnode","content":"24/7"}]},{"type":"text","classes":["about-card-text"],"components":[{"type":"textnode","content":"поддержка клиентов в срочных вопросах"}]}]}]}]}]},{"tagName":"section","classes":["cta"],"attributes":{"id":"contacts"},"components":[{"classes":["cta-inner"],"attributes":{"id":"ixzert"},"components":[{"tagName":"h2","type":"text","components":[{"type":"textnode","content":"Нужна юридическая помощь?"}]},{"tagName":"p","type":"text","attributes":{"id":"i1znpj"},"components":[{"type":"textnode","content":"Оставьте заявку — мы свяжемся с вами в течение 15 минут и предложим решение"}]},{"tagName":"form","classes":["cta-form"],"attributes":{"id":"iecfkw"},"components":[{"tagName":"input","void":true,"attributes":{"type":"text","placeholder":"Ваше имя","required":true,"id":"ieeexh"}},{"tagName":"input","void":true,"attributes":{"type":"tel","placeholder":"Телефон","required":true,"id":"i2g6i8"}},{"tagName":"button","type":"text","classes":["btn","btn-primary"],"attributes":{"type":"submit"},"components":[{"type":"textnode","content":"Отправить заявку"}]}]},{"tagName":"p","type":"text","classes":["cta-note"],"attributes":{"id":"i8sx0e"},"components":[{"type":"textnode","content":"Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности"}]}]}]}]},{"tagName":"footer","classes":["footer"],"attributes":{"id":"ifd9hg"},"components":[{"classes":["footer-inner"],"components":[{"classes":["footer-col"],"components":[{"classes":["logo"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"classes":["logo-icon"],"attributes":{"width":"28","height":"28","viewBox":"0 0 36 36","fill":"none"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M18 2L33 9V18C33 27 26.5 33.5 18 34C9.5 33.5 3 27 3 18V9L18 2Z","fill":"#c9a84c"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M13 17L17 21L24 13","stroke":"#1a3a5c","stroke-width":"2.5","stroke-linecap":"round","stroke-linejoin":"round"}}]},{"tagName":"span","type":"text","classes":["logo-text"],"components":[{"type":"textnode","content":"Щит"}]}]},{"tagName":"p","type":"text","classes":["footer-desc"],"attributes":{"id":"ia5agw"},"components":[{"type":"textnode","content":"Юридическое бюро полного цикла. Защищаем ваши интересы с 2009 года."}]}]},{"classes":["footer-col"],"attributes":{"id":"i230lv"},"components":[{"tagName":"h4","type":"text","attributes":{"id":"iib4wn"},"components":[{"type":"textnode","content":"Услуги"}]},{"type":"link","attributes":{"href":"#","id":"iqu7l6"},"components":[{"type":"textnode","content":"Корпоративное право"}]},{"type":"link","attributes":{"href":"#","id":"ic8oln"},"components":[{"type":"textnode","content":"Судебные споры"}]},{"type":"link","attributes":{"href":"#","id":"igu9fb"},"components":[{"type":"textnode","content":"Семейное право"}]},{"type":"link","attributes":{"href":"#","id":"iolhbk"},"components":[{"type":"textnode","content":"Налоговые споры"}]}]},{"classes":["footer-col"],"components":[{"tagName":"h4","type":"text","components":[{"type":"textnode","content":"Контакты"}]},{"tagName":"p","type":"text","attributes":{"id":"i68wo2"},"components":[{"type":"textnode","content":"Москва, ул. Правды, 15"}]},{"tagName":"p","type":"text","attributes":{"id":"ip09ij"},"components":[{"type":"textnode","content":"+7 (495) 123-45-67"}]},{"tagName":"p","type":"text","attributes":{"id":"i6unxj"},"components":[{"type":"textnode","content":"info@shield-law.ru"}]}]}]},{"classes":["footer-bottom"],"attributes":{"id":"irqdby"},"components":[{"tagName":"p","type":"text","components":[{"type":"textnode","content":"© 2025 Юридическое бюро «Щит». Все права защищены."}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"AFbi6SLxA7sCHFmK"}],"id":"Ea5flgE7i171Ni9a"}],"symbols":[]}', 1, 0, '2026-09-30 16:57:05.011260', '2026-09-30 17:05:34.273921', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
+
+/**
+ * Content — theme variables + shared atoms + layout for CONTENT pages.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Uses ONLY --theme-* variables, defined at the top of this file.
+ * Completely independent from base/css/00_variables.css (admin UI):
+ * admin theme changes do NOT affect page content.
+ *
+ * Contents:
+ *   THEME VARIABLES
+ *     --theme-*                 all colors, fonts, radii, spacing
+ *
+ *   ATOMS
+ *     .h1, .h2, .h3             headings
+ *     .text, .text--muted, .text--center
+ *     .lead                     intro paragraph
+ *     .list, .list--check, .list--num
+ *     .btn, .btn--ghost         buttons
+ *     .card, .card__title, .card__text
+ *     .badge, .quote, .image, .icon, .divider
+ *
+ *   LAYOUT
+ *     .section                  vertical rhythm wrapper
+ *     .container                centered max-width wrapper
+ *     .grid, .grid--2/3/4/auto  base grids
+ *     .col                      grid cell
+ *
+ * .flex-shell* lives in blocks/layout.css — it is block-specific
+ * (only used by the flex-shell block).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   THEME VARIABLES — content
+   ============================================ */
+
+/*
+ * Completely independent from base/css/00_variables.css (admin UI).
+ * Admin theme changes do NOT affect these values.
+ *
+ * Scoped under .core-engine-lib-word-blocks — the same class sits
+ * on the canvas <body> in the editor and on the article wrapper
+ * on the public page.
+ */
+.core-engine-lib-word-blocks {
+
+    /* ===== COLORS ===== */
+
+    --theme-bg:             #ffffff;
+    --theme-bg-subtle:      #f8fafc;
+    --theme-bg-dark:        #0f172a;
+    --theme-bg-hover:       #f1f5f9;
+
+    --theme-text:           #1e293b;
+    --theme-text-muted:     #64748b;
+    --theme-text-invert:    #ffffff;
+
+    --theme-accent:         #246eaa;
+    --theme-accent-hover:   #1e5a8a;
+    --theme-accent-soft:    #e0edf7;
+
+    --theme-border:         #e2e8f0;
+    --theme-border-strong:  #cbd5e1;
+
+    --theme-success:        #16a34a;
+    --theme-warning:        #d97706;
+    --theme-danger:         #dc2626;
+
+    /* ===== SHADOWS ===== */
+
+    --theme-shadow-sm:  0 1px 3px rgba(15, 23, 42, 0.06);
+    --theme-shadow-md:  0 4px 12px rgba(15, 23, 42, 0.08);
+    --theme-shadow-lg:  0 12px 32px rgba(15, 23, 42, 0.12);
+
+    /* ===== FONTS ===== */
+
+    --theme-font-family:    ''Inter'', ''Golos Text'', sans-serif;
+    --theme-font-size-xs:   0.75rem;
+    --theme-font-size-sm:   0.875rem;
+    --theme-font-size-base: 1rem;
+    --theme-font-size-lg:   1.125rem;
+    --theme-font-size-xl:   1.25rem;
+    --theme-font-size-2xl:  1.5rem;
+    --theme-font-size-3xl:  2rem;
+    --theme-font-size-4xl:  2.5rem;
+
+    --theme-font-weight-regular:  400;
+    --theme-font-weight-medium:   500;
+    --theme-font-weight-semibold: 600;
+    --theme-font-weight-bold:     700;
+
+    --theme-line-height-tight:  1.25;
+    --theme-line-height-base:   1.6;
+    --theme-line-height-loose:  1.8;
+
+    /* ===== RADII ===== */
+
+    --theme-radius-sm:   0.25rem;
+    --theme-radius-md:   0.5rem;
+    --theme-radius-lg:   0.75rem;
+    --theme-radius-xl:   1rem;
+    --theme-radius-pill: 9999px;
+
+    /* ===== SPACING ===== */
+
+    --theme-space-1:   0.25rem;
+    --theme-space-2:   0.5rem;
+    --theme-space-3:   0.75rem;
+    --theme-space-4:   1rem;
+    --theme-space-5:   1.25rem;
+    --theme-space-6:   1.5rem;
+    --theme-space-8:   2rem;
+    --theme-space-10:  2.5rem;
+    --theme-space-12:  3rem;
+    --theme-space-16:  4rem;
+    --theme-space-20:  5rem;
+
+    --theme-space-section:  4rem;
+    --theme-space-gutter:   1rem;
+    --theme-space-grid:     1rem;
+
+    /* ===== LAYOUT ===== */
+
+    --theme-container-max:  75rem;
+}
+
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+
+.core-engine-lib-word-blocks .h1 {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-4xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.02em;
+}
+
+.core-engine-lib-word-blocks .h2 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-3xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.01em;
+}
+
+.core-engine-lib-word-blocks .h3 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-2xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   TEXT
+   ============================================ */
+
+.core-engine-lib-word-blocks .text {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .text--muted {
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .text--center {
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .text:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================
+   LEAD
+   ============================================ */
+
+.core-engine-lib-word-blocks .lead {
+    margin: 0 0 var(--theme-space-5);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   LISTS
+   ============================================ */
+
+.core-engine-lib-word-blocks .list {
+    margin: 0 0 var(--theme-space-4);
+    padding-left: var(--theme-space-6);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .list li {
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .list li:last-child {
+    margin-bottom: 0;
+}
+
+.core-engine-lib-word-blocks .list li::marker {
+    color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .list--check {
+    list-style: none;
+    padding-left: 0;
+}
+
+.core-engine-lib-word-blocks .list--check li {
+    position: relative;
+    padding-left: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .list--check li::before {
+    content: ''✓'';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-bold);
+}
+
+.core-engine-lib-word-blocks .list--num {
+    list-style: decimal;
+}
+
+.core-engine-lib-word-blocks .list--num li::marker {
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-semibold);
+}
+
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.core-engine-lib-word-blocks .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--theme-space-2);
+    padding: var(--theme-space-3) var(--theme-space-6);
+    border: 2px solid transparent;
+    border-radius: var(--theme-radius-md);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: 1.2;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--theme-accent);
+    color: var(--theme-text-invert);
+    border-color: var(--theme-accent);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.core-engine-lib-word-blocks .btn:hover {
+    background: var(--theme-accent-hover);
+    border-color: var(--theme-accent-hover);
+    color: var(--theme-text-invert);
+}
+
+.core-engine-lib-word-blocks .btn:active {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-word-blocks .btn--ghost {
+    background: transparent;
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .btn--ghost:hover {
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+
+/* ============================================
+   CARD
+   ============================================ */
+
+.core-engine-lib-word-blocks .card {
+    padding: var(--theme-space-6);
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    border-radius: var(--theme-radius-lg);
+    box-shadow: var(--theme-shadow-sm);
+}
+
+.core-engine-lib-word-blocks .card__title {
+    margin: 0 0 var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .card__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   BADGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .badge {
+    display: inline-block;
+    padding: var(--theme-space-1) var(--theme-space-3);
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+}
+
+
+/* ============================================
+   QUOTE
+   ============================================ */
+
+.core-engine-lib-word-blocks .quote {
+    margin: var(--theme-space-6) 0;
+    padding: var(--theme-space-4) var(--theme-space-5);
+    border-left: 4px solid var(--theme-accent);
+    background: var(--theme-bg-subtle);
+    border-radius: 0 var(--theme-radius-md) var(--theme-radius-md) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-style: italic;
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   IMAGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--theme-radius-md);
+    margin: 0;
+}
+
+
+/* ============================================
+   ICON
+   ============================================ */
+
+.core-engine-lib-word-blocks .icon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    color: var(--theme-accent);
+    flex-shrink: 0;
+}
+
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+
+.core-engine-lib-word-blocks .divider {
+    margin: var(--theme-space-8) 0;
+    border: none;
+    height: 1px;
+    background: var(--theme-border);
+}
+
+
+/* ============================================
+   SECTION — vertical rhythm wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .section {
+    padding-top: var(--theme-space-section);
+    padding-bottom: var(--theme-space-section);
+}
+
+
+/* ============================================
+   CONTAINER — centered max-width wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .container {
+    width: 100%;
+    max-width: var(--theme-container-max);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--theme-space-gutter);
+    padding-right: var(--theme-space-gutter);
+    box-sizing: border-box;
+}
+
+
+/* ============================================
+   GRID — base
+   ============================================ */
+
+.core-engine-lib-word-blocks .grid {
+    display: grid;
+    gap: var(--theme-space-grid);
+}
+
+.core-engine-lib-word-blocks .grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--auto {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+
+/* ============================================
+   COLUMN — grid cell
+   ============================================ */
+
+/*
+ * Minimal cell: only prevents overflow. Padding, background, border
+ * are set per block (e.g. .card, .col--tile were removed on purpose).
+ */
+.core-engine-lib-word-blocks .col {
+    min-width: 0;
+}
+
+
+/* ============================================
+   GRID — responsive fallback
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .grid--2,
+    .core-engine-lib-word-blocks .grid--3,
+    .core-engine-lib-word-blocks .grid--4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* app/core/engine/lib/word/editor/blocks/ready.css */
+
+/**
+ * Ready — styles for the "Секции" (sections) blocks.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Covers section-specific classes from blocks/ready.js:
+ *   - .hero, .hero__inner, .hero__title, .hero__lead, .hero__btn
+ *   - .features, .features__title, .features__grid, .features__item
+ *   - .steps, .steps__title, .steps__grid, .steps__item, .steps__num
+ *   - .text-image, .text-image__grid, .text-image__text, .text-image__media
+ *   - .image-text, .image-text__grid, .image-text__text, .image-text__media
+ *   - .gallery, .gallery__title, .gallery__grid, .gallery__item
+ *   - .faq, .faq__title, .faq__list, .faq__item, .faq__question, .faq__answer
+ *   - .cta, .cta__inner, .cta__title, .cta__text, .cta__btn
+ *   - .contacts, .contacts__title, .contacts__grid, .contacts__item,
+ *     .contacts__label, .contacts__value
+ *   - .footer, .footer__inner, .footer__brand, .footer__nav, .footer__link
+ *   - .article-catalog, .article-catalog__heading, .article-catalog__card,
+ *     .article-catalog__glow, .article-catalog__logo, .article-catalog__body,
+ *     .article-catalog__title, .article-catalog__desc, .article-catalog__date
+ *
+ * Shared atom classes (.h1, .h2, .text, .lead, .btn, .card, .image)
+ * and layout classes (.section, .container, .grid) live in
+ * editor/css/content.css — they are loaded globally.
+ *
+ * Uses ONLY --theme-* variables (see theme.css).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   HERO — .hero
+   ============================================ */
+
+.core-engine-lib-word-blocks .hero__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .hero__title {
+    margin: 0;
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .hero__lead {
+    margin: 0;
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .hero__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   FEATURES — .features
+   ============================================ */
+
+.core-engine-lib-word-blocks .features__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .features__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .features__item {
+    /* uses .card from content.css */
+    height: 100%;
+}
+
+
+/* ============================================
+   STEPS — .steps
+   ============================================ */
+
+.core-engine-lib-word-blocks .steps__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .steps__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .steps__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-bold);
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__item-title {
+    margin: 0;
+}
+
+
+/* ============================================
+   TEXT + IMAGE — .text-image
+   ============================================ */
+
+.core-engine-lib-word-blocks .text-image__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .text-image__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .text-image__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .text-image__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   IMAGE + TEXT — .image-text
+   ============================================ */
+
+.core-engine-lib-word-blocks .image-text__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .image-text__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .image-text__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .image-text__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   GALLERY — .gallery
+   ============================================ */
+
+.core-engine-lib-word-blocks .gallery__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .gallery__grid {
+    /* uses .grid.grid--auto from content.css */
+}
+
+.core-engine-lib-word-blocks .gallery__item {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+
+/* ============================================
+   FAQ — .faq
+   ============================================ */
+
+.core-engine-lib-word-blocks .faq__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-6);
+    max-width: 48rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.core-engine-lib-word-blocks .faq__item {
+    padding-bottom: var(--theme-space-5);
+    border-bottom: 1px solid var(--theme-border);
+}
+
+.core-engine-lib-word-blocks .faq__item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.core-engine-lib-word-blocks .faq__question {
+    margin: 0 0 var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .faq__answer {
+    margin: 0;
+}
+
+
+/* ============================================
+   CTA — .cta
+   ============================================ */
+
+.core-engine-lib-word-blocks .cta {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+}
+
+.core-engine-lib-word-blocks .cta__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .cta__title {
+    margin: 0;
+    color: var(--theme-text, #1e293b);
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .cta__text {
+    margin: 0;
+    color: var(--theme-text-muted, #64748b);
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .cta__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   CONTACTS — .contacts
+   ============================================ */
+
+.core-engine-lib-word-blocks .contacts__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .contacts__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .contacts__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-1);
+}
+
+.core-engine-lib-word-blocks .contacts__label {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .contacts__value {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   FOOTER — .footer
+   ============================================ */
+
+.core-engine-lib-word-blocks .footer {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+    padding-top: var(--theme-space-6);
+    padding-bottom: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .footer__brand {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+}
+
+.core-engine-lib-word-blocks .footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .footer__link {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .footer__link:hover {
+    opacity: 1;
+}
+
+
+/* ============================================
+   ARTICLE CATALOG — .article-catalog
+   ============================================ */
+
+.core-engine-lib-word-blocks .article-catalog__heading {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .article-catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--theme-space-5);
+    align-content: start;
+}
+
+/* --- Ссылка-карточка --- */
+
+.core-engine-lib-word-blocks .article-catalog__card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 104px 1fr;   /* логотип | текст */
+    gap: var(--theme-space-4);
+    align-items: start;
+    padding: var(--theme-space-5);
+    border-radius: var(--theme-radius-lg);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 4px 16px rgba(15, 23, 42, 0.04),
+        0 1px 3px rgba(15, 23, 42, 0.06);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 12px 32px rgba(59, 130, 246, 0.12),
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:active {
+    transform: translateY(-2px) scale(0.99);
+}
+
+/* --- Свечение (при наведении) --- */
+
+.core-engine-lib-word-blocks .article-catalog__glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    background: radial-gradient(
+        600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(59, 130, 246, 0.15),
+        rgba(139, 92, 246, 0.08) 40%,
+        transparent 60%
+    );
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__glow {
+    opacity: 1;
+}
+
+/* --- Логотип — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__logo {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    border-radius: var(--theme-radius-lg);
+    overflow: hidden;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+    z-index: 1;
+}
+
+.core-engine-lib-word-blocks .article-catalog__logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__logo img {
+    transform: scale(1.05);
+}
+
+/* --- Тело — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__body {
+    position: relative;
+    z-index: 1;
+    min-width: 0;   /* важно: обрезка текста внутри grid работает */
+}
+
+.core-engine-lib-word-blocks .article-catalog__title {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: 1.25;
+    color: var(--theme-text, #0f172a);
+    letter-spacing: -0.01em;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__title {
+    color: var(--theme-accent, #3b82f6);
+}
+
+.core-engine-lib-word-blocks .article-catalog__desc {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    line-height: 1.5;
+    color: var(--theme-text-muted, #64748b);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__date {
+    display: block;
+    margin-top: var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text-muted, #94a3b8);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Адаптив --- */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .article-catalog {
+        grid-template-columns: 1fr;
+        gap: var(--theme-space-4);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-4);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 100px 1fr;
+        gap: var(--theme-space-3);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 100px;
+        height: 100px;
+        border-radius: var(--theme-radius-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-3);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 88px 1fr;
+        gap: var(--theme-space-2);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 88px;
+        height: 88px;
+        border-radius: var(--theme-radius-md);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__title {
+        font-size: var(--theme-font-size-lg);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__desc {
+        font-size: var(--theme-font-size-base);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__date {
+        font-size: var(--theme-font-size-sm);
+    }
+}
+
+/* --- prefers-reduced-motion --- */
+
+@media (prefers-reduced-motion: reduce) {
+    .core-engine-lib-word-blocks .article-catalog__card,
+    .core-engine-lib-word-blocks .article-catalog__logo img,
+    .core-engine-lib-word-blocks .article-catalog__glow {
+        transition: none;
+    }
+}
+
+.core-engine-lib-word-blocks .fx-clouds-sun { background-image: radial-gradient(circle at 30% 62%, rgba(255, 255, 255, 0.98) 0 16%, rgba(255, 255, 255, 0) 34%), radial-gradient(circle at 56% 40%, rgba(255, 255, 255, 0.92) 0 20%, rgba(255, 255, 255, 0) 40%), radial-gradient(circle at 76% 70%, rgba(191, 219, 254, 0.9) 0 14%, rgba(191, 219, 254, 0) 33%), radial-gradient(circle at 92% 28%, rgba(219, 234, 254, 0.85) 0 12%, rgba(219, 234, 254, 0) 30%), radial-gradient(circle at 8% 14%, rgba(253, 224, 71, 0.95) 0, rgba(253, 224, 71, 0.45) 40px, rgba(253, 224, 71, 0) 140px); background-size: 220px 140px, 280px 180px, 240px 150px, 200px 130px, 100% 100%; background-position: 0 0, 90px 50px, 40px 80px, 150px 20px, 0 0; background-repeat: repeat, repeat, repeat, repeat, no-repeat; animation: fx-clouds-sun-drift 60s linear infinite; } @keyframes fx-clouds-sun-drift { from { background-position: 0 0, 90px 50px, 40px 80px, 150px 20px, 0 0; } to { background-position: 220px 0, 310px 50px, 280px 80px, 350px 20px, 0 0; } }
+
+* { box-sizing: border-box; } body {margin: 0;}*{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;box-sizing:border-box;}body{font-family:Manrope, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;color:rgb(26, 43, 60);background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(247, 249, 252);line-height:1.6;}.header{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 255, 255);box-shadow:rgba(26, 58, 92, 0.08) 0px 2px 20px;position:sticky;top:0px;z-index:100;}.header-inner{max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;padding-top:18px;padding-right:24px;padding-bottom:18px;padding-left:24px;display:flex;align-items:center;justify-content:space-between;row-gap:24px;column-gap:24px;}.logo{display:flex;align-items:center;row-gap:10px;column-gap:10px;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;}.logo-text{font-size:24px;font-weight:800;color:rgb(26, 58, 92);letter-spacing:-0.5px;}.nav{display:flex;row-gap:32px;column-gap:32px;}.nav a{text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;color:rgb(74, 91, 108);font-weight:500;font-size:16px;transition-behavior:normal;transition-duration:0.2s;transition-timing-function:ease;transition-delay:0s;transition-property:color;}.nav a:hover{color:rgb(201, 168, 76);}.header-phone{text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;color:rgb(26, 58, 92);font-weight:700;font-size:16px;white-space-collapse:collapse;text-wrap:nowrap;}.hero{position:relative;overflow-x:hidden;overflow-y:hidden;background-image:linear-gradient(135deg, rgb(26, 58, 92) 0%, rgb(15, 37, 64) 100%);background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;color:rgb(255, 255, 255);padding-top:100px;padding-right:24px;padding-bottom:80px;padding-left:24px;}.hero-bg{position:absolute;top:-50%;right:-10%;width:600px;height:600px;background-image:radial-gradient(circle, rgba(201, 168, 76, 0.15) 0%, transparent 70%);background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;border-top-left-radius:50%;border-top-right-radius:50%;border-bottom-right-radius:50%;border-bottom-left-radius:50%;}.hero-content{position:relative;max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;}.hero-label{display:inline-block;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgba(201, 168, 76, 0.15);color:rgb(201, 168, 76);padding-top:8px;padding-right:18px;padding-bottom:8px;padding-left:18px;border-top-left-radius:100px;border-top-right-radius:100px;border-bottom-right-radius:100px;border-bottom-left-radius:100px;font-size:14px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:24px;}.hero-title{font-size:56px;font-weight:800;line-height:1.15;letter-spacing:-1px;max-width:800px;margin-bottom:24px;}.hero-title .accent{color:rgb(201, 168, 76);}.hero-text{font-size:18px;color:rgba(255, 255, 255, 0.8);max-width:600px;margin-bottom:40px;}.hero-actions{display:flex;row-gap:16px;column-gap:16px;flex-wrap:wrap;margin-bottom:64px;}.btn{display:inline-block;padding-top:16px;padding-right:32px;padding-bottom:16px;padding-left:32px;border-top-left-radius:12px;border-top-right-radius:12px;border-bottom-right-radius:12px;border-bottom-left-radius:12px;font-size:16px;font-weight:700;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;cursor:pointer;border-top-width:initial;border-right-width:initial;border-bottom-width:initial;border-left-width:initial;border-top-style:none;border-right-style:none;border-bottom-style:none;border-left-style:none;border-top-color:initial;border-right-color:initial;border-bottom-color:initial;border-left-color:initial;border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;transition-behavior:normal;transition-duration:0.25s;transition-timing-function:ease;transition-delay:0s;transition-property:all;font-family:inherit;}.btn-primary{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(201, 168, 76);color:rgb(26, 58, 92);}.btn-primary:hover{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(219, 185, 94);transform:translateY(-2px);box-shadow:rgba(201, 168, 76, 0.35) 0px 8px 24px;}.btn-outline{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:transparent;color:rgb(255, 255, 255);border-top-width:2px;border-right-width:2px;border-bottom-width:2px;border-left-width:2px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(255, 255, 255, 0.3);border-right-color:rgba(255, 255, 255, 0.3);border-bottom-color:rgba(255, 255, 255, 0.3);border-left-color:rgba(255, 255, 255, 0.3);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;}.btn-outline:hover{border-top-color:rgb(201, 168, 76);border-right-color:rgb(201, 168, 76);border-bottom-color:rgb(201, 168, 76);border-left-color:rgb(201, 168, 76);color:rgb(201, 168, 76);}.hero-stats{display:flex;row-gap:64px;column-gap:64px;flex-wrap:wrap;}.stat{display:flex;flex-direction:column;}.stat-num{font-size:40px;font-weight:800;color:rgb(201, 168, 76);line-height:1;}.stat-label{font-size:15px;color:rgba(255, 255, 255, 0.7);margin-top:8px;}.services{max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;padding-top:100px;padding-right:24px;padding-bottom:100px;padding-left:24px;}.section-head{text-align:center;margin-bottom:64px;}.section-title{font-size:40px;font-weight:800;color:rgb(26, 58, 92);letter-spacing:-0.5px;margin-bottom:16px;}.section-sub{font-size:18px;color:rgb(107, 124, 141);max-width:600px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;}.services-grid{display:grid;grid-template-columns:repeat(3, 1fr);row-gap:28px;column-gap:28px;}.service-card{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 255, 255);border-top-left-radius:20px;border-top-right-radius:20px;border-bottom-right-radius:20px;border-bottom-left-radius:20px;padding-top:36px;padding-right:32px;padding-bottom:36px;padding-left:32px;box-shadow:rgba(26, 58, 92, 0.06) 0px 4px 24px;transition-behavior:normal;transition-duration:0.3s;transition-timing-function:ease;transition-delay:0s;transition-property:all;border-top-width:1px;border-right-width:1px;border-bottom-width:1px;border-left-width:1px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(26, 58, 92, 0.04);border-right-color:rgba(26, 58, 92, 0.04);border-bottom-color:rgba(26, 58, 92, 0.04);border-left-color:rgba(26, 58, 92, 0.04);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;}.service-card:hover{transform:translateY(-6px);box-shadow:rgba(26, 58, 92, 0.12) 0px 16px 40px;border-top-color:rgba(201, 168, 76, 0.3);border-right-color:rgba(201, 168, 76, 0.3);border-bottom-color:rgba(201, 168, 76, 0.3);border-left-color:rgba(201, 168, 76, 0.3);}.service-icon{width:64px;height:64px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgba(201, 168, 76, 0.1);border-top-left-radius:16px;border-top-right-radius:16px;border-bottom-right-radius:16px;border-bottom-left-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;}.service-card h3{font-size:20px;font-weight:700;color:rgb(26, 58, 92);margin-bottom:12px;}.service-card p{font-size:15px;color:rgb(107, 124, 141);line-height:1.6;}.about{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(255, 255, 255);padding-top:100px;padding-right:24px;padding-bottom:100px;padding-left:24px;}.about-inner{max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;display:grid;grid-template-columns:1fr 1fr;row-gap:80px;column-gap:80px;align-items:center;}.about-text .section-title{text-align:left;margin-bottom:24px;}.about-text > p{font-size:17px;color:rgb(74, 91, 108);margin-bottom:32px;}.about-list{list-style-position:initial;list-style-image:initial;list-style-type:none;display:flex;flex-direction:column;row-gap:16px;column-gap:16px;}.about-list li{display:flex;align-items:center;row-gap:14px;column-gap:14px;font-size:16px;color:rgb(26, 43, 60);font-weight:500;}.check{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(201, 168, 76);color:rgb(26, 58, 92);border-top-left-radius:50%;border-top-right-radius:50%;border-bottom-right-radius:50%;border-bottom-left-radius:50%;font-weight:800;font-size:14px;flex-shrink:0;}.about-visual{position:relative;display:flex;flex-direction:column;row-gap:24px;column-gap:24px;}.about-card{background-image:linear-gradient(135deg, rgb(26, 58, 92), rgb(15, 37, 64));background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;color:rgb(255, 255, 255);border-top-left-radius:20px;border-top-right-radius:20px;border-bottom-right-radius:20px;border-bottom-left-radius:20px;padding-top:40px;padding-right:40px;padding-bottom:40px;padding-left:40px;}.about-card-alt{background-image:linear-gradient(135deg, rgb(201, 168, 76), rgb(184, 149, 47));background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;color:rgb(26, 58, 92);margin-left:48px;}.about-card-num{font-size:48px;font-weight:800;line-height:1;margin-bottom:12px;}.about-card-text{font-size:16px;opacity:0.85;}.cta{background-image:linear-gradient(135deg, rgb(26, 58, 92) 0%, rgb(15, 37, 64) 100%);background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;padding-top:100px;padding-right:24px;padding-bottom:100px;padding-left:24px;color:rgb(255, 255, 255);}.cta-inner{max-width:720px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;text-align:center;}.cta h2{font-size:40px;font-weight:800;margin-bottom:16px;letter-spacing:-0.5px;}.cta > .cta-inner > p{font-size:18px;color:rgba(255, 255, 255, 0.8);margin-bottom:40px;}.cta-form{display:flex;row-gap:12px;column-gap:12px;flex-wrap:wrap;justify-content:center;}.cta-form input{flex-grow:1;flex-shrink:1;flex-basis:0%;min-width:200px;padding-top:16px;padding-right:20px;padding-bottom:16px;padding-left:20px;border-top-left-radius:12px;border-top-right-radius:12px;border-bottom-right-radius:12px;border-bottom-left-radius:12px;border-top-width:2px;border-right-width:2px;border-bottom-width:2px;border-left-width:2px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(255, 255, 255, 0.15);border-right-color:rgba(255, 255, 255, 0.15);border-bottom-color:rgba(255, 255, 255, 0.15);border-left-color:rgba(255, 255, 255, 0.15);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgba(255, 255, 255, 0.08);color:rgb(255, 255, 255);font-size:16px;font-family:inherit;outline-color:initial;outline-style:none;outline-width:initial;transition-behavior:normal;transition-duration:0.2s;transition-timing-function:ease;transition-delay:0s;transition-property:border-color;}.cta-form input::placeholder{color:rgba(255, 255, 255, 0.5);}.cta-form input:focus{border-top-color:rgb(201, 168, 76);border-right-color:rgb(201, 168, 76);border-bottom-color:rgb(201, 168, 76);border-left-color:rgb(201, 168, 76);}.cta-note{font-size:13px;color:rgba(255, 255, 255, 0.5);margin-top:20px;}.footer{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(15, 37, 64);color:rgb(255, 255, 255);padding-top:64px;padding-right:24px;padding-bottom:32px;padding-left:24px;}.footer-inner{max-width:1200px;margin-top:0px;margin-right:auto;margin-left:auto;display:grid;grid-template-columns:2fr 1fr 1fr;row-gap:48px;column-gap:48px;margin-bottom:48px;}.footer-col h4{font-size:16px;font-weight:700;margin-bottom:20px;color:rgb(201, 168, 76);}.footer-col a{display:block;color:rgba(255, 255, 255, 0.7);text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;font-size:15px;margin-bottom:12px;transition-behavior:normal;transition-duration:0.2s;transition-timing-function:ease;transition-delay:0s;transition-property:color;}.footer-col a:hover{color:rgb(201, 168, 76);}.footer-col p{color:rgba(255, 255, 255, 0.7);font-size:15px;margin-bottom:12px;}.footer-desc{color:rgba(255, 255, 255, 0.6);font-size:15px;margin-top:16px;max-width:320px;}.footer-bottom{max-width:1200px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;padding-top:32px;border-top-width:1px;border-top-style:solid;border-top-color:rgba(255, 255, 255, 0.1);text-align:center;}.footer-bottom p{color:rgba(255, 255, 255, 0.5);font-size:14px;}#ii1s1{color:#22568d;}#ia5agw{color:rgba(12,11,11,0.6);}#ic8oln{color:#332929;}#iqu7l6{color:#332929;}#i230lv{color:#131010;}#ifd9hg{color:#211212;}#igu9fb{color:#332929;}#iolhbk{color:#332929;}#i68wo2{color:#332929;}#ip09ij{color:#332929;}#i6unxj{color:#332929;}#irqdby{color:#2d2121;}#i1znpj{color:rgba(7,7,8,0.5);}#ieeexh{color:#110e0e;background-color:#4f5e83;}#i2g6i8{color:#110e0e;background-color:#4f5e83;}#iecfkw{color:rgba(7,7,8,0.5);}#i8sx0e{color:rgba(7,7,8,0.5);}@media (max-width: 1024px){.hero-title{font-size:44px;}.services-grid{grid-template-columns:repeat(2, 1fr);}.about-inner{grid-template-columns:1fr;row-gap:48px;column-gap:48px;}.about-card-alt{margin-left:0px;}.footer-inner{grid-template-columns:1fr 1fr;}.nav{row-gap:20px;column-gap:20px;}}@media (max-width: 768px){.header-inner{flex-wrap:wrap;padding-top:14px;padding-right:20px;padding-bottom:14px;padding-left:20px;}.nav{order:3;width:100%;justify-content:center;row-gap:16px;column-gap:16px;flex-wrap:wrap;}.nav a{font-size:14px;}.header-phone{font-size:14px;}.hero{padding-top:64px;padding-right:20px;padding-bottom:56px;padding-left:20px;}.hero-title{font-size:32px;}.hero-text{font-size:16px;}.hero-actions{flex-direction:column;}.btn{width:100%;text-align:center;}.hero-stats{row-gap:32px;column-gap:32px;}.stat-num{font-size:32px;}.services{padding-top:64px;padding-right:20px;padding-bottom:64px;padding-left:20px;}.section-title{font-size:28px;}.section-sub{font-size:16px;}.services-grid{grid-template-columns:1fr;row-gap:20px;column-gap:20px;}.service-card{padding-top:28px;padding-right:24px;padding-bottom:28px;padding-left:24px;}.about{padding-top:64px;padding-right:20px;padding-bottom:64px;padding-left:20px;}.about-card{padding-top:32px;padding-right:28px;padding-bottom:32px;padding-left:28px;}.about-card-num{font-size:36px;}.cta{padding-top:64px;padding-right:20px;padding-bottom:64px;padding-left:20px;}.cta h2{font-size:28px;}.cta-form{flex-direction:column;}.footer{padding-top:48px;padding-right:20px;padding-bottom:24px;padding-left:20px;}.footer-inner{grid-template-columns:1fr;row-gap:32px;column-gap:32px;}}');
 INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (31, 1, '2026-09-20 18:12:01.412009', 'Статья 2', '', '', '<style>* { box-sizing: border-box; } body {margin: 0;}*{box-sizing:border-box;}body{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks{padding-top:8px;padding-right:20px;padding-bottom:8px;padding-left:20px;}.core-engine-lib-word-blocks.compact{padding-top:2px;padding-bottom:2px;}.text{text-align:justify;text-indent:2em;line-height:1.6;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.lead{font-size:1.25em;}</style><body id="ixuw"><div class="core-engine-lib-word-blocks"><p class="text">Это первый абзац тестового текста. Он нужен для того, чтобы наполнить страницу содержимым и проверить, как работает вертикальная прокрутка. Прокрутка появляется тогда, когда высота содержимого превышает высоту окна браузера, поэтому чем больше текста, тем надёжнее результат проверки.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Второй абзац продолжает наполнение страницы. Здесь можно написать что угодно: описание проекта, заметки, черновик статьи или просто набор нейтральных фраз. Главное — чтобы текста было достаточно много и он занимал несколько экранов по высоте.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Третий абзац добавляет ещё немного строк. Если прокрутка работает правильно, в правой части окна появится полоса прокрутки, а колесо мыши и клавиши со стрелками будут плавно перемещать содержимое вверх и вниз без рывков и подёргиваний.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Четвёртый абзац. Проверьте также поведение страницы на мобильном устройстве: там прокрутка должна работать свайпом, а содержимое — не выезжать за пределы экрана и не создавать горизонтального смещения. Это важно для комфортного чтения.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Пятый абзац служит для того, чтобы общая высота страницы стала заметно больше высоты экрана. Обычно достаточно примерно тридцати строк текста, чтобы точно увидеть, что механизм прокрутки включился и работает корректно во всех направлениях.</p></div><div class="core-engine-lib-word-blocks compact"><p class="lead">Шестой, вводный абзац. Крупный текст привлекает внимание к разделу и хорошо заметен при быстрой прокрутке: так удобнее оценивать, насколько плавно движется страница и не пропускает ли она отдельные блоки.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Седьмой абзац. Обратите внимание на отступы между блоками: они не должны схлопываться или, наоборот, становиться слишком большими. Ровные интервалы делают длинный текст аккуратным и удобным для чтения.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Восьмой абзац. Если всё работает как надо, вы легко доберётесь до самого низа страницы и без труда вернётесь обратно наверх. Это и есть основная проверка: длинный текст, свободная прокрутка и отсутствие визуальных дефектов.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Девятый абзац. Здесь можно оставить любую нейтральную фразу: она не несёт смысловой нагрузки и нужна только для объёма. Такой текст удобно использовать как временное наполнение в процессе вёрстки и настройки стилей.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Десятый, последний абзац. Если вы дочитали до этих строк, значит прокрутка действительно работает. Теперь можно заменить этот текст своим содержимым и спокойно продолжать работу над страницей и её оформлением.</p></div></body>', '{"assets":[{"type":"image","src":"/media/default/logo_ec0d8ede.png","unitDim":"px","height":0,"width":0,"name":"logo_ec0d8ede.png"}],"styles":[{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["core-engine-lib-word-blocks"],"style":{"padding-top":"8px","padding-right":"20px","padding-bottom":"8px","padding-left":"20px"}},{"selectors":["core-engine-lib-word-blocks","compact"],"style":{"padding-top":"2px","padding-bottom":"2px"}},{"selectors":["text"],"style":{"text-align":"justify","text-indent":"2em","line-height":"1.6","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["lead"],"style":{"font-size":"1.25em"}}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"attributes":{"id":"ixuw"},"components":[{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Это первый абзац тестового текста. Он нужен для того, чтобы наполнить страницу содержимым и проверить, как работает вертикальная прокрутка. Прокрутка появляется тогда, когда высота содержимого превышает высоту окна браузера, поэтому чем больше текста, тем надёжнее результат проверки."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Второй абзац продолжает наполнение страницы. Здесь можно написать что угодно: описание проекта, заметки, черновик статьи или просто набор нейтральных фраз. Главное — чтобы текста было достаточно много и он занимал несколько экранов по высоте."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Третий абзац добавляет ещё немного строк. Если прокрутка работает правильно, в правой части окна появится полоса прокрутки, а колесо мыши и клавиши со стрелками будут плавно перемещать содержимое вверх и вниз без рывков и подёргиваний."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Четвёртый абзац. Проверьте также поведение страницы на мобильном устройстве: там прокрутка должна работать свайпом, а содержимое — не выезжать за пределы экрана и не создавать горизонтального смещения. Это важно для комфортного чтения."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Пятый абзац служит для того, чтобы общая высота страницы стала заметно больше высоты экрана. Обычно достаточно примерно тридцати строк текста, чтобы точно увидеть, что механизм прокрутки включился и работает корректно во всех направлениях."}]}]},{"classes":["core-engine-lib-word-blocks","compact"],"components":[{"tagName":"p","type":"text","classes":["lead"],"components":[{"type":"textnode","content":"Шестой, вводный абзац. Крупный текст привлекает внимание к разделу и хорошо заметен при быстрой прокрутке: так удобнее оценивать, насколько плавно движется страница и не пропускает ли она отдельные блоки."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Седьмой абзац. Обратите внимание на отступы между блоками: они не должны схлопываться или, наоборот, становиться слишком большими. Ровные интервалы делают длинный текст аккуратным и удобным для чтения."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Восьмой абзац. Если всё работает как надо, вы легко доберётесь до самого низа страницы и без труда вернётесь обратно наверх. Это и есть основная проверка: длинный текст, свободная прокрутка и отсутствие визуальных дефектов."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Девятый абзац. Здесь можно оставить любую нейтральную фразу: она не несёт смысловой нагрузки и нужна только для объёма. Такой текст удобно использовать как временное наполнение в процессе вёрстки и настройки стилей."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Десятый, последний абзац. Если вы дочитали до этих строк, значит прокрутка действительно работает. Теперь можно заменить этот текст своим содержимым и спокойно продолжать работу над страницей и её оформлением."}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"hStkaZPukY5moCkO"}],"type":"main","id":"vxzvMwBEe4CNnJvf"}],"symbols":[]}', 1, 1, '2026-09-20 18:12:01.412035', '2026-09-21 22:45:48.386163', NULL, 0, 1, NULL);
 INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css") VALUES (32, 1, '2026-09-22 15:29:46.229613', 'Статья 1', '', '', '<style>* { box-sizing: border-box; } body {margin: 0;}</style><body id="i0nl"><p></p><h2 class="h2">Заголовок H2</h2><p class="lead">Вводный текст. Расскажите коротко о главном.</p><section class="section gallery"><div class="container"><h2 class="h2 gallery__title">Галерея</h2><div class="grid grid--auto gallery__grid"><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/></div></div></section></body>', '{"assets":[{"type":"image","src":"/media/default/logo_ec0d8ede.png","unitDim":"px","height":0,"width":0,"name":"logo_ec0d8ede.png"}],"styles":[],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"attributes":{"id":"i0nl"},"components":[{"tagName":"p"},{"tagName":"h2","type":"text","classes":["h2"],"components":[{"type":"textnode","content":"Заголовок H2"}]},{"tagName":"p","type":"text","classes":["lead"],"components":[{"type":"textnode","content":"Вводный текст. Расскажите коротко о главном."}]},{"tagName":"section","classes":["section","gallery"],"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","gallery__title"],"components":[{"type":"textnode","content":"Галерея"}]},{"classes":["grid","grid--auto","gallery__grid"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"BrwAVxZBme2r2EgE"}],"id":"N2V6ShWYRDJfCivL"}],"symbols":[]}', 1, 1, '2026-09-22 15:29:46.229650', '2026-09-24 09:49:24.763605', NULL, 0, 5, NULL);
 

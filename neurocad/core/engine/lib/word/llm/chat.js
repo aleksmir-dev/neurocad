@@ -31,6 +31,23 @@
  * Everything specific to "edit effect" or "create effect" lives in the
  * respective session file. This file only routes.
  *
+ * Page CSS from create_page
+ * -------------------------
+ *   The create_page agent returns free-form HTML + CSS. The server
+ *   sends them as two separate frames:
+ *
+ *       { type: 'html_update',     html: '...' }
+ *       { type: 'page_css_update', css:  '...' }
+ *
+ *   handler.js calls the chat's applyPageCss callback for the second
+ *   frame. This file delegates to _applyPageCss(css), which calls
+ *   editor.setStyle(css) — the same channel the Style Manager uses.
+ *
+ *   The split is required by GrapesJS: it cannot parse <style> mixed
+ *   into components and silently drops the whole tree if we inline
+ *   the CSS into the HTML. Keeping the two channels separate is what
+ *   makes `create` work today — create_page reuses it.
+ *
  * Effect edit mode
  * ----------------
  *   The palette emits `word:effect-edit-start`. EditSession._onStart
@@ -221,10 +238,11 @@ export class LLMChat {
             onRunStart: (id) => { this._currentRunId = id; this._running = true; },
             onRunEnd: () => { this._currentRunId = null; this._running = false; },
             applyHtml: (html) => this._applyHtml(html),
+            applyPageCss: (css) => this._applyPageCss(css),
             applyElement: (selector, html) => this._applyElement(selector, html),
-            // NOTE: handler.js now passes a third `opts` argument that
-            // may carry { newId, newLabel } for effect renames. Forward
-            // it to EditSession.handleCss unchanged.
+            // handler.js passes a third `opts` argument that may carry
+            // { newId, newLabel } for effect renames. Forward it to
+            // EditSession.handleCss unchanged.
             applyCss: (effectId, css, opts) =>
                 this._editSession?.handleCss(effectId, css, opts),
             applyEffectDraft: (draft) => this._createSession?.handleDraft(draft),
@@ -582,7 +600,7 @@ export class LLMChat {
     }
 
     // ============================================
-    // APPLY HTML / ELEMENT
+    // APPLY HTML / CSS / ELEMENT
     // ============================================
 
     _applyHtml(html) {
@@ -597,6 +615,36 @@ export class LLMChat {
             this.ui.addMessage({
                 role: 'assistant',
                 content: `⚠️ Ошибка применения HTML: ${e.message}`,
+                created_at: new Date().toISOString(),
+            });
+        }
+    }
+
+    /**
+     * Apply the whole page CSS from a `page_css_update` frame.
+     *
+     * Called by handler.js right after `html_update` when the
+     * create_page agent returns free-form HTML + CSS. The CSS is a
+     * separate string WITHOUT the surrounding <style> tag — we feed
+     * it straight to editor.setStyle(), the same channel the Style
+     * Manager uses on save.
+     *
+     * Doing this via setStyle (and not by inlining <style> into the
+     * HTML) is required: GrapesJS cannot parse <style> mixed into
+     * components and would drop the whole tree if we tried.
+     */
+    _applyPageCss(css) {
+        if (!css || !css.trim()) return;
+        if (!this.editor.editor) return;
+
+        try {
+            console.log('[LLMChat] Applying page CSS:', css.length);
+            this.editor.editor.setStyle(css);
+        } catch (e) {
+            console.error('[LLMChat] Page CSS apply error:', e);
+            this.ui.addMessage({
+                role: 'assistant',
+                content: `⚠️ Ошибка применения CSS: ${e.message}`,
                 created_at: new Date().toISOString(),
             });
         }

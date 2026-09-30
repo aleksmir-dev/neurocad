@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.29] - 2026-09-30
+
+### Added
+- `create_page` agent that generates a full landing page (HTML + CSS) in one pass, bypassing the block catalog and the effects editor; a new `page_css_update` WebSocket frame is applied on the front end via `editor.setStyle()`.
+
+### Changed
+- DeepSeek provider now falls back to `reasoning_content` when `content` is empty and sends `thinking: { type: disabled }`, so reasoning models (`deepseek-flash` / V4.1-Flash) no longer return empty responses on long generations.
+
+### Fixed
+- `create_page` reported “Модель вернула некорректный ответ” when `deepseek-flash` exhausted `max_tokens` during the thinking phase and wrote nothing to `content`; the provider now reads both fields and dumps the raw response to `/tmp/neurocad_llm_dumps/` on anomalies.
+
 ## [0.1.28] - 2026-09-30
 
 ### Added
@@ -103,6 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial public release: FastAPI backend, SQLite storage, BaseCards widgets, GrapesJS Word editor, LLM chat panel, presets, media library, page history.
 
+[0.1.29]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.28...v0.1.29
 [0.1.28]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.27...v0.1.28
 [0.1.27]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.26...v0.1.27
 [0.1.26]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.25...v0.1.26

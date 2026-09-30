@@ -4,10 +4,11 @@
  * createLLMChatHandler — factory for the incoming WS message handler.
  *
  * Returns a function (msg) => void, closed over the UI instance and
- * six callbacks:
+ * seven callbacks:
  *   - onRunStart(runId)                 — a run has started
  *   - onRunEnd()                        — a run has finished
- *   - applyHtml(html)                   — replace the whole canvas (create)
+ *   - applyHtml(html)                   — replace the whole canvas (create / create_page)
+ *   - applyPageCss(css)                 — replace the whole page CSS (create_page)
  *   - applyElement(selector, html)      — replace a single element (fill / effect)
  *   - applyCss(effectId, css, opts)     — replace the CSS of an effect (edit).
  *                                         `opts` may carry `{ newLabel, newMedia }`
@@ -32,6 +33,7 @@ export function createLLMChatHandler({
     onRunStart,
     onRunEnd,
     applyHtml,
+    applyPageCss,
     applyElement,
     applyCss,
     applyEffectDraft,
@@ -90,8 +92,37 @@ export function createLLMChatHandler({
                 );
                 return;
 
+            // --------------------------------------------------------
+            // HTML UPDATE: replace the whole canvas.
+            //   - create       — HTML built from our ready blocks.
+            //   - create_page  — free-form HTML, arrives together with
+            //                    `page_css_update` (see below).
+            // --------------------------------------------------------
             case 'html_update':
                 applyHtml(msg.html || '');
+                return;
+
+            // --------------------------------------------------------
+            // PAGE CSS UPDATE: replace the whole page CSS.
+            //
+            // Sent by create_page right after `html_update`. Carries
+            // the model-generated CSS WITHOUT the surrounding <style>
+            // tag. Applied through editor.setStyle(css) — the same
+            // channel that the Style Manager uses on save.
+            //
+            // This must be a separate frame: GrapesJS cannot parse
+            // <style> mixed into components and would drop the whole
+            // tree if we tried to inline it into `html`.
+            //
+            // Frame shape (from dispatch.py → _run_agent):
+            //   { type: 'page_css_update', css: '...' }
+            // --------------------------------------------------------
+            case 'page_css_update':
+                if (typeof applyPageCss === 'function') {
+                    applyPageCss(msg.css || '');
+                } else {
+                    console.warn('[LLMChat] page_css_update received but no applyPageCss handler');
+                }
                 return;
 
             case 'element_update':

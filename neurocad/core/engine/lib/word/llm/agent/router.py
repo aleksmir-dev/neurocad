@@ -39,6 +39,20 @@ user message), so the router does not have to distinguish between
 the two. It only has to route BOTH to `effect`, NOT to `fill`.
 That is what rule 7 in SYSTEM_PROMPT enforces.
 
+Page generation — two flavours
+------------------------------
+`create`       — build a page from OUR ready blocks (multi-step:
+                 plan → fill → effects → svg). The result looks
+                 consistent but limited to the blocks we ship.
+
+`create_page`  — build a page in ONE LLM request, free-form HTML+CSS.
+                 The model is not constrained to our blocks, so the
+                 result is more varied and "alive". Use this when the
+                 user asks for something creative, or when the user
+                 explicitly says "сгенерируй страницу целиком".
+
+Rule 8 in SYSTEM_PROMPT explains how to choose between the two.
+
 Logging: uses provider.log (app.state.log, passed via the provider).
 """
 
@@ -51,11 +65,12 @@ class CoreEngineLibWordLlmRouter:
 
     #: Available agents with short descriptions for the prompt.
     AGENTS = {
-        "create": "Создать новую страницу с нуля или полностью пересобрать её",
-        "fill":   "Заполнить выделенный элемент текстом, alt'ами, ссылками (НЕ картинками)",
-        "effect": "Добавить визуальные эффекты ИЛИ сгенерировать картинку/SVG для выделенного элемента",
-        "help":   "Вопрос про сам редактор NeuroCad (как работает, что умеет)",
-        "none":   "Запрос не связан с редактором NeuroCad",
+        "create":      "Собрать страницу ИЗ НАШИХ ГОТОВЫХ БЛОКОВ (пошагово: план → заполнение → эффекты → svg). Подходит для типовых лендингов",
+        "create_page": "Сгенерировать страницу ЦЕЛИКОМ одним запросом — свободный HTML+CSS, без ограничений нашими блоками. Подходит для креативных, «живых» страниц",
+        "fill":        "Заполнить выделенный элемент текстом, alt'ами, ссылками (НЕ картинками)",
+        "effect":      "Добавить визуальные эффекты ИЛИ сгенерировать картинку/SVG для выделенного элемента",
+        "help":        "Вопрос про сам редактор NeuroCad (как работает, что умеет)",
+        "none":        "Запрос не связан с редактором NeuroCad",
     }
 
     #: System prompt for the router. Kept small on purpose — it is
@@ -85,9 +100,28 @@ class CoreEngineLibWordLlmRouter:
    картинку, изображение, иллюстрацию, SVG, "заменить плейсхолдер на
    картинку" — верни agent="effect", даже если в запросе есть слово
    "заполни" или "сделай". Это НЕ fill.
+8. Если пользователь просит СГЕНЕРИРОВАТЬ / СОЗДАТЬ / СДЕЛАТЬ новую
+   страницу целиком — есть ДВА варианта:
+     - "create"      — собрать из наших готовых блоков;
+     - "create_page" — сгенерировать одним запросом, свободно.
+   Выбирай "create_page", если пользователь:
+     - просит «сгенерируй страницу», «сделай крутую страницу»,
+       «создай лендинг», «сделай сайт на тему X»;
+     - хочет креативный, живой, нестандартный дизайн;
+     - НЕ упоминает «из блоков», «по блокам», «собери»;
+     - тема нестандартная (блог, портфолио, промо-страница события).
+   Выбирай "create", если пользователь:
+     - говорит «собери страницу из блоков»;
+     - хочет типовой лендинг (услуги, товары, акция);
+     - нужен предсказуемый результат.
 
 ПРИМЕРЫ:
 - "Сделай лендинг для салона" → {{"agent": "create", "target": null}}
+- "Собери страницу из блоков" → {{"agent": "create", "target": null}}
+- "Сгенерируй крутую страницу о Боге" → {{"agent": "create_page", "target": null}}
+- "Сделай блог о путешествиях" → {{"agent": "create_page", "target": null}}
+- "Создай страницу для портфолио фотографа" → {{"agent": "create_page", "target": null}}
+- "Сделай сайт на тему здоровья" → {{"agent": "create_page", "target": null}}
 - "Заполни выделенный блок" → {{"agent": "fill", "target": "sel-abc12345"}}
 - "Заполни блок текстом про компанию" → {{"agent": "fill", "target": "sel-abc12345"}}
 - "Сделай анимацию внутри этого блока" → {{"agent": "effect", "target": "sel-abc12345"}}

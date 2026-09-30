@@ -10,7 +10,7 @@ Main responsibilities:
     - Load pages by date/time or ID.
     - Save page content (HTML + GrapesJS JSON + CSS) and write a
       snapshot of the previous state to page_hist.
-    - List / fetch / roll back snapshots.
+    - List / fetch / roll back / delete snapshots.
     - List and upload media for a nav.
 
 CSS handling:
@@ -19,6 +19,20 @@ CSS handling:
     and frozen into Page.css. The public page loads only that file
     (plus the wrapper public.css) — it never scans the editor
     directory at runtime.
+
+Media handling (smart data-URI extraction):
+    On save, `content` and `content_json` are passed through
+    `editor.io.media.extract_from_html` / `extract_from_json`.
+    Data-URIs larger than the per-URI threshold (50 KB) — or any
+    URIs at all, if the page-wide sum exceeds 1 MB — are written
+    to `media/<nav_id>/<uuid>.<ext>` and replaced with public URLs.
+    Small icons (< 50 KB) stay inline, so pasting a tiny image via
+    the editor is still possible.
+
+Constants:
+    `MEDIA_URL` and `SPECIAL_NAMES` live in `word/constants.py`.
+    They are imported here — and re-exported, so existing callers
+    that did `from ..service import MEDIA_URL` keep working.
 
 Namespace: CoreEngineLibWord*
 """
@@ -32,6 +46,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import UploadFile
 
 from sqlalchemy import select
+from sqlalchemy import delete as sa_delete
 
 from ....models.base import Page
 from ....models.page_hist import PageHist
@@ -46,16 +61,27 @@ from .....utils.css import ensure_css_file
 # used fx/*.css + custom page CSS, at every save.
 from .css_builder import build_full_page_css
 
+# Constants — MEDIA_URL and SPECIAL_NAMES live in a dedicated
+# module so that editor/io/media.py can import MEDIA_URL without
+# a circular import through this module.
+from .constants import MEDIA_URL, SPECIAL_NAMES
+
+# Smart data-URI extraction — moves large inline images from
+# `content` / `content_json` into media/<nav_id>/.
+#
+# `editor` is a SUBPACKAGE of `word` (word/editor/), so the import
+# is `.editor...` — NOT `..editor...`. The latter would resolve to
+# `lib/editor`, which does not exist.
+from .editor.io.media import extract_from_html, extract_from_json
+
 
 # ============================================
-# URLS
+# RE-EXPORT
 # ============================================
-
-MEDIA_URL = "/media"
-
-# Special filenames — kept as-is (no random suffix).
-# Used for site root files: favicon.ico, robots.txt, sitemap.xml.
-SPECIAL_NAMES = {"favicon.ico", "robots.txt", "sitemap.xml"}
+# MEDIA_URL and SPECIAL_NAMES are imported from `.constants`
+# above. They stay available as `service.MEDIA_URL` and
+# `service.SPECIAL_NAMES` — nothing to do here. Any module that
+# previously imported them from `word.service` keeps working.
 
 
 class CoreEngineLibWordService:
@@ -148,6 +174,10 @@ class CoreEngineLibWordService:
         Save page content and write a snapshot to page_hist.
 
         Flow:
+          0. Smart media extraction — move large data-URIs from
+             `content` and `content_json` into media/<nav_id>/.
+             (see editor.io.media — threshold policy: 50 KB per URI,
+              1 MB per page; small icons stay inline)
           1. Find page.
           2. Rebuild the full page CSS from scratch:
                content.css + used blocks/*.css + used fx/*.css + custom.
@@ -165,6 +195,16 @@ class CoreEngineLibWordService:
 
         Returns updated data or None if page not found.
         """
+
+        # ===== 0. Smart media extraction =====
+        # The caller (word/route.py) already resolved nav_id for the
+        # current user. It is the SAME nav_id that owns the page and
+        # the media folder.
+        if content:
+            content, _map_html = extract_from_html(content, nav_id, force=False)
+        if content_json:
+            content_json, _map_json = extract_from_json(content_json, nav_id, force=False)
+
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == page_id,
@@ -448,6 +488,95 @@ class CoreEngineLibWordService:
             }
 
         return None
+
+    # ========================================
+    # HISTORY — DELETE ONE SNAPSHOT
+    # ========================================
+
+    @staticmethod
+    async def delete_history_item(
+        page_id: int,
+        hist_id: int,
+        nav_id: int,
+    ) -> bool:
+        """
+        Delete ONE snapshot from a page's history.
+
+        The page itself is NOT touched — only the PageHist row.
+
+        Verification:
+          - the page must exist and belong to the current nav;
+          - the snapshot must exist and belong to that page.
+
+        Returns True on success, False otherwise.
+        """
+        async for session in get_db_sqlite():
+            # Verify page belongs to this nav
+            page_stmt = select(Page).where(
+                Page.id == page_id,
+                Page.nav_id == nav_id,
+                Page.is_delete == 0,
+            )
+            page_res = await session.execute(page_stmt)
+            page = page_res.scalar_one_or_none()
+            if not page:
+                return False
+
+            # Find the snapshot
+            hist_stmt = select(PageHist).where(
+                PageHist.id == hist_id,
+                PageHist.page_id == page_id,
+            )
+            hist_res = await session.execute(hist_stmt)
+            snapshot = hist_res.scalar_one_or_none()
+            if not snapshot:
+                return False
+
+            await session.delete(snapshot)
+            await session.commit()
+            return True
+
+        return False
+
+    # ========================================
+    # HISTORY — CLEAR ALL SNAPSHOTS
+    # ========================================
+
+    @staticmethod
+    async def clear_history(
+        page_id: int,
+        nav_id: int,
+    ) -> bool:
+        """
+        Delete ALL snapshots of a page.
+
+        The page itself is NOT touched — only the PageHist rows
+        that reference it.
+
+        Verification:
+          - the page must exist and belong to the current nav.
+
+        Returns True on success, False otherwise.
+        """
+        async for session in get_db_sqlite():
+            # Verify page belongs to this nav
+            page_stmt = select(Page).where(
+                Page.id == page_id,
+                Page.nav_id == nav_id,
+                Page.is_delete == 0,
+            )
+            page_res = await session.execute(page_stmt)
+            page = page_res.scalar_one_or_none()
+            if not page:
+                return False
+
+            await session.execute(
+                sa_delete(PageHist).where(PageHist.page_id == page_id)
+            )
+            await session.commit()
+            return True
+
+        return False
 
     # ========================================
     # LIST ASSETS — media/<nav_id>/

@@ -27,6 +27,13 @@ Balance errors:
     'gen_exhausted'     — pro; gen has run out (generation request).
     'no_balance'        — no Balance row for this user.
 
+Result frames sent to the client (see `_run_agent`):
+    html_update       — replace the whole canvas (create / create_page)
+    page_css_update   — replace the whole page CSS (create_page)
+    element_update    — replace one element (fill / effect)
+    assistant_message — text for the chat
+    done              — end of the run
+
 Namespace: CoreEngineLibWordLlmWS (via Base + mixins)
 """
 
@@ -307,6 +314,13 @@ class DispatchMixin:
           0b. If the router picked "create" — generation guard (gen > 0 on pro).
           5.  Run that agent and send its result to the client.
           6.  Charge tokens + (for create on pro) 1 gen.
+
+        Result frames (see module docstring):
+          - html_update       — replace canvas (create / create_page)
+          - page_css_update   — replace page CSS (create_page)
+          - element_update    — replace one element (fill / effect)
+          - assistant_message — text for chat
+          - done              — end of run
         """
         from ..runs import CoreEngineLibWordLlmRuns
         from ..service import CoreEngineLibWordLlmService
@@ -450,6 +464,7 @@ class DispatchMixin:
             # ---- RESULT ----
             message = result.get("message") or ""
             html = result.get("html")
+            css = result.get("css")              # ← from create_page
             selector = result.get("selector")
             element_html = result.get("element_html")
 
@@ -485,11 +500,21 @@ class DispatchMixin:
                 message=message,
             )
 
+            # ---- html_update — replace canvas ----
             if html and str(html).strip().startswith("<"):
                 await self._safe_send(
                     websocket,
                     {"type": "html_update", "html": html},
                 )
+
+            # ---- page_css_update — replace page CSS (create_page) ----
+            if css and str(css).strip():
+                await self._safe_send(
+                    websocket,
+                    {"type": "page_css_update", "css": css},
+                )
+
+            # ---- element_update — replace one element (fill / effect) ----
             if selector and element_html:
                 await self._safe_send(
                     websocket,
@@ -499,6 +524,7 @@ class DispatchMixin:
                         "html": element_html,
                     },
                 )
+
             if message:
                 await self._safe_send(
                     websocket,

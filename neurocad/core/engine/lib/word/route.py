@@ -9,6 +9,8 @@ Endpoints:
     PUT    /{page_id}                     — save page content
     GET    /{page_id}/history             — list snapshots (metadata)
     GET    /{page_id}/history/{hist_id}   — one full snapshot
+    DELETE /{page_id}/history/{hist_id}   — delete one snapshot
+    DELETE /{page_id}/history             — clear all snapshots
     POST   /{page_id}/rollback/{hist_id}  — roll back to a snapshot
     GET    /assets                        — list media for a nav
     POST   /assets/upload                 — upload media for a nav
@@ -21,8 +23,8 @@ Scoping:
 
 Permissions:
     Read endpoints (bydatetime, item, history, assets) — public or
-    authenticated; write endpoints (save, rollback, upload) — any
-    authenticated user. Guests cannot write.
+    authenticated; write endpoints (save, delete, clear, rollback,
+    upload) — any authenticated user. Guests cannot write.
 
 Sub-routers:
     - llm/*    (presets, chat, history)
@@ -285,6 +287,80 @@ async def get_word_history_item(
     return JSONResponse({
         "success": True,
         "data": item,
+    })
+
+
+# ============================================
+# HISTORY — DELETE ONE SNAPSHOT
+# ============================================
+
+@router.delete("/{page_id}/history/{hist_id}")
+async def delete_word_history_item(
+    page_id: int,
+    hist_id: int,
+    request: Request,
+    nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Delete ONE snapshot from a page's history.
+
+    The page itself is NOT touched — only the PageHist row is removed.
+
+    Any authenticated user.
+    """
+    resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
+
+    ok = await CoreEngineLibWordService.delete_history_item(
+        page_id=page_id,
+        hist_id=hist_id,
+        nav_id=resolved_nav_id,
+    )
+
+    if not ok:
+        raise HTTPException(
+            status_code=404,
+            detail="Page or snapshot not found",
+        )
+
+    return JSONResponse({
+        "success": True,
+        "data": {"deleted": hist_id},
+    })
+
+
+# ============================================
+# HISTORY — CLEAR ALL SNAPSHOTS
+# ============================================
+
+@router.delete("/{page_id}/history")
+async def clear_word_history(
+    page_id: int,
+    request: Request,
+    nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Delete ALL snapshots of a page.
+
+    The page itself is NOT touched — only the PageHist rows
+    that reference it.
+
+    Any authenticated user.
+    """
+    resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
+
+    ok = await CoreEngineLibWordService.clear_history(
+        page_id=page_id,
+        nav_id=resolved_nav_id,
+    )
+
+    if not ok:
+        raise HTTPException(status_code=404, detail="Page not found")
+
+    return JSONResponse({
+        "success": True,
+        "data": {"cleared": True},
     })
 
 

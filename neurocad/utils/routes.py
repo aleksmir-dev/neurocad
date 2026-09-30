@@ -17,18 +17,28 @@ def setup_routes(app: FastAPI) -> None:
     # Public pages — /pages/*
     app.include_router(pages_public_router)
 
-    # Root — redirect to APP_MAIN_PAGE
+    # Root — redirect to the module resolved by Host (via `domain`
+    # in the module's JSON). Fallback to APP_MAIN_PAGE / default.
     @app.get("/")
-    async def root():
+    async def root(request: Request):
         """
-        Root — redirect to APP_MAIN_PAGE.
+        Root — redirect to /core/engine/<module>.
 
-        Default: /core/engine/default (admin).
-        Set APP_MAIN_PAGE in .env to change.
+        The module is resolved from the Host header: any module JSON
+        under `app/` with matching `domain` wins. If no module matches
+        the Host, we fall back to settings.APP_MAIN_PAGE, then to
+        /core/engine/default.
+
+        Set APP_MAIN_PAGE in .env to override the fallback.
         """
+        from neurocad.core.engine.route import _resolve_module_by_host
+
+        host_module = _resolve_module_by_host(request.headers.get("host"))
+
+        if host_module:
+            return RedirectResponse(url=f"/core/engine/{host_module}")
+
         main_url = settings.APP_MAIN_PAGE
         if not main_url or main_url == "/":
             main_url = "/core/engine/default"
         return RedirectResponse(url=main_url)
-    
- 

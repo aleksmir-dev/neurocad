@@ -23,6 +23,30 @@ Scoping:
   it is used as-is; otherwise the backend falls back to the current
   user's first nav (ORDER BY id ASC). Pages are scoped to Nav.id.
 
+Media on import:
+  Imported pages may contain images as data-URIs (in `html` and in
+  the GrapesJS project JSON), external references (in CSS `url(...)`,
+  inline `<svg>`), and Tilda-style lazy-load attributes
+  (`data-original`, `data-content-cover-bg`). At import time:
+
+    - lazy-load attributes are normalized: `data-original` is dropped
+      (src is preserved / promoted), `data-content-cover-bg` becomes
+      an inline `style="background-image: ..."`;
+    - every inline `<svg>...</svg>` is saved as a real .svg file
+      under media/<nav_id>/ and replaced with an <img>.
+
+  The `assets` map is dropped from the response: the editor already
+  has URLs inside the HTML.
+
+  NOTE: data-URI extraction (`extract_from_html`, `extract_from_json`,
+  `extract_from_css`) is intentionally NOT performed here. Doing it
+  before the editor has a chance to parse the HTML breaks GrapesJS:
+  it receives a page with dozens of `/media/...` URLs, many of which
+  are fetched in a context where they resolve to 404, and it silently
+  drops them. Instead we hand the editor the HTML with data-URIs
+  intact and let `save_content` extract them on the first save —
+  that code path has been proven to work with large Tilda pages.
+
 Errors:
   400  — bad input (invalid URL, unsupported file type, empty file)
   401  — not authenticated
@@ -34,7 +58,7 @@ Errors:
 """
 
 import json
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from fastapi import (
     APIRouter,
@@ -61,6 +85,7 @@ from .schema import (
     MAX_IMPORT_BYTES,
 )
 from . import service as io_service
+from . import media
 
 
 router = APIRouter(
@@ -132,6 +157,123 @@ async def _resolve_nav_id(
 
 
 # ============================================
+# IMPORT — SHARED MEDIA PIPELINE
+# ============================================
+
+async def _extract_all_media(
+    result: Dict[str, Any],
+    nav_id: int,
+    base_url: Optional[str],
+    warnings: list,
+) -> None:
+    """
+    Run the media normalization pipeline on `result`.
+
+    IMPORTANT: this function intentionally does NOT call
+    `extract_from_html` / `extract_from_json` / `extract_from_css`.
+    Those are deferred to `save_content` on the first save of the
+    page — see `word/service.py`. Doing the extraction here means
+    GrapesJS receives a page full of `/media/...` URLs before it has
+    had a chance to parse it, and silently drops the images.
+
+    What we DO here:
+
+      1b. lazy-load attributes        → normalized (data-original
+                                        dropped, src preserved)
+      1c. cover backgrounds           → inline style (data-content-cover-bg)
+      4.  inline <svg> in `html`      → media/<nav_id>/
+
+    The data-URIs themselves (in `html`, `project_json`, `css`) stay
+    as-is; the editor renders them directly, and the save pipeline
+    extracts them later.
+
+    Mutates `result` in place and appends human-readable notes to
+    `warnings`.
+    """
+    # ============================================================
+    # NOTE: the following two blocks are DISABLED on purpose.
+    # They extract data-URIs from HTML / JSON *before* the editor
+    # parses the page, which breaks GrapesJS for large Tilda imports.
+    # The extraction now happens in save_content, after the editor
+    # has already seen the raw base64.
+    # ============================================================
+    #
+    # # ---- 1. HTML data-URIs ----
+    # new_html, map_html = media.extract_from_html(
+    #     result.get("html") or "",
+    #     nav_id,
+    #     force=True,
+    # )
+    # result["html"] = new_html
+    #
+    # if map_html.get("extracted"):
+    #     warnings.append(f"Извлечено файлов из HTML: {map_html['extracted']}")
+    # if map_html.get("errors"):
+    #     warnings.append(f"Ошибок при извлечении из HTML: {map_html['errors']}")
+    #
+    # # ---- 2. JSON data-URIs ----
+    # if result.get("project_json"):
+    #     new_json, map_json = media.extract_from_json(
+    #         result["project_json"],
+    #         nav_id,
+    #         force=True,
+    #     )
+    #     result["project_json"] = new_json
+    #
+    #     if map_json.get("extracted"):
+    #         warnings.append(f"Извлечено файлов из JSON: {map_json['extracted']}")
+    #     if map_json.get("errors"):
+    #         warnings.append(f"Ошибок при извлечении из JSON: {map_json['errors']}")
+    #
+    # # ---- 3. CSS url(...) ----
+    # if result.get("css") and base_url:
+    #     new_css, map_css = media.extract_from_css(
+    #         result["css"],
+    #         nav_id,
+    #         base_url=base_url,
+    #         force=True,
+    #     )
+    #     result["css"] = new_css
+    #
+    #     if map_css.get("extracted"):
+    #         warnings.append(f"Извлечено из CSS: {map_css['extracted']}")
+    #     if map_css.get("errors"):
+    #         warnings.append(f"Ошибок при извлечении из CSS: {map_css['errors']}")
+
+    # ---- 1b. Lazy-load attributes (Tilda data-original) ----
+    new_html, map_lazy = media.strip_lazy_attrs(result.get("html") or "")
+    result["html"] = new_html
+
+    if map_lazy.get("fixed_src"):
+        warnings.append(f"Исправлено src из data-original: {map_lazy['fixed_src']}")
+    if map_lazy.get("stripped"):
+        warnings.append(f"Удалено lazy-атрибутов: {map_lazy['stripped']}")
+
+    # ---- 1c. Cover backgrounds (Tilda data-content-cover-bg) ----
+    new_html, map_cover = media.fix_cover_bg(result.get("html") or "")
+    result["html"] = new_html
+
+    if map_cover.get("converted"):
+        warnings.append(f"Конвертировано фонов: {map_cover['converted']}")
+
+    # ---- 4. Inline SVG ----
+    new_html, map_svg = media.extract_inline_svg(
+        result.get("html") or "",
+        nav_id,
+    )
+    result["html"] = new_html
+
+    if map_svg.get("extracted"):
+        warnings.append(f"Извлечено SVG: {map_svg['extracted']}")
+    if map_svg.get("errors"):
+        warnings.append(f"Ошибок при извлечении SVG: {map_svg['errors']}")
+
+    # The inlined base64 assets map is no longer needed: the editor
+    # now sees plain URLs inside `html` / `project_json` / `css`.
+    result.pop("assets", None)
+
+
+# ============================================
 # IMPORT — URL
 # ============================================
 
@@ -154,6 +296,10 @@ async def import_url(
         "data": { "html": "...", "css": "...", "warnings": [...] }
       }
 
+    All inline SVG and Tilda lazy-load attributes are normalized —
+    lazy-load is replaced with plain src/style. Data-URIs stay as-is;
+    the save pipeline extracts them on the first save.
+
     Any authenticated user.
     """
     # Authentication check (dependency raises 401 for guests).
@@ -173,6 +319,13 @@ async def import_url(
             status_code=500,
             detail=f"Import failed: {type(e).__name__}: {e}",
         )
+
+    # Resolve the nav this import belongs to.
+    nav_id = await _resolve_nav_id(request, None, current_user=current_user)
+
+    warnings = list(result.get("warnings") or [])
+    await _extract_all_media(result, nav_id, base_url=data.url, warnings=warnings)
+    result["warnings"] = warnings
 
     return JSONResponse({
         "success": True,
@@ -202,11 +355,15 @@ async def import_file(
         "data": {
           "html": "...",
           "css": "...",
-          "json": "...|null",
-          "assets": {"media/xxx": "data:image/...;base64,..."},
+          "project_json": "...|null",
           "warnings": [...]
         }
       }
+
+    All inline SVG and lazy-load attributes are normalized. Data-URIs
+    stay as-is; the save pipeline extracts them on the first save.
+    CSS url(...) references are NOT fetched — an uploaded archive has
+    no origin URL to resolve relative paths against.
 
     Any authenticated user.
     """
@@ -242,6 +399,13 @@ async def import_file(
             status_code=500,
             detail=f"Import failed: {type(e).__name__}: {e}",
         )
+
+    nav_id = await _resolve_nav_id(request, None, current_user=current_user)
+
+    warnings = list(result.get("warnings") or [])
+    # No base_url — uploaded files have no origin; skip CSS fetching.
+    await _extract_all_media(result, nav_id, base_url=None, warnings=warnings)
+    result["warnings"] = warnings
 
     return JSONResponse({
         "success": True,

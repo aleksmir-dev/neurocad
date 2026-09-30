@@ -1,7 +1,7 @@
 // neurocad/core/engine/lib/word/editor/history.js
 
 /**
- * History — page history modal (list, preview, rollback).
+ * History — page history modal (list, preview, rollback, delete, clear).
  *
  * Public API:
  *   openHistoryModal({ editor, createModal, pageId, qs, onRollback })
@@ -18,6 +18,10 @@
  *      <style> tags inside data.html.
  *   4. On "Откатить" — confirm dialog, then POST /word/{id}/rollback/{hist_id}.
  *      On success — call onRollback(data) and close the modal.
+ *   5. On "Удалить" — confirm dialog, then DELETE /word/{id}/history/{hist_id}.
+ *      Removes ONE snapshot from history. Reloads the list.
+ *   6. On "Очистить" — confirm dialog, then DELETE /word/{id}/history.
+ *      Removes ALL snapshots of the page. Reloads the list (empty).
  *
  * CSS is loaded from ./history.css on module load.
  *
@@ -32,7 +36,7 @@
  *             ├── .history-body
  *             │   ├── .history-list   (left)
  *             │   └── .history-preview (right, iframe)
- *             └── .actions-bar   (cancel + rollback)
+ *             └── .actions-bar   (delete + clear + cancel + rollback)
  */
 
 /* ============================================
@@ -122,6 +126,8 @@ class HistoryModal {
         this.container = null;
         this.listEl = null;
         this.previewEl = null;
+        this.deleteBtn = null;
+        this.clearBtn = null;
         this.rollbackBtn = null;
         this.statusEl = null;
 
@@ -174,6 +180,9 @@ class HistoryModal {
                     </div>
                     <div class="history-status" data-role="status"></div>
                     <div class="actions-bar">
+                        <button class="delete-btn" type="button" disabled>Удалить</button>
+                        <button class="clear-btn" type="button" disabled>Очистить</button>
+                        <div class="actions-bar-spacer"></div>
                         <button class="cancel-btn" type="button">Закрыть</button>
                         <button class="ok-btn" type="button" disabled>Откатить</button>
                     </div>
@@ -190,6 +199,8 @@ class HistoryModal {
         this.previewEl = this.container.querySelector('[data-role="preview"]');
         this.statusEl = this.container.querySelector('[data-role="status"]');
         this.cancelBtn = this.container.querySelector('.cancel-btn');
+        this.deleteBtn = this.container.querySelector('.delete-btn');
+        this.clearBtn = this.container.querySelector('.clear-btn');
         this.rollbackBtn = this.container.querySelector('.ok-btn');
         this.closeBtn = this.container.querySelector('.close-btn');
     }
@@ -202,6 +213,8 @@ class HistoryModal {
         if (this.previewEl) this.previewEl.innerHTML = '<div class="history-preview-empty">Выберите версию слева</div>';
         if (this.statusEl) this.statusEl.textContent = '';
         if (this.rollbackBtn) this.rollbackBtn.disabled = true;
+        if (this.deleteBtn) this.deleteBtn.disabled = true;
+        if (this.clearBtn) this.clearBtn.disabled = true;
     }
 
     _bindEvents() {
@@ -209,6 +222,8 @@ class HistoryModal {
         this.cancelBtn.addEventListener('click', () => this.destroy());
 
         this.rollbackBtn.addEventListener('click', () => this._handleRollback());
+        this.deleteBtn.addEventListener('click', () => this._handleDelete());
+        this.clearBtn.addEventListener('click', () => this._handleClear());
 
         // Click on overlay (outside .window) — close
         this.container.addEventListener('click', (e) => {
@@ -245,6 +260,7 @@ class HistoryModal {
             this.items = json.data || [];
 
             this._renderList();
+            this._updateActionButtons();
 
             // Auto-select first (newest) item
             if (this.items.length > 0) {
@@ -256,6 +272,7 @@ class HistoryModal {
             console.error('[History] list error:', err);
             this._setStatus(`Не удалось загрузить историю: ${err.message}`);
             this.listEl.innerHTML = '<div class="history-list-empty">Ошибка загрузки</div>';
+            this._updateActionButtons();
         }
     }
 
@@ -317,6 +334,20 @@ class HistoryModal {
             .replace(/"/g, '&quot;');
     }
 
+    /**
+     * Update enabled/disabled state of action buttons based on current
+     * list contents and selection.
+     *
+     *   Очистить — enabled only when the list is non-empty.
+     *   Удалить  — enabled only when an item is selected.
+     *   Откатить — enabled only when an item is selected (set elsewhere).
+     */
+    _updateActionButtons() {
+        const hasItems = this.items.length > 0;
+        if (this.clearBtn) this.clearBtn.disabled = !hasItems;
+        if (this.deleteBtn) this.deleteBtn.disabled = !this.selectedId;
+    }
+
     // ----------------------------------------
     // DATA — PREVIEW
     // ----------------------------------------
@@ -329,6 +360,7 @@ class HistoryModal {
         this.selectedId = histId;
         this.previewData = null;
         this.rollbackBtn.disabled = true;
+        this._updateActionButtons();
 
         // Highlight active row
         this.listEl.querySelectorAll('[data-hist-id]').forEach((el) => {
@@ -346,6 +378,7 @@ class HistoryModal {
 
             this._renderPreview(this.previewData);
             this.rollbackBtn.disabled = false;
+            this._updateActionButtons();
         } catch (err) {
             console.error('[History] preview error:', err);
             this.previewEl.innerHTML = `<div class="history-preview-empty">Ошибка: ${this._escape(err.message)}</div>`;
@@ -355,24 +388,6 @@ class HistoryModal {
 
     /**
      * Render preview inside an isolated <iframe srcdoc="...">.
-     *
-     * The iframe document contains:
-     *   - <base href="/"> so relative asset URLs work.
-     *   - content.css  (shared classes: .btn, .card, .grid, ...)
-     *   - block CSS    (elements.css, layout.css, ready.css, aleksmir.ru.css)
-     *   - snapshot CSS — either data.css (new) or <style> extracted
-     *                    from data.html (legacy)
-     *   - the snapshot HTML wrapped in .core-engine-lib-word-blocks
-     *
-     * Result: styles in the preview match the public page and do NOT
-     * collide with the editor UI styles.
-     *
-     * sandbox="allow-same-origin allow-scripts":
-     *   - allow-same-origin — so <link rel="stylesheet"> can load from /static/.
-     *   - allow-scripts     — so inline <script> in snapshots can run
-     *                         (e.g. GrapesJS may have saved some).
-     *                         The history modal is admin-only, so this is
-     *                         safe enough for preview purposes.
      */
     _renderPreview(data) {
         const rawHtml = data.html || '<p style="color:#94a3b8;">Пустой снимок</p>';
@@ -445,7 +460,11 @@ ${snapshotStyle}
         const dateText = item ? this._formatDate(item.created_at) : '';
 
         // Confirm dialog
-        const confirmed = await this._confirmRollback(dateText);
+        const confirmed = await this._confirm(
+            `Откатить страницу к версии от ${dateText}? Текущее состояние будет сохранено в истории.`,
+            'Подтверждение отката',
+            'Откатить',
+        );
         if (!confirmed) return;
 
         this._setStatus('Откат…');
@@ -476,11 +495,113 @@ ${snapshotStyle}
         }
     }
 
+    // ----------------------------------------
+    // DELETE — one snapshot
+    // ----------------------------------------
+
+    async _handleDelete() {
+        if (!this.selectedId) return;
+
+        const item = this.items.find((i) => i.id === this.selectedId);
+        const dateText = item ? this._formatDate(item.created_at) : '';
+
+        const confirmed = await this._confirm(
+            `Удалить выбранный снимок от ${dateText}? Это действие необратимо.`,
+            'Удаление снимка',
+            'Удалить',
+        );
+        if (!confirmed) return;
+
+        this._setStatus('Удаление…');
+        this.deleteBtn.disabled = true;
+
+        try {
+            const url = _withQs(
+                _apiPath(this.pageId, `/history/${this.selectedId}`),
+                this.qs,
+            );
+            const fetchJson = window.coreEngine?.fetchJson;
+            const json = await fetchJson(url, { method: 'DELETE' });
+
+            if (!json || !json.success) {
+                throw new Error((json && json.error) || 'Не удалось удалить');
+            }
+
+            this._setStatus('Снимок удалён');
+
+            // Clear current selection, reload list
+            this.selectedId = null;
+            this.previewData = null;
+            this._clearPreview();
+            await this._loadList();
+        } catch (err) {
+            console.error('[History] delete error:', err);
+            this._setStatus(`Ошибка удаления: ${err.message}`);
+            this.deleteBtn.disabled = false;
+        }
+    }
+
+    // ----------------------------------------
+    // CLEAR — all snapshots
+    // ----------------------------------------
+
+    async _handleClear() {
+        if (this.items.length === 0) return;
+
+        const confirmed = await this._confirm(
+            `Очистить всю историю изменений страницы (${this.items.length} снимков)? Это действие необратимо.`,
+            'Очистка истории',
+            'Очистить',
+        );
+        if (!confirmed) return;
+
+        this._setStatus('Очистка…');
+        this.clearBtn.disabled = true;
+        this.deleteBtn.disabled = true;
+        this.rollbackBtn.disabled = true;
+
+        try {
+            const url = _withQs(_apiPath(this.pageId, '/history'), this.qs);
+            const fetchJson = window.coreEngine?.fetchJson;
+            const json = await fetchJson(url, { method: 'DELETE' });
+
+            if (!json || !json.success) {
+                throw new Error((json && json.error) || 'Не удалось очистить');
+            }
+
+            this._setStatus('История очищена');
+
+            // Reset state and reload (list will be empty)
+            this.selectedId = null;
+            this.previewData = null;
+            this._clearPreview();
+            await this._loadList();
+        } catch (err) {
+            console.error('[History] clear error:', err);
+            this._setStatus(`Ошибка очистки: ${err.message}`);
+            this._updateActionButtons();
+        }
+    }
+
+    _clearPreview() {
+        if (this.previewEl) {
+            this.previewEl.innerHTML = '<div class="history-preview-empty">Выберите версию слева</div>';
+        }
+    }
+
+    // ----------------------------------------
+    // CONFIRM DIALOG
+    // ----------------------------------------
+
     /**
      * Show a confirm dialog via Base Modal Confirm.
      * Returns a Promise<boolean>.
+     *
+     * @param {string} message — text of the dialog
+     * @param {string} title   — dialog title
+     * @param {string} okLabel — label of the OK button
      */
-    _confirmRollback(dateText) {
+    _confirm(message, title = 'Подтверждение', okLabel = 'OK') {
         return new Promise(async (resolve) => {
             if (!this.createModal) {
                 resolve(true);
@@ -489,13 +610,7 @@ ${snapshotStyle}
 
             try {
                 const modal = await this.createModal('confirm');
-
-                modal.open(
-                    `Откатить страницу к версии от ${dateText}? Текущее состояние будет сохранено в истории.`,
-                    'Подтверждение отката',
-                    'Откатить',
-                    'Отмена'
-                );
+                modal.open(message, title, okLabel, 'Отмена');
 
                 let resolved = false;
                 const done = (result) => {

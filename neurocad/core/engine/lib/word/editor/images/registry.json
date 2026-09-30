@@ -552,6 +552,126 @@
       "source": "llm",
       "builtin": false,
       "order": 690
+    },
+    {
+      "id": "img-b95b112b",
+      "alt": "Филиция Клуб",
+      "file": "files/img-b95b112b.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 700
+    },
+    {
+      "id": "img-6cbd33a3",
+      "alt": "Обжарка кофейных зёрен на ростерии",
+      "file": "files/img-6cbd33a3.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 710
+    },
+    {
+      "id": "img-a4f366f9",
+      "alt": "Зёрна арабики крупным планом",
+      "file": "files/img-a4f366f9.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 720
+    },
+    {
+      "id": "img-850e2fb5",
+      "alt": "Чашка свежесваренного эспрессо",
+      "file": "files/img-850e2fb5.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 730
+    },
+    {
+      "id": "img-f4de1188",
+      "alt": "Ростер для обжарки кофе",
+      "file": "files/img-f4de1188.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 740
+    },
+    {
+      "id": "img-4417d54a",
+      "alt": "Упаковка кофе с указанием даты обжарки",
+      "file": "files/img-4417d54a.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 750
+    },
+    {
+      "id": "img-9682f1f8",
+      "alt": "Альтернативный способ заваривания — воронка V60",
+      "file": "files/img-9682f1f8.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 760
+    },
+    {
+      "id": "img-112277bd",
+      "alt": "Кофейная плантация на склоне горы",
+      "file": "files/img-112277bd.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 770
+    },
+    {
+      "id": "img-8e1d3344",
+      "alt": "Юрбюро \"Щит\"",
+      "file": "files/img-8e1d3344.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 780
+    },
+    {
+      "id": "img-b6284b09",
+      "alt": "Свежеобжаренный кофе с доставкой",
+      "file": "files/img-b6284b09.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 790
+    },
+    {
+      "id": "img-9fca7ead",
+      "alt": "Свежеобжаренный кофе с доставкой",
+      "file": "files/img-9fca7ead.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 800
+    },
+    {
+      "id": "img-9321c374",
+      "alt": "Свежеобжаренный кофе с доставкой",
+      "file": "files/img-9321c374.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 810
+    },
+    {
+      "id": "img-c3d8ff89",
+      "alt": "Свежеобжаренный кофе с доставкой",
+      "file": "files/img-c3d8ff89.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 820
+    },
+    {
+      "id": "img-11820662",
+      "alt": "Свежеобжаренный кофе с доставкой",
+      "file": "files/img-11820662.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 830
+    },
+    {
+      "id": "img-74f20ef4",
+      "alt": "Свежеобжаренный кофе с доставкой",
+      "file": "files/img-74f20ef4.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 840
     }
   ]
 }

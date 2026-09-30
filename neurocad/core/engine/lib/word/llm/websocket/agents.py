@@ -28,6 +28,7 @@ Namespace: CoreEngineLibWordLlmWS (via Base + mixins)
 from ..agent.none import CoreEngineLibWordLlmAgentNone
 from ..agent.help import CoreEngineLibWordLlmAgentHelp
 from ..agent.create import CoreEngineLibWordLlmAgentCreate
+from ..agent.create_page import CoreEngineLibWordLlmAgentCreatePage
 from ..agent.fill import CoreEngineLibWordLlmAgentFill
 from ..agent.effect import CoreEngineLibWordLlmAgentEffect
 from ..agent.edit import CoreEngineLibWordLlmAgentEdit
@@ -39,7 +40,8 @@ from ..agent.create_effect import CoreEngineLibWordLlmAgentCreateEffect
 #:
 #:   none          — off-topic requests; no LLM call, no output
 #:   help          — questions about the editor itself
-#:   create        — build a full page from scratch
+#:   create        — build a full page from our blocks (multi-step)
+#:   create_page   — build a full page in ONE LLM request (free-form)
 #:   fill          — fill one selected element with text/links/alts
 #:   effect        — add one ready-made effect class to one element
 #:   edit          — rewrite the CSS of one existing effect
@@ -53,6 +55,7 @@ _AGENTS = {
     "none":          CoreEngineLibWordLlmAgentNone,
     "help":          CoreEngineLibWordLlmAgentHelp,
     "create":        CoreEngineLibWordLlmAgentCreate,
+    "create_page":   CoreEngineLibWordLlmAgentCreatePage,
     "fill":          CoreEngineLibWordLlmAgentFill,
     "effect":        CoreEngineLibWordLlmAgentEffect,
     "edit":          CoreEngineLibWordLlmAgentEdit,

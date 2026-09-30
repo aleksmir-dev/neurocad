@@ -1,7 +1,7 @@
 /* app/core/engine/lib/word/editor/css/history.css */
 
 /**
- * History modal — page history (list + preview + rollback).
+ * History modal — page history (list + preview + rollback, delete, clear).
  *
  * Follows Base Modal conventions:
  *   .core-engine-lib-word-editor-history        (overlay)
@@ -12,7 +12,7 @@
  *             │   ├── .history-list             (left, snapshots)
  *             │   └── .history-preview          (right, iframe)
  *             ├── .history-status               (one-line status)
- *             └── .actions-bar                  (cancel + rollback)
+ *             └── .actions-bar                  (delete + clear + cancel + rollback)
  *
  * Layout:
  *   - Wide window (~960px) — enough for list (~280px) + preview.
@@ -21,6 +21,11 @@
  * Buttons:
  *   .cancel-btn — ghost (Base Modal style)
  *   .ok-btn     — primary blue (Base Modal style); disabled until item selected
+ *   .delete-btn — danger (red outline) — enabled only when an item is selected
+ *   .clear-btn  — danger (red outline) — enabled only when the list is non-empty
+ *
+ * Layout of the actions bar (left → right):
+ *   [ Удалить ] [ Очистить ] <-- spacer --> [ Закрыть ] [ Откатить ]
  */
 
 /* ============================================
@@ -240,11 +245,24 @@
    ACTIONS BAR
    ============================================ */
 
+/*
+ * Layout (left → right):
+ *   [ Удалить ] [ Очистить ] <-- spacer --> [ Закрыть ] [ Откатить ]
+ *
+ * The spacer takes all available space, pushing the destructive
+ * actions to the left edge and the confirm actions to the right.
+ */
 .core-engine-lib-word-editor-history .actions-bar {
     display: flex;
     gap: 0.625rem;
     justify-content: flex-end;
+    align-items: center;
     flex-shrink: 0;
+}
+
+.core-engine-lib-word-editor-history .actions-bar-spacer {
+    flex: 1 1 auto;
+    height: 1px;
 }
 
 /* ============================================
@@ -252,7 +270,9 @@
    ============================================ */
 
 .core-engine-lib-word-editor-history .ok-btn,
-.core-engine-lib-word-editor-history .cancel-btn {
+.core-engine-lib-word-editor-history .cancel-btn,
+.core-engine-lib-word-editor-history .delete-btn,
+.core-engine-lib-word-editor-history .clear-btn {
     height: 2.375rem;
     padding: 0 1.5rem;
     border-radius: 0.625rem;
@@ -270,12 +290,16 @@
 }
 
 .core-engine-lib-word-editor-history .ok-btn:active:not(:disabled),
-.core-engine-lib-word-editor-history .cancel-btn:active {
+.core-engine-lib-word-editor-history .cancel-btn:active,
+.core-engine-lib-word-editor-history .delete-btn:active:not(:disabled),
+.core-engine-lib-word-editor-history .clear-btn:active:not(:disabled) {
     transform: scale(0.97);
 }
 
 .core-engine-lib-word-editor-history .ok-btn:focus-visible,
-.core-engine-lib-word-editor-history .cancel-btn:focus-visible {
+.core-engine-lib-word-editor-history .cancel-btn:focus-visible,
+.core-engine-lib-word-editor-history .delete-btn:focus-visible,
+.core-engine-lib-word-editor-history .clear-btn:focus-visible {
     outline: 0.125rem solid #4a8bc2;
     outline-offset: 0.125rem;
 }
@@ -314,6 +338,33 @@
     background: linear-gradient(180deg, #f5f8fd 0%, #e8edf5 100%);
     color: #2c3e50;
     box-shadow: 0 0.25rem 0.75rem rgba(44, 62, 80, 0.08);
+}
+
+/* --- Delete / Clear (danger outline) --- */
+
+.core-engine-lib-word-editor-history .delete-btn,
+.core-engine-lib-word-editor-history .clear-btn {
+    background: #ffffff;
+    color: #c0392b;
+    border: 1px solid #e0b4ad;
+    box-shadow: none;
+}
+
+.core-engine-lib-word-editor-history .delete-btn:hover:not(:disabled),
+.core-engine-lib-word-editor-history .clear-btn:hover:not(:disabled) {
+    background: #fdecea;
+    border-color: #c0392b;
+    color: #a02f22;
+}
+
+.core-engine-lib-word-editor-history .delete-btn:disabled,
+.core-engine-lib-word-editor-history .clear-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #ffffff;
+    color: #b0a09a;
+    border-color: #e5d6d2;
+    box-shadow: none;
 }
 
 /* ============================================
@@ -372,12 +423,26 @@
         min-height: 14rem;
     }
 
+    /*
+     * On narrow screens the spacer does not help — the actions bar
+     * wraps into two rows: destructive on the first row, confirm on
+     * the second. Keep the gap readable.
+     */
     .core-engine-lib-word-editor-history .actions-bar {
+        flex-wrap: wrap;
         justify-content: stretch;
+        gap: 0.5rem;
+    }
+
+    .core-engine-lib-word-editor-history .actions-bar-spacer {
+        display: none;
     }
 
     .core-engine-lib-word-editor-history .ok-btn,
-    .core-engine-lib-word-editor-history .cancel-btn {
-        flex: 1;
+    .core-engine-lib-word-editor-history .cancel-btn,
+    .core-engine-lib-word-editor-history .delete-btn,
+    .core-engine-lib-word-editor-history .clear-btn {
+        flex: 1 1 calc(50% - 0.25rem);
+        padding: 0 0.75rem;
     }
 }

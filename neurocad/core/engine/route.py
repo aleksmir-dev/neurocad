@@ -15,25 +15,25 @@ router = APIRouter(prefix="/engine", tags=["core/engine"])
 router.include_router(lib_router)
 
 # ============================================
-# КОРЕНЬ МОДУЛЕЙ
+# MODULE ROOT
 # ============================================
 
-# Встроенные модули — внутри пакета neurocad
+# Built-in modules — inside the neurocad package.
 NEUROCAD_DIR = Path(neurocad.__file__).parent
 BUILTIN_MOD_ROOT = NEUROCAD_DIR / "core" / "engine" / "mod"
 
 
 def get_mod_root() -> Path:
     """
-    Определяет корень модулей.
+    Determine the module root directory.
 
-    Приоритет:
-      1. Папка из settings.APP_JSON (если задана и существует).
-         Если APP_JSON — файл, берём его родительскую папку.
-      2. Папка "app/" в cwd (если существует).
-      3. Встроенный neurocad/core/engine/mod/.
+    Priority:
+      1. Path from settings.APP_JSON (if set and exists).
+         If APP_JSON points to a file, its parent directory is used.
+      2. "app/" directory in cwd (if it exists).
+      3. Built-in neurocad/core/engine/mod/.
     """
-    # 1. Из настроек
+    # 1. From settings
     app_json = getattr(settings, "APP_JSON", None)
     if app_json:
         p = Path(app_json)
@@ -42,33 +42,33 @@ def get_mod_root() -> Path:
         if p.is_file() and p.exists():
             return p.parent
 
-    # 2. app/ в cwd
+    # 2. app/ in cwd
     user_root = Path("app")
     if user_root.exists() and user_root.is_dir():
         return user_root
 
-    # 3. Встроенный
+    # 3. Built-in
     return BUILTIN_MOD_ROOT
 
 
-# Определяем корень один раз при импорте
+# Resolved once at import time.
 MOD_ROOT = get_mod_root()
 
-# Режим отладки
+# Debug mode.
 DEBUG = settings.DEBUG
 
 
 # ============================================
-# УТИЛИТЫ
+# UTILITIES
 # ============================================
 
 def _parse_path(module_path: str) -> tuple[list[str], list[str]]:
     """
-    Разбирает URL-путь на path_parts и params_list.
+    Split a URL path into path_parts and params_list.
 
-    Правило: сегмент, состоящий ТОЛЬКО из цифр → параметр.
-             Всё до первого числа → path.
-             Всё после первого числа → параметры.
+    Rule: a segment consisting ONLY of digits → a parameter.
+          Everything before the first digit → path.
+          Everything after the first digit → parameters.
     """
     parts = module_path.split("/")
     path_parts: list[str] = []
@@ -90,23 +90,23 @@ def _parse_path(module_path: str) -> tuple[list[str], list[str]]:
 
 def _find_config(path_parts: list[str]) -> tuple[Path | None, str, str]:
     """
-    Ищет файл конфига для заданного path.
+    Find the config file for the given path.
 
-    Возвращает: (config_file, module_name, page_name).
-    config_file = None, если не найдено.
+    Returns: (config_file, module_name, page_name).
+    config_file = None when nothing is found.
     """
     for length in range(len(path_parts), 0, -1):
         prefix_parts = path_parts[:length]
         prefix = "/".join(prefix_parts)
         last = prefix_parts[-1]
 
-        # 1. Прямой файл: mod/{prefix}.json
+        # 1. Direct file: mod/{prefix}.json
         direct = MOD_ROOT / f"{prefix}.json"
         if direct.exists() and direct.is_file():
             module_name = "/".join(prefix_parts[:-1]) if length > 1 else prefix_parts[0]
             return direct, module_name, last
 
-        # 2. Вложенный одноимённый: mod/{prefix}/{last}/{last}.json
+        # 2. Nested same-name: mod/{prefix}/{last}/{last}.json
         nested = MOD_ROOT / prefix / f"{last}.json"
         if nested.exists() and nested.is_file():
             return nested, prefix, last
@@ -116,9 +116,10 @@ def _find_config(path_parts: list[str]) -> tuple[Path | None, str, str]:
 
 def _get_module_name_from_config(config_file: Path) -> str:
     """
-    Определяет имя модуля по файлу конфига.
-    module_name = родительская папка файла относительно mod/.
-    Если файл в корне mod/ — возвращает имя файла без расширения.
+    Determine the module name from a config file.
+
+    module_name = the config file's parent directory relative to mod/.
+    If the file is directly in mod/ — its stem (filename without extension).
     """
     parent = config_file.parent
     if parent == MOD_ROOT:
@@ -126,10 +127,139 @@ def _get_module_name_from_config(config_file: Path) -> str:
     return str(parent.relative_to(MOD_ROOT)).replace("\\", "/")
 
 
+# ============================================
+# HOST → MODULE (via `domain` in module JSON)
+# ============================================
+
+#: Cache: {domain_lowercase: module_name}.
+#: Refreshed automatically when the app/ tree mtime changes.
+_host_module_cache: dict[str, str] = {}
+_host_cache_mtime: float = 0.0
+
+
+def _app_tree_mtime(root: Path) -> float:
+    """
+    Latest mtime across all *.json files under root (recursive).
+
+    Used as a cheap "did anything change?" signal for the host→module
+    cache. Missing files / permission errors are ignored.
+    """
+    latest = 0.0
+    try:
+        for f in root.rglob("*.json"):
+            try:
+                m = f.stat().st_mtime
+                if m > latest:
+                    latest = m
+            except OSError:
+                continue
+    except Exception:
+        pass
+    return latest
+
+
+def _scan_host_modules(root: Path) -> dict[str, str]:
+    """
+    Scan root/**/*.json and return {domain_lowercase: module_name}.
+
+    A file is considered a module config when:
+      - component == "module"
+      - it has a non-empty string (or list of strings) `domain`
+
+    Module name = the config file's stem (matches route.py convention).
+
+    If several files declare the same domain, the first one found wins
+    (rglob order is stable — alphabetical by directory).
+    """
+    result: dict[str, str] = {}
+    if not root.exists() or not root.is_dir():
+        return result
+
+    for cfg_file in root.rglob("*.json"):
+        try:
+            data = json.loads(cfg_file.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if data.get("component") != "module":
+            continue
+
+        raw_domain = data.get("domain")
+        domains: list[str] = []
+        if isinstance(raw_domain, str) and raw_domain.strip():
+            domains = [raw_domain.strip().lower()]
+        elif isinstance(raw_domain, list):
+            domains = [
+                d.strip().lower()
+                for d in raw_domain
+                if isinstance(d, str) and d.strip()
+            ]
+
+        if not domains:
+            continue
+
+        module_name = cfg_file.stem
+        for dom in domains:
+            if dom not in result:
+                result[dom] = module_name
+
+    return result
+
+
+def _resolve_module_by_host(host: str | None) -> str | None:
+    """
+    Resolve a module name from the Host header via `domain` in module JSON.
+
+    - Strips the port.
+    - Lowercases.
+    - Also tries the `www.` variant (declares "example.com" → matches
+      both "example.com" and "www.example.com", and vice versa).
+    - Returns the module name (folder name) or None.
+
+    Cache invalidates automatically when any JSON under MOD_ROOT
+    changes its mtime.
+    """
+    global _host_module_cache, _host_cache_mtime
+
+    if not host:
+        return None
+
+    host = host.strip().lower()
+    if ":" in host:
+        host = host.split(":", 1)[0]
+    if not host:
+        return None
+
+    # Skip IPs / localhost.
+    if host in ("localhost", "127.0.0.1", "::1"):
+        return None
+    if host.replace(".", "").isdigit():
+        return None
+
+    # Refresh cache if the app/ tree changed.
+    current_mtime = _app_tree_mtime(MOD_ROOT)
+    if current_mtime != _host_cache_mtime or not _host_module_cache:
+        _host_module_cache = _scan_host_modules(MOD_ROOT)
+        _host_cache_mtime = current_mtime
+
+    # Direct hit.
+    if host in _host_module_cache:
+        return _host_module_cache[host]
+
+    # www. variants — try both directions.
+    if host.startswith("www."):
+        alt = host[4:]
+    else:
+        alt = "www." + host
+    if alt in _host_module_cache:
+        return _host_module_cache[alt]
+
+    return None
+
+
 def _resolve_links(obj, base_url: str):
     """
-    Рекурсивно обходит конфиг и заменяет относительные ссылки
-    в поле 'href' на полные пути с префиксом base_url.
+    Recursively walk the config and rewrite relative links in the
+    'href' field to absolute paths prefixed with base_url.
     """
     if isinstance(obj, list):
         return [_resolve_links(item, base_url) for item in obj]
@@ -151,11 +281,12 @@ def _resolve_links(obj, base_url: str):
 
 def _substitute_vars(obj, context: dict):
     """
-    Рекурсивно обходит конфиг и заменяет {{ var }} на значения из context.
-    Поддерживает вложенные ключи: {{ page.title }}.
+    Recursively walk the config and replace {{ var }} with values from
+    context. Supports nested keys: {{ page.title }}.
 
-    ВАЖНО: если ключа нет в context — оставляем {{ var }} как есть,
-    чтобы не удалять маркеры для фронтенда ({{ pages }}, {{ nav }}, {{ word }} и т.д.).
+    IMPORTANT: if a key is not in context — leave {{ var }} as-is,
+    so frontend markers ({{ pages }}, {{ nav }}, {{ word }}) are
+    not removed.
     """
     if isinstance(obj, list):
         return [_substitute_vars(item, context) for item in obj]
@@ -174,8 +305,8 @@ def _substitute_vars(obj, context: dict):
 
 def _resolve_key(key: str, context: dict):
     """
-    Разрешает ключ вида 'page.title' в context.
-    Возвращает None, если ключа нет.
+    Resolve a dotted key like 'page.title' against context.
+    Returns None when the key is missing.
     """
     parts = key.split(".")
     value = context
@@ -188,37 +319,43 @@ def _resolve_key(key: str, context: dict):
 
 
 # ============================================
-# API — отдаёт собранный JSON-конфиг
+# API — returns the assembled JSON config
 # ============================================
 
 @router.get("/api/{module_path:path}")
-async def engine_api(module_path: str):
+async def engine_api(module_path: str, request: Request):
     """
-    Отдаёт собранный JSON-конфиг.
+    Return the assembled JSON config.
 
-    URL без .json: /core/engine/api/app/page/20260914/153910
+    URL without .json: /core/engine/api/app/page/20260914/153910
 
-    Алгоритм:
-      1. Парсим URL: path_parts + params_list (числа).
-      2. Ищем файл конфига через _find_config.
-      3. Обрабатываем default_page, extend.
-      4. Подставляем {{ ... }} из params_list.
-      5. Преобразуем ссылки на dev.
+    Algorithm:
+      1. Parse the URL: path_parts + params_list (digits).
+      2. Resolve Host → module when path_parts is empty.
+      3. Find the config file via _find_config.
+      4. Apply default_page, extend.
+      5. Substitute {{ ... }} from params_list.
+      6. Rewrite links for dev mode.
     """
     path_parts, params_list = _parse_path(module_path)
 
+    # If the API path is empty, resolve the module from the Host header.
+    # This mirrors engine_module's behaviour: /core/engine/api/ with
+    # Host: dev.neurocad.ru → module "dev.neurocad.ru" (if declared).
     if not path_parts:
-        raise HTTPException(status_code=404, detail=f"Путь пустой: {module_path}")
+        host_module = _resolve_module_by_host(request.headers.get("host"))
+        module = host_module or "default"
+        path_parts = [module, module]
 
     config_file, module_name, page_name = _find_config(path_parts)
 
     if not config_file:
-        raise HTTPException(status_code=404, detail=f"Конфиг для {module_path} не найден")
+        raise HTTPException(status_code=404, detail=f"Config for {module_path} not found")
 
     with open(config_file, 'r', encoding='utf-8') as f:
         config = json.load(f)
 
-    # 1. Обрабатываем default_page
+    # 1. Handle default_page
     if config.get('default_page'):
         dp_name = config['default_page']
         dp_path = config_file.parent / f"{dp_name}.json"
@@ -227,7 +364,7 @@ async def engine_api(module_path: str):
                 dp_config = json.load(f)
             config = {**config, **dp_config}
 
-    # 2. Обрабатываем extend
+    # 2. Handle extend
     if config.get('extend'):
         base_name = config['extend']
         base_path = config_file.parent / f"{base_name}.json"
@@ -251,7 +388,7 @@ async def engine_api(module_path: str):
             merged.pop('extend', None)
             config = merged
 
-    # 3. Подстановка {{ ... }}
+    # 3. Substitute {{ ... }}
     context = {
         "module_name": module_name,
         "page_name": page_name,
@@ -266,11 +403,11 @@ async def engine_api(module_path: str):
 
     config = _substitute_vars(config, context)
 
-    # 4. Удаляем служебные поля
+    # 4. Drop service fields
     config.pop('default_page', None)
     config.pop('extend', None)
 
-    # 5. Преобразование ссылок на dev
+    # 5. Rewrite links for dev
     if DEBUG:
         base_url = f"/core/engine/{module_name}"
         config = _resolve_links(config, base_url)
@@ -279,36 +416,42 @@ async def engine_api(module_path: str):
 
 
 # ============================================
-# HTML — отдаёт страницу модуля
+# HTML — returns the module page
 # ============================================
 
 @router.get("/{module_path:path}", response_class=HTMLResponse)
 async def engine_module(request: Request, module_path: str):
     """
-    Отдаёт HTML-страницу для модуля.
+    Return the HTML page for a module.
 
-    Алгоритм:
-      1. Парсим URL: path_parts + params_list (числа).
-      2. Ищем файл конфига по path_parts.
-      3. Если не найден → 404.
-      4. Читаем конфиг (auth_required, auth_redirect).
-      5. Вычисляем nav_id:
-         - если URL вида /core/engine/pages/<nav_id>/... — берём из URL;
-         - иначе — резолвим из сессии (первый nav текущего пользователя);
-         - если ничего не нашли — None.
-      6. Передаём в шаблон module_name, config_path, params_list, nav_id.
+    Algorithm:
+      1. Parse the URL: path_parts + params_list (digits).
+      2. Resolve Host → module when path_parts is empty.
+      3. Find the config file by path_parts.
+      4. If not found → 404.
+      5. Read the config (auth_required, auth_redirect).
+      6. Compute nav_id:
+         - if the URL looks like /core/engine/pages/<nav_id>/...
+           — take it from the URL;
+         - otherwise — resolve from the session (current user's first nav);
+         - if nothing — None.
+      7. Pass module_name, config_path, params_list, nav_id to the template.
     """
     path_parts, params_list = _parse_path(module_path)
 
+    # If the URL path is empty (/core/engine/ hit directly) — resolve
+    # the module from the Host header. Fallback: "default".
     if not path_parts:
-        raise HTTPException(status_code=404, detail=f"Страница {module_path} не найдена")
+        host_module = _resolve_module_by_host(request.headers.get("host"))
+        module = host_module or "default"
+        path_parts = [module, module]
 
     config_file, module_name, page_name = _find_config(path_parts)
 
     if not config_file:
-        raise HTTPException(status_code=404, detail=f"Страница {module_path} не найдена")
+        raise HTTPException(status_code=404, detail=f"Page {module_path} not found")
 
-    # config_path для API = путь файла относительно MOD_ROOT без .json
+    # config_path for the API = path of the file relative to MOD_ROOT, no .json
     config_path = str(config_file.relative_to(MOD_ROOT)).replace(".json", "").replace("\\", "/")
 
     auth_required = False
@@ -381,15 +524,18 @@ async def engine_module(request: Request, module_path: str):
 
 
 # ============================================
-# BLOCK — отдаёт JSON-конфиг блока по $ref
+# BLOCK — returns a block JSON config by $ref
 # ============================================
 
 @router.get("/block/{block_path:path}")
 async def engine_block_config(block_path: str):
-    """Отдаёт JSON-конфиг блока по $ref (если понадобится)"""
+    """
+    Return the JSON config of a block by $ref (used by the frontend
+    to inline sub-configs into the page config).
+    """
     full_path = MOD_ROOT / block_path
     if not full_path.exists() or not full_path.is_file():
-        raise HTTPException(status_code=404, detail=f"Блок {block_path} не найден")
+        raise HTTPException(status_code=404, detail=f"Block {block_path} not found")
 
     with open(full_path, 'r', encoding='utf-8') as f:
         config = json.load(f)
