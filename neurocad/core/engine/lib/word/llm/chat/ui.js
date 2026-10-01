@@ -14,6 +14,30 @@
  *   assistant — assistant message (left-aligned, gray bubble)
  *   error     — error message (left-aligned, red bubble)
  *
+ * Progress bubble
+ * ---------------
+ * The progress bubble is a single assistant-style line whose text is
+ * replaced via setProgressText(text). It is used by BOTH agent modes:
+ *
+ *   - single-shot agents (create, fill, effect):
+ *       "Выбрано блоков: 5 (hero, features, ...)"
+ *       "Заполняю текстом: запрос 2 из 4..."
+ *       "Генерация изображения 1 из 6..."
+ *
+ *   - stepwise create_page (one section per LLM call):
+ *       "Шаг 3: секция «features»"
+ *       "Завершаю страницу..."
+ *
+ * The UI does not parse or reformat the string — whatever the handler
+ * passes in is what the user sees. The handler is responsible for
+ * building the correct message for each mode.
+ *
+ * finalizeProgress() is called by the handler on terminal frames
+ * (`assistant_message`, `done`, `cancelled`, `error`). In stepwise
+ * mode the terminal `page_step` (with `done: true`) is followed by
+ * the usual global `done` frame, so the progress bubble is removed
+ * exactly once at the end of the run — no special-casing needed here.
+ *
  * User-facing strings are in Russian.
  */
 export class LLMChatUI {

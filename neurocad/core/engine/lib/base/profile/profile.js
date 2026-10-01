@@ -4,8 +4,9 @@
  * BaseProfile — profile landing page.
  *
  * Rendered into area-center by Base.showProfile('main').
- * Provides navigation to profile sections (currently: balance) and
- * opens the existing password-change page (auth/password.js).
+ * Provides navigation to profile sections (currently: balance,
+ * domain, password) and opens the existing password-change page
+ * (auth/password.js).
  *
  * Props:
  *   - section        {string}   — 'main'
@@ -87,6 +88,14 @@ export class BaseProfile {
                         <span class="profile-menu-item-arrow">→</span>
                     </button>
 
+                    <button type="button" class="profile-menu-item" data-action="domain">
+                        <span class="profile-menu-item-body">
+                            <span class="profile-menu-item-title">Управление доменами</span>
+                            <span class="profile-menu-item-desc">Поддомен и свой домен 2 уровня</span>
+                        </span>
+                        <span class="profile-menu-item-arrow">→</span>
+                    </button>
+
                     <button type="button" class="profile-menu-item" data-action="password">
                         <span class="profile-menu-item-body">
                             <span class="profile-menu-item-title">Смена пароля</span>
@@ -112,6 +121,15 @@ export class BaseProfile {
             balanceBtn.addEventListener('click', () => {
                 if (typeof this.onNavigate === 'function') {
                     this.onNavigate('balance');
+                }
+            });
+        }
+
+        const domainBtn = root.querySelector('[data-action="domain"]');
+        if (domainBtn) {
+            domainBtn.addEventListener('click', () => {
+                if (typeof this.onNavigate === 'function') {
+                    this.onNavigate('domain');
                 }
             });
         }

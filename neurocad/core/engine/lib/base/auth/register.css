@@ -83,6 +83,31 @@
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
+/* ===== Live login check status line ===== */
+
+.core-engine-lib-base-auth-register .auth-login-status {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    min-height: 18px;
+}
+
+.core-engine-lib-base-auth-register .auth-login-status-checking {
+    color: #94a3b8;
+}
+
+.core-engine-lib-base-auth-register .auth-login-status-ok {
+    color: #16a34a;
+}
+
+.core-engine-lib-base-auth-register .auth-login-status-taken {
+    color: #dc2626;
+}
+
+.core-engine-lib-base-auth-register .auth-login-status-invalid {
+    color: #b45309;
+}
+
 .core-engine-lib-base-auth-register .auth-password-wrapper {
     position: relative;
 }

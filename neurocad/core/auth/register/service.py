@@ -7,6 +7,11 @@ from sqlalchemy import select
 
 from ...models.base import User, Module, Nav
 from ..service import CoreAuthService, serialize_datetime
+from ..validators import (
+    validate_login,
+    normalize_login,
+    slugify_login,
+)
 from ....utils.sqlite import get_db_sqlite
 from ....utils.hash import get_hash_string
 from ....config import settings
@@ -25,7 +30,15 @@ class CoreAuthRegisterService:
         log=None
     ) -> Dict[str, Any]:
         """
-        Регистрация нового пользователя
+        Регистрация нового пользователя.
+
+        Порядок проверок:
+          1. Формат логина (длина >= 8, разрешённые символы).
+          2. Логин уже занят (точное совпадение в users.login).
+          3. Slug уже занят (другой логин даёт тот же поддомен).
+          4. Email уже занят.
+          5. Пароли совпадают, длина пароля >= 8.
+          6. Создание пользователя + auto-create nav.
 
         Returns:
             Dict с ключами:
@@ -36,17 +49,41 @@ class CoreAuthRegisterService:
         if log:
             await log.log_info(target="auth", message=f"register_user called for login: {login}")
 
-        # Проверяем, существует ли пользователь
-        existing = await CoreAuthService.find_user_by_login_or_email(login, log=log)
-        if existing:
+        # ---- 1. Формат логина ----
+        err = validate_login(login)
+        if err:
             if log:
-                await log.log_warning(target="auth", message=f"User {login} already exists")
+                await log.log_warning(target="auth", message=f"Invalid login {login!r}: {err}")
             return {
                 "success": False,
-                "message": "Пользователь с таким логином уже существует"
+                "message": err
             }
 
-        # Проверяем email, если указан
+        normalized_login = normalize_login(login)
+        slug = slugify_login(normalized_login)
+
+        # ---- 2. Логин занят ----
+        if await CoreAuthService.is_login_taken(normalized_login, log=log):
+            if log:
+                await log.log_warning(target="auth", message=f"Login {normalized_login} already exists")
+            return {
+                "success": False,
+                "message": "Этот логин уже занят"
+            }
+
+        # ---- 3. Slug занят (другой логин → тот же поддомен) ----
+        if await CoreAuthService.is_slug_taken(slug, log=log):
+            if log:
+                await log.log_warning(
+                    target="auth",
+                    message=f"Slug {slug!r} for login {normalized_login!r} already used"
+                )
+            return {
+                "success": False,
+                "message": "Этот логин уже занят"
+            }
+
+        # ---- 4. Email занят ----
         if email:
             existing_email = await CoreAuthService.find_user_by_login_or_email(email, log=log)
             if existing_email:
@@ -57,24 +94,24 @@ class CoreAuthRegisterService:
                     "message": "Пользователь с таким email уже существует"
                 }
 
-        # Проверяем пароль
+        # ---- 5. Пароли ----
         if password != password_confirm:
             return {
                 "success": False,
                 "message": "Пароли не совпадают"
             }
 
-        if len(password) < 6:
+        if len(password) < 8:
             return {
                 "success": False,
-                "message": "Пароль должен содержать минимум 6 символов"
+                "message": "Пароль должен содержать минимум 8 символов"
             }
 
-        # Создаём пользователя
+        # ---- 6. Создание пользователя ----
         user = await CoreAuthService.create_user(
-            login=login,
+            login=normalized_login,
             password=password,
-            name=name or login,
+            name=name or normalized_login,
             email=email,
             is_superadmin=False,
             log=log

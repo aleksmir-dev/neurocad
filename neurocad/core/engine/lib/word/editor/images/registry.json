@@ -672,6 +672,62 @@
       "source": "logo",
       "builtin": false,
       "order": 840
+    },
+    {
+      "id": "img-fbe19ae9",
+      "alt": "Экспозиция живописи уральских мастеров в зале музея",
+      "file": "files/img-fbe19ae9.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 850
+    },
+    {
+      "id": "img-27d1c7ab",
+      "alt": "Горнозаводской пейзаж уральского художника",
+      "file": "files/img-27d1c7ab.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 860
+    },
+    {
+      "id": "img-8949526e",
+      "alt": "Портрет работы уральского живописца",
+      "file": "files/img-8949526e.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 870
+    },
+    {
+      "id": "img-668ada9d",
+      "alt": "Бытовая сцена из жизни горнозаводского Урала",
+      "file": "files/img-668ada9d.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 880
+    },
+    {
+      "id": "img-b0283ddc",
+      "alt": "Индустриальный пейзаж с заводскими постройками",
+      "file": "files/img-b0283ddc.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 890
+    },
+    {
+      "id": "img-62a7f21b",
+      "alt": "Архивная фотография из фондов музея",
+      "file": "files/img-62a7f21b.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 900
+    },
+    {
+      "id": "img-15dce12e",
+      "alt": "Современная живопись уральских авторов",
+      "file": "files/img-15dce12e.svg",
+      "source": "llm",
+      "builtin": false,
+      "order": 910
     }
   ]
 }

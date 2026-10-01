@@ -5,6 +5,15 @@ from fastapi.responses import RedirectResponse
 
 from neurocad.core.route import router as core_router
 from neurocad.core.engine.lib.pages.public.route import router as pages_public_router
+
+# Internal routes — called by Caddy, not by end users.
+# Lives at /internal/* — outside the /core/engine/... tree
+# on purpose: Caddy's On-Demand TLS `ask` URL must be short
+# and stable, not coupled to the profile module's prefix.
+from neurocad.core.engine.lib.base.profile.domain.internal_route import (
+    router as internal_tls_router,
+)
+
 from neurocad.config import settings
 
 
@@ -16,6 +25,10 @@ def setup_routes(app: FastAPI) -> None:
 
     # Public pages — /pages/*
     app.include_router(pages_public_router)
+
+    # Internal TLS verification — /internal/tls/verify
+    # Called by Caddy before issuing an On-Demand TLS certificate.
+    app.include_router(internal_tls_router)
 
     # Root — redirect to the module resolved by Host (via `domain`
     # in the module's JSON). Fallback to APP_MAIN_PAGE / default.

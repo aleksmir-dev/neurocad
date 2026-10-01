@@ -31,22 +31,41 @@
  * Everything specific to "edit effect" or "create effect" lives in the
  * respective session file. This file only routes.
  *
- * Page CSS from create_page
- * -------------------------
- *   The create_page agent returns free-form HTML + CSS. The server
- *   sends them as two separate frames:
+ * Page generation from create_page
+ * --------------------------------
+ *   The create_page agent builds a page either in ONE shot or
+ *   STEPWISE (one section per LLM call). Both modes deliver HTML and
+ *   CSS as two separate channels:
  *
+ *   Single-shot mode:
  *       { type: 'html_update',     html: '...' }
  *       { type: 'page_css_update', css:  '...' }
  *
- *   handler.js calls the chat's applyPageCss callback for the second
- *   frame. This file delegates to _applyPageCss(css), which calls
- *   editor.setStyle(css) — the same channel the Style Manager uses.
+ *   Stepwise mode:
+ *       { type: 'page_step', step: N, section_name: 'hero',
+ *         html: '<section...>', css: '.hero {...}', done: false }
  *
- *   The split is required by GrapesJS: it cannot parse <style> mixed
- *   into components and silently drops the whole tree if we inline
- *   the CSS into the HTML. Keeping the two channels separate is what
- *   makes `create` work today — create_page reuses it.
+ *   In both cases handler.js forwards the CSS through the chat's
+ *   applyPageCss callback, which calls _applyPageCss(css) below.
+ *   _applyPageCss feeds the string to editor.setStyle() — the same
+ *   channel the Style Manager uses on save.
+ *
+ *   In stepwise mode the handler accumulates all step fragments and
+ *   calls applyHtml / applyPageCss with the WHOLE accumulated page
+ *   after every step. That means _applyPageCss is called 5–10 times
+ *   per run with monotonically growing CSS. To avoid useless
+ *   re-renders when a step happened to return empty CSS, both
+ *   _applyHtml and _applyPageCss skip their work if the incoming
+ *   string is identical to the last one they applied for the
+ *   current run.
+ *
+ *   The _lastAppliedHtml / _lastAppliedCss caches are reset in
+ *   _onSend() at the start of every new user request, so a fresh
+ *   run always sees the first step as a change.
+ *
+ *   The split between HTML and CSS is required by GrapesJS: it
+ *   cannot parse <style> mixed into components and silently drops
+ *   the whole tree if we inline the CSS into the HTML.
  *
  * Effect edit mode
  * ----------------
@@ -126,6 +145,21 @@ export class LLMChat {
         this._running = false;
         this._currentRunId = null;
         this._pendingStart = null;
+
+        // Stepwise create_page — dedup cache.
+        //
+        // In stepwise mode handler.js accumulates HTML/CSS fragments
+        // and calls _applyHtml / _applyPageCss with the whole page
+        // after every step. The CSS usually grows monotonically; the
+        // HTML as well. But a step may legitimately return empty
+        // html/css (e.g. the final "done":true frame). We do not
+        // want to rebuild the canvas for an unchanged string —
+        // setComponents / setStyle are not free.
+        //
+        // Both caches are reset in _onSend() at the start of every
+        // new user request.
+        this._lastAppliedHtml = '';
+        this._lastAppliedCss = '';
 
         // Data
         this.messages = [];
@@ -522,6 +556,14 @@ export class LLMChat {
 
         console.log('[LLMChat] _onSend() text:', text);
 
+        // ---- reset stepwise dedup caches ----
+        // A brand-new run must not skip its first applyHtml /
+        // applyPageCss because the previous run happened to finish
+        // with the exact same string. Cheap assignment, no
+        // side-effects on the canvas.
+        this._lastAppliedHtml = '';
+        this._lastAppliedCss = '';
+
         this.ui.addMessage({
             role: 'user',
             content: text,
@@ -603,13 +645,34 @@ export class LLMChat {
     // APPLY HTML / CSS / ELEMENT
     // ============================================
 
+    /**
+     * Replace the whole canvas with the given HTML.
+     *
+     * Called by handler.js for two flows:
+     *   - single-shot agents → once, with the full page HTML
+     *     (`html_update` frame);
+     *   - stepwise create_page → after every `page_step`, with the
+     *     accumulated HTML of all sections so far.
+     *
+     * Dedup: if the incoming HTML is byte-for-byte identical to the
+     * one we applied during the current run, skip the rebuild. This
+     * happens when a step returns no HTML (e.g. the terminal
+     * `done:true` frame) but the handler still re-applies the full
+     * accumulated string. The cache is reset in _onSend().
+     */
     _applyHtml(html) {
         if (!html) return;
         if (!this.editor.editor) return;
 
+        if (html === this._lastAppliedHtml) {
+            console.log('[LLMChat] _applyHtml: unchanged, skipping');
+            return;
+        }
+
         try {
             console.log('[LLMChat] Applying HTML to canvas:', html.length);
             this.editor.editor.setComponents(html);
+            this._lastAppliedHtml = html;
         } catch (e) {
             console.error('[LLMChat] Apply error:', e);
             this.ui.addMessage({
@@ -621,25 +684,39 @@ export class LLMChat {
     }
 
     /**
-     * Apply the whole page CSS from a `page_css_update` frame.
+     * Replace the whole page CSS with the given string.
      *
-     * Called by handler.js right after `html_update` when the
-     * create_page agent returns free-form HTML + CSS. The CSS is a
-     * separate string WITHOUT the surrounding <style> tag — we feed
-     * it straight to editor.setStyle(), the same channel the Style
-     * Manager uses on save.
+     * Called by handler.js for two flows:
+     *   - single-shot agents → once, with the full page CSS
+     *     (`page_css_update` frame);
+     *   - stepwise create_page → after every `page_step`, with the
+     *     accumulated CSS of all sections so far.
      *
-     * Doing this via setStyle (and not by inlining <style> into the
-     * HTML) is required: GrapesJS cannot parse <style> mixed into
-     * components and would drop the whole tree if we tried.
+     * The CSS is passed as a plain string WITHOUT the surrounding
+     * <style> tag. We feed it straight to editor.setStyle() — the
+     * same channel the Style Manager uses on save. Doing this via
+     * setStyle (and not by inlining <style> into the HTML) is
+     * required: GrapesJS cannot parse <style> mixed into components
+     * and would drop the whole tree if we tried.
+     *
+     * Dedup: same as _applyHtml — an identical string is skipped.
+     * The stepwise loop tends to grow the CSS monotonically, but a
+     * step without CSS would otherwise trigger an unnecessary
+     * setStyle.
      */
     _applyPageCss(css) {
         if (!css || !css.trim()) return;
         if (!this.editor.editor) return;
 
+        if (css === this._lastAppliedCss) {
+            console.log('[LLMChat] _applyPageCss: unchanged, skipping');
+            return;
+        }
+
         try {
             console.log('[LLMChat] Applying page CSS:', css.length);
             this.editor.editor.setStyle(css);
+            this._lastAppliedCss = css;
         } catch (e) {
             console.error('[LLMChat] Page CSS apply error:', e);
             this.ui.addMessage({
@@ -695,5 +772,7 @@ export class LLMChat {
         this._running = false;
         this._currentRunId = null;
         this._pendingStart = null;
+        this._lastAppliedHtml = '';
+        this._lastAppliedCss = '';
     }
 }

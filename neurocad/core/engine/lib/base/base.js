@@ -813,9 +813,10 @@ export class Base {
      *
      * Available to any authenticated user (no superadmin check).
      *
-     * Two sections, two separate components:
+     * Three sections, three separate components:
      *   - 'main'    → profile/profile.js          (BaseProfile)
      *   - 'balance' → profile/balance/balance.js  (BaseProfileBalance)
+     *   - 'domain'  → profile/domain/domain.js    (BaseProfileDomain)
      *
      * Password change is NOT a profile section — it lives in
      * auth/password.js and is opened directly via auth.showPassword()
@@ -827,7 +828,7 @@ export class Base {
      * is asked via teardownAreas() → confirmClose(). If the user
      * cancels — nothing is rendered and the editor stays open.
      *
-     * @param {string} section — 'main' (default) or 'balance'
+     * @param {string} section — 'main' (default), 'balance' or 'domain'
      */
     async showProfile(section = 'main') {
         console.log('[Base] showProfile()', section);
@@ -860,6 +861,9 @@ export class Base {
             if (section === 'balance') {
                 const mod = await import(`./profile/balance/balance.js?v=${version}`);
                 ComponentClass = mod.BaseProfileBalance;
+            } else if (section === 'domain') {
+                const mod = await import(`./profile/domain/domain.js?v=${version}`);
+                ComponentClass = mod.BaseProfileDomain;
             } else {
                 const mod = await import(`./profile/profile.js?v=${version}`);
                 ComponentClass = mod.BaseProfile;

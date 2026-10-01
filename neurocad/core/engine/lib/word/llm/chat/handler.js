@@ -21,6 +21,35 @@
  *
  * All "what to do with this message" logic lives here, not in chat.js.
  *
+ * Streamed page generation (create_page)
+ * --------------------------------------
+ * The create_page agent runs in a LOOP: one section per LLM call.
+ * Each section arrives as a separate `page_step` frame carrying its
+ * own HTML fragment and CSS. The handler accumulates them into a
+ * local buffer and re-applies the whole accumulated page to the
+ * canvas after every step. This gives the user progressive rendering
+ * instead of one big "wait 3 minutes then snap".
+ *
+ *   Frame shape (from agent/create_page.py):
+ *     {
+ *       type: 'page_step',
+ *       step: 3,
+ *       total_hint: 10,
+ *       section_name: 'features',
+ *       html: '<section ...>...</section>',
+ *       css:  '.features { ... }',
+ *       done: false
+ *     }
+ *
+ * The final step has `done: true` — at that point the accumulation
+ * stops, and the subsequent global `done` frame (sent by the
+ * dispatcher) finalizes the run as usual.
+ *
+ * Non-streamed agents (create, fill, effect, ...) keep using the
+ * classic `html_update` / `page_css_update` / `element_update`
+ * frames — the dispatcher only sends those when the agent did NOT
+ * set `streamed: true`.
+ *
  * Error messages (type: "error") are rendered with role="error" —
  * they get a distinct red bubble style (.core-engine-lib-word-llm-chat-msg-error)
  * instead of the normal assistant bubble.
@@ -38,6 +67,24 @@ export function createLLMChatHandler({
     applyCss,
     applyEffectDraft,
 }) {
+    // ---- streaming state (create_page stepwise) ----
+    // Accumulated HTML and CSS across all `page_step` frames of the
+    // current run. Reset on every `run_started` so that a new request
+    // never inherits the previous page's tail.
+    let streamHtml = '';
+    let streamCss = '';
+    let streamActive = false;
+
+    /**
+     * Reset the streaming buffers. Called on run start and after
+     * every terminal frame (`done` / `cancelled` / `error`).
+     */
+    function resetStream() {
+        streamHtml = '';
+        streamCss = '';
+        streamActive = false;
+    }
+
     return function handle(msg) {
         const t = msg.type;
         console.log('[LLMChat] WS message:', t, msg);
@@ -47,6 +94,10 @@ export function createLLMChatHandler({
                 return;
 
             case 'run_started':
+                // New run — wipe any stale streaming state from the
+                // previous one before the first step arrives.
+                resetStream();
+                streamActive = true;
                 onRunStart(msg.run_id);
                 ui.setSendingState(true);
                 // Do NOT hide typing here — it stays until the first
@@ -93,10 +144,73 @@ export function createLLMChatHandler({
                 return;
 
             // --------------------------------------------------------
+            // PAGE STEP (create_page, stepwise): one section per frame.
+            //
+            // The agent runs in a loop and emits one `page_step` per
+            // generated section. We accumulate the fragments and
+            // re-apply the whole page after each step — so the user
+            // sees the page grow section by section instead of
+            // waiting for one giant response.
+            //
+            // Frame shape (from agent/create_page.py):
+            //   {
+            //     type: 'page_step',
+            //     step: 3,
+            //     total_hint: 10,
+            //     section_name: 'features',
+            //     html: '<section ...>...</section>',
+            //     css:  '.features { ... }',
+            //     done: false
+            //   }
+            //
+            // Final frame: `done: true`. The subsequent global `done`
+            // (sent by the dispatcher) finalizes the run as usual.
+            // --------------------------------------------------------
+            case 'page_step':
+                streamActive = true;
+
+                // Accumulate. Fragments arrive in order; the final
+                // section may come with `done: true` and its own html.
+                if (typeof msg.html === 'string' && msg.html.trim()) {
+                    streamHtml += (streamHtml ? '\n' : '') + msg.html;
+                }
+                if (typeof msg.css === 'string' && msg.css.trim()) {
+                    streamCss += (streamCss ? '\n\n' : '') + msg.css;
+                }
+
+                // Re-apply the whole accumulated page to the canvas.
+                // This is a full replace (setComponents / setStyle),
+                // which is fine for a handful of sections — the editor
+                // rebuilds the tree once per step.
+                if (streamHtml) {
+                    applyHtml(streamHtml);
+                }
+                if (streamCss && typeof applyPageCss === 'function') {
+                    applyPageCss(streamCss);
+                }
+
+                // Progress text.
+                if (msg.error) {
+                    ui.setProgressText(
+                        `Ошибка на шаге ${msg.step}: ${msg.error}`
+                    );
+                } else if (msg.done) {
+                    ui.setProgressText('Завершаю страницу...');
+                } else if (msg.section_name) {
+                    ui.setProgressText(
+                        `Шаг ${msg.step}: секция «${msg.section_name}»`
+                    );
+                } else {
+                    ui.setProgressText(`Шаг ${msg.step}...`);
+                }
+                return;
+
+            // --------------------------------------------------------
             // HTML UPDATE: replace the whole canvas.
             //   - create       — HTML built from our ready blocks.
-            //   - create_page  — free-form HTML, arrives together with
-            //                    `page_css_update` (see below).
+            //   - create_page  — free-form HTML (single-shot mode;
+            //                    for stepwise mode the content
+            //                    arrives via `page_step` instead).
             // --------------------------------------------------------
             case 'html_update':
                 applyHtml(msg.html || '');
@@ -105,10 +219,11 @@ export function createLLMChatHandler({
             // --------------------------------------------------------
             // PAGE CSS UPDATE: replace the whole page CSS.
             //
-            // Sent by create_page right after `html_update`. Carries
-            // the model-generated CSS WITHOUT the surrounding <style>
-            // tag. Applied through editor.setStyle(css) — the same
-            // channel that the Style Manager uses on save.
+            // Sent by create_page in single-shot mode right after
+            // `html_update`. Carries the model-generated CSS WITHOUT
+            // the surrounding <style> tag. Applied through
+            // editor.setStyle(css) — the same channel that the Style
+            // Manager uses on save.
             //
             // This must be a separate frame: GrapesJS cannot parse
             // <style> mixed into components and would drop the whole
@@ -206,6 +321,11 @@ export function createLLMChatHandler({
                 onRunEnd();
                 ui.setSendingState(false);
                 ui.finalizeProgress();
+                // Streaming run is over — wipe the accumulation buffer
+                // so a subsequent request starts clean.
+                if (streamActive) {
+                    resetStream();
+                }
                 return;
 
             case 'cancelled':
@@ -213,6 +333,7 @@ export function createLLMChatHandler({
                 ui.setSendingState(false);
                 ui.setProgressText('Отменено.');
                 ui.finalizeProgress();
+                resetStream();
                 return;
 
             case 'error':
@@ -227,6 +348,7 @@ export function createLLMChatHandler({
                     content: `⚠️ ${msg.message || 'Неизвестная ошибка'}`,
                     created_at: new Date().toISOString(),
                 });
+                resetStream();
                 return;
 
             default:

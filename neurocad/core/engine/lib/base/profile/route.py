@@ -6,8 +6,9 @@ Profile routes.
 Endpoints:
     GET  /core/engine/lib/base/profile/       — current user's profile summary
 
-Also mounts the balance child router:
-    GET  /core/engine/lib/base/profile/balance/me
+Also mounts child routers:
+    /core/engine/lib/base/profile/balance/...
+    /core/engine/lib/base/profile/domain/...
 
 All endpoints require an authenticated user (any logged-in user,
 not only superadmin).
@@ -16,6 +17,9 @@ Included by base/route.py with prefix "/profile".
 Full URLs (with parent prefixes /core/engine/lib/base):
     GET  /core/engine/lib/base/profile/
     GET  /core/engine/lib/base/profile/balance/me
+    GET  /core/engine/lib/base/profile/domain/
+    POST /core/engine/lib/base/profile/domain/add
+    DEL  /core/engine/lib/base/profile/domain/remove
 
 Namespace: CoreEngineLibBaseProfile*
 """
@@ -25,6 +29,7 @@ from fastapi.responses import JSONResponse
 
 from neurocad.core.auth.dependencies import get_current_user
 from .balance.route import router as balance_router
+from .domain.route import router as domain_router
 
 
 router = APIRouter(prefix="/profile", tags=["core/engine/lib/base/profile"])
@@ -81,3 +86,4 @@ async def get_profile(
 # ============================================
 
 router.include_router(balance_router)
+router.include_router(domain_router)

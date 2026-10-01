@@ -7,12 +7,32 @@
  * So both fetchJson calls use skipAuthRedirect: true — do NOT emit
  * auth:unauthorized on 401.
  *
+ * Live login check:
+ *   While the user types a login, the form pings
+ *   GET /core/auth/register/check-login?login=<value> with a 400 ms
+ *   debounce. The response drives a small status line under the
+ *   input:
+ *
+ *     available=true   → green  "Логин свободен"
+ *     reason=invalid   → grey   "<error from server>"
+ *     reason=taken     → red    "Этот логин уже занят"
+ *
+ *   The submit button is disabled while:
+ *     - the request is in flight, OR
+ *     - the last check returned available=false, OR
+ *     - the login field is shorter than the local MIN_LOGIN_LENGTH.
+ *
  * HTTP goes through window.coreEngine.fetchJson
  * (loaded once by CoreEngine.loadApi()).
  *
  * Caption: saves the current header/tab title on open and restores it
  * on destroy.
  */
+
+const MIN_LOGIN_LENGTH = 8;
+const MIN_PASSWORD_LENGTH = 8;
+const LOGIN_DEBOUNCE_MS = 400;
+
 export class BaseAuthRegister {
     constructor(options = {}) {
         console.log('[BaseAuthRegister] Constructor called');
@@ -32,6 +52,11 @@ export class BaseAuthRegister {
 
         // Saved caption state — filled in render(), used in destroy().
         this._savedCaption = null;
+
+        // Live login check state.
+        this._loginCheckTimer = null;
+        this._loginCheckInFlight = false;
+        this._loginAvailable = null;   // null = not checked yet
 
         // Init state
         this._initialized = false;
@@ -86,7 +111,8 @@ export class BaseAuthRegister {
                 <form class="auth-form" data-js="register-form">
                     <div class="auth-group">
                         <label class="auth-label">Логин</label>
-                        <input type="text" class="auth-input" data-js="register-login" placeholder="Придумайте логин" autofocus>
+                        <input type="text" class="auth-input" data-js="register-login" placeholder="Минимум 8 символов" autofocus>
+                        <div class="auth-login-status" data-js="register-login-status" style="display:none;"></div>
                     </div>
                     <div class="auth-group">
                         <label class="auth-label">Имя</label>
@@ -99,7 +125,7 @@ export class BaseAuthRegister {
                     <div class="auth-group">
                         <label class="auth-label">Пароль</label>
                         <div class="auth-password-wrapper">
-                            <input type="password" class="auth-input" data-js="register-password" placeholder="Минимум 6 символов">
+                            <input type="password" class="auth-input" data-js="register-password" placeholder="Минимум 8 символов">
                             <button type="button" class="auth-toggle-password" data-js="toggle-password">👁️</button>
                         </div>
                     </div>
@@ -113,7 +139,7 @@ export class BaseAuthRegister {
                     <div class="auth-group" data-js="captcha-container">
                         <!-- Captcha will be inserted here -->
                     </div>
-                    <button type="submit" class="auth-submit" data-js="register-submit">Зарегистрироваться</button>
+                    <button type="submit" class="auth-submit" data-js="register-submit" disabled>Зарегистрироваться</button>
                 </form>
                 <div class="auth-links">
                     <a href="#" data-js="register-login-link">Уже есть аккаунт? Войти</a>
@@ -164,6 +190,7 @@ export class BaseAuthRegister {
         this.form = root.querySelector('[data-js="register-form"]');
         this.errorEl = root.querySelector('[data-js="register-error"]');
         this.loginInput = root.querySelector('[data-js="register-login"]');
+        this.loginStatusEl = root.querySelector('[data-js="register-login-status"]');
         this.nameInput = root.querySelector('[data-js="register-name"]');
         this.emailInput = root.querySelector('[data-js="register-email"]');
         this.passwordInput = root.querySelector('[data-js="register-password"]');
@@ -210,6 +237,18 @@ export class BaseAuthRegister {
             });
         }
 
+        // ---- Live login check ----
+        if (this.loginInput) {
+            this.loginInput.addEventListener('input', () => {
+                this._onLoginInput();
+            });
+            this.loginInput.addEventListener('blur', () => {
+                // On blur, fire immediately (no need to wait for the debounce).
+                this._runLoginCheck();
+            });
+        }
+
+        // ---- Enter-key navigation between fields ----
         if (this.loginInput) {
             this.loginInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -260,6 +299,130 @@ export class BaseAuthRegister {
         }
     }
 
+    // ============================================
+    // LIVE LOGIN CHECK
+    // ============================================
+
+    _onLoginInput() {
+        const raw = (this.loginInput?.value || '').trim();
+        this._loginAvailable = null;
+
+        // Too short → don't hit the server, show a local hint.
+        if (raw.length < MIN_LOGIN_LENGTH) {
+            this._setLoginStatus(null, null);
+            this._updateSubmitState();
+            return;
+        }
+
+        // Fire after the debounce window.
+        if (this._loginCheckTimer) {
+            clearTimeout(this._loginCheckTimer);
+        }
+        this._loginCheckTimer = setTimeout(() => {
+            this._runLoginCheck();
+        }, LOGIN_DEBOUNCE_MS);
+
+        // Show "checking" while we wait.
+        this._setLoginStatus('checking', 'Проверяю…');
+        this._updateSubmitState();
+    }
+
+    async _runLoginCheck() {
+        if (this._loginCheckTimer) {
+            clearTimeout(this._loginCheckTimer);
+            this._loginCheckTimer = null;
+        }
+
+        const raw = (this.loginInput?.value || '').trim();
+        if (raw.length < MIN_LOGIN_LENGTH) {
+            this._loginAvailable = null;
+            this._setLoginStatus(null, null);
+            this._updateSubmitState();
+            return;
+        }
+
+        this._loginCheckInFlight = true;
+        this._setLoginStatus('checking', 'Проверяю…');
+        this._updateSubmitState();
+
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const url = `/core/auth/register/check-login?login=${encodeURIComponent(raw)}`;
+            const resp = await fetchJson(url, {
+                skipAuthRedirect: true,
+            });
+
+            // The endpoint returns a flat JSON (no success/data wrapper).
+            const available = !!resp.available;
+            const reason = resp.reason || null;
+            const error = resp.error || null;
+
+            // Make sure the input hasn't changed while we were waiting.
+            const currentRaw = (this.loginInput?.value || '').trim();
+            if (currentRaw !== raw) {
+                // Stale response — ignore.
+                return;
+            }
+
+            this._loginAvailable = available;
+
+            if (available) {
+                this._setLoginStatus('ok', 'Логин свободен');
+            } else if (reason === 'invalid') {
+                this._setLoginStatus('invalid', error || 'Некорректный логин');
+            } else if (reason === 'taken') {
+                this._setLoginStatus('taken', error || 'Этот логин уже занят');
+            } else {
+                this._setLoginStatus('invalid', error || 'Логин недоступен');
+            }
+        } catch (err) {
+            console.warn('[BaseAuthRegister] check-login error:', err);
+            // On network error — do not block the user; show a soft warning.
+            this._loginAvailable = null;
+            this._setLoginStatus('invalid', 'Не удалось проверить логин');
+        } finally {
+            this._loginCheckInFlight = false;
+            this._updateSubmitState();
+        }
+    }
+
+    _setLoginStatus(kind, text) {
+        if (!this.loginStatusEl) return;
+
+        if (!kind) {
+            this.loginStatusEl.style.display = 'none';
+            this.loginStatusEl.textContent = '';
+            this.loginStatusEl.className = 'auth-login-status';
+            return;
+        }
+
+        this.loginStatusEl.style.display = 'block';
+        this.loginStatusEl.textContent = text || '';
+        this.loginStatusEl.className = `auth-login-status auth-login-status-${kind}`;
+    }
+
+    _updateSubmitState() {
+        if (!this.submitBtn) return;
+
+        const loginRaw = (this.loginInput?.value || '').trim();
+        const loginOk =
+            loginRaw.length >= MIN_LOGIN_LENGTH &&
+            this._loginAvailable === true;
+
+        const blocked = this.isLoading || this._loginCheckInFlight || !loginOk;
+        this.submitBtn.disabled = blocked;
+
+        if (this.isLoading) {
+            this.submitBtn.textContent = 'Регистрация...';
+        } else {
+            this.submitBtn.textContent = 'Зарегистрироваться';
+        }
+    }
+
+    // ============================================
+    // SUBMIT
+    // ============================================
+
     async _handleSubmit() {
         console.log('[BaseAuthRegister] _handleSubmit()');
         const login = this.loginInput?.value?.trim() || '';
@@ -273,13 +436,23 @@ export class BaseAuthRegister {
             return;
         }
 
+        if (login.length < MIN_LOGIN_LENGTH) {
+            this._showError(`Логин должен содержать минимум ${MIN_LOGIN_LENGTH} символов`);
+            return;
+        }
+
+        if (this._loginAvailable !== true) {
+            this._showError('Дождитесь проверки логина или исправьте ошибку');
+            return;
+        }
+
         if (password !== passwordConfirm) {
             this._showError('Пароли не совпадают');
             return;
         }
 
-        if (password.length < 6) {
-            this._showError('Пароль должен содержать минимум 6 символов');
+        if (password.length < MIN_PASSWORD_LENGTH) {
+            this._showError(`Пароль должен содержать минимум ${MIN_PASSWORD_LENGTH} символов`);
             return;
         }
 
@@ -365,10 +538,7 @@ export class BaseAuthRegister {
 
     _setLoading(loading) {
         this.isLoading = loading;
-        if (this.submitBtn) {
-            this.submitBtn.disabled = loading;
-            this.submitBtn.textContent = loading ? 'Регистрация...' : 'Зарегистрироваться';
-        }
+        this._updateSubmitState();
     }
 
     _closeModal() {
@@ -396,6 +566,14 @@ export class BaseAuthRegister {
 
     destroy() {
         console.log('[BaseAuthRegister] destroy()');
+
+        // Cancel any pending debounced check.
+        if (this._loginCheckTimer) {
+            clearTimeout(this._loginCheckTimer);
+            this._loginCheckTimer = null;
+        }
+        this._loginCheckInFlight = false;
+        this._loginAvailable = null;
 
         // Restore the title that was on screen before we opened.
         if (this.restoreCaption) {

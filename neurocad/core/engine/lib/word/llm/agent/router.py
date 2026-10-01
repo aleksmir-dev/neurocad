@@ -4,52 +4,45 @@
 Router — decides which agent handles the request.
 
 One short LLM call. Input: user message + state (selection, page
-presence). Output: {"agent": "<name>", "target": "<selector | null>"}.
+presence) + recent history. Output: {"agent": ..., "target": ...}.
 
-The router does NOT edit the page. It only picks the next agent.
-If the request is off-topic, it returns "none" so no further LLM
-tokens are spent.
+Key responsibilities
+--------------------
+1. Pick the right agent for a NEW request (create / create_page /
+   fill / effect / help / none).
+
+2. Handle RETRY messages ("попробуй ещё раз", "повтори", "заново",
+   "ещё раз"). The router sees recent history and knows what the
+   user was trying — so it can route the retry to the same agent,
+   instead of falling into `help`.
+
+3. Handle EDIT requests for an existing page. `create_page` has two
+   modes (create / edit); the router only decides "this is a page
+   request", the agent picks its own mode from `current_html`.
 
 Selection format
 ----------------
-The client sends `selection` in one of two shapes:
+Client sends `selection` in one of two shapes:
+  - {"selector": "sel-abc12345", "tag": "section", "classes": [...],
+     "outer_html": "..."}   — preferred
+  - {"block_id": "core-hero"} — legacy
 
-  1. Element marker (preferred):
-       {"selector": "sel-abc12345", "tag": "section",
-        "classes": ["section", "hero"], "outer_html": "..."}
-
-  2. Block id (legacy, may still arrive from older clients):
-       {"block_id": "core-hero"}
-
-The router trusts `selector` first. `block_id` is treated as a
-fallback and only used if `selector` is absent.
+`selector` wins; `block_id` is the fallback.
 
 Image requests
 --------------
-The `effect` agent handles TWO kinds of requests:
-
-  - visual effects — backgrounds, gradients, animations, shadows,
-    hover states (writes a <style> block);
-  - image generation — "нарисуй картинку", "сгенерируй иллюстрацию",
-    "сделай svg", "замени картинку" (replaces a placeholder <img>
-    with a generated inline <svg>).
-
-The `effect` agent picks the right mode itself (by looking at the
-user message), so the router does not have to distinguish between
-the two. It only has to route BOTH to `effect`, NOT to `fill`.
-That is what rule 7 in SYSTEM_PROMPT enforces.
+`effect` handles both visual effects (backgrounds, gradients,
+animations) AND image generation (draw / generate / replace an SVG).
+The router only routes BOTH to `effect`, never to `fill`. Rule 7 in
+SYSTEM_PROMPT enforces this.
 
 Page generation — two flavours
 ------------------------------
-`create`       — build a page from OUR ready blocks (multi-step:
-                 plan → fill → effects → svg). The result looks
-                 consistent but limited to the blocks we ship.
-
-`create_page`  — build a page in ONE LLM request, free-form HTML+CSS.
-                 The model is not constrained to our blocks, so the
-                 result is more varied and "alive". Use this when the
-                 user asks for something creative, or when the user
-                 explicitly says "сгенерируй страницу целиком".
+`create`       — build a page from OUR ready blocks
+                 (plan → fill → effects → svg).
+`create_page`  — build OR edit a page in one LLM call with free-form
+                 HTML+CSS. Pick it for creative / nonstandard pages,
+                 or when the user asks to change an existing page.
 
 Rule 8 in SYSTEM_PROMPT explains how to choose between the two.
 
@@ -57,24 +50,35 @@ Logging: uses provider.log (app.state.log, passed via the provider).
 """
 
 import json
-from typing import Any, Dict, Optional
+import re
+from typing import Any, Dict, List, Optional
 
 
 class CoreEngineLibWordLlmRouter:
     """Pick the right agent for a user request."""
 
-    #: Available agents with short descriptions for the prompt.
     AGENTS = {
-        "create":      "Собрать страницу ИЗ НАШИХ ГОТОВЫХ БЛОКОВ (пошагово: план → заполнение → эффекты → svg). Подходит для типовых лендингов",
-        "create_page": "Сгенерировать страницу ЦЕЛИКОМ одним запросом — свободный HTML+CSS, без ограничений нашими блоками. Подходит для креативных, «живых» страниц",
-        "fill":        "Заполнить выделенный элемент текстом, alt'ами, ссылками (НЕ картинками)",
-        "effect":      "Добавить визуальные эффекты ИЛИ сгенерировать картинку/SVG для выделенного элемента",
-        "help":        "Вопрос про сам редактор NeuroCad (как работает, что умеет)",
-        "none":        "Запрос не связан с редактором NeuroCad",
+        "create":      "Собрать страницу ИЗ НАШИХ ГОТОВЫХ БЛОКОВ (пошагово: план → заполнение → эффекты → svg). Типовые лендинги",
+        "create_page": "Создать ИЛИ отредактировать страницу свободным HTML+CSS. Креативные страницы и правки",
+        "fill":        "Заполнить ВЫДЕЛЕННЫЙ элемент текстом / alt'ами / ссылками (НЕ картинками)",
+        "effect":      "Визуальный эффект ИЛИ сгенерированная картинка/SVG для ВЫДЕЛЕННОГО элемента",
+        "help":        "Вопрос про сам редактор NeuroCad",
+        "none":        "Запрос не связан с редактором",
     }
 
-    #: System prompt for the router. Kept small on purpose — it is
-    #: called on every user message.
+    # Retry-like phrases. If the user message matches one of these
+    # AND there is recent history, the LLM is asked to re-run the
+    # previous action.
+    _RETRY_RE = re.compile(
+        r"\b(попробуй\s+(ещё|еще)\s+раз|"
+        r"повтори|заново|"
+        r"переделай|"
+        r"ещё\s+раз|еще\s+раз|"
+        r"давай\s+снова|"
+        r"try\s+again|retry|redo)\b",
+        re.IGNORECASE,
+    )
+
     SYSTEM_PROMPT = """Ты — маршрутизатор запросов в редакторе страниц NeuroCad.
 
 Твоя задача — выбрать ОДИН агент, который обработает запрос пользователя.
@@ -85,52 +89,60 @@ class CoreEngineLibWordLlmRouter:
 СОСТОЯНИЕ РЕДАКТОРА:
 {state}
 
+ПОСЛЕДНИЕ СООБЩЕНИЯ В ЧАТЕ (свежие — внизу):
+{history}
+
 ПРАВИЛА:
 1. Ответь ТОЛЬКО валидным JSON, без markdown и пояснений.
 2. Формат: {{"agent": "<имя>", "target": "<selector | null>"}}
-3. Поле "target" заполняй ТОЛЬКО если агент работает с выделенным
-   элементом (fill, effect). Скопируй туда значение `selector` из
-   состояния редактора дословно.
-4. Если запрос не связан с редактором NeuroCad (анекдоты, общие вопросы,
-   погода, политика и т.п.) — верни "none".
-5. Если пользователь просит изменить/дополнить существующую страницу
-   (а не собрать заново) — используй соответствующий агент, не create.
-6. Если непонятно — верни "help".
-7. Если пользователь просит НАРИСОВАТЬ / СГЕНЕРИРОВАТЬ / СДЕЛАТЬ
-   картинку, изображение, иллюстрацию, SVG, "заменить плейсхолдер на
-   картинку" — верни agent="effect", даже если в запросе есть слово
-   "заполни" или "сделай". Это НЕ fill.
-8. Если пользователь просит СГЕНЕРИРОВАТЬ / СОЗДАТЬ / СДЕЛАТЬ новую
-   страницу целиком — есть ДВА варианта:
-     - "create"      — собрать из наших готовых блоков;
-     - "create_page" — сгенерировать одним запросом, свободно.
-   Выбирай "create_page", если пользователь:
-     - просит «сгенерируй страницу», «сделай крутую страницу»,
-       «создай лендинг», «сделай сайт на тему X»;
-     - хочет креативный, живой, нестандартный дизайн;
-     - НЕ упоминает «из блоков», «по блокам», «собери»;
-     - тема нестандартная (блог, портфолио, промо-страница события).
-   Выбирай "create", если пользователь:
-     - говорит «собери страницу из блоков»;
-     - хочет типовой лендинг (услуги, товары, акция);
-     - нужен предсказуемый результат.
+3. Поле "target" заполняй ТОЛЬКО для агентов fill и effect.
+   Скопируй туда значение `selector` из состояния редактора дословно.
+4. Если запрос не связан с редактором (анекдоты, погода, политика) —
+   верни "none".
+5. Если непонятно — верни "help".
+6. RETRY: если пользователь просит повторить («попробуй ещё раз»,
+   «повтори», «заново», «переделай») — посмотри на предыдущий запрос
+   пользователя в истории и верни ТОТ ЖЕ агент, который был бы выбран
+   для него. Не отправляй такой запрос в help.
+7. Картинки: если пользователь просит НАРИСОВАТЬ / СГЕНЕРИРОВАТЬ /
+   СДЕЛАТЬ картинку, SVG, иллюстрацию, «заменить плейсхолдер» —
+   верни agent="effect", даже если в запросе есть слово «заполни».
+8. Страница / лендинг / сайт — выбор между create и create_page:
+   - "create"      — только если пользователь явно просит «из блоков»,
+                     «по блокам», «собери из готовых»;
+   - "create_page" — во всех остальных случаях: «сгенерируй страницу»,
+                     «сделай лендинг», «создай сайт», креативные темы,
+                     нестандартный дизайн. Также если страница уже есть
+                     и пользователь просит её ИЗМЕНИТЬ целиком
+                     («поменяй заголовок», «убери секцию», «добавь блок
+                     с ценами»), но при этом НЕ выделен конкретный
+                     элемент для точечной правки.
+9. Правка выделенного элемента (fill / effect) имеет приоритет над
+   правкой страницы: если есть выделение и пользователь просит
+   изменить именно его — используй fill или effect.
 
 ПРИМЕРЫ:
-- "Сделай лендинг для салона" → {{"agent": "create", "target": null}}
+- "Сделай лендинг для салона" → {{"agent": "create_page", "target": null}}
 - "Собери страницу из блоков" → {{"agent": "create", "target": null}}
 - "Сгенерируй крутую страницу о Боге" → {{"agent": "create_page", "target": null}}
 - "Сделай блог о путешествиях" → {{"agent": "create_page", "target": null}}
-- "Создай страницу для портфолио фотографа" → {{"agent": "create_page", "target": null}}
-- "Сделай сайт на тему здоровья" → {{"agent": "create_page", "target": null}}
+- "Поменяй заголовок в hero" (есть страница, нет выделения) → {{"agent": "create_page", "target": null}}
+- "Убери секцию с отзывами" → {{"agent": "create_page", "target": null}}
+- "Добавь блок с ценами после features" → {{"agent": "create_page", "target": null}}
 - "Заполни выделенный блок" → {{"agent": "fill", "target": "sel-abc12345"}}
-- "Заполни блок текстом про компанию" → {{"agent": "fill", "target": "sel-abc12345"}}
-- "Сделай анимацию внутри этого блока" → {{"agent": "effect", "target": "sel-abc12345"}}
-- "Добавь градиентный фон выделенному" → {{"agent": "effect", "target": "sel-abc12345"}}
+- "Сделай анимацию этому блоку" → {{"agent": "effect", "target": "sel-abc12345"}}
 - "Нарисуй картинку вместо плейсхолдера" → {{"agent": "effect", "target": "sel-abc12345"}}
-- "Сгенерируй иллюстрацию для этой картинки" → {{"agent": "effect", "target": "sel-abc12345"}}
-- "Замени эту картинку на SVG" → {{"agent": "effect", "target": "sel-abc12345"}}
 - "Как сохранить пресет?" → {{"agent": "help", "target": null}}
 - "Расскажи анекдот" → {{"agent": "none", "target": null}}
+
+ПРИМЕР RETRY:
+История:
+  user: Собери лендинг для приюта кошек
+  assistant: ⚠️ Модель вернула некорректный ответ. Попробуйте ещё раз.
+Текущий запрос: "Попробуй ещё раз"
+Ответ: {{"agent": "create_page", "target": null}}
+
+Верни ОДИН JSON-объект. Начни с {{ и закончи }}.
 """
 
     # ============================================
@@ -139,7 +151,6 @@ class CoreEngineLibWordLlmRouter:
 
     @staticmethod
     def _log(provider, level: str, message: str) -> None:
-        """Write through provider.log if available, else silently."""
         log = getattr(provider, "log", None)
         if log is None:
             return
@@ -152,6 +163,17 @@ class CoreEngineLibWordLlmRouter:
             pass
 
     # ============================================
+    # RETRY DETECTION
+    # ============================================
+
+    @classmethod
+    def _is_retry(cls, user_message: str) -> bool:
+        """True if the message is a retry-like phrase."""
+        if not user_message:
+            return False
+        return bool(cls._RETRY_RE.search(user_message))
+
+    # ============================================
     # STATE
     # ============================================
 
@@ -160,14 +182,6 @@ class CoreEngineLibWordLlmRouter:
         selection: Optional[Dict[str, Any]],
         current_html: Optional[str],
     ) -> str:
-        """
-        Render the editor state as a short block of text for the router.
-
-        Priority:
-          1. `selector` — element marker from the new client.
-          2. `block_id` — legacy block id, kept for older clients.
-          3. nothing selected.
-        """
         lines = []
 
         if selection and selection.get("selector"):
@@ -181,12 +195,52 @@ class CoreEngineLibWordLlmRouter:
         else:
             lines.append("- выделен элемент: нет")
 
-        if current_html:
-            lines.append("- страница уже есть: да")
+        if current_html and current_html.strip():
+            lines.append("- страница уже есть: да (её можно редактировать)")
         else:
             lines.append("- страница уже есть: нет (пустая)")
 
         return "\n".join(lines)
+
+    # ============================================
+    # HISTORY
+    # ============================================
+
+    @staticmethod
+    def _build_history_block(
+        history: Optional[List[Dict[str, str]]],
+        max_turns: int = 4,
+    ) -> str:
+        """
+        Render the last few user / assistant turns as a compact block.
+
+        The router only needs enough context to understand a RETRY
+        ("what was the user asking for before?") and to see whether
+        the previous attempt succeeded or failed. Trim each message
+        so the prompt stays small.
+        """
+        if not history:
+            return "(пока ничего)"
+
+        # Keep only the last N messages, in order.
+        tail = history[-max_turns:]
+
+        lines = []
+        for m in tail:
+            role = (m.get("role") or "").lower()
+            content = (m.get("content") or "").strip()
+            if not content:
+                continue
+            # Truncate each message so a long assistant reply does
+            # not blow up the router prompt.
+            if len(content) > 400:
+                content = content[:400] + "…"
+            if role == "user":
+                lines.append(f"  user: {content}")
+            elif role == "assistant":
+                lines.append(f"  assistant: {content}")
+
+        return "\n".join(lines) if lines else "(пока ничего)"
 
     # ============================================
     # ROUTE
@@ -198,6 +252,7 @@ class CoreEngineLibWordLlmRouter:
         user_message: str,
         selection: Optional[Dict[str, Any]] = None,
         current_html: Optional[str] = None,
+        history: Optional[List[Dict[str, str]]] = None,
         run_id: Any = None,
         emit=None,
     ) -> Dict[str, Any]:
@@ -207,11 +262,12 @@ class CoreEngineLibWordLlmRouter:
         Returns {"agent": "<name>", "target": "<selector | null>"}.
         On any failure, falls back to {"agent": "help", "target": None}.
 
-        `emit` is an optional async callback used to send intermediate
-        progress events to the client. If provided, a single `step`
-        event is emitted before the LLM call.
+        `history` is the recent chat history (user / assistant).
+        Used to resolve RETRY messages — the router sees what the
+        user asked last and routes the retry to the same agent.
+
+        `emit` is an optional async callback for progress frames.
         """
-        # ---- emit: step before LLM ----
         if emit:
             await emit({
                 "type": "step",
@@ -223,11 +279,15 @@ class CoreEngineLibWordLlmRouter:
             f"- {name}: {desc}"
             for name, desc in CoreEngineLibWordLlmRouter.AGENTS.items()
         )
-        state_block = CoreEngineLibWordLlmRouter._build_state(selection, current_html)
+        state_block = CoreEngineLibWordLlmRouter._build_state(
+            selection, current_html,
+        )
+        history_block = CoreEngineLibWordLlmRouter._build_history_block(history)
 
         system_prompt = CoreEngineLibWordLlmRouter.SYSTEM_PROMPT.format(
             agents=agents_block,
             state=state_block,
+            history=history_block,
         )
 
         messages = [
@@ -245,7 +305,9 @@ class CoreEngineLibWordLlmRouter:
                 user_content=user_message,
             )
         except Exception as e:
-            CoreEngineLibWordLlmRouter._log(provider, "warning", f"dump request failed: {e}")
+            CoreEngineLibWordLlmRouter._log(
+                provider, "warning", f"dump request failed: {e}",
+            )
 
         try:
             raw = await provider.generate_completion(messages)
@@ -262,12 +324,19 @@ class CoreEngineLibWordLlmRouter:
                 raw_response=raw,
             )
         except Exception as e:
-            CoreEngineLibWordLlmRouter._log(provider, "warning", f"dump response failed: {e}")
+            CoreEngineLibWordLlmRouter._log(
+                provider, "warning", f"dump response failed: {e}",
+            )
 
         # ---- parse ----
         data = CoreEngineLibWordLlmRouter._extract_json(raw)
         if not data:
-            CoreEngineLibWordLlmRouter._log(provider, "warning", f"failed to parse response: {raw!r}")
+            CoreEngineLibWordLlmRouter._log(
+                provider, "warning", f"failed to parse response: {raw!r}",
+            )
+            # Rule-based fallback: if it's a retry, do not fall into help.
+            if CoreEngineLibWordLlmRouter._is_retry(user_message):
+                return {"agent": "create_page", "target": None}
             return {"agent": "help", "target": None}
 
         agent = str(data.get("agent", "help")).strip()
@@ -277,12 +346,33 @@ class CoreEngineLibWordLlmRouter:
 
         # ---- validate agent name ----
         if agent not in CoreEngineLibWordLlmRouter.AGENTS:
-            CoreEngineLibWordLlmRouter._log(provider, "warning", f"unknown agent {agent!r}, falling back to help")
+            CoreEngineLibWordLlmRouter._log(
+                provider, "warning",
+                f"unknown agent {agent!r}, falling back to help",
+            )
             agent = "help"
             target = None
 
+        # ---- sanity: fill/effect REQUIRE a selection ----
+        # If the model routed to fill/effect but there is no
+        # selection, the dispatcher would bounce the request anyway
+        # ("выделите элемент"). Better to catch it here and route to
+        # a page-level agent instead.
+        if agent in ("fill", "effect"):
+            has_selection = bool((selection or {}).get("selector"))
+            if not has_selection:
+                CoreEngineLibWordLlmRouter._log(
+                    provider, "info",
+                    f"agent={agent} but no selection — "
+                    f"falling back to create_page",
+                )
+                agent = "create_page"
+                target = None
+
         result = {"agent": agent, "target": target}
-        CoreEngineLibWordLlmRouter._log(provider, "info", f"{user_message!r} -> {result}")
+        CoreEngineLibWordLlmRouter._log(
+            provider, "info", f"{user_message!r} -> {result}",
+        )
         return result
 
     # ============================================

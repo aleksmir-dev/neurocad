@@ -3,44 +3,29 @@
 """
 DeepSeek provider (OpenAI-compatible API).
 
-Implements the common `LLMProvider` interface. All parameters come
-from the `config` dict passed by the factory (loaded from the DB,
-with .env / hardcoded defaults as fallback). Supports streaming and
-non-streaming modes.
+Supports reasoning models (V4.1-Flash, R1) — thinking mode is
+controlled by the `thinking` config flag:
 
-Logging: `log` is passed explicitly (app.state.log from the endpoint).
-If None — provider works silently (CLI, tests).
+  thinking=False (default) → payload carries "thinking": {"type":"disabled"}.
+                             Fast, no reasoning, content comes back
+                             directly.
 
-Error reporting:
-  On a non-200 response the provider yields a human-readable message
-  built from the response body (extracted via _extract_error_detail),
-  not just the status code. Works in both streaming and non-streaming
-  modes.
+  thinking=True             → payload omits the field entirely, so the
+                             model uses its own default (thinking ON
+                             for V4.1-Flash). Slower (2–5×), but the
+                             model reasons before answering — better
+                             for analysis / QA tasks.
 
-Reasoning-model support (V4.1-Flash / R1):
-  DeepSeek V4.1-Flash may run in "thinking" mode. In that mode the
-  model spends part of `max_tokens` on an internal `reasoning_content`
-  field before producing the final `content`. If `max_tokens` is
-  exhausted during thinking, `content` comes back empty and the whole
-  answer lives in `reasoning_content`.
+When thinking is ON, the response carries:
+  - `reasoning_content` — the internal monologue (ignored on success);
+  - `content`            — the final answer, ready to parse.
 
-  Mitigations implemented here:
-    1. `_extract_message_content()` — falls back to `reasoning_content`
-       when `content` is empty (non-streaming path).
-    2. Streaming path checks both `content` and `reasoning_content`
-       in each delta.
-    3. `thinking: {type: disabled}` is sent in the payload to ask the
-       model to skip the thinking phase entirely (ignored by models
-       that don't support it).
-    4. On suspicious responses (empty content, finish_reason=length),
-       the full raw JSON is dumped to /tmp/neurocad_llm_dumps/ and
-       reasoning head/tail is logged.
+If `max_tokens` is exhausted during the thinking phase, `content`
+comes back empty and the whole answer lives in `reasoning_content`.
+The provider falls back to `reasoning_content` in that case.
 
-Token accounting:
-  `self.tokens_used` is reset at the start of get_response(), then
-  incremented for every input message and every yielded chunk. After
-  the generator is fully consumed, it holds the total cost.
-  The exact tokenizer is cl100k_base (tiktoken).
+Raising `max_output_tokens` (via config) and `timeout` (via config) is
+recommended when thinking is enabled — the model has more work to do.
 """
 
 import json
@@ -67,20 +52,10 @@ DUMP_DIR = "/tmp/neurocad_llm_dumps"
 
 
 # ============================================
-# TOKENIZER (module-level helpers)
+# TOKENIZER
 # ============================================
-#
-# NOTE: these are standalone helpers for use outside the class
-# (CLI, tests). The provider class overrides `count_tokens` and
-# uses the same tokenizer internally.
 
 def get_deepseek_tokenizer():
-    """
-    Tokenizer for DeepSeek.
-
-    tiktoken does not ship DeepSeek-specific encodings. DeepSeek V4/V4.1
-    use cl100k_base-compatible tokenization, so use it directly.
-    """
     try:
         return tiktoken.get_encoding("cl100k_base")
     except Exception:
@@ -88,7 +63,6 @@ def get_deepseek_tokenizer():
 
 
 def count_tokens(text: str) -> int:
-    """Approximate token count using cl100k_base (fallback: len * 0.6)."""
     if not text:
         return 0
     tokenizer = get_deepseek_tokenizer()
@@ -105,19 +79,11 @@ def count_tokens(text: str) -> int:
 # ============================================
 
 class DeepSeekProvider(LLMProvider):
-    """
-    DeepSeek API client (OpenAI-compatible).
-
-    Config keys (all optional, fallback to hardcoded defaults):
-      api_key, base_url, model, max_output_tokens, timeout
-
-    log — app.state.log from the endpoint (Request / WebSocket).
-    """
+    """DeepSeek API client (OpenAI-compatible)."""
 
     name = "deepseek"
 
     def __init__(self, config: dict, log=None):
-        # Initialize LLMProvider (sets self.tokens_used = 0)
         super().__init__()
 
         self.api_key = config.get("api_key") or ""
@@ -125,8 +91,8 @@ class DeepSeekProvider(LLMProvider):
         self.model = config.get("model") or "deepseek-flash"
         self.max_output_tokens = config.get("max_output_tokens") or 12000
         self.timeout = config.get("timeout") or 150
+        self.thinking = bool(config.get("thinking", False))
 
-        # app.state.log — приходит из эндпоинта.
         self.log = log
 
     # ============================================
@@ -134,7 +100,6 @@ class DeepSeekProvider(LLMProvider):
     # ============================================
 
     def count_tokens(self, text: str) -> int:
-        """Exact count via cl100k_base (falls back to len * 0.6)."""
         return count_tokens(text)
 
     # ============================================
@@ -158,12 +123,6 @@ class DeepSeekProvider(LLMProvider):
     # ============================================
 
     def _extract_error_detail(self, raw_text: str) -> str:
-        """
-        Pull a human-readable message out of an API error response.
-
-        DeepSeek uses the OpenAI error format:
-          {"error": {"message": "Authentication Fails", "type": "...", "code": "..."}}
-        """
         if not raw_text:
             return "нет деталей"
 
@@ -197,27 +156,6 @@ class DeepSeekProvider(LLMProvider):
 
     @staticmethod
     def _extract_message_content(message: dict) -> str:
-        """
-        Pull the assistant's answer out of a non-streaming response.
-
-        Standard OpenAI-compatible shape:
-            {"role": "assistant", "content": "..."}
-
-        Reasoning-model shape (DeepSeek V4.1-Flash / R1 in thinking mode):
-            {"role": "assistant",
-             "content": "",
-             "reasoning_content": "Thinking Process: ..."}
-
-        If the model exhausted `max_tokens` while still in the thinking
-        phase, `content` comes back empty and everything is in
-        `reasoning_content`. Reading `content` only would yield "" and
-        the caller would treat the response as malformed.
-
-        Priority:
-          1. `content` — if non-empty, use it.
-          2. `reasoning_content` — fallback when content is empty.
-          3. "" — nothing usable.
-        """
         if not isinstance(message, dict):
             return ""
 
@@ -232,22 +170,10 @@ class DeepSeekProvider(LLMProvider):
         return ""
 
     # ============================================
-    # DUMP HELPERS (post-mortem analysis)
+    # DUMP HELPERS
     # ============================================
 
     def _dump_response(self, result: dict, reason: str = "") -> None:
-        """
-        Dump the full raw response to a file for post-mortem analysis.
-
-        Called when the response looks suspicious:
-          - empty content with non-empty reasoning (truncated thinking),
-          - finish_reason == 'length',
-          - no content at all.
-
-        Files land in /tmp/neurocad_llm_dumps/ with a timestamp and a
-        short reason tag in the filename, so you can `ls -lt` and open
-        the latest one.
-        """
         try:
             os.makedirs(DUMP_DIR, exist_ok=True)
             ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
@@ -261,6 +187,7 @@ class DeepSeekProvider(LLMProvider):
                     {
                         "model": self.model,
                         "max_output_tokens": self.max_output_tokens,
+                        "thinking": self.thinking,
                         "reason": reason,
                         "response": result,
                     },
@@ -274,7 +201,6 @@ class DeepSeekProvider(LLMProvider):
             self._log_warning(f"dump failed: {e}")
 
     def _log_reasoning_head_tail(self, reasoning: str) -> None:
-        """Log the first and last 500 chars of reasoning_content."""
         if not reasoning:
             return
         head = reasoning[:500].replace("\n", " ")
@@ -304,7 +230,6 @@ class DeepSeekProvider(LLMProvider):
         max_tokens: int | None = None,
         stream: bool = False,
     ) -> AsyncGenerator[str, None]:
-        # Reset the per-call token counter.
         self._reset_tokens()
 
         if not self.is_configured:
@@ -316,11 +241,13 @@ class DeepSeekProvider(LLMProvider):
         if max_tokens is None:
             max_tokens = self.max_output_tokens
 
-        # Count input (prompt) tokens.
         for m in messages_list or []:
             self._add_tokens(m.get("content", "") if isinstance(m, dict) else "")
 
-        self._log_info(f"Отправляем {len(messages_list)} сообщений в DeepSeek API")
+        self._log_info(
+            f"Отправляем {len(messages_list)} сообщений в DeepSeek API "
+            f"(thinking={self.thinking}, max_tokens={max_tokens})"
+        )
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -332,13 +259,19 @@ class DeepSeekProvider(LLMProvider):
             "temperature": temperature,
             "max_tokens": max_tokens,
             "stream": stream,
-            # Ask V4.1-Flash / R1 to skip the thinking phase.
-            # For models that don't know this parameter DeepSeek
-            # ignores unknown top-level fields, so this is safe.
-            # If the model does honor it, we get the answer directly
-            # in `content` and avoid burning max_tokens on reasoning.
-            "thinking": {"type": "disabled"},
         }
+
+        # ---- thinking control ----
+        # OFF: explicitly disable the thinking phase (V4.1-Flash / R1
+        #      would otherwise default to ON and burn max_tokens on
+        #      reasoning).
+        # ON:  omit the field entirely so the model uses its own
+        #      default. Sending "enabled" is not guaranteed to be
+        #      accepted — omitting is the safest way to say "your
+        #      default, please".
+        if not self.thinking:
+            payload["thinking"] = {"type": "disabled"}
+
         url = self._build_api_url()
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -363,18 +296,12 @@ class DeepSeekProvider(LLMProvider):
                                     chunk = json.loads(data)
                                     if 'choices' in chunk and len(chunk['choices']) > 0:
                                         delta = chunk['choices'][0].get('delta', {})
-                                        # Prefer `content`; fall back to
-                                        # `reasoning_content` for reasoning
-                                        # models (DeepSeek V4.1-Flash / R1)
-                                        # whose deltas may carry only
-                                        # reasoning while thinking.
                                         content = (
                                             delta.get('content')
                                             or delta.get('reasoning_content')
                                             or ''
                                         )
                                         if content:
-                                            # Count output (completion) tokens.
                                             self._add_tokens(content)
                                             yield content
                                 except json.JSONDecodeError:
@@ -400,7 +327,6 @@ class DeepSeekProvider(LLMProvider):
                         content = self._extract_message_content(message)
 
                         if not content:
-                            # Nothing usable at all — log everything.
                             self._log_warning(
                                 f"empty content. "
                                 f"finish_reason={finish!r}, "
@@ -411,21 +337,17 @@ class DeepSeekProvider(LLMProvider):
                             self._dump_response(result, reason=f"empty_{finish}")
                             self._log_reasoning_head_tail(reasoning)
                         elif not raw_content.strip():
-                            # content was empty, reasoning_content saved us.
                             self._log_info(
                                 f"content empty, used reasoning_content "
                                 f"({len(reasoning)} chars, "
                                 f"finish_reason={finish!r})"
                             )
                             if finish == "length":
-                                # Reasoning was truncated by max_tokens.
-                                # The answer might be incomplete.
                                 self._dump_response(
                                     result, reason="truncated_reasoning"
                                 )
                                 self._log_reasoning_head_tail(reasoning)
 
-                        # Count output tokens.
                         self._add_tokens(content)
                         yield content
 

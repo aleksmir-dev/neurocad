@@ -28,11 +28,33 @@ Balance errors:
     'no_balance'        — no Balance row for this user.
 
 Result frames sent to the client (see `_run_agent`):
-    html_update       — replace the whole canvas (create / create_page)
-    page_css_update   — replace the whole page CSS (create_page)
-    element_update    — replace one element (fill / effect)
-    assistant_message — text for the chat
-    done              — end of the run
+
+  Streamed agents (create_page in stepwise mode)
+  ----------------------------------------------
+  The agent emits `page_step` frames itself via its `emit` callback
+  (which routes to `_safe_send`). Each frame carries one section:
+
+      { "type": "page_step", "step": N, "total_hint": M,
+        "section_name": "hero",
+        "html": "<section ...>", "css": ".hero { ... }",
+        "done": false }
+
+  The front end accumulates `html` / `css` and re-applies them to
+  the canvas after every step. The final frame has `done: true`.
+
+  For these agents the dispatcher does NOT send a bulk
+  `html_update` / `page_css_update` at the end — the content has
+  already been delivered section-by-section. This is signalled by
+  the agent's return value: `result["streamed"] is True`.
+
+  Non-streamed agents (all others)
+  --------------------------------
+      html_update       — replace the whole canvas (create / fill)
+      page_css_update   — replace the whole page CSS (create_page
+                          when it responds in one shot)
+      element_update    — replace one element (fill / effect)
+      assistant_message — text for the chat
+      done              — end of the run
 
 Namespace: CoreEngineLibWordLlmWS (via Base + mixins)
 """
@@ -315,12 +337,13 @@ class DispatchMixin:
           5.  Run that agent and send its result to the client.
           6.  Charge tokens + (for create on pro) 1 gen.
 
-        Result frames (see module docstring):
-          - html_update       — replace canvas (create / create_page)
-          - page_css_update   — replace page CSS (create_page)
-          - element_update    — replace one element (fill / effect)
-          - assistant_message — text for chat
-          - done              — end of run
+        Result frames — see the module docstring for the full list.
+        In short:
+          - streamed agents (create_page stepwise) emit their own
+            `page_step` frames; the dispatcher does not re-send the
+            full html/css afterwards.
+          - non-streamed agents get one `html_update` / `page_css_update`
+            / `element_update` from the dispatcher.
         """
         from ..runs import CoreEngineLibWordLlmRuns
         from ..service import CoreEngineLibWordLlmService
@@ -464,9 +487,10 @@ class DispatchMixin:
             # ---- RESULT ----
             message = result.get("message") or ""
             html = result.get("html")
-            css = result.get("css")              # ← from create_page
+            css = result.get("css")
             selector = result.get("selector")
             element_html = result.get("element_html")
+            is_streamed = bool(result.get("streamed"))
 
             # Sanity: element_html must look like HTML.
             if selector and element_html:
@@ -488,6 +512,11 @@ class DispatchMixin:
                     f"[ws] save assistant msg failed: {e}",
                 )
 
+            # ---- store final HTML for run history ----
+            # In streamed mode the agent returns the aggregated page
+            # HTML (wrapped in `.core-engine-lib-word-blocks`) for
+            # storage only. The client has already accumulated it
+            # from the `page_step` frames.
             if html and str(html).strip().startswith("<"):
                 final_html = html
             elif element_html and str(element_html).strip().startswith("<"):
@@ -501,20 +530,27 @@ class DispatchMixin:
             )
 
             # ---- html_update — replace canvas ----
-            if html and str(html).strip().startswith("<"):
-                await self._safe_send(
-                    websocket,
-                    {"type": "html_update", "html": html},
-                )
+            # Skipped for streamed agents: the agent has already
+            # emitted one `page_step` per section, and the front
+            # end accumulated them onto the canvas. Sending a bulk
+            # html_update here would cause a visible "snap" and is
+            # not needed.
+            if not is_streamed:
+                if html and str(html).strip().startswith("<"):
+                    await self._safe_send(
+                        websocket,
+                        {"type": "html_update", "html": html},
+                    )
 
-            # ---- page_css_update — replace page CSS (create_page) ----
-            if css and str(css).strip():
-                await self._safe_send(
-                    websocket,
-                    {"type": "page_css_update", "css": css},
-                )
+                # ---- page_css_update — replace page CSS ----
+                if css and str(css).strip():
+                    await self._safe_send(
+                        websocket,
+                        {"type": "page_css_update", "css": css},
+                    )
 
             # ---- element_update — replace one element (fill / effect) ----
+            # Never streamed; element updates always go through here.
             if selector and element_html:
                 await self._safe_send(
                     websocket,
