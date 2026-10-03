@@ -1,5 +1,5 @@
 {
-  "_file": "default/balance.json",    
+  "_file": "admin/balance.json",    
   "component": "page",
   "extend": "base",
   "title": "Управление балансом",

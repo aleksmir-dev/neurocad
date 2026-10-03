@@ -1,7 +1,0 @@
-{
-  "_file": "default/default.json",
-  "component": "module",
-  "default_page": "index",
-  "auth_required": true,
-  "domain": "default"
-}

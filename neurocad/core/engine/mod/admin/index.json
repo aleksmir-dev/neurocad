@@ -1,5 +1,5 @@
 {
-  "_file": "default/index.json",    
+  "_file": "admin/index.json",    
   "component": "page",
   "extend": "base",
   "title": "Каталог статей",

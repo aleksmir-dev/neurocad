@@ -19,6 +19,10 @@ Lazy cleanup:
     FREE_TTL_DAYS. Soft-deletes User/Nav/Page/Balance and removes
     media/<nav_id>/ from disk.
 
+    Also triggers CoreEngineLibBaseProfileDomainChecked.cleanup_stale()
+    — a lazy cleanup of custom-domain Caddy certificates whose grace
+    period (DOMAIN_GRACE_DAYS) has expired.
+
 Logging:
     Callers pass `log=app.state.log`. If `log` is None — silent.
 
@@ -84,6 +88,17 @@ class CoreEngineLibBalanceService:
                 cls._log(log, "info", f"cleanup: {affected} stale user(s) removed")
         except Exception as e:
             cls._log(log, "warning", f"cleanup failed: {e}")
+
+        # ---- Lazy cleanup of expired domain certificates ----
+        try:
+            from neurocad.core.engine.lib.base.profile.domain.checked import (
+                CoreEngineLibBaseProfileDomainChecked,
+            )
+            removed = await CoreEngineLibBaseProfileDomainChecked.cleanup_stale(log=log)
+            if removed:
+                cls._log(log, "info", f"cleanup: {removed} domain cert(s) removed")
+        except Exception as e:
+            cls._log(log, "warning", f"domain cleanup failed: {e}")
 
         # ---- Build the list ----
         items = []

@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-10-02
+- Lazy cleanup of Caddy certificates for disconnected custom domains: removed domains get their certificates physically deleted after 30 days, system domains (`neurocad.ru`, `neurocad-dev.ru`, `neurocad-demo.ru` and subdomains) are never touched, and second-level domains are now accepted by the connection form.
+
 ## [1.0.0] - 2026-10-01
 - License changed from MIT to Business Source License 1.1 (BSL 1.1).
 
@@ -41,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release: FastAPI backend, SQLite storage, BaseCards widgets, GrapesJS Word editor, LLM chat panel, presets, media library, page history.
 
+[1.0.1]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.29...v1.0.0
 [0.1.29]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.28...v0.1.29
 [0.1.28]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.27...v0.1.28

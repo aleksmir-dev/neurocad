@@ -1,25 +1,39 @@
-# neurocad 1.0.0
+# neurocad 1.0.1
 
-Release date: 2026-10-01
+Release date: 2026-10-02
 
 ---
 
 ## English
 
+### Added
+
+- **Automatic certificate cleanup for disconnected domains.** When a client disconnects their domain, its certificate is physically removed from Caddy after 30 days. If the client returns within a month, the deletion is cancelled.
+- **Protected system domains.** `neurocad.ru`, `neurocad-dev.ru`, `neurocad-demo.ru` and all their subdomains are never deleted automatically, even if someone tries to disconnect them.
+- **Second-level domain support.** You can now connect `example.com`, not just `www.example.com`.
+
 ### Changed
 
-- **License: MIT → Business Source License 1.1 (BSL 1.1).** Starting with 1.0.0, NeuroCad is distributed under the Business Source License 1.1 instead of the MIT License. The source code remains available for reading, modification, and non-production use. Production use is permitted under an Additional Use Grant for internal, non-competiting purposes. Running NeuroCad as a hosted or managed service that competes with the Licensor's offerings requires a commercial license. Each released version automatically converts to Apache License 2.0 four years after its first public distribution.
-  - **Why the change.** Pure MIT allowed any cloud provider to offer NeuroCad-as-a-Service without contributing back, leaving no path to sustainability for the maintainer. BSL 1.1 preserves source availability and free use for the vast majority of users while retaining a commercial wedge against direct hosted-service competitors.
-  - **What stays free.** Internal use within any organization, solo development, non-commercial projects, research, education, and building non-competing products on top of NeuroCad are all permitted under the Additional Use Grant.
-  - **What requires a commercial license.** Offering NeuroCad (or a substantially similar derivative) to third parties as a paid hosted or managed service that competes with the Licensor's offerings.
+- Cleanup runs lazily — on superadmin visit to the admin panel. No cron, no background workers.
+
+### Fixed
+
+- The domain connection form no longer rejects second-level domains.
 
 ---
 
 ## Русский
 
+### Добавлено
+
+- **Автоматическая очистка сертификатов отключённых доменов.** Когда клиент отключает свой домен, через 30 дней его сертификат физически удаляется из Caddy. Если клиент вернётся в течение месяца — удаление отменяется.
+- **Защита системных доменов.** `neurocad.ru`, `neurocad-dev.ru`, `neurocad-demo.ru` и все их поддомены никогда не удаляются автоматически, даже если кто-то попытается их отключить.
+- **Поддержка доменов второго уровня.** Теперь можно подключать `example.com`, а не только `www.example.com`.
+
 ### Изменено
 
-- **Лицензия: MIT → Business Source License 1.1 (BSL 1.1).** Начиная с версии 1.0.0 NeuroCad распространяется под лицензией Business Source License 1.1 вместо MIT. Исходный код остаётся доступным для чтения, модификации и некоммерческого использования. Production-использование разрешено в рамках Additional Use Grant для внутренних, неконкурирующих задач. Запуск NeuroCad как hosted- или managed-сервиса, конкурирующего с продуктами Лицензиара, требует коммерческой лицензии. Каждая выпущенная версия автоматически конвертируется в Apache License 2.0 через четыре года после первой публичной дистрибуции.
-  - **Почему сменили.** Чистый MIT позволял любому облачному провайдеру предлагать NeuroCad-as-a-Service без вклада в развитие, оставляя мейнтейнера без пути к устойчивости. BSL 1.1 сохраняет доступность исходников и бесплатное использование для подавляющего большинства пользователей, но оставляет коммерческий рычаг против прямых конкурентов в hosted-сегменте.
-  - **Что остаётся бесплатным.** Внутреннее использование в любой организации, соло-разработка, некоммерческие проекты, исследования, образование и создание неконкурирующих продуктов на базе NeuroCad разрешены в рамках Additional Use Grant.
-  - **Что требует коммерческой лицензии.** Предоставление NeuroCad (или производной работы с существенно схожей функциональностью) третьим лицам как платного hosted- или managed-сервиса, конкурирующего с продуктами Лицензиара.
+- Очистка запускается лениво — при заходе супер-админа в админку. Никаких cron и фоновых процессов.
+
+### Исправлено
+
+- Форма подключения домена больше не отклоняет домены второго уровня.

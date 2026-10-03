@@ -40,7 +40,7 @@ def setup_routes(app: FastAPI) -> None:
         The module is resolved from the Host header: any module JSON
         under `app/` with matching `domain` wins. If no module matches
         the Host, we fall back to settings.APP_MAIN_PAGE, then to
-        /core/engine/default.
+        /core/engine/admin.
 
         Set APP_MAIN_PAGE in .env to override the fallback.
         """
@@ -53,5 +53,5 @@ def setup_routes(app: FastAPI) -> None:
 
         main_url = settings.APP_MAIN_PAGE
         if not main_url or main_url == "/":
-            main_url = "/core/engine/default"
+            main_url = "/core/engine/admin"
         return RedirectResponse(url=main_url)

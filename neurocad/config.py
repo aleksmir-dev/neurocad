@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     APP_PORT: int = 8000
 
     # Main page URL (redirect from /).
-    APP_MAIN_PAGE: str = "/core/engine/default"
+    APP_MAIN_PAGE: str = "/core/engine/admin"
 
     # Debug mode.
     DEBUG: bool = True

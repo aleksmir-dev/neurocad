@@ -28,11 +28,13 @@ import json
 import os
 import re
 import socket
+from datetime import datetime, timedelta
 from typing import Optional, Tuple
 
 import httpx
 from sqlalchemy import select
 
+from neurocad.core.models.domain import Domain
 from neurocad.core.models.user import User
 from neurocad.utils.sqlite import get_db_sqlite
 from .schema import (
@@ -49,8 +51,44 @@ from .schema import (
 
 ROOT_DOMAIN = "neurocad.ru"
 
+# ============================================
+# PROTECTED DOMAINS
+# ============================================
+
+# Domains owned by the platform. Their certificates must never be
+# deleted, no matter what. Add future system domains here.
+PROTECTED_DOMAINS = frozenset({
+    "neurocad.ru",
+    "neurocad-dev.ru",
+    "neurocad-demo.ru",
+})
+
+# Same, but for whole subtrees: *.neurocad.ru, *.neurocad-dev.ru, ...
+PROTECTED_SUFFIXES = (
+    ".neurocad.ru",
+    ".neurocad-dev.ru",
+    ".neurocad-demo.ru",
+)
+
+
+def is_protected_domain(name: str) -> bool:
+    """True if the domain is owned by the platform itself."""
+    d = (name or "").strip().lower().rstrip(".")
+    if d in PROTECTED_DOMAINS:
+        return True
+    return any(d.endswith(s) for s in PROTECTED_SUFFIXES)
+
+
+# Days between removing a custom domain and physically deleting its
+# Caddy certificate.
+DOMAIN_GRACE_DAYS = 30
+
+
 _DOMAIN_RE = re.compile(
-    r"^(?=.{4,253}$)(?!-)(?:[a-z0-9-]{1,63})(?:\.(?!-)[a-z0-9-]{1,63})+\.[a-z]{2,63}$",
+    r"^(?=.{4,253}$)"
+    r"(?!-)"
+    r"(?:[a-z0-9-]{1,63}\.)+"
+    r"[a-z]{2,63}$",
     re.IGNORECASE,
 )
 
@@ -159,6 +197,20 @@ class CoreEngineLibBaseProfileDomainService:
         # page load will show what's missing.
         await cls._save_domain(user_id, domain)
 
+        # If this domain was previously scheduled for cert deletion,
+        # cancel it. The row in `domains` is kept for history — we
+        # only clear delete_after and reset deleted_at.
+        async for session in get_db_sqlite():
+            existing = await session.get(Domain, domain)
+            if existing is not None and existing.delete_after is not None:
+                existing.delete_after = None
+                existing.deleted_at = None
+                await session.commit()
+                cls._log(
+                    log, "info",
+                    f"domain re-added, cancelled cert deletion: {domain}",
+                )
+
         message: Optional[str] = None
 
         if not dns_ok:
@@ -190,7 +242,10 @@ class CoreEngineLibBaseProfileDomainService:
         user_id: int,
         log=None,
     ) -> bool:
-        """Clear the user's custom domain slot."""
+        """
+        Clear the user's custom domain slot and schedule certificate
+        deletion (unless the domain is platform-owned).
+        """
         async for session in get_db_sqlite():
             stmt = select(User).where(
                 User.id == user_id,
@@ -200,7 +255,29 @@ class CoreEngineLibBaseProfileDomainService:
             user = result.scalar_one_or_none()
             if user is None:
                 return False
+
+            domain = user.domain
             user.domain = None
+
+            if domain and not is_protected_domain(domain):
+                now = datetime.utcnow()
+                existing = await session.get(Domain, domain)
+                if existing is None:
+                    existing = Domain(name=domain)
+                    session.add(existing)
+                existing.disabled_at = now
+                existing.delete_after = now + timedelta(days=DOMAIN_GRACE_DAYS)
+                existing.deleted_at = None
+                cls._log(
+                    log, "info",
+                    f"domain removed, cert scheduled for deletion: {domain}",
+                )
+            elif domain:
+                cls._log(
+                    log, "info",
+                    f"domain removed (protected, cert kept): {domain}",
+                )
+
             await session.commit()
             return True
         return False
@@ -345,24 +422,16 @@ class CoreEngineLibBaseProfileDomainService:
         log=None,
     ) -> Tuple[bool, Optional[str]]:
         """
-        Ask Caddy to issue a certificate for `domain`.
+        On-Demand TLS issues the certificate automatically on the
+        first HTTPS handshake for this domain. There is no admin
+        API to pre-issue it — Caddy's /issue endpoint does not exist.
 
-        The exact API contract depends on how the Go server is
-        implemented; for now we POST a simple JSON blob and treat
-        any 2xx as success. This is the single place to change when
-        the Go service is ready.
+        This method is a placeholder for a future explicit-issuance
+        flow (e.g. a Go helper). For now it always reports success
+        so the UI doesn't show a spurious "Caddy вернул 404".
         """
-        admin = await cls._get_caddy_admin()
-        url = f"{admin.rstrip('/')}/issue"
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(url, json={"domain": domain})
-                if resp.status_code < 300:
-                    return True, None
-                return False, f"Caddy вернул {resp.status_code}"
-        except Exception as e:
-            cls._log(log, "warning", f"Caddy issue failed for {domain}: {e}")
-            return False, "Caddy недоступен"
+        cls._log(log, "info", f"_ask_caddy: no-op for {domain} (On-Demand TLS)")
+        return True, None
 
     @staticmethod
     async def _get_caddy_admin() -> str:

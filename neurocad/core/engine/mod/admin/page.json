@@ -1,5 +1,5 @@
 {
-  "_file": "default/page.json",        
+  "_file": "admin/page.json",        
   "component": "page",
   "extend": "base",
   "title": "Статья",

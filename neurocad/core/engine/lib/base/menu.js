@@ -160,7 +160,8 @@ export class Menu {
             item.addEventListener('click', () => {
                 if (!this._canSeeSetup()) return;
 
-                window.location.href = '/core/engine/default/balance';
+                const baseUrl = window.coreEngine?.baseUrl || (document.body.dataset.module ? `/core/engine/${document.body.dataset.module}` : '/core/engine/default');
+                window.location.href = `${baseUrl}/balance`;
 
                 if (this.isOpen) {
                     this.closeMobile();
