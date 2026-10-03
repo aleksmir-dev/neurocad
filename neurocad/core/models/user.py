@@ -1,7 +1,7 @@
 # app/core/models/user.py
 
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Index
+from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Index, Text
 from datetime import datetime as dt
 from typing import Optional
 from .base import Base
@@ -47,6 +47,41 @@ class User(Base):
         ForeignKey('pages.id', ondelete='SET NULL'),
         nullable=True,
     )
+
+    # robots.txt для домена 3 уровня (<login>.<APP_DOMAIN>).
+    #
+    # NULL — пользователь никогда не открывал модалку robots.txt
+    # для поддомена. В этом случае /robots.txt на поддомене
+    # отдаёт ROBOTS_CLOSED (закрыто от всех) — дефолт для новых
+    # пользователей.
+    #
+    # Автоматически управляется в service.py:
+    #   - add_custom   → robots_3 = ROBOTS_CLOSED (поддомен закрыт,
+    #                    пока активен кастомный домен);
+    #   - remove_custom → robots_3 = ROBOTS_OPEN (поддомен снова
+    #                     открыт после отключения кастомного).
+    #
+    # Text, а не String(N): содержимое robots.txt может быть
+    # длинным (Allow/Disallow/Crawl-delay/Sitemap на много строк),
+    # ограничения по длине здесь ставить не нужно.
+    robots_3: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # robots.txt для домена 2 уровня (кастомного).
+    #
+    # NULL — пользователь никогда не открывал модалку robots.txt
+    # для кастомного домена. В этом случае /robots.txt на
+    # кастомном домене отдаёт ROBOTS_CLOSED (закрыто от всех).
+    #
+    # Редактируется пользователем через модальное окно в
+    # Профиль → Домены → «Редактировать robots.txt». Значение
+    # сохраняется в БД вербатим (включая пустую строку) — бэкенд
+    # не парсит и не валидирует синтаксис robots.txt.
+    #
+    # При подключении кастомного домена (add_custom) это поле
+    # инициализируется ROBOTS_OPEN, если было NULL. При отключении
+    # (remove_custom) не трогается — текст сохраняется на случай
+    # повторного подключения.
+    robots_2: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     __table_args__ = (
         Index('idx_users_login', 'login'),

@@ -3,7 +3,7 @@
 from typing import Optional
 
 from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from sqlalchemy import select
 
 from neurocad.core.route import router as core_router
@@ -18,6 +18,18 @@ from neurocad.core.engine.lib.base.profile.domain.internal_route import (
 )
 
 from neurocad.config import settings
+
+
+# ============================================
+# ROBOTS.TXT DEFAULTS
+# ============================================
+
+# Must match ROBOTS_OPEN / ROBOTS_CLOSED in
+# neurocad/core/engine/lib/base/profile/domain/service.py and
+# DEFAULT_ROBOTS_CLOSED in the domain schema. If you change one,
+# change all three — they are checked by the test suite.
+ROBOTS_OPEN = "User-agent: *\nDisallow:\n"
+ROBOTS_CLOSED = "User-agent: *\nDisallow: /\n"
 
 
 # ============================================
@@ -155,6 +167,88 @@ async def _login_from_custom_domain(host: Optional[str]) -> Optional[str]:
     return None
 
 
+# ============================================
+# ROBOTS.TXT HELPERS
+# ============================================
+
+def _robots_response(text: str) -> Response:
+    """
+    Build the /robots.txt response.
+
+    Always text/plain; charset=utf-8. Never cached — robots.txt is
+    edited by the user in the modal and cached responses would make
+    the change invisible to crawlers (and to the user debugging).
+    """
+    return Response(
+        content=text or ROBOTS_CLOSED,
+        media_type="text/plain; charset=utf-8",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+    )
+
+
+async def _robots_for_slug(slug: str) -> str:
+    """
+    robots.txt body for a free third-level subdomain
+    (<slug>.<APP_DOMAIN>).
+
+    Source: users.robots_3. If the user does not exist or the field
+    is NULL, ROBOTS_CLOSED is returned — the subdomain is closed to
+    crawlers by default, and add_custom / remove_custom toggle this
+    field automatically (see service.py).
+
+    Never raises on DB errors — treated as "closed".
+    """
+    from neurocad.core.models.user import User
+    from neurocad.utils.sqlite import get_db_sqlite
+
+    try:
+        async for session in get_db_sqlite():
+            stmt = select(User).where(
+                User.login == slug,
+                User.is_delete.is_(False),
+            )
+            user = (await session.execute(stmt)).scalar_one_or_none()
+            if user is None:
+                return ROBOTS_CLOSED
+            return user.robots_3 or ROBOTS_CLOSED
+    except Exception as e:
+        print(f"[Engine] robots_3 lookup failed for {slug!r}: {e}")
+        return ROBOTS_CLOSED
+
+    return ROBOTS_CLOSED
+
+
+async def _robots_for_custom_domain(host: str) -> str:
+    """
+    robots.txt body for a custom second-level domain.
+
+    Source: users.robots_2, looked up by users.domain == host. If the
+    user does not exist or the field is NULL, ROBOTS_CLOSED is
+    returned — safer default for a domain that is registered but
+    whose robots.txt has never been saved.
+
+    Never raises on DB errors — treated as "closed".
+    """
+    from neurocad.core.models.user import User
+    from neurocad.utils.sqlite import get_db_sqlite
+
+    try:
+        async for session in get_db_sqlite():
+            stmt = select(User).where(
+                User.domain == host,
+                User.is_delete.is_(False),
+            )
+            user = (await session.execute(stmt)).scalar_one_or_none()
+            if user is None:
+                return ROBOTS_CLOSED
+            return user.robots_2 or ROBOTS_CLOSED
+    except Exception as e:
+        print(f"[Engine] robots_2 lookup failed for {host!r}: {e}")
+        return ROBOTS_CLOSED
+
+    return ROBOTS_CLOSED
+
+
 async def _resolve_home_url_for_slug(slug: str) -> Optional[str]:
     """
     Given a user slug (login), return the URL of their home page —
@@ -276,6 +370,40 @@ def setup_routes(app: FastAPI) -> None:
     # Internal TLS verification — /internal/tls/verify
     # Called by Caddy before issuing an On-Demand TLS certificate.
     app.include_router(internal_tls_router)
+
+    # /robots.txt — three-step resolution:
+    #
+    #   1. Host is a user subdomain (<login>.<APP_DOMAIN>):
+    #        testuser3.neurocad-dev.ru → users.robots_3
+    #      Default when the field is NULL: ROBOTS_CLOSED.
+    #
+    #   2. Host is a user's custom domain (users.domain):
+    #        atou.ru → users.robots_2
+    #      Default when the field is NULL: ROBOTS_CLOSED.
+    #
+    #   3. Anything else (apex APP_DOMAIN, IP, unknown host):
+    #        ROBOTS_CLOSED. Never redirects, never serves HTML —
+    #        crawlers must see a 200 text/plain response.
+    @app.get("/robots.txt")
+    async def robots_txt(request: Request):
+        host = request.headers.get("host")
+
+        # ---- Step 1: user subdomain ------------------------------
+        slug = _slug_from_host(host)
+        if slug is not None:
+            text = await _robots_for_slug(slug)
+            return _robots_response(text)
+
+        # ---- Step 2: user custom domain --------------------------
+        normalized = _normalize_host(host)
+        if normalized is not None:
+            custom_login = await _login_from_custom_domain(normalized)
+            if custom_login is not None:
+                text = await _robots_for_custom_domain(normalized)
+                return _robots_response(text)
+
+        # ---- Step 3: fallback ------------------------------------
+        return _robots_response(ROBOTS_CLOSED)
 
     # Root — three-step resolution:
     #

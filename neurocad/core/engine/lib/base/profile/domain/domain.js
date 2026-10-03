@@ -7,8 +7,8 @@
  *
  * Three blocks:
  *   1. Free subdomain — clickable link <login>.<APP_DOMAIN> + copy
- *      button. The link opens the URL in a new tab; the button
- *      copies the full URL (https://...) to the clipboard.
+ *      button + "Редактировать robots.txt" (data-which="3", edits
+ *      users.robots_3 — the subdomain's robots.txt).
  *   2. Home page — select from the user's pages + Save / Reset.
  *      Drives the "/" redirect on the user's subdomain (and on the
  *      custom domain once it's attached). Falls back to the first
@@ -16,7 +16,8 @@
  *   3. Custom domain — either:
  *        - input + "Подключить" (when no custom domain is set), or
  *        - the current domain as a clickable link + status badge +
- *          copy button + "Отключить" (when one is set).
+ *          copy button + "Редактировать robots.txt" (data-which="2",
+ *          edits users.robots_2) + "Отключить" (when one is set).
  *
  * After submit, the backend checks DNS + Caddy and returns
  * { dns_ok, caddy_available, server_ip, message }. The page renders
@@ -28,12 +29,21 @@
  * both as href on the <a> and as the payload of the copy button.
  * Users copy the whole URL, not just the host.
  *
+ * robots.txt: one modal (./robots.js) serves both blocks. The button
+ * carries data-which="2" or data-which="3"; the modal gets the
+ * current domain via setDomain() so its "Открыть всем" preset can
+ * fill in the correct Host line. On save the modal POSTs to
+ * POST /domain/robots with { which, robots } and then calls
+ * onSaved(which, savedText) so this page can update
+ * this.data.robots_2 / this.data.robots_3 without a full reload.
+ *
  * API:
  *   GET    /core/engine/lib/base/profile/domain/
  *   POST   /core/engine/lib/base/profile/domain/add
  *   DELETE /core/engine/lib/base/profile/domain/remove
  *   POST   /core/engine/lib/base/profile/domain/home
  *   DELETE /core/engine/lib/base/profile/domain/home
+ *   POST   /core/engine/lib/base/profile/domain/robots
  *
  * Uses window.coreEngine.fetchJson.
  *
@@ -71,6 +81,9 @@ export class BaseProfileDomain {
         this._homeSaving = false;
         this._homeError = null;
         this._homeSaved = false;
+
+        // Robots modal state (created lazily on first open).
+        this._robotsModal = null;
 
         this._initialized = false;
         this._initPromise = null;
@@ -195,6 +208,10 @@ export class BaseProfileDomain {
         return wrapper;
     }
 
+    // ============================================
+    // SUBDOMAIN CARD
+    // ============================================
+
     _renderSubdomainCard() {
         const sub = this.data.subdomain;
         const url = this._fullUrl(sub.subdomain);
@@ -203,7 +220,7 @@ export class BaseProfileDomain {
             <section class="domain-card">
                 <div class="domain-card-title">Бесплатный поддомен</div>
                 <p class="domain-card-hint">
-                    Выдан автоматически при регистрации
+                    Выдан автоматически при регистрации:
                 </p>
                 <div class="domain-link-row">
                     <a class="domain-link"
@@ -217,6 +234,14 @@ export class BaseProfileDomain {
                             data-copy="${this._escapeAttr(url)}"
                             title="Копировать ссылку">
                         Копировать
+                    </button>
+                </div>
+                <div class="domain-form-row">
+                    <button type="button"
+                            class="domain-btn"
+                            data-action="edit-robots"
+                            data-which="3">
+                        Редактировать robots.txt
                     </button>
                 </div>
             </section>
@@ -385,6 +410,13 @@ export class BaseProfileDomain {
                 ` : ''}
                 <div class="domain-form-row">
                     <button type="button"
+                            class="domain-btn"
+                            data-action="edit-robots"
+                            data-which="2"
+                            ${this._submitting ? 'disabled' : ''}>
+                        Редактировать robots.txt
+                    </button>
+                    <button type="button"
                             class="domain-btn domain-btn-danger"
                             data-action="remove-domain"
                             ${this._submitting ? 'disabled' : ''}>
@@ -522,6 +554,16 @@ export class BaseProfileDomain {
             removeBtn.addEventListener('click', () => this._submitRemove());
         }
 
+        // Edit robots.txt — there may be up to two such buttons on
+        // the page: one in the subdomain card (data-which="3"), one
+        // in the custom-domain card (data-which="2"). Bind them all.
+        root.querySelectorAll('[data-action="edit-robots"]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const which = btn.getAttribute('data-which') || '2';
+                this._openRobotsModal(which);
+            });
+        });
+
         // ---- Home page: save ----
         const homeSave = root.querySelector('[data-action="home-save"]');
         if (homeSave) {
@@ -621,6 +663,73 @@ export class BaseProfileDomain {
 
         this._submitting = false;
         await this._reload();
+    }
+
+    // ============================================
+    // ROBOTS.TXT — MODAL
+    // ============================================
+
+    /**
+     * Open the robots.txt editor.
+     *
+     * @param {"2"|"3"} which — target field:
+     *   "3" → users.robots_3 (free subdomain);
+     *   "2" → users.robots_2 (custom second-level domain).
+     *
+     * Lazily imports ./robots.js, creates a RobotsModal bound to the
+     * current body (this.data.robots_2 or this.data.robots_3), and
+     * opens it. The modal instance is reused across opens.
+     *
+     * Before opening, the current domain is passed to the modal via
+     * setDomain() so its "Открыть всем" preset can write the correct
+     * Host line — the real hostname is known right here:
+     *   - which = "3" → this.data.subdomain.subdomain
+     *   - which = "2" → this.data.custom.domain
+     *
+     * On save the modal POSTs to /domain/robots, then calls
+     * onSaved(which, savedText) so this page can refresh its local
+     * state without a full reload of the domain card.
+     */
+    async _openRobotsModal(which = '2') {
+        console.log('[BaseProfileDomain] _openRobotsModal()', which);
+
+        const initialText = which === '3'
+            ? ((this.data && this.data.robots_3) || '')
+            : ((this.data && this.data.robots_2) || '');
+
+        // The domain the user is editing. Used by the modal's
+        // "Открыть всем" preset for the Host line.
+        const domain = which === '3'
+            ? ((this.data && this.data.subdomain && this.data.subdomain.subdomain) || '')
+            : ((this.data && this.data.custom && this.data.custom.domain) || '');
+
+        try {
+            const version = window.coreEngine?.static_version || Date.now();
+            const { RobotsModal } = await import(`./robots.js?v=${version}`);
+
+            // Reuse the modal instance if it's already created — a
+            // fresh instance per click would leak the previous
+            // overlay if the user clicked twice quickly.
+            if (!this._robotsModal) {
+                this._robotsModal = new RobotsModal({
+                    onSaved: (savedWhich, savedText) => {
+                        if (!this.data) return;
+
+                        if (savedWhich === '3') {
+                            this.data.robots_3 = savedText;
+                        } else {
+                            this.data.robots_2 = savedText;
+                        }
+                        console.log(`[BaseProfileDomain] robots_${savedWhich} saved`);
+                    },
+                });
+            }
+
+            this._robotsModal.setDomain(domain);
+            this._robotsModal.open(which, initialText);
+        } catch (err) {
+            console.error('[BaseProfileDomain] Failed to open robots modal:', err);
+        }
     }
 
     // ============================================
@@ -747,6 +856,19 @@ export class BaseProfileDomain {
             this.restoreCaption(this._savedCaption);
         }
         this._savedCaption = null;
+
+        // Close the robots modal if it is open. destroy() is safe to
+        // call even if the modal was never created.
+        if (this._robotsModal) {
+            try {
+                if (typeof this._robotsModal.destroy === 'function') {
+                    this._robotsModal.destroy();
+                }
+            } catch (e) {
+                console.warn('[BaseProfileDomain] robotsModal.destroy error:', e);
+            }
+            this._robotsModal = null;
+        }
 
         if (this.element) {
             this.element.remove();

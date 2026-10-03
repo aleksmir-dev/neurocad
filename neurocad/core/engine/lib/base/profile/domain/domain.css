@@ -163,7 +163,7 @@
     font-weight: 600;
 }
 
-/* ===== Domain link row (clickable URL + copy button) ===== */
+/* ===== Domain link row (clickable URL + copy button + status) ===== */
 /*
  * Used in three places, all of them share the same look:
  *   - "Бесплатный поддомен" card  → https://<login>.<APP_DOMAIN>
@@ -172,12 +172,17 @@
  *
  * The link itself is a full URL (https://...) so it can be copied
  * straight into the address bar. The "Копировать" button on the
- * right copies the same string.
+ * right copies the same string. A status badge may sit after the
+ * button; it is vertically centered with the row.
+ *
+ * align-items: center — every child keeps its own height and is
+ * centered on the row's cross axis. This is what makes the badge
+ * sit exactly on the same baseline as the link and the button.
  */
 
 .core-engine-lib-base-profile-domain .domain-link-row {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     gap: 8px;
     flex-wrap: wrap;
 }
@@ -185,6 +190,7 @@
 .core-engine-lib-base-profile-domain .domain-link {
     flex: 1 1 auto;
     min-width: 0;
+    align-self: center;
     display: flex;
     align-items: center;
     padding: 10px 12px;
@@ -219,10 +225,12 @@
 /*
  * The copy button sits to the right of the link. It is a regular
  * .domain-btn but without the default left margin, since the row's
- * own gap handles the spacing.
+ * own gap handles the spacing. align-self: center keeps it from
+ * stretching if the row becomes taller than the button itself.
  */
 .core-engine-lib-base-profile-domain .domain-copy-btn {
     flex-shrink: 0;
+    align-self: center;
     margin-left: 0;
 }
 
@@ -401,27 +409,35 @@
 }
 
 /* ===== Status badge ===== */
+/*
+ * Plain text, no background, no border. Vertically centered with
+ * the link and the copy button by the parent .domain-link-row
+ * (align-items: center). Themed via modifier classes:
+ *   .domain-badge-ok   → "Активен"
+ *   .domain-badge-warn → "DNS не настроен" / "Caddy недоступен"
+ */
 
 .core-engine-lib-base-profile-domain .domain-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    background: transparent;
+    border: none;
+    font-size: 13px;
     font-weight: 600;
+    line-height: 1;
     letter-spacing: 0.2px;
-    background: #e2e8f0;
     color: #475569;
     white-space: nowrap;
 }
 
 .core-engine-lib-base-profile-domain .domain-badge-ok {
-    background: #dcfce7;
-    color: #166534;
+    color: #16a34a;
 }
 
 .core-engine-lib-base-profile-domain .domain-badge-warn {
-    background: #fef3c7;
-    color: #92400e;
+    color: #d97706;
 }
 
 /* ===== Warning block inside a card ===== */
@@ -538,6 +554,11 @@
 
     .core-engine-lib-base-profile-domain .domain-link-row {
         flex-direction: column;
+        align-items: stretch;
+    }
+
+    .core-engine-lib-base-profile-domain .domain-badge {
+        align-self: flex-start;
     }
 
     .core-engine-lib-base-profile-domain .domain-btn {

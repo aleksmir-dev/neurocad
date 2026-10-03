@@ -1,72 +1,52 @@
-# neurocad 1.0.3
+# neurocad 1.0.4
 
-Release date: 2026-10-03
+Release date: 2026-10-04
 
 ---
 
 ## English
 
 ### Added
-
-- **Real certificate issuance check.** The "Certificate issued" message now means the certificate is actually issued and valid, not just that the Caddy server is reachable. The backend performs a real TLS handshake to the domain (`ssl.create_default_context` + `socket.create_connection`) and verifies the certificate chain and hostname before reporting success.
-- **Clickable links in domain cards.** Both the free subdomain (`<login>.neurocad.ru`) and the custom second-level domain are shown as full clickable URLs (`https://...`) that open in a new tab.
-- **"Copy" button.** Next to every domain link there is a "Copy" button that copies the **full URL** (`https://testuser1.neurocad.ru`) to the clipboard, ready to paste into the address bar.
+- **robots.txt editor.** Both domain cards (free subdomain and custom second-level domain) now have a "Редактировать robots.txt" button that opens a universal modal — one modal, two targets. On save it stores the text in `users.robots_3` or `users.robots_2`.
+- **`users.robots_2` and `users.robots_3` columns.** Two new `TEXT` columns on `users` hold the robots.txt body for the custom second-level domain and the free third-level subdomain respectively. Both are nullable — `NULL` is substituted with the default "closed" body at read time.
+- **`GET /robots.txt`.** Served for any host: subdomain → `robots_3`, custom domain → `robots_2`, apex / unknown → `ROBOTS_CLOSED`. Always `200 text/plain`, no redirects, no caching.
+- **`POST /core/engine/lib/base/profile/domain/robots`.** New endpoint with body `{ which: "2" | "3", robots: "<text>" }`. Saves the file for the selected target.
 
 ### Changed
-
-- **`_ask_caddy` in the domain service.** Replaced the no-op stub with a real TLS probe. First attempt with a 30-second timeout (triggers On-Demand TLS issuance), then a retry with a 5-second timeout (the certificate is already issued and cached by then). All attempts are logged.
-- **Error messages for certificate issuance.** Instead of a fake "Certificate issued", the UI now shows a specific reason: timeout, connection refused, DNS not resolving, or an SSL verification error.
-- **Domain links in UI.** Domains are now displayed as full URLs with `https://`, not as bare hostnames. This matches what users actually paste into the browser.
+- **Default robots.txt state.** The free subdomain is closed to crawlers by default. Attaching a custom domain opens its robots.txt (`ROBOTS_OPEN` if it was empty) and closes the subdomain's (`ROBOTS_CLOSED`). Detaching reopens the subdomain (`ROBOTS_OPEN`), keeping the custom-domain body for the next attach.
 
 ### Fixed
-
-- **Fake "Certificate issued" message.** Previously the message was shown as soon as the Caddy admin API responded, even if the certificate was never issued. Now it is only shown after a successful TLS handshake confirms the certificate is valid for the domain.
-- **Copy button payload.** The "Copy" button now copies the full URL (`https://atou.ru`) instead of the bare hostname (`atou.ru`), so the user can paste it directly into the address bar.
+- **Nothing from 1.0.3 was regressed.** The real TLS certificate check and clickable domain links stay as they were.
 
 ---
 
 ## Русский
 
 ### Добавлено
-
-- **Реальная проверка выпуска сертификата.** Сообщение «Сертификат выпущен» теперь означает, что сертификат действительно выпущен и валиден, а не просто что сервер Caddy доступен. Бэкенд выполняет реальный TLS-handshake к домену (`ssl.create_default_context` + `socket.create_connection`) и проверяет цепочку сертификатов и имя хоста, прежде чем сообщить об успехе.
-- **Кликабельные ссылки в карточках доменов.** И бесплатный поддомен (`<login>.neurocad.ru`), и кастомный домен второго уровня показываются как полные кликабельные URL (`https://...`), которые открываются в новой вкладке.
-- **Кнопка «Копировать».** Рядом с каждой ссылкой на домен есть кнопка «Копировать», которая копирует **полный URL** (`https://testuser1.neurocad.ru`) в буфер обмена — можно сразу вставить в адресную строку.
+- **Редактор robots.txt.** В обеих карточках (бесплатный поддомен и свой домен 2 уровня) появилась кнопка «Редактировать robots.txt», открывающая универсальную модалку — одна модалка, две цели. При сохранении текст пишется в `users.robots_3` или `users.robots_2`.
+- **Поля `users.robots_2` и `users.robots_3`.** Две новые колонки типа `TEXT` в таблице `users` хранят тело robots.txt для кастомного домена 2 уровня и для бесплатного поддомена 3 уровня соответственно. Обе nullable — при чтении `NULL` подменяется дефолтным «закрытым» текстом.
+- **`GET /robots.txt`.** Отдаётся для любого хоста: поддомен → `robots_3`, кастомный домен → `robots_2`, апекс / неизвестный → `ROBOTS_CLOSED`. Всегда `200 text/plain`, без редиректов и без кеша.
+- **`POST /core/engine/lib/base/profile/domain/robots`.** Новый эндпоинт с телом `{ which: "2" | "3", robots: "<текст>" }`. Сохраняет файл для выбранной цели.
 
 ### Изменено
-
-- **`_ask_caddy` в сервисе доменов.** Заглушка заменена на реальную TLS-проверку. Первая попытка с таймаутом 30 секунд (запускает выпуск сертификата через On-Demand TLS), затем повторная попытка с таймаутом 5 секунд (к этому моменту сертификат уже выпущен и закеширован). Все попытки логируются.
-- **Сообщения об ошибках при выпуске сертификата.** Вместо фиктивного «Сертификат выпущен» UI показывает конкретную причину: таймаут, отказ в соединении, DNS не резолвится или ошибка SSL-проверки.
-- **Ссылки на домены в UI.** Домены теперь отображаются как полные URL с `https://`, а не как голые хосты. Это соответствует тому, что пользователь реально вставляет в браузер.
+- **Дефолтное состояние robots.txt.** Бесплатный поддомен по умолчанию закрыт от роботов. При подключении кастомного домена его robots.txt открывается (`ROBOTS_OPEN`, если был пустым), а поддомен закрывается (`ROBOTS_CLOSED`). При отключении поддомен снова открывается (`ROBOTS_OPEN`), текст кастомного домена сохраняется на случай повторного подключения.
 
 ### Исправлено
-
-- **Фиктивное сообщение «Сертификат выпущен».** Раньше сообщение показывалось сразу после ответа admin API Caddy, даже если сертификат не был выпущен. Теперь оно показывается только после успешного TLS-handshake, подтверждающего, что сертификат валиден для этого домена.
-- **Содержимое кнопки «Копировать».** Кнопка «Копировать» теперь копирует полный URL (`https://atou.ru`), а не голый хост (`atou.ru`) — пользователь может сразу вставить его в адресную строку.
+- **Ничего из 1.0.3 не сломано.** Реальная TLS-проверка сертификата и кликабельные ссылки на домены остались как были.
 
 ---
 
-## Файлы, затронутые в 1.0.3
+## Файлы, затронутые в 1.0.4
 
 ### Backend
-
-- `neurocad/core/engine/lib/base/profile/domain/service.py` — `_ask_caddy` переписан: реальная TLS-проверка с ретраем; новый метод `_tls_probe`; добавлены импорты `ssl`, `asyncio`; константы `TLS_PROBE_FIRST_TIMEOUT = 30.0`, `TLS_PROBE_RETRY_TIMEOUT = 5.0`.
+- `app/core/models/user.py` — поля `robots_2`, `robots_3` (Text, nullable).
+- `alembic/versions/b34d42853cc7_*.py` — миграция через `batch_alter_table` (SQLite).
+- `neurocad/core/engine/lib/base/profile/domain/schema.py` — `robots_2` / `robots_3` в `Data`, поле `which` в `SetRobotsRequest` / `SetRobotsData`.
+- `neurocad/core/engine/lib/base/profile/domain/service.py` — `robots_3` в `get_for_user`, `set_robots(which, text)`, тогглы `robots_2` / `robots_3` в `add_custom` / `remove_custom`.
+- `neurocad/core/engine/lib/base/profile/domain/route.py` — `POST /robots` прокидывает `which` и отвечает `{which, robots}`.
+- `neurocad/utils/routes.py` — `GET /robots.txt`.
 
 ### Frontend
-
-- `neurocad/core/engine/lib/base/profile/domain/domain.js` — новый хелпер `_fullUrl(host)`; кликабельные ссылки в карточках поддомена, кастомного домена и в блоке «Готово»; единый обработчик `copy-link`; копирование полного URL.
-- `neurocad/core/engine/lib/base/profile/domain/domain.css` — новые классы `.domain-link-row` и `.domain-link`.
-
-### Проверено, без изменений
-
-- `neurocad/core/engine/lib/base/profile/domain/schema.py` — контракт не менялся.
-- `neurocad/core/engine/lib/base/profile/domain/route.py` — контракт не менялся.
-- `neurocad/core/engine/lib/base/profile/domain/checked.py` — не требует синхронизации.
-- `neurocad/utils/routes.py` — уже правили в 1.0.2.
-
----
-
-## Как проверить
-
-```bash
-curl -sL -o /dev/null -w 'final: %{url_effective}\ncode: %{http_code}\n' https://atou.ru/
+- `neurocad/core/engine/lib/base/profile/domain/domain.js` — две кнопки `edit-robots` (`data-which="3"` в поддомене, `data-which="2"` в кастомном), `_openRobotsModal(which)` с передачей домена через `setDomain`.
+- `neurocad/core/engine/lib/base/profile/domain/robots.js` — новый файл: `RobotsModal`, `open(which, initialText)`, `setDomain(domain)`, пресеты «Открыть всем» / «Закрыть от всех», кнопки «Отмена» / «ОК».
+- `neurocad/core/engine/lib/base/profile/domain/robots.css` — новый файл: оверлей, диалог, пресеты сверху слева, кнопки внизу справа, мобильная адаптация.

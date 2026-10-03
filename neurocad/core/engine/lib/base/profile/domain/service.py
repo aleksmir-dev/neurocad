@@ -12,12 +12,29 @@ service:
   - checks that the A-record of a custom domain points to us;
   - probes the Caddy admin API and asks it to issue a certificate;
   - verifies a domain for Caddy's On-Demand TLS (internal endpoint);
-  - lists the user's pages and reads / writes `users.home_page_id`.
+  - lists the user's pages and reads / writes `users.home_page_id`;
+  - reads / writes `users.robots_2` (custom domain) and
+    `users.robots_3` (free subdomain), and toggles `robots_3`
+    automatically when a custom domain is added or removed.
 
 Status is derived, not stored: on each read, the service resolves
 DNS and probes Caddy, then returns "active" / "dns_fail" /
 "caddy_off". If the user fixed DNS, the next page load shows
 "active" without any extra action.
+
+robots.txt defaults (must match utils/routes.py and schema.py):
+
+  - ROBOTS_OPEN   — the domain is open to all robots;
+  - ROBOTS_CLOSED — the domain is closed to all robots.
+
+Default state:
+
+  - robots_3 (free subdomain) is CLOSED by default;
+  - when a custom domain is attached, robots_2 (custom domain) is
+    set to OPEN if it was empty, and robots_3 is forced to CLOSED;
+  - when the custom domain is removed, robots_3 is set back to OPEN;
+  - the modal in the UI edits whichever field the caller selects
+    (robots_2 or robots_3), via POST /domain/robots with `which`.
 
 No cache.
 
@@ -52,6 +69,7 @@ from .schema import (
     DOMAIN_STATUS_ACTIVE,
     DOMAIN_STATUS_DNS_FAIL,
     DOMAIN_STATUS_CADDY_OFF,
+    DEFAULT_ROBOTS_CLOSED,
 )
 
 
@@ -68,6 +86,19 @@ from .schema import (
 #: MUST match a domain that Caddy actually serves with a wildcard
 #: certificate (e.g. *.neurocad-dev.ru on dev, *.neurocad.ru on prod).
 ROOT_DOMAIN = settings.APP_DOMAIN
+
+
+# ============================================
+# ROBOTS.TXT
+# ============================================
+
+#: robots.txt body that opens the domain to all robots.
+ROBOTS_OPEN = "User-agent: *\nDisallow:\n"
+
+#: robots.txt body that closes the domain to all robots.
+#: Must match DEFAULT_ROBOTS_CLOSED in schema.py and ROBOTS_CLOSED
+#: in utils/routes.py.
+ROBOTS_CLOSED = DEFAULT_ROBOTS_CLOSED
 
 
 # ============================================
@@ -160,7 +191,7 @@ class CoreEngineLibBaseProfileDomainService:
     ) -> CoreEngineLibBaseProfileDomainData:
         """
         Read the subdomain + custom domain slot + Caddy availability
-        + the user's pages and home page id.
+        + the user's pages and home page id + robots_2 / robots_3.
         """
         user = await cls._load_user(user_id)
         subdomain = cls._build_subdomain(login)
@@ -197,6 +228,13 @@ class CoreEngineLibBaseProfileDomainService:
             if home_page_id not in page_ids:
                 home_page_id = None
 
+        # robots_2 / robots_3 — NULL in the DB means "user never
+        # opened the modal for this field". Serve the default
+        # "closed" body in that case so the frontend always has a
+        # non-empty textarea to open.
+        robots_2 = (user.robots_2 if user and user.robots_2 else None) or ROBOTS_CLOSED
+        robots_3 = (user.robots_3 if user and user.robots_3 else None) or ROBOTS_CLOSED
+
         return CoreEngineLibBaseProfileDomainData(
             subdomain=subdomain,
             custom=CoreEngineLibBaseProfileDomainCustom(
@@ -208,6 +246,8 @@ class CoreEngineLibBaseProfileDomainService:
             server_ip=server_ip,
             pages=pages,
             home_page_id=home_page_id,
+            robots_2=robots_2,
+            robots_3=robots_3,
         )
 
     # ========================================
@@ -318,6 +358,15 @@ class CoreEngineLibBaseProfileDomainService:
         Returns (data, error_code). error_code values:
             "invalid"   — bad domain string
             "duplicate" — domain already used by another user
+
+        Side effects on robots.txt:
+
+          - robots_2 (custom domain) — set to ROBOTS_OPEN if it was
+            NULL. If the user already had a custom robots.txt from a
+            previous attach, it is kept as-is.
+          - robots_3 (free subdomain) — forced to ROBOTS_CLOSED, so
+            the subdomain stops advertising itself to crawlers while
+            the custom domain is the primary entry point.
         """
         domain = (raw_domain or "").strip().lower()
 
@@ -338,6 +387,22 @@ class CoreEngineLibBaseProfileDomainService:
         # can retry without retyping, and the status block on the next
         # page load will show what's missing.
         await cls._save_domain(user_id, domain)
+
+        # robots.txt: open robots_2 if it was empty, close robots_3.
+        # Done in the same session as the domain save — if the domain
+        # row is written but robots are not, the next page load would
+        # show an inconsistent state.
+        async for session in get_db_sqlite():
+            user = await session.get(User, user_id)
+            if user is not None:
+                if user.robots_2 is None:
+                    user.robots_2 = ROBOTS_OPEN
+                user.robots_3 = ROBOTS_CLOSED
+                await session.commit()
+                cls._log(
+                    log, "info",
+                    f"user {user_id}: robots_2 opened, robots_3 closed",
+                )
 
         # If this domain was previously scheduled for cert deletion,
         # cancel it. The row in `domains` is kept for history — we
@@ -387,6 +452,15 @@ class CoreEngineLibBaseProfileDomainService:
         """
         Clear the user's custom domain slot and schedule certificate
         deletion (unless the domain is platform-owned).
+
+        Side effects on robots.txt:
+
+          - robots_3 (free subdomain) — forced to ROBOTS_OPEN, so the
+            subdomain starts advertising itself to crawlers again
+            after the custom domain is detached.
+          - robots_2 (custom domain) — kept as-is. If the user re-
+            attaches a custom domain later, the previous robots.txt
+            body is still there.
         """
         async for session in get_db_sqlite():
             stmt = select(User).where(
@@ -400,6 +474,7 @@ class CoreEngineLibBaseProfileDomainService:
 
             domain = user.domain
             user.domain = None
+            user.robots_3 = ROBOTS_OPEN
 
             if domain and not is_protected_domain(domain):
                 now = datetime.utcnow()
@@ -421,8 +496,66 @@ class CoreEngineLibBaseProfileDomainService:
                 )
 
             await session.commit()
+            cls._log(log, "info", f"user {user_id}: robots_3 re-opened")
             return True
         return False
+
+    # ========================================
+    # ROBOTS.TXT
+    # ========================================
+
+    @classmethod
+    async def set_robots(
+        cls,
+        user_id: int,
+        which: str,
+        text: str,
+        log=None,
+    ) -> Optional[str]:
+        """
+        Save `users.robots_2` (custom domain) or `users.robots_3`
+        (free subdomain).
+
+        `which` selects the target field:
+
+          - "2" → users.robots_2;
+          - "3" → users.robots_3.
+
+        Anything else returns None.
+
+        Returns the stored text on success, or None if the user does
+        not exist / is deleted / `which` is invalid. The text is
+        stored verbatim — the frontend is responsible for its content,
+        the backend does not parse or validate robots.txt syntax.
+
+        Empty string is stored as-is. `get_for_user` treats NULL and
+        empty as "not set" and substitutes ROBOTS_CLOSED, but the
+        saved value itself is preserved so that "user cleared the
+        textarea" and "user never opened the modal" stay distinct.
+        """
+        if which not in ("2", "3"):
+            return None
+
+        field = "robots_2" if which == "2" else "robots_3"
+
+        async for session in get_db_sqlite():
+            stmt = select(User).where(
+                User.id == user_id,
+                User.is_delete.is_(False),
+            )
+            user = (await session.execute(stmt)).scalar_one_or_none()
+            if user is None:
+                return None
+
+            setattr(user, field, text)
+            await session.commit()
+            cls._log(
+                log, "info",
+                f"user {user_id}: {field} updated ({len(text)} bytes)",
+            )
+            return text
+
+        return None
 
     # ========================================
     # PAGES (for the home-page selector)

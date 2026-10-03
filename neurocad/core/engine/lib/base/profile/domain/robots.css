@@ -1,0 +1,291 @@
+/* neurocad/core/engine/lib/base/profile/domain/robots.css */
+
+/*
+ * RobotsModal — overlay + dialog for editing robots.txt.
+ *
+ * One modal, two targets (users.robots_2 for the custom domain,
+ * users.robots_3 for the free subdomain). The chrome is identical
+ * for both — the title and hint text change depending on which
+ * button opened the modal (see robots.js → _renderHeader()).
+ *
+ * Uses the design tokens and button styles already defined in
+ * domain.css (.domain-btn, .domain-btn-primary, --radius-md,
+ * --border-color, --text-main). This file only adds the modal
+ * chrome: overlay, dialog box, header with presets, title, hint,
+ * textarea, error message, and the action row.
+ *
+ * Loaded by robots.js via coreEngine.loadCSS, so the rules live
+ * under their own top-level selectors — no need to prefix them
+ * with .core-engine-lib-base-profile-domain.
+ */
+
+/* ===== Overlay ===== */
+
+.robots-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+    box-sizing: border-box;
+
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+
+    /* The dialog itself catches clicks; the overlay only closes on
+       clicks that hit it directly. animation is intentionally
+       short — this is a modal, not a page transition. */
+    animation: robots-overlay-in 0.12s ease-out;
+}
+
+@keyframes robots-overlay-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ===== Dialog ===== */
+
+.robots-dialog {
+    width: 100%;
+    max-width: 640px;
+    max-height: calc(100vh - 48px);
+
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    padding: 18px 22px 18px;
+    box-sizing: border-box;
+
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    box-shadow:
+        0 10px 30px rgba(15, 23, 42, 0.18),
+        0 2px 6px rgba(15, 23, 42, 0.08);
+
+    animation: robots-dialog-in 0.15s ease-out;
+}
+
+@keyframes robots-dialog-in {
+    from { transform: translateY(6px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+}
+
+/* ===== Header ===== */
+/*
+ * Top row of the dialog. Holds the two preset buttons on the left
+ * ("Открыть всем", "Закрыть от всех"). The title itself lives below
+ * the header — see .robots-title. No bottom border, so the title
+ * reads as part of the same block as the presets.
+ */
+
+.robots-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+
+    padding-bottom: 12px;
+    margin-bottom: 10px;
+
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+/*
+ * Preset buttons row. They reuse .domain-btn from domain.css; here
+ * we only reset the default margin-left (the row's gap handles the
+ * spacing) so the two buttons sit flush-left with an 8px gap.
+ */
+
+.robots-presets {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.robots-presets .domain-btn {
+    margin-left: 0;
+}
+
+/* ===== Title ===== */
+
+.robots-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main, #1e293b);
+    line-height: 1.2;
+
+    margin: 0 0 8px;
+    flex-shrink: 0;
+}
+
+/* ===== Hint ===== */
+
+.robots-hint {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #475569;
+    margin: 0 0 10px;
+    flex-shrink: 0;
+}
+
+.robots-hint code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: rgba(15, 23, 42, 0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #0f172a;
+}
+
+.robots-hint b {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+/* ===== Textarea ===== */
+
+.robots-textarea {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 180px;
+    max-height: 45vh;
+
+    padding: 10px 12px;
+    box-sizing: border-box;
+
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+
+    outline: none;
+    resize: vertical;
+    white-space: pre;
+    overflow: auto;
+
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.robots-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.robots-textarea::placeholder {
+    color: #94a3b8;
+}
+
+/* ===== Inline error ===== */
+
+.robots-error {
+    margin-top: 8px;
+    padding: 8px 12px;
+
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    border-radius: var(--radius-md, 8px);
+    font-size: 13px;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+
+.robots-error[hidden] {
+    display: none;
+}
+
+/* ===== Action row ===== */
+/*
+ * Bottom row: "Отмена" and "ОК". Right-aligned, so the primary
+ * action ("ОК") sits at the far right, matching the rest of the
+ * app's modal conventions.
+ */
+
+.robots-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+
+    flex-shrink: 0;
+}
+
+/* Buttons inside the action row reuse .domain-btn / .domain-btn-primary
+   from domain.css. Reset the default margin-left: 20px — the flex
+   gap already handles spacing. */
+.robots-actions .domain-btn {
+    margin-left: 0;
+}
+
+/* ===== Mobile ===== */
+
+@media (max-width: 480px) {
+    .robots-overlay {
+        padding: 12px;
+        align-items: stretch;
+    }
+
+    .robots-dialog {
+        max-height: none;
+        height: 100%;
+        padding: 16px 14px 14px;
+    }
+
+    .robots-header {
+        /* Presets stack full-width on narrow screens. */
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .robots-presets {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .robots-presets .domain-btn {
+        width: 100%;
+        padding: 10px 14px;
+    }
+
+    .robots-textarea {
+        min-height: 140px;
+        max-height: none;
+    }
+
+    .robots-actions {
+        /* Cancel / OK stack full-width, OK last (bottom). */
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .robots-actions .domain-btn {
+        width: 100%;
+        padding: 10px 14px;
+    }
+}
+
+/* ===== Reduced motion ===== */
+
+@media (prefers-reduced-motion: reduce) {
+    .robots-overlay,
+    .robots-dialog {
+        animation: none;
+    }
+}

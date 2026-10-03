@@ -6,10 +6,13 @@ Domain routes.
 Endpoints (mounted under /core/engine/lib/base/profile/domain):
     GET    /                  — subdomain + custom slot + Caddy status
                                 + pages + home_page_id
+                                + robots_2 + robots_3
     POST   /add               — set custom domain (checks DNS + Caddy)
     DELETE /remove            — clear the custom domain slot
     POST   /home              — set the home page (users.home_page_id)
     DELETE /home              — clear the home page
+    POST   /robots            — save users.robots_2 or users.robots_3
+                                (which one is chosen by `which`)
 
 Full URLs:
     GET    /core/engine/lib/base/profile/domain/
@@ -17,6 +20,7 @@ Full URLs:
     DELETE /core/engine/lib/base/profile/domain/remove
     POST   /core/engine/lib/base/profile/domain/home
     DELETE /core/engine/lib/base/profile/domain/home
+    POST   /core/engine/lib/base/profile/domain/robots
 
 All endpoints require an authenticated user.
 
@@ -30,6 +34,7 @@ from neurocad.core.auth.dependencies import get_current_user
 from .schema import (
     CoreEngineLibBaseProfileDomainAddRequest,
     CoreEngineLibBaseProfileDomainHomeSetRequest,
+    CoreEngineLibBaseProfileDomainSetRobotsRequest,
 )
 from .service import CoreEngineLibBaseProfileDomainService
 
@@ -54,7 +59,9 @@ async def get_domains(
 ) -> JSONResponse:
     """
     Free subdomain + custom domain slot + Caddy availability
-    + the user's pages (for the home-page selector) + home_page_id.
+    + the user's pages (for the home-page selector) + home_page_id
+    + the current robots_2 and robots_3 texts (for the robots.txt
+    modal, which edits whichever field the user opened).
     """
     user = _require_user(current_user)
 
@@ -203,4 +210,63 @@ async def clear_home_page(
     return JSONResponse({
         "success": True,
         "data": {"home_page_id": None},
+    })
+
+
+# ============================================
+# ROBOTS.TXT — SAVE
+# ============================================
+
+@router.post("/robots")
+async def set_robots(
+    body: CoreEngineLibBaseProfileDomainSetRobotsRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Save a robots.txt body for the current user.
+
+    Body:
+      {
+        "which": "2",
+        "robots": "User-agent: *\\nDisallow: /\\n"
+      }
+
+    `which` selects the target field:
+
+      - "2" → users.robots_2 (custom second-level domain);
+      - "3" → users.robots_3 (free third-level subdomain).
+
+    The text is stored verbatim — the backend does not parse or
+    validate robots.txt syntax. Empty string is stored as-is.
+
+    Response:
+      {
+        "success": true,
+        "data": { "which": "2", "robots": "<saved text>" }
+      }
+
+    Errors:
+      400 — invalid `which`
+      404 — user not found
+    """
+    user = _require_user(current_user)
+
+    saved = await CoreEngineLibBaseProfileDomainService.set_robots(
+        user_id=int(user["id"]),
+        which=body.which,
+        text=body.robots,
+        log=request.app.state.log,
+    )
+
+    if saved is None:
+        # set_robots returns None either because the user does not
+        # exist or because `which` was outside {"2", "3"}. The
+        # Pydantic schema already constrains `which`, so the only
+        # remaining case is "user not found".
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    return JSONResponse({
+        "success": True,
+        "data": {"which": body.which, "robots": saved},
     })

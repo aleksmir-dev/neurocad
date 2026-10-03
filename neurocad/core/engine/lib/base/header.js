@@ -22,6 +22,15 @@
  *   3. header.render()     — returns the header HTML string.
  *   4. header.bindEvents() — attaches one-off event listeners.
  *
+ * `props.module`
+ * --------------
+ * The current module name (e.g. "admin", "editor") is read from the
+ * page JSON and forwarded to Logo, so that clicking the brand mark
+ * goes to /core/engine/<module>/ rather than to "/". This matters on
+ * custom-domain and subdomain deployments, where "/" triggers the
+ * owner's home-page redirect. If `module` is missing, Logo falls
+ * back to "admin".
+ *
  * IMPORTANT — WHEN bindEvents IS CALLED
  * -------------------------------------
  * `Base.render()` rewrites `document.body.innerHTML` and then calls
@@ -93,7 +102,11 @@ export class Header {
             import(`./menu.js?v=${version}`)
         ]);
 
-        this.logo = new Logo(this.props.logoText);
+        // `module` comes from the page JSON (props.module) and is
+        // forwarded to Logo so the brand mark links to
+        // /core/engine/<module>/ instead of "/". Logo falls back to
+        // "admin" if `module` is missing.
+        this.logo = new Logo(this.props.logoText, this.props.module);
         this.title = new Title(this.props.title);
         this.menu = new Menu({
             items: this.props.menu,
