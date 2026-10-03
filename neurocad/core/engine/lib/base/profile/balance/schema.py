@@ -6,7 +6,7 @@ Balance schemas.
 Pydantic model describing the `balance` row as returned to the client.
 
 The DB row is in neurocad/core/models/balance.py:
-    user_id, tarif (0/1/2), day,
+    user_id, tarif (0/1/2/3), day,
     gen, tokens, sum, mb, pages, price,
     refer_id,
     limit_genday, limit_genmon, limit_mb, limit_pages, limit_tokens,
@@ -24,11 +24,14 @@ from pydantic import BaseModel, Field, field_serializer
 
 
 # Tariff codes → human-readable labels. Keep in sync with
-# neurocad/core/models/balance.py (tarif: 0 free, 1 pro, 2 llm).
+# neurocad/core/models/balance.py and with
+# core/engine/lib/base/profile/balance/tarif/service.py
+# (TARIF_PRESETS): 0 free, 1 pro, 2 llm, 3 trial.
 TARIF_LABELS = {
     0: "Free",
     1: "Pro",
     2: "LLM",
+    3: "Trial",
 }
 
 
@@ -37,7 +40,7 @@ class CoreEngineLibBaseProfileBalanceData(BaseModel):
 
     user_id: int
 
-    tarif: int = Field(0, description="0 — free, 1 — pro, 2 — llm")
+    tarif: int = Field(0, description="0 — free, 1 — pro, 2 — llm, 3 — trial")
     tarif_label: str = Field("Free", description="Human-readable tariff name")
 
     day: Optional[int] = None

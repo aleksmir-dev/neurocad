@@ -11,7 +11,8 @@ service:
   - validates a domain string;
   - checks that the A-record of a custom domain points to us;
   - probes the Caddy admin API and asks it to issue a certificate;
-  - verifies a domain for Caddy's On-Demand TLS (internal endpoint).
+  - verifies a domain for Caddy's On-Demand TLS (internal endpoint);
+  - lists the user's pages and reads / writes `users.home_page_id`.
 
 Status is derived, not stored: on each read, the service resolves
 DNS and probes Caddy, then returns "active" / "dns_fail" /
@@ -29,19 +30,23 @@ import os
 import re
 import socket
 from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 import httpx
 from sqlalchemy import select
 
+from neurocad.config import settings
 from neurocad.core.models.domain import Domain
 from neurocad.core.models.user import User
+from neurocad.core.models.nav import Nav
+from neurocad.core.models.page import Page
 from neurocad.utils.sqlite import get_db_sqlite
 from .schema import (
     CoreEngineLibBaseProfileDomainSubdomain,
     CoreEngineLibBaseProfileDomainCustom,
     CoreEngineLibBaseProfileDomainData,
     CoreEngineLibBaseProfileDomainAddData,
+    CoreEngineLibBaseProfileDomainPageItem,
     DOMAIN_STATUS_NONE,
     DOMAIN_STATUS_ACTIVE,
     DOMAIN_STATUS_DNS_FAIL,
@@ -49,7 +54,20 @@ from .schema import (
 )
 
 
-ROOT_DOMAIN = "neurocad.ru"
+#: Root domain the application runs on. Read from settings so that a
+#: single .env line switches the whole thing between environments:
+#:
+#:   APP_DOMAIN=neurocad-dev.ru   (dev)
+#:   APP_DOMAIN=neurocad.ru       (prod)
+#:
+#: Used to build the free third-level subdomain (<login>.<ROOT_DOMAIN>)
+#: and to reject custom domains that end with .<ROOT_DOMAIN> — those
+#: are covered by the wildcard certificate, not by On-Demand TLS.
+#:
+#: MUST match a domain that Caddy actually serves with a wildcard
+#: certificate (e.g. *.neurocad-dev.ru on dev, *.neurocad.ru on prod).
+ROOT_DOMAIN = settings.APP_DOMAIN
+
 
 # ============================================
 # PROTECTED DOMAINS
@@ -126,7 +144,10 @@ class CoreEngineLibBaseProfileDomainService:
         login: str,
         log=None,
     ) -> CoreEngineLibBaseProfileDomainData:
-        """Read the subdomain + custom domain slot + Caddy availability."""
+        """
+        Read the subdomain + custom domain slot + Caddy availability
+        + the user's pages and home page id.
+        """
         user = await cls._load_user(user_id)
         subdomain = cls._build_subdomain(login)
         server_ip = cls._detect_server_ip()
@@ -148,6 +169,20 @@ class CoreEngineLibBaseProfileDomainService:
                 custom_status = DOMAIN_STATUS_ACTIVE
                 custom_message = None
 
+        # Pages for the "Главная страница" selector.
+        pages = await cls._list_pages_for_user(user_id)
+
+        home_page_id: Optional[int] = user.home_page_id if user else None
+
+        # If the stored home_page_id no longer points at a live page
+        # (e.g. the page was deleted, or it lives in another nav),
+        # treat it as "not set". The selector then shows the first
+        # page as the effective home, matching utils/routes.py.
+        if home_page_id is not None:
+            page_ids = {p.id for p in pages}
+            if home_page_id not in page_ids:
+                home_page_id = None
+
         return CoreEngineLibBaseProfileDomainData(
             subdomain=subdomain,
             custom=CoreEngineLibBaseProfileDomainCustom(
@@ -157,7 +192,100 @@ class CoreEngineLibBaseProfileDomainService:
             ),
             caddy_available=caddy_available,
             server_ip=server_ip,
+            pages=pages,
+            home_page_id=home_page_id,
         )
+
+    # ========================================
+    # HOME PAGE
+    # ========================================
+
+    @classmethod
+    async def set_home_page(
+        cls,
+        user_id: int,
+        page_id: int,
+        log=None,
+    ) -> Tuple[Optional[int], Optional[str]]:
+        """
+        Set `users.home_page_id` for the user.
+
+        Only pages that belong to one of the user's navs (and are
+        not deleted) are accepted. Returns (new_home_page_id, error_code):
+
+            (page_id, None)      — saved
+            (None, "invalid")    — page does not belong to this user
+            (None, "not_found")  — user does not exist
+
+        NOTE: we do NOT verify that the page's nav is the "first" one.
+        If a user has several navs, any of their pages can be the home.
+        """
+        async for session in get_db_sqlite():
+            # ---- 1. Load user ----
+            user_stmt = select(User).where(
+                User.id == user_id,
+                User.is_delete.is_(False),
+            )
+            user = (await session.execute(user_stmt)).scalar_one_or_none()
+            if user is None:
+                return None, "not_found"
+
+            # ---- 2. Verify the page belongs to this user ----
+            page_stmt = (
+                select(Page)
+                .join(Nav, Nav.id == Page.nav_id)
+                .where(
+                    Page.id == page_id,
+                    Page.is_delete == 0,
+                    Nav.user_id == user_id,
+                    Nav.is_delete.is_(False),
+                )
+            )
+            page = (await session.execute(page_stmt)).scalar_one_or_none()
+            if page is None:
+                return None, "invalid"
+
+            # ---- 3. Save ----
+            user.home_page_id = page.id
+            await session.commit()
+            cls._log(log, "info", f"user {user_id}: home page set to {page.id}")
+            return page.id, None
+
+        return None, "not_found"
+
+    @classmethod
+    async def clear_home_page(
+        cls,
+        user_id: int,
+        log=None,
+    ) -> Optional[int]:
+        """
+        Set `users.home_page_id = NULL`.
+
+        Returns the new value (always None) on success, or None if
+        the user does not exist. The two are distinguished by the
+        caller through the response shape — this method always
+        returns None, and the route decides success by looking at
+        the DB / user existence separately.
+
+        To keep the API simple, we return `None` and the route
+        treats "no exception" as success.
+        """
+        async for session in get_db_sqlite():
+            user_stmt = select(User).where(
+                User.id == user_id,
+                User.is_delete.is_(False),
+            )
+            user = (await session.execute(user_stmt)).scalar_one_or_none()
+            if user is None:
+                return None
+
+            user.home_page_id = None
+            await session.commit()
+            cls._log(log, "info", f"user {user_id}: home page cleared")
+            return None
+
+        return None
 
     # ========================================
     # ADD
@@ -281,6 +409,50 @@ class CoreEngineLibBaseProfileDomainService:
             await session.commit()
             return True
         return False
+
+    # ========================================
+    # PAGES (for the home-page selector)
+    # ========================================
+
+    @staticmethod
+    async def _list_pages_for_user(user_id: int) -> List[CoreEngineLibBaseProfileDomainPageItem]:
+        """
+        Return the user's pages in `datetime ASC` order, ready for
+        the "Главная страница" selector.
+
+        Scope:
+          - all pages of all of the user's non-deleted navs;
+          - `is_delete = 0`.
+
+        Each item carries the pre-built public URL
+        (/page/<nav_id>/<YYYYMMDD>/<HHMMSS>), so the frontend does
+        not have to assemble it.
+        """
+        items: List[CoreEngineLibBaseProfileDomainPageItem] = []
+
+        async for session in get_db_sqlite():
+            stmt = (
+                select(Page)
+                .join(Nav, Nav.id == Page.nav_id)
+                .where(
+                    Nav.user_id == user_id,
+                    Nav.is_delete.is_(False),
+                    Page.is_delete == 0,
+                )
+                .order_by(Page.datetime.asc(), Page.id.asc())
+            )
+            rows = (await session.execute(stmt)).scalars().all()
+
+            for page in rows:
+                items.append(CoreEngineLibBaseProfileDomainPageItem(
+                    id=page.id,
+                    title=page.title or f"Страница #{page.id}",
+                    datetime=page.datetime.isoformat() if page.datetime else None,
+                    url=_page_public_url(page.nav_id, page.datetime),
+                ))
+            break
+
+        return items
 
     # ========================================
     # SUBDOMAIN
@@ -504,3 +676,25 @@ class CoreEngineLibBaseProfileDomainService:
             await session.commit()
             return True
         return False
+
+
+# ============================================
+# HELPERS (module-level)
+# ============================================
+
+def _page_public_url(nav_id: int, page_dt) -> str:
+    """
+    Build the public page URL:
+        /page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+
+    Same format used by utils/routes.py when redirecting from a
+    user subdomain, and by the editor when it opens an article.
+    """
+    if page_dt is None:
+        # Defensive fallback — page.datetime is NOT NULL in the model,
+        # so this branch should never fire. If it does, return a path
+        # that at least hits the catalog rather than 500.
+        return "/core/engine/pages"
+    date = page_dt.strftime("%Y%m%d")
+    time = page_dt.strftime("%H%M%S")
+    return f"/page/{nav_id}/{date}/{time}"

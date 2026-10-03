@@ -22,6 +22,12 @@
  *
  * All styles are scoped under .core-engine-lib-base-cards-edit.
  * No global .btn / .core-engine-lib-base-btn classes are used.
+ *
+ * Z-index scale (project-wide):
+ *   1000 — content modals (BaseCardsEdit, BaseAssets)
+ *   1100 — dialogs on top (BaseModalConfirm, BaseModalMessage)
+ * Do NOT use 4-5 digit values. If you think you need a higher
+ * value, you are fighting a sibling element — fix the root cause.
  */
 
 /* ============================================ */
@@ -37,7 +43,7 @@
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 20000;
+    z-index: 1000;
     pointer-events: none;
 }
 

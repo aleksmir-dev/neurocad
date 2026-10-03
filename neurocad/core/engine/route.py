@@ -59,6 +59,58 @@ DEBUG = settings.DEBUG
 
 
 # ============================================
+# AUTH HELPERS
+# ============================================
+
+async def _extract_current_user(request: Request):
+    """
+    Resolve the current authenticated user from the request.
+
+    `CoreAuthDependencies.get_current_user` is a FastAPI dependency:
+    calling it directly leaves `Depends(security)` unresolved. We
+    work around that by passing `credentials=None` explicitly — the
+    function reads the token from the Authorization header or the
+    `access_token` cookie via `get_token_from_request(request)`, so
+    the `credentials` argument is not used anyway.
+
+    Returns the user object (may be an ORM model or a dict) or None.
+    Never raises — auth failures are treated as "guest".
+    """
+    try:
+        from neurocad.core.auth.dependencies import CoreAuthDependencies
+
+        return await CoreAuthDependencies.get_current_user(
+            request=request,
+            credentials=None,
+        )
+    except HTTPException:
+        # 401 from the dependency — guest.
+        return None
+    except Exception as e:
+        print(f"[Engine] auth extraction failed: {e}")
+        return None
+
+
+def _user_id_from(user) -> int | None:
+    """
+    Extract the user id from either a dict or an ORM model.
+
+    `get_current_user` is annotated -> Dict, but the underlying
+    service returns an ORM User. Accept both shapes.
+    """
+    if user is None:
+        return None
+    if isinstance(user, dict):
+        v = user.get("id")
+    else:
+        v = getattr(user, "id", None)
+    try:
+        return int(v) if v is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+# ============================================
 # UTILITIES
 # ============================================
 
@@ -484,12 +536,12 @@ async def engine_module(request: Request, module_path: str):
         # Fall back to the current user's first nav.
         try:
             from sqlalchemy import select
-            from neurocad.core.auth.dependencies import get_current_user
             from neurocad.core.models.nav import Nav
             from neurocad.utils.sqlite import get_db_sqlite
 
-            current_user = await get_current_user(request)
-            user_id = current_user.get("id") if isinstance(current_user, dict) else None
+            current_user = await _extract_current_user(request)
+            user_id = _user_id_from(current_user)
+
             if user_id:
                 async for session in get_db_sqlite():
                     stmt = (

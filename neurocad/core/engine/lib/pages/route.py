@@ -32,18 +32,17 @@ async def _resolve_nav_id(
     Resolve the nav instance for the current request.
 
     Priority:
-      1. Explicit nav_id (from query / path) — used as-is.
+      1. Explicit nav_id — used ONLY if it belongs to the current
+         user (or the user is a superadmin). If it does not belong
+         to the user, we silently fall back to the user's own nav.
+         This keeps the UX clean: no 403s, no error pages, the user
+         always sees their own catalog.
       2. First nav of the current user (ORDER BY id ASC, is_delete=0).
 
     Raises:
-        401 if there is no authenticated user and no explicit nav_id.
+        401 if there is no authenticated user.
         404 if the current user has no nav at all.
     """
-    if explicit_nav_id is not None:
-        return explicit_nav_id
-
-    # Use the already-resolved user when the endpoint depends on it;
-    # otherwise, resolve from the request.
     if current_user is None:
         current_user = await get_current_user(request)
 
@@ -51,7 +50,30 @@ async def _resolve_nav_id(
     if user_id is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
+    is_superadmin = (
+        current_user.get("is_superadmin") is True
+        or current_user.get("is_superadmin") == 1
+        or current_user.get("is_superadmin") == "1"
+    )
+
     async for session in get_db_sqlite():
+        # ---- 1. Explicit nav_id — accept only if it belongs to the user ----
+        if explicit_nav_id is not None:
+            if is_superadmin:
+                return explicit_nav_id
+
+            stmt = select(Nav).where(
+                Nav.id == explicit_nav_id,
+                Nav.user_id == user_id,
+                Nav.is_delete == False,
+            )
+            nav = (await session.execute(stmt)).scalar_one_or_none()
+            if nav is not None:
+                return nav.id
+
+            # Foreign nav — silently fall through to the user's own nav.
+
+        # ---- 2. Fallback: current user's first nav ----
         stmt = (
             select(Nav)
             .where(Nav.user_id == user_id, Nav.is_delete == False)

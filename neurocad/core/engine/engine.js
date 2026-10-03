@@ -8,6 +8,12 @@
  *   - load renderer / binder / config / components
  *   - expose shared utilities (loadCSS, fetchJson, auth, base)
  *   - orchestrate the initial render + bind
+ *
+ * engine.js is a GENERIC loader: it does NOT know about any
+ * specific module (auth, profile, word, ...). Anything that a
+ * module needs from the URL travels down as generic query params
+ * in `props.params` — the module itself decides what to do with
+ * them.
  */
 class CoreEngine {
     constructor(moduleName) {
@@ -84,12 +90,17 @@ class CoreEngine {
         this.authRequired = document.body.dataset.authRequired === 'true';
         this.authRedirect = document.body.dataset.authRedirect || null;
 
-        // ===== Auth form =====
-        // If the template asked for a specific auth form
-        // (login / register / profile / password / restore),
-        // it comes in via <body data-auth-form="...">. It is
-        // forwarded to Base, which opens the right BaseAuth form.
-        this.authForm = document.body.dataset.authForm || null;
+        // ===== Query params =====
+        // All GET parameters from the URL, forwarded as-is to every
+        // component via props.params. engine.js does not interpret
+        // them — that is the job of the component that owns the
+        // feature (e.g. Base reads `auth` and `section` for the
+        // profile). This keeps engine.js free of any module-specific
+        // knowledge: adding a new module with its own query params
+        // never requires touching this file.
+        this.params = Object.fromEntries(
+            new URLSearchParams(window.location.search)
+        );
 
         // ===== Nav instance =====
         // If the template set data-nav-id (e.g. on page-view URLs
@@ -101,7 +112,7 @@ class CoreEngine {
             : null;
 
         console.log('[CoreEngine] authRequired:', this.authRequired);
-        console.log('[CoreEngine] authForm:', this.authForm);
+        console.log('[CoreEngine] params:', this.params);
         console.log('[CoreEngine] navId:', this.navId);
         console.log('[CoreEngine] Calling init()...');
 
@@ -123,7 +134,8 @@ class CoreEngine {
             await this.loadConfig();
             console.log('[CoreEngine] Config loaded:', this.config);
 
-            if (this.authRequired || this.authForm || this.navId != null) {
+            const hasParams = Object.keys(this.params).length > 0;
+            if (this.authRequired || hasParams || this.navId != null) {
                 console.log('[CoreEngine] Injecting runtime props...');
                 this._injectRuntimeProps(this.config);
             }
@@ -176,35 +188,43 @@ class CoreEngine {
     /**
      * Inject runtime-only props into the config before rendering.
      *
-     * Runtime props come from <body data-*> attributes and are not
-     * part of the static config on disk:
+     * Runtime props fall into two categories:
      *
-     *   - authRequired   → Base
-     *   - authRedirect   → Base
-     *   - auth_form      → Base (opens a specific auth form)
-     *   - nav_id         → Word, Pages, and any other component
-     *                       that needs to scope API calls to a nav
+     *   1. System flags read from <body data-*>:
+     *        - authRequired   → Base
+     *        - authRedirect   → Base
+     *        - nav_id         → Word, Pages, and any other component
+     *                            that needs to scope API calls to a nav
+     *
+     *   2. Generic query params from the URL, forwarded as-is:
+     *        - params         → any component that owns a feature
+     *                            keyed by a query param (e.g. Base
+     *                            reads `auth` and `section`).
      *
      * The WHOLE component tree is walked (root + every nested
      * component in `config.components`), so that child components
-     * like `pages` and `word` also receive `nav_id`. Components
-     * that do not understand a given prop simply ignore it.
+     * like `pages` and `word` also receive `nav_id` and `params`.
+     * Components that do not understand a given prop simply ignore it.
      */
     _injectRuntimeProps(config) {
         if (!config) return;
 
+        const hasParams = Object.keys(this.params).length > 0;
+
         const injectInto = (obj) => {
-            // Auth
+            // Auth flags (system-level)
             obj.authRequired = this.authRequired;
             if (this.authRedirect) {
                 obj.authRedirect = this.authRedirect;
             }
-            if (this.authForm) {
-                obj.auth_form = this.authForm;
-            }
-            // Nav scoping
+            // Nav scoping (system-level)
             if (this.navId != null) {
                 obj.nav_id = this.navId;
+            }
+            // Generic query params — merged into any existing params
+            // the component may already carry from its config.
+            if (hasParams) {
+                obj.params = { ...(obj.params || {}), ...this.params };
             }
         };
 

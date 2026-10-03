@@ -2,7 +2,71 @@
 
 /**
  * Base component — application shell.
- * Renders page structure and manages block visibility.
+ *
+ * Responsibilities:
+ *   - render the shell (header, area-left/center/right, footer);
+ *   - load the auth / modal / caption modules;
+ *   - react to auth state changes (auth:changed, auth:unauthorized);
+ *   - load and render the page config components into area-center.
+ *
+ * Delegated concerns (loaded dynamically in _loadModules):
+ *   - areas.js        → BaseAreas         (renderInArea / teardownAreas / side areas)
+ *   - pages.js        → BasePages         (showProfile / showSetup / showAuthPage)
+ *   - chat.js         → BaseChatController (chat panel lifecycle)
+ *
+ * Public API kept stable for external callers (auth.js, menu.js, …):
+ *   base.renderInArea(ComponentClass, options)
+ *   base.teardownAreas()
+ *   base.showProfile(section)
+ *   base.showSetup(section)
+ *   base.openChat() / base.closeChat()
+ *
+ * Runtime params:
+ *   Generic query params from the URL are forwarded by CoreEngine
+ *   as `props.params`. Base interprets the ones it owns:
+ *
+ *     - `auth`    — which AUTH form to open (login / register /
+ *                   restore / password). Strictly authentication.
+ *
+ *     - `page`    — which APP page to open (profile / setup).
+ *
+ *     - `section` — a sub-page inside `page`:
+ *                     page=profile → section=balance / domain / ...
+ *                     page=setup   → section=llm / ...
+ *
+ *   `auth` and `page` are independent:
+ *
+ *     ?auth=login                            → login form
+ *     ?auth=register                         → register form
+ *     ?page=profile                          → profile landing
+ *     ?page=profile&section=balance          → profile → balance
+ *     ?page=setup                            → setup landing
+ *     ?page=setup&section=llm                → setup → llm
+ *
+ *   `<body data-auth-form>` / `<body data-page>` /
+ *   `<body data-section>` are kept as fallbacks for server-rendered
+ *   pages that do not go through the URL query at all.
+ *
+ * Reload after login
+ * ------------------
+ * After a successful login (auth:changed with isAuthenticated=true)
+ * the page is fully reloaded. This is deliberate:
+ *
+ *   - `<body data-nav-id>` is rendered by the SERVER, before login.
+ *     After logout + login (without a reload) it still carries the
+ *     value from the pre-login render — which may be empty, or the
+ *     previous user's nav. Word/Pages then build article URLs like
+ *     /core/engine/admin/page/<date>/<time> instead of
+ *     /core/engine/admin/page/<nav_id>/<date>/<time>, and the page
+ *     fails to load.
+ *
+ *   - A full reload re-renders the shell with the new session, so
+ *     data-nav-id (and any other server-driven data-* attribute)
+ *     matches the authenticated user.
+ *
+ * The reload happens ONLY when the URL has no ?auth= left. If the
+ * URL still carries ?auth=<form>, it is first stripped and the
+ * navigation itself reloads the page — one reload per login.
  */
 export class Base {
     constructor(container, props = {}) {
@@ -13,7 +77,28 @@ export class Base {
         this.showChat = props.showChat === true;
         this.authRequired = props.authRequired || false;
         this.authRedirect = props.authRedirect || null;
-        this.authForm = props.auth_form || null;
+
+        // Query params forwarded by engine.js as-is. Base interprets
+        // the ones it owns (auth, page, section). Fallbacks read the
+        // <body data-*> attributes set by the server-rendered page.
+        this.params = props.params || {};
+
+        // `auth` — which AUTH form to open (login / register /
+        // restore / password). Strictly authentication; not profile.
+        this.authForm = this.params.auth
+            || document.body.dataset.authForm
+            || null;
+
+        // `page` — which APP page to open (profile / setup).
+        this.page = this.params.page
+            || document.body.dataset.page
+            || null;
+
+        // `section` — a sub-page inside `page`.
+        this.section = this.params.section
+            || document.body.dataset.section
+            || null;
+
         this.content = props.content || null;
         this.components = props.components || [];
 
@@ -39,6 +124,11 @@ export class Base {
         // Not the same as childComponents — those come from the config.
         this.areaInstance = null;
 
+        // Delegated managers — created in _loadModules().
+        this.areas = null;
+        this.pages = null;
+        this.chatController = null;
+
         // Init state
         this._initialized = false;
         this._initPromise = null;
@@ -47,8 +137,6 @@ export class Base {
         this._isAuthenticating = false;
 
         // Caption helpers (loaded in _loadModules).
-        // Used by pages rendered into area-center (setup, profile, ...)
-        // to swap the header title while they are on screen.
         this._setCaption = null;
         this._restoreCaption = null;
 
@@ -109,11 +197,17 @@ export class Base {
                 { BaseAuth },
                 { createModal },
                 { setCaption, restoreCaption },
+                { BaseAreas },
+                { BasePages },
+                { BaseChatController },
             ] = await Promise.all([
                 import(`./header.js?v=${version}`),
                 import(`./auth/auth.js?v=${version}`),
                 import(`./modal/index.js?v=${version}`),
                 import(`./caption.js?v=${version}`),
+                import(`./areas.js?v=${version}`),
+                import(`./pages.js?v=${version}`),
+                import(`./chat.js?v=${version}`),
             ]);
 
             this.modules.Header = Header;
@@ -121,9 +215,17 @@ export class Base {
             this.modules.createModal = createModal;
             this.modules.setCaption = setCaption;
             this.modules.restoreCaption = restoreCaption;
+            this.modules.BaseAreas = BaseAreas;
+            this.modules.BasePages = BasePages;
+            this.modules.BaseChatController = BaseChatController;
 
             this._setCaption = setCaption;
             this._restoreCaption = restoreCaption;
+
+            // Delegated managers.
+            this.areas = new BaseAreas(this);
+            this.pages = new BasePages(this);
+            this.chatController = new BaseChatController(this);
 
             this.header = new Header({
                 logoText: this.props.logoText || '⚡ Нейрокад',
@@ -146,21 +248,16 @@ export class Base {
         const { BaseAuth } = this.modules;
 
         if (this.showChat) {
-            await this._initChat();
+            await this.chatController.init();
         }
 
         this.auth = new BaseAuth();
 
-        // Pass caption helpers down to auth — auth forms (login /
-        // register / restore / password / profile) need them too.
         this.auth.setCaption = this._setCaption;
         this.auth.restoreCaption = this._restoreCaption;
 
         if (window.coreEngine) {
             window.coreEngine.auth = this.auth;
-            // Base owns area-center. Register self so auth / menu /
-            // other components can render pages into area-center
-            // via the shared renderInArea() method.
             window.coreEngine.base = this;
         }
 
@@ -179,33 +276,62 @@ export class Base {
             }
 
             if (isAuthenticated) {
-                // Unblock renderContent after successful login
-                this._isAuthenticating = false;
-                this.renderContent();
+                // If the URL still carries ?auth=<form> (from a shareable
+                // register/login link), strip it and do a full reload to
+                // the clean URL. This mirrors a normal link navigation:
+                //   - the URL no longer contains the auth marker,
+                //   - pressing F5 loads the real page instead of the form.
+                try {
+                    const u = new URL(window.location.href);
+                    if (u.searchParams.has('auth')) {
+                        u.searchParams.delete('auth');
+                        console.log('[Base] hard redirect to clean URL:', u.toString());
+                        window.location.replace(u.toString());
+                        return;   // page is reloading
+                    }
+                } catch (err) {
+                    console.warn('[Base] failed to strip ?auth= from URL:', err);
+                }
+
+                // No ?auth= left in the URL — but the page still carries
+                // the HTML from BEFORE login. In particular,
+                // `<body data-nav-id>` was rendered for the guest session
+                // and is empty (or holds the previous user's nav after
+                // logout+login without a reload). Word/Pages then build
+                // article URLs without the /page/<nav_id>/ segment, and
+                // the article fails to load.
+                //
+                // Do a full reload so the server re-renders the shell
+                // for the authenticated user: data-nav-id, data-auth-form
+                // and every other server-driven data-* attribute will
+                // match the new session.
+                //
+                // This runs once per login. If ?auth= was present, the
+                // branch above already returned and the navigation itself
+                // reloads the page — no double reload.
+                console.log('[Base] auth:changed → full reload for fresh server render');
+                window.location.reload();
+                return;
             }
+
             if (isAuthenticated && this.authRequired) {
                 this.onAuthSuccess();
             }
         });
 
         // ===== React to unauthorized access (401) =====
-        //
-        // 401 means the session is gone — we cannot save anything,
-        // so we tear down the active page immediately, without the
-        // confirmClose() dialog.
         document.addEventListener('auth:unauthorized', () => {
             console.log('[Base] auth:unauthorized — tearing down the active page');
 
-            // Block renderContent so Nav/Cards don't render over the login form.
             this._isAuthenticating = true;
 
             try {
-                this._destroyAreaInstance();
+                this.areas._destroyAreaInstance();
             } catch (e) {
                 console.warn('[Base] auth:unauthorized: _destroyAreaInstance error:', e);
             }
             try {
-                this._clearSideAreas();
+                this.areas._clearSideAreas();
             } catch (e) {
                 console.warn('[Base] auth:unauthorized: _clearSideAreas error:', e);
             }
@@ -223,17 +349,16 @@ export class Base {
             this.header.setUser(isAuthenticated ? user : null);
         }
 
-        // ===== Config asked for a specific auth form =====
-        // If the config (or the route) set auth_form, open that form
-        // instead of the regular page content. `return` is important:
-        // it stops _initAuth() before renderContent() clears area-center.
+        // ===== 1. Auth form requested =====
+        // Comes from ?auth=<form> (via props.params.auth) or from
+        // <body data-auth-form>. Only login / register / restore /
+        // password — `profile` is not an auth form anymore.
         if (this.authForm) {
             const map = {
                 login:    () => this.auth.showLogin(),
                 register: () => this.auth.showRegister(),
                 restore:  () => this.auth.showRestore(),
                 password: () => this.auth.showPassword(),
-                profile:  () => this.auth.showProfile(),
             };
             const fn = map[this.authForm];
             if (fn) {
@@ -243,12 +368,35 @@ export class Base {
                 document.body.style.flexDirection = 'column';
                 return;
             }
-            console.warn('[Base] Unknown auth_form:', this.authForm);
+            console.warn('[Base] Unknown auth form:', this.authForm);
         }
 
+        // ===== 2. App page requested =====
+        // Comes from ?page=<name> (via props.params.page) or from
+        // <body data-page>. profile / setup. If the user is not
+        // authenticated, the login form is shown instead; once the
+        // user logs in, the reload (see auth:changed) re-runs the
+        // whole init with the session in place.
+        if (this.page) {
+            if (!isAuthenticated) {
+                console.log('[Base] page requested but not authenticated — showing login');
+                this._isAuthenticating = true;
+                this.auth.showLogin();
+                document.body.style.display = 'flex';
+                document.body.style.flexDirection = 'column';
+                return;
+            }
+
+            document.body.style.display = 'flex';
+            document.body.style.flexDirection = 'column';
+            this._openPage(this.page, this.section);
+            return;
+        }
+
+        // ===== 3. Default flow =====
         if (this.authRequired) {
             if (!isAuthenticated) {
-                this.showAuthPage();
+                this.pages.showAuthPage();
             } else {
                 this.renderContent();
             }
@@ -264,51 +412,27 @@ export class Base {
         document.body.style.flexDirection = 'column';
     }
 
-    async _initChat() {
-        console.log('[Base] _initChat()');
-        const version = window.coreEngine?.static_version || Date.now();
+    /**
+     * Open an app page (profile / setup) with an optional section.
+     *
+     * Centralises the page → BasePages mapping so both _initAuth()
+     * and the auth:changed handler stay in sync.
+     *
+     * @param {string} page — 'profile' | 'setup'
+     * @param {string|null} section — sub-page inside `page`
+     */
+    _openPage(page, section = null) {
+        console.log('[Base] _openPage()', { page, section });
 
-        const href = `/static/core/engine/lib/base/chat/chat.css?v=${version}`;
-        const existing = document.querySelector(`link[href="${href}"]`);
-        if (!existing) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = href;
-            document.head.appendChild(link);
+        if (page === 'profile') {
+            this.showProfile(section || 'main');
+            return;
         }
-
-        try {
-            const module = await import(`./chat/chat.js?v=${version}`);
-            this.chat = new module.BaseChat();
-            this._updateChatMode();
-            this._chatMediaQuery = window.matchMedia('(min-width: 1024px)');
-            this._chatMediaQuery.addEventListener('change', () => {
-                this._updateChatMode();
-            });
-        } catch (error) {
-            console.error('[Base] Chat load error:', error);
+        if (page === 'setup') {
+            this.showSetup(section || 'main');
+            return;
         }
-    }
-
-    _updateChatMode() {
-        if (!this.chat) return;
-        const isDesktop = window.innerWidth >= 1024;
-        if (isDesktop && this.showRight && this.showChat) {
-            if (this.rightEl) {
-                this.chat.attach(this.rightEl);
-            }
-        } else if (this.showChat) {
-            if (this.chat.isSidebarMode) {
-                if (this.chat.container && this.chat.container.parentNode) {
-                    this.chat.container.remove();
-                    document.body.appendChild(this.chat.container);
-                }
-                this.chat.isSidebarMode = false;
-                this.chat.container.classList.remove('sidebar-mode');
-                this.chat.container.classList.add('hidden');
-                this.chat.container.style.display = 'none';
-            }
-        }
+        console.warn('[Base] Unknown page:', page);
     }
 
     _updateAuthUI(user, isAuthenticated) {
@@ -333,97 +457,80 @@ export class Base {
         }
     }
 
+    // ============================================
+    // PUBLIC DELEGATES — area / pages / chat
+    // ============================================
+
     /**
-     * Destroy the active area-center page (Word, Setup, etc.).
-     *
-     * Called when the user is unauthorized — the page no longer makes
-     * sense, and any editor it holds must be shut down (this is what
-     * actually clears area-left / area-right for Word).
+     * Mount a component into area-center. Delegates to BaseAreas.
+     * Kept here so external callers (auth.js, menu.js) don't change.
      */
-    _destroyAreaInstance() {
-        if (!this.areaInstance) return;
-
-        try {
-            if (typeof this.areaInstance.destroy === 'function') {
-                this.areaInstance.destroy();
-            }
-        } catch (e) {
-            console.warn('[Base] areaInstance destroy error:', e);
+    renderInArea(ComponentClass, options = {}) {
+        if (!this.areas) {
+            console.warn('[Base] renderInArea called before init');
+            return null;
         }
-
-        this.areaInstance = null;
+        return this.areas.renderInArea(ComponentClass, options);
     }
 
     /**
-     * Hide and clear area-left / area-right.
-     *
-     * Safety net for pages that don't clean up after themselves.
-     * For Word, Editor.destroy() already clears them — this is a no-op.
+     * Destroy the active area-center page (with confirmClose) and
+     * clear side areas. Delegates to BaseAreas.
      */
-    _clearSideAreas() {
-        if (this.leftEl) {
-            this.leftEl.innerHTML = '';
-            this.leftEl.style.display = 'none';
-        }
-        if (this.rightEl) {
-            this.rightEl.innerHTML = '';
-            this.rightEl.style.display = 'none';
-        }
+    teardownAreas() {
+        if (!this.areas) return true;
+        return this.areas.teardownAreas();
     }
 
     /**
-     * Restore side areas visibility (they may have been hidden on 401).
+     * Open a profile page. Delegates to BasePages.
      */
-    _restoreSideAreas() {
-        if (this.leftEl) {
-            this.leftEl.style.display = this.showLeft ? 'flex' : 'none';
+    showProfile(section = 'main') {
+        if (!this.pages) {
+            console.warn('[Base] showProfile called before init');
+            return null;
         }
-        if (this.rightEl) {
-            this.rightEl.style.display = this.showRight ? 'flex' : 'none';
-        }
+        return this.pages.showProfile(section);
     }
 
     /**
-     * Public teardown for area-left / area-right + active area-center page.
-     *
-     * Called by auth (showLogin / showProfile / ...) and by showSetup
-     * when they replace area-center with their own content. Without this,
-     * the previous page's side panels (Word editor: styles / blocks /
-     * presets / chat) stay visible behind the new page.
-     *
-     * ASYNC: if the active page (Word) has unsaved changes, it may ask
-     * the user via confirmClose(). Returns:
-     *   true  — proceed with the teardown (page destroyed).
-     *   false — user cancelled; the active page was NOT destroyed and
-     *           the caller must abort the navigation.
+     * Open a setup page (superadmin only). Delegates to BasePages.
      */
-    async teardownAreas() {
-        // If the active page wants to confirm before closing — ask.
-        if (this.areaInstance?.confirmClose) {
-            try {
-                const choice = await this.areaInstance.confirmClose();
-                if (choice === 'cancel') {
-                    console.log('[Base] teardownAreas cancelled by user');
-                    return false;
-                }
-            } catch (e) {
-                console.warn('[Base] confirmClose error:', e);
-            }
+    showSetup(section = 'main') {
+        if (!this.pages) {
+            console.warn('[Base] showSetup called before init');
+            return null;
         }
-
-        try {
-            this._destroyAreaInstance();
-        } catch (e) {
-            console.warn('[Base] teardownAreas: _destroyAreaInstance error:', e);
-        }
-        try {
-            this._clearSideAreas();
-        } catch (e) {
-            console.warn('[Base] teardownAreas: _clearSideAreas error:', e);
-        }
-
-        return true;
+        return this.pages.showSetup(section);
     }
+
+    /**
+     * Show the auth fallback page. Delegates to BasePages.
+     */
+    showAuthPage() {
+        if (!this.pages) return;
+        return this.pages.showAuthPage();
+    }
+
+    /**
+     * Open the chat panel. Delegates to BaseChatController.
+     */
+    openChat() {
+        if (!this.chatController) return;
+        this.chatController.open();
+    }
+
+    /**
+     * Close the chat panel. Delegates to BaseChatController.
+     */
+    closeChat() {
+        if (!this.chatController) return;
+        this.chatController.close();
+    }
+
+    // ============================================
+    // RENDER CONTENT
+    // ============================================
 
     async renderContent() {
         console.log('[Base] renderContent()');
@@ -434,7 +541,9 @@ export class Base {
         }
 
         // Restore side areas visibility (they may have been hidden on 401).
-        this._restoreSideAreas();
+        if (this.areas) {
+            this.areas._restoreSideAreas();
+        }
 
         const center = document.querySelector('.core-engine-lib-base-area-center');
         if (!center) {
@@ -452,13 +561,11 @@ export class Base {
         console.log('[Base] components:', this.components);
         console.log('[Base] content:', this.content);
 
-        // ===== STEP 1: render components into a hidden staging area,
-        // so their live DOM isn't destroyed when we assemble the final HTML =====
+        // ===== STEP 1: render components into a hidden staging area =====
         const staging = document.createElement('div');
         staging.style.display = 'none';
         document.body.appendChild(staging);
 
-        // Destroy previous instances on re-render
         if (this.childComponents && this.childComponents.length) {
             for (const inst of this.childComponents) {
                 try {
@@ -481,7 +588,6 @@ export class Base {
                     if (element) {
                         componentElements[alias] = element;
 
-                        // If renderer put the instance into __instance — keep it
                         if (element.__instance) {
                             this.childComponents.push(element.__instance);
                         }
@@ -496,7 +602,7 @@ export class Base {
             }
         }
 
-        // ===== STEP 2: assemble final DOM, inserting LIVE elements instead of {{alias}} =====
+        // ===== STEP 2: assemble final DOM =====
         center.innerHTML = '';
 
         if (this.content) {
@@ -510,7 +616,6 @@ export class Base {
                 template.innerHTML = html;
                 const fragment = template.content;
 
-                // Find all text nodes containing {{...}}
                 const walker = document.createTreeWalker(
                     fragment,
                     NodeFilter.SHOW_TEXT,
@@ -557,7 +662,7 @@ export class Base {
             }
         }
 
-        // ===== STEP 3: components without a marker — append at the end of center =====
+        // ===== STEP 3: components without a marker =====
         for (const [alias, element] of Object.entries(componentElements)) {
             if (element) {
                 console.log('[Base] Appending unused component to DOM:', alias);
@@ -568,25 +673,6 @@ export class Base {
         staging.remove();
 
         console.log('[Base] renderContent() complete');
-    }
-
-    showAuthPage() {
-        console.log('[Base] showAuthPage()');
-        const center = document.querySelector('.core-engine-lib-base-area-center');
-        if (!center) return;
-
-        this.savedContent = center.innerHTML;
-
-        if (this.authRedirect) {
-            this.redirectUrl = this.authRedirect;
-        } else {
-            this.redirectUrl = window.location.pathname;
-        }
-        sessionStorage.setItem('auth_redirect_url', this.redirectUrl);
-
-        if (this.auth) {
-            this.auth.showPage(center);
-        }
     }
 
     onAuthSuccess() {
@@ -659,232 +745,10 @@ export class Base {
         } else if (action === 'logout') {
             if (this.auth) this.auth.logout();
         } else if (action === 'profile') {
-            if (this.auth) this.auth.showProfile();
+            // Profile is an APP page, not an auth form. Open it via
+            // the public delegate so it goes through BasePages.
+            this.showProfile('main');
         }
-    }
-
-    /**
-     * Render a component into area-center.
-     *
-     * Used by auth (login/register/profile), setup pages, and any other
-     * page that replaces the whole center area with its own content.
-     *
-     * Destroys the previous areaInstance (if any) before rendering a new one.
-     * The instance is tracked in this.areaInstance — separate from
-     * childComponents (which come from the config and are destroyed in
-     * renderContent()).
-     *
-     * ASYNC: teardownAreas() may ask the user (confirmClose) before
-     * destroying the previous page. If the user cancels — returns null
-     * and does NOT render the new component.
-     *
-     * @param {Function} ComponentClass — component constructor
-     * @param {Object} options          — props passed to the constructor
-     * @returns {Promise<Object|null>}  — component instance, or null
-     *                                    if the user cancelled the
-     *                                    previous page's close.
-     */
-    async renderInArea(ComponentClass, options = {}) {
-        console.log('[Base] renderInArea()');
-
-        const center = document.querySelector('.core-engine-lib-base-area-center');
-        if (!center) {
-            console.error('[Base] area-center not found');
-            return null;
-        }
-
-        // Destroy previous page instance and clear side areas.
-        // Some pages (auth profile, setup) replace the whole area-center
-        // and don't want the previous page's panels (Word editor) visible.
-        //
-        // This may show the "save before close?" dialog — if the user
-        // cancels, we abort and do NOT render the new component.
-        const proceed = await this.teardownAreas();
-        if (!proceed) {
-            console.log('[Base] renderInArea cancelled by user');
-            return null;
-        }
-
-        center.innerHTML = '';
-
-        let instance;
-        try {
-            instance = new ComponentClass(options);
-
-            if (instance._initPromise) {
-                await instance._initPromise;
-            }
-
-            const element = await instance.render();
-            center.appendChild(element);
-
-            if (typeof instance.bindEvents === 'function') {
-                instance.bindEvents(center);
-            }
-        } catch (e) {
-            console.error('[Base] renderInArea error:', e);
-            center.innerHTML = `
-                <div style="padding:40px;text-align:center;color:#dc2626;">
-                    <div style="font-size:32px;margin-bottom:12px;">❌</div>
-                    <div>Не удалось загрузить страницу</div>
-                </div>
-            `;
-            return null;
-        }
-
-        this.areaInstance = instance;
-        return instance;
-    }
-
-    /**
-     * Open a setup page in area-center.
-     *
-     * Available to superadmin only. The guard is checked here (server-side
-     * permissions are enforced on the API endpoints).
-     *
-     * Two sections, two separate components:
-     *   - 'main' → setup/setup.js   (BaseSetup)     — setup landing page
-     *   - 'llm'  → setup/llm/llm.js (BaseSetupLlm)  — LLM settings page
-     *
-     * Each component navigates back via onNavigate(section).
-     *
-     * ASYNC: if the active page (Word) has unsaved changes, the user
-     * is asked via teardownAreas() → confirmClose(). If the user
-     * cancels — nothing is rendered and the editor stays open.
-     *
-     * @param {string} section — 'main' (default) or 'llm'
-     */
-    async showSetup(section = 'main') {
-        console.log('[Base] showSetup()', section);
-
-        const user = this.auth?.getUser?.();
-        const isSuperadmin = user?.is_superadmin === true;
-        if (!isSuperadmin) {
-            console.warn('[Base] showSetup: access denied (not superadmin)');
-            return;
-        }
-
-        // Tear down area-center + area-left / area-right.
-        // Note: renderInArea() also calls teardownAreas(), but we do it
-        // here too because the import below may fail — in that case the
-        // editor panels must already be gone.
-        //
-        // If the user cancels the confirmClose() dialog, we must abort
-        // before touching the setup import — otherwise the editor would
-        // already be gone but no setup page is shown.
-        const proceed = await this.teardownAreas();
-        if (!proceed) {
-            console.log('[Base] showSetup cancelled by user');
-            return;
-        }
-
-        const version = window.coreEngine?.static_version || Date.now();
-
-        let ComponentClass = null;
-        try {
-            if (section === 'llm') {
-                const mod = await import(`./setup/llm/llm.js?v=${version}`);
-                ComponentClass = mod.BaseSetupLlm;
-            } else {
-                const mod = await import(`./setup/setup.js?v=${version}`);
-                ComponentClass = mod.BaseSetup;
-            }
-        } catch (err) {
-            console.error('[Base] showSetup import error:', err);
-            return;
-        }
-
-        if (!ComponentClass) {
-            console.error('[Base] showSetup: component class not found for section', section);
-            return;
-        }
-
-        await this.renderInArea(ComponentClass, {
-            section,
-            user,
-            setCaption: this._setCaption,
-            restoreCaption: this._restoreCaption,
-            onNavigate: (nextSection) => this.showSetup(nextSection),
-        });
-    }
-
-    /**
-     * Open a profile page in area-center.
-     *
-     * Available to any authenticated user (no superadmin check).
-     *
-     * Three sections, three separate components:
-     *   - 'main'    → profile/profile.js          (BaseProfile)
-     *   - 'balance' → profile/balance/balance.js  (BaseProfileBalance)
-     *   - 'domain'  → profile/domain/domain.js    (BaseProfileDomain)
-     *
-     * Password change is NOT a profile section — it lives in
-     * auth/password.js and is opened directly via auth.showPassword()
-     * from the profile landing page.
-     *
-     * Each component navigates back via onNavigate(section).
-     *
-     * ASYNC: if the active page (Word) has unsaved changes, the user
-     * is asked via teardownAreas() → confirmClose(). If the user
-     * cancels — nothing is rendered and the editor stays open.
-     *
-     * @param {string} section — 'main' (default), 'balance' or 'domain'
-     */
-    async showProfile(section = 'main') {
-        console.log('[Base] showProfile()', section);
-
-        const user = this.auth?.getUser?.();
-        if (!user) {
-            console.warn('[Base] showProfile: access denied (not authenticated)');
-            if (this.auth) this.auth.showLogin();
-            return;
-        }
-
-        // Tear down area-center + area-left / area-right.
-        // Note: renderInArea() also calls teardownAreas(), but we do it
-        // here too because the import below may fail — in that case the
-        // editor panels must already be gone.
-        //
-        // If the user cancels the confirmClose() dialog, we must abort
-        // before touching the profile import — otherwise the editor
-        // would already be gone but no profile page is shown.
-        const proceed = await this.teardownAreas();
-        if (!proceed) {
-            console.log('[Base] showProfile cancelled by user');
-            return;
-        }
-
-        const version = window.coreEngine?.static_version || Date.now();
-
-        let ComponentClass = null;
-        try {
-            if (section === 'balance') {
-                const mod = await import(`./profile/balance/balance.js?v=${version}`);
-                ComponentClass = mod.BaseProfileBalance;
-            } else if (section === 'domain') {
-                const mod = await import(`./profile/domain/domain.js?v=${version}`);
-                ComponentClass = mod.BaseProfileDomain;
-            } else {
-                const mod = await import(`./profile/profile.js?v=${version}`);
-                ComponentClass = mod.BaseProfile;
-            }
-        } catch (err) {
-            console.error('[Base] showProfile import error:', err);
-            return;
-        }
-
-        if (!ComponentClass) {
-            console.error('[Base] showProfile: component class not found for section', section);
-            return;
-        }
-
-        await this.renderInArea(ComponentClass, {
-            section,
-            user,
-            setCaption: this._setCaption,
-            restoreCaption: this._restoreCaption,
-            onNavigate: (nextSection) => this.showProfile(nextSection),
-        });
     }
 
     async openModal(type, title, message, options = {}) {
@@ -922,26 +786,6 @@ export class Base {
         }
     }
 
-    openChat() {
-        if (this.chat) {
-            const isDesktop = window.innerWidth >= 1024;
-            if (isDesktop && this.showRight) {
-                if (this.rightEl) {
-                    this.rightEl.style.display = 'flex';
-                }
-                if (this.chat.container) {
-                    this.chat.container.style.display = 'flex';
-                }
-            } else {
-                this.chat.open();
-            }
-        }
-    }
-
-    closeChat() {
-        if (this.chat) this.chat.close();
-    }
-
     update(props) {
         console.log('[Base] update()');
         this.props = { ...this.props, ...props };
@@ -970,18 +814,25 @@ export class Base {
     destroy() {
         console.log('[Base] destroy()');
 
-        // Destroy active area page instance
-        if (this.areaInstance) {
+        // Destroy active area page instance + side areas.
+        if (this.areas) {
             try {
-                if (typeof this.areaInstance.destroy === 'function') {
-                    this.areaInstance.destroy();
-                }
+                this.areas.destroy();
             } catch (e) {
-                console.warn('[Base] areaInstance destroy error:', e);
+                console.warn('[Base] areas.destroy error:', e);
             }
-            this.areaInstance = null;
         }
 
+        // Destroy chat.
+        if (this.chatController) {
+            try {
+                this.chatController.destroy();
+            } catch (e) {
+                console.warn('[Base] chatController.destroy error:', e);
+            }
+        }
+
+        // Destroy child components.
         if (this.childComponents && this.childComponents.length) {
             for (const inst of this.childComponents) {
                 try {
@@ -994,22 +845,18 @@ export class Base {
         this.childComponents = [];
 
         document.body.innerHTML = '';
-        if (this.chat) {
-            if (typeof this.chat.destroy === 'function') {
-                this.chat.destroy();
-            }
-            this.chat = null;
-        }
+
         if (this.auth) {
             if (typeof this.auth.destroy === 'function') {
                 this.auth.destroy();
             }
             this.auth = null;
         }
-        if (this._chatMediaQuery) {
-            this._chatMediaQuery.removeEventListener('change', this._updateChatMode);
-            this._chatMediaQuery = null;
-        }
+
+        this.areas = null;
+        this.pages = null;
+        this.chatController = null;
+
         this._initialized = false;
         this._initPromise = null;
     }

@@ -138,6 +138,31 @@
     color: #0f172a;
 }
 
+.core-engine-lib-base-profile-domain .domain-card-hint a {
+    color: #2563eb;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.core-engine-lib-base-profile-domain .domain-card-hint a:hover {
+    color: #1d4ed8;
+}
+
+/*
+ * Subtle variant — for the "Текущая: …" line under the home-page
+ * selector. Smaller, dimmer, not a full paragraph.
+ */
+.core-engine-lib-base-profile-domain .domain-card-hint-subtle {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.core-engine-lib-base-profile-domain .domain-card-hint-subtle b {
+    color: #1e293b;
+    font-weight: 600;
+}
+
 /* ===== Subdomain copy row ===== */
 
 .core-engine-lib-base-profile-domain .domain-copy-row {
@@ -198,6 +223,36 @@
 .core-engine-lib-base-profile-domain .domain-input:disabled {
     background: #f1f5f9;
     cursor: not-allowed;
+}
+
+/* ===== Home-page selector (same visual language as .domain-input) ===== */
+
+.core-engine-lib-base-profile-domain .domain-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    background: #ffffff;
+    color: var(--text-main, #1e293b);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    /* Native arrow is fine here — it inherits the OS palette
+       and matches the rest of the form. */
+}
+
+.core-engine-lib-base-profile-domain .domain-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-base-profile-domain .domain-select:disabled {
+    background: #f1f5f9;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 /* ===== Buttons ===== */
@@ -313,13 +368,24 @@
     line-height: 1.4;
 }
 
-/* ===== Error block ===== */
+/* ===== Inline messages (error / success) ===== */
 
 .core-engine-lib-base-profile-domain .domain-error-inline {
     padding: 8px 12px;
     background: #fee2e2;
     color: #b91c1c;
     border: 1px solid #fca5a5;
+    border-radius: var(--radius-md, 8px);
+    font-size: 13px;
+    line-height: 1.4;
+    margin-top: 4px;
+}
+
+.core-engine-lib-base-profile-domain .domain-success-inline {
+    padding: 8px 12px;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
     border-radius: var(--radius-md, 8px);
     font-size: 13px;
     line-height: 1.4;

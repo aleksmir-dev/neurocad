@@ -11,7 +11,7 @@ final paths are:
   POST   /core/engine/lib/word/editor/images             — create
   POST   /core/engine/lib/word/editor/images/generate    — generate via LLM
   GET    /core/engine/lib/word/editor/images/<id>        — read metadata
-  DELETE /core/engine/lib/word/editor/images/<id>        — delete
+  DELETE /core/engine/lib/word/editor/images/<id>        — delete (superadmin only)
 
 Permissions:
   All endpoints require an authenticated user (get_current_user).
@@ -22,6 +22,9 @@ Permissions:
     - tokens <= 0 → 403 tokens_exhausted
     - pro gen <= 0 → 403 gen_exhausted
   On success, tokens (and, on pro, one gen) are charged to Balance.
+
+  /delete additionally requires `is_superadmin` — regular users
+  can browse and pick logos but not remove them.
 
 The list is served from the registry (registry.json in the package
 tree, mirrored to static/). The registry is the single source of
@@ -52,6 +55,24 @@ router = APIRouter(
     prefix="/images",
     tags=["core/engine/lib/word/editor/images"],
 )
+
+
+# ============================================
+# HELPERS
+# ============================================
+
+def _is_superadmin(user: dict | None) -> bool:
+    """
+    Normalise `is_superadmin` from the auth dict.
+
+    The backend may store it as bool, int (0/1), or str ("0"/"1"),
+    depending on the auth source. Treat all truthy spellings the
+    same way.
+    """
+    if not user:
+        return False
+    v = user.get("is_superadmin")
+    return v is True or v == 1 or v == "1"
 
 
 # ============================================
@@ -174,8 +195,8 @@ async def list_images(
     Example:
       GET /core/engine/lib/word/editor/images?module=aleksmir.ru
 
-    Returns entries sorted by `order`, then by `id`. Entries whose
-    SVG file is missing on disk are skipped.
+    Returns entries sorted by `order` desc (newest first), then by
+    `id`. Entries whose SVG file is missing on disk are skipped.
 
     Any authenticated user.
     """
@@ -431,7 +452,7 @@ async def get_image(
 
 
 # ============================================
-# DELETE ONE IMAGE
+# DELETE ONE IMAGE (superadmin only)
 # ============================================
 
 @router.delete("/{image_id}")
@@ -449,9 +470,18 @@ async def delete_image(
     Example:
       DELETE /core/engine/lib/word/editor/images/img-a1b2c3d4?module=aleksmir.ru
 
-    Any authenticated user.
+    Superadmin only — regular users may browse and pick logos, but
+    not remove them. The UI hides the delete button for
+    non-superadmins; this check is the enforcement.
     """
     await _verify_module(request)
+
+    # ---- Superadmin guard ----
+    if not _is_superadmin(current_user):
+        raise HTTPException(
+            status_code=403,
+            detail="Удалять логотипы может только супер-администратор",
+        )
 
     try:
         result = CoreEngineLibWordImagesService.delete_image(image_id)

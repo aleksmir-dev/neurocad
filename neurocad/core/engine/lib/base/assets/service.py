@@ -28,6 +28,12 @@ Tariff check:
     After a successful upload, bal.mb is incremented; after a delete,
     decremented.
 
+    If the user has no Balance row yet (a legacy user, or a user
+    whose post-registration ensure failed), the row is created
+    lazily on the spot and the check is retried once. This keeps
+    the media library self-sufficient — it never fails with a
+    user-facing "no_balance" for a normal account.
+
 Namespace: CoreEngineLibBaseAssetsService
 """
 
@@ -153,6 +159,9 @@ class CoreEngineLibBaseAssetsService:
         BalanceChecked.media_allowed(user_id, extra_mb). If the limit
         would be exceeded — raises HTTPException(403, detail='mb_exhausted').
 
+        If the user has no Balance row yet — creates it on the spot
+        and retries the check once. See the module docstring for why.
+
         After a successful upload — increments bal.mb by the total
         size of the saved files.
 
@@ -163,12 +172,6 @@ class CoreEngineLibBaseAssetsService:
         """
         # ---- 1. Size of incoming files (in MB, rounded up) ----
         total_bytes = 0
-        sizes_by_name: Dict[str, int] = {}
-
-        for uploaded_file in files:
-            # Read once into memory (files are small — media uploads).
-            # We need the content anyway to write it.
-            pass  # We'll re-read inside the write loop below; sizes computed there.
 
         # Because UploadFile can be read only once, we buffer all files here.
         buffered: List[Dict[str, Any]] = []
@@ -200,11 +203,33 @@ class CoreEngineLibBaseAssetsService:
             bal, err = await BalanceChecked.media_allowed(
                 user_id, extra_mb=extra_mb, log=log
             )
+
+            # Lazy-create the Balance row if it is missing. This is a
+            # safety net for legacy users, or when the post-registration
+            # /balance/ensure hook failed. The media library does not
+            # expose this as a user-facing error — it fixes it silently.
+            if err == "no_balance":
+                try:
+                    from neurocad.utils.sqlite import ensure_user_balance
+                    await ensure_user_balance(user_id, log=log)
+                except Exception as e:
+                    CoreEngineLibBaseAssetsService._log(
+                        log, "warning",
+                        f"ensure_user_balance failed for user {user_id}: {e}",
+                    )
+
+                # Retry once.
+                bal, err = await BalanceChecked.media_allowed(
+                    user_id, extra_mb=extra_mb, log=log
+                )
+
             if err:
                 CoreEngineLibBaseAssetsService._log(
                     log, "info",
                     f"upload blocked for user {user_id}: {err} "
-                    f"(mb={bal.mb if bal else '?'}, limit={bal.limit_mb if bal else '?'}, extra_mb={extra_mb})"
+                    f"(mb={bal.mb if bal else '?'}, "
+                    f"limit={bal.limit_mb if bal else '?'}, "
+                    f"extra_mb={extra_mb})"
                 )
                 raise HTTPException(status_code=403, detail=err)
 

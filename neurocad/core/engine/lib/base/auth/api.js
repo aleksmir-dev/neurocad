@@ -14,7 +14,7 @@
  *   - auto-serialize body (unless it's a string or FormData);
  *   - 401 → sessionStorage.clear() + auth:unauthorized + throw
  *          (unless `skipAuthRedirect: true` was passed);
- *   - 403 → throw Error('Insufficient permissions.');
+ *   - 403 → throw Error with detail/message from the response;
  *   - non-2xx → throw Error with detail/message from the response;
  *   - success: false → also throw Error.
  *
@@ -23,6 +23,21 @@
  *   no need to show the login form (it is already open), and no need to
  *   emit auth:unauthorized recursively. Pass `skipAuthRedirect: true` —
  *   fetchJson simply throws an Error with status=401.
+ *
+ *   In that case fetchJson does NOT invent a message. It reads whatever
+ *   the server returned in `detail` / `message` and throws an Error with
+ *   that text (possibly empty). The caller decides what to show — e.g.
+ *   the login form ignores the message on 401 and shows "Неверный логин
+ *   или пароль" on its own.
+ *
+ *   This matters because the same status code means different things in
+ *   different contexts:
+ *     - regular request → session expired in the background;
+ *     - POST /core/auth/login → wrong username or password;
+ *     - POST /core/auth/restore → invalid restore code;
+ *     - POST /core/auth/password → wrong current password.
+ *   The generic "Session expired. Please log in again." message only fits
+ *   the first case.
  *
  * Usage:
  *   // The utility is loaded once by CoreEngine.loadApi()
@@ -83,13 +98,40 @@ export async function fetchJson(url, options = {}) {
         throw err;
     }
 
-    // ---- 401: session expired ----
+    // ---- 401 ----
+    //
+    // Two completely different situations share this status code.
+    //
+    //   1. Regular request (skipAuthRedirect = false):
+    //      the session expired in the background. We handle it
+    //      globally — clear the local session, emit
+    //      auth:unauthorized, BaseAuth shows the login form. The
+    //      thrown Error carries a generic "session expired" text;
+    //      it is mostly for the console and for callers that want
+    //      to know why their request failed.
+    //
+    //   2. Auth page (skipAuthRedirect = true):
+    //      the caller already knows it is on an auth page and does
+    //      NOT want the global handling. 401 here means "wrong
+    //      credentials" / "invalid restore code" / "wrong current
+    //      password" — whatever the endpoint is. fetchJson does
+    //      not invent a message; it forwards the server's detail
+    //      (which may be empty) so the caller can show its own
+    //      text. The login form, for instance, ignores the message
+    //      on 401 and shows "Неверный логин или пароль".
     if (response.status === 401) {
         if (!skipAuthRedirect) {
             _handleUnauthorized();
+            const err = new Error('Session expired. Please log in again.');
+            err.status = 401;
+            throw err;
         }
-        const err = new Error('Session expired. Please log in again.');
+
+        const data = await _readJson(response);
+        const detail = (data && (data.detail || data.message)) || '';
+        const err = new Error(detail);
         err.status = 401;
+        err.data = data;
         throw err;
     }
 
@@ -137,13 +179,22 @@ export async function fetchJson(url, options = {}) {
 // INTERNAL
 // ============================================
 
-async function _readDetail(response) {
+/**
+ * Read the response body as JSON. Returns null if the body is
+ * empty or not valid JSON. The response stream is consumed —
+ * callers must not call response.json() again on the same response.
+ */
+async function _readJson(response) {
     try {
-        const data = await response.json();
-        return data && (data.detail || data.message);
+        return await response.json();
     } catch (e) {
         return null;
     }
+}
+
+async function _readDetail(response) {
+    const data = await _readJson(response);
+    return data && (data.detail || data.message);
 }
 
 function _handleUnauthorized() {

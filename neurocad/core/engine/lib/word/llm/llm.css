@@ -350,6 +350,53 @@
 }
 
 /* ============================================ */
+/* BUBBLE TEXT + INLINE ACTION                  */
+/* ============================================ */
+/*
+ * Bubble content is split into a <span class="...-bubble-text">
+ * (the message) and an optional <a class="...-bubble-action">
+ * (a link / action, e.g. "Перейти к балансу").
+ *
+ * The span is inline so pre-wrap on the bubble still applies.
+ * The link is a block-level element with a small top margin, so
+ * it sits on its own line under the text.
+ *
+ * Colors match the bubble palette:
+ *   - assistant bubble (grey bg)   → blue link, dark red is wrong here
+ *   - error bubble (red bg)        → dark red link, readable on #fdecec
+ */
+
+.core-engine-lib-word-llm-chat-bubble-text {
+    display: inline;
+}
+
+.core-engine-lib-word-llm-chat-bubble-action {
+    display: inline-block;
+    margin-top: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.3;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    transition: color 0.15s ease;
+    color: #1d4ed8;
+}
+
+.core-engine-lib-word-llm-chat-bubble-action:hover {
+    color: #1e40af;
+}
+
+/* Error bubble — dark red link, readable on #fdecec. */
+.core-engine-lib-word-llm-chat-msg-error .core-engine-lib-word-llm-chat-bubble-action {
+    color: #7f1d1d;
+}
+
+.core-engine-lib-word-llm-chat-msg-error .core-engine-lib-word-llm-chat-bubble-action:hover {
+    color: #450a0a;
+}
+
+/* ============================================ */
 /* ERROR MESSAGE (role="error")                 */
 /* ============================================ */
 /*

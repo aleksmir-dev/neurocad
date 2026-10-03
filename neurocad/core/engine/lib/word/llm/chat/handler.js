@@ -51,8 +51,18 @@
  * set `streamed: true`.
  *
  * Error messages (type: "error") are rendered with role="error" —
- * they get a distinct red bubble style (.core-engine-lib-word-llm-chat-msg-error)
- * instead of the normal assistant bubble.
+ * they get a distinct red bubble style
+ * (.core-engine-lib-word-llm-chat-msg-error) instead of the normal
+ * assistant bubble.
+ *
+ * Error actions:
+ *   Some errors are actionable — e.g. "Закончились токены LLM"
+ *   should offer a link to the balance page. The server MAY send
+ *   `action: { label, href }` in the error frame; if it does not,
+ *   the handler falls back to a client-side action chosen from
+ *   the message text / code (currently only "tokens exhausted").
+ *   `ui.addMessage()` renders the action as an inline link under
+ *   the error text.
  *
  * User-facing strings are in Russian — they go straight to the chat UI.
  * Internal log strings stay in English.
@@ -83,6 +93,50 @@ export function createLLMChatHandler({
         streamHtml = '';
         streamCss = '';
         streamActive = false;
+    }
+
+    /**
+     * Build a client-side action for an error when the server did
+     * not send one. Currently only "tokens exhausted" maps to a
+     * concrete action — a link to the balance page.
+     *
+     * Detection is by message text (and, if present, by `code`),
+     * so it works whether or not the backend adds a `code` field
+     * to the error frame.
+     *
+     * The action is a REAL URL (not an onClick handler):
+     *   - survives in the address bar,
+     *   - works with middle-click / right-click → "Open in new tab",
+     *   - can be copied to the clipboard.
+     *
+     * Current page path is preserved (nav_id and other context
+     * params survive); only `auth` and `section` are set. That way
+     * clicking the link from the editor keeps the user inside the
+     * same module — the profile page opens over the current page
+     * and Base handles the rest via ?auth= + ?section=.
+     *
+     * @param {Object} msg — the error frame
+     * @returns {{label: string, href: string} | null}
+     */
+    function _fallbackAction(msg) {
+        if (!msg) return null;
+
+        const isTokensExhausted =
+            msg.code === 'tokens_exhausted'
+            || /токены\s+LLM/i.test(msg.message || '');
+
+        if (isTokensExhausted) {
+            const u = new URL(window.location.href);
+            u.searchParams.set('auth', 'profile');
+            u.searchParams.set('section', 'balance');
+
+            return {
+                label: 'Перейти к балансу',
+                href: u.toString(),
+            };
+        }
+
+        return null;
     }
 
     return function handle(msg) {
@@ -336,20 +390,31 @@ export function createLLMChatHandler({
                 resetStream();
                 return;
 
-            case 'error':
+            case 'error': {
                 onRunEnd();
                 ui.setSendingState(false);
                 ui.hideTyping();
                 ui.finalizeProgress();
+
                 // Error messages use role="error" — distinct red bubble.
                 // The ⚠️ prefix is kept for extra visual cue.
+                //
+                // Actionable errors get a link under the text:
+                //   - server may send `action: { label, href }`;
+                //   - otherwise the client picks an action from the
+                //     message text / code (currently only "tokens
+                //     exhausted" → balance page).
+                const action = msg.action || _fallbackAction(msg);
+
                 ui.addMessage({
                     role: 'error',
                     content: `⚠️ ${msg.message || 'Неизвестная ошибка'}`,
                     created_at: new Date().toISOString(),
+                    action,
                 });
                 resetStream();
                 return;
+            }
 
             default:
                 console.log('[LLMChat] Unknown WS message:', msg);

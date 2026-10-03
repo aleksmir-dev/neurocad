@@ -22,6 +22,19 @@
  *   - onAutoSave  — background auto-save. Persists only; the editor
  *                   stays open and untouched.
  *
+ * Empty-article tutorial:
+ *   When the editor is opened for an EMPTY article (no content), a
+ *   short three-step walkthrough (toolbar → area-left → area-right,
+ *   see ./editor/tutorial.js) is shown. It runs every time, with no
+ *   "never show again" flag.
+ *
+ *   The tutorial CSS (./editor/tutorial.css) is loaded here, right
+ *   before the JS module is imported. This guarantees the bubble is
+ *   styled on the very first paint — otherwise it would render as a
+ *   bare <div> until some other code happens to pull the stylesheet
+ *   in. Loading is guarded by a <link> check so we do not append
+ *   duplicates on every editor open.
+ *
  * Race protection:
  *   Editor init is async (dynamic imports, GrapesJS init). If the user
  *   cancels while init is still running, we must NOT create a new Editor
@@ -29,6 +42,42 @@
  *   each open/close increments the token, and openEditor checks the token
  *   after each await boundary.
  */
+
+/**
+ * Path to the tutorial stylesheet, relative to /static/.
+ * Kept in one place so the <link> guard and loadCSS() call cannot drift.
+ */
+const TUTORIAL_CSS_PATH = 'core/engine/lib/word/editor/tutorial.css';
+
+/**
+ * Ensure the tutorial stylesheet is in the document exactly once.
+ *
+ * coreEngine.loadCSS() may or may not be idempotent depending on the
+ * build; we guard here anyway so repeated editor opens do not append
+ * duplicate <link> tags. The check matches both the absolute
+ * (/static/...) and versioned (?v=...) forms.
+ */
+function _ensureTutorialCss() {
+    const href = `/static/${TUTORIAL_CSS_PATH}`;
+
+    // Already present (any version) — nothing to do.
+    const existing = document.querySelector(
+        `link[rel="stylesheet"][href^="${href}"]`
+    );
+    if (existing) return;
+
+    if (window.coreEngine?.loadCSS) {
+        window.coreEngine.loadCSS(TUTORIAL_CSS_PATH);
+    } else {
+        // Fallback — coreEngine not ready yet. Should not happen in
+        // practice because openEditor() runs after Word._init().
+        console.warn('[Word] coreEngine.loadCSS not available — appending <link> manually');
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+    }
+}
 
 /**
  * Open the GrapesJS editor inside the Word widget.
@@ -131,6 +180,48 @@ export async function openEditor(word) {
             console.warn('[Word] destroy after race error:', e);
         }
         word.editorInstance = null;
+        return;
+    }
+
+    // ===== Empty-article tutorial =====
+    // Shown when the article has no content. Runs on EVERY open of an
+    // empty page — no "never show again" flag. Destroyed together with
+    // the editor (see closeEditor).
+    _maybeStartTutorial(word, version);
+}
+
+/**
+ * Show the tutorial if the article is empty.
+ *
+ * "Empty" uses the same notion as Word._isContentEmpty(): HTML is
+ * stripped, style tags are ignored, whitespace is collapsed.
+ *
+ * The tutorial is stored on `word._editorTutorial` so closeEditor()
+ * can tear it down cleanly.
+ *
+ * CSS is loaded BEFORE the JS module so the bubble is styled on the
+ * very first paint. _ensureTutorialCss() is idempotent — repeated
+ * editor opens do not append duplicate <link> tags.
+ *
+ * @param {Object} word
+ * @param {string|number} version — cache-busting version
+ */
+async function _maybeStartTutorial(word, version) {
+    if (!word._isContentEmpty || !word._isContentEmpty()) return;
+
+    try {
+        // 1. CSS first — the bubble must be styled on the very first paint.
+        _ensureTutorialCss();
+
+        // 2. Then the JS module (versioned dynamic import).
+        const { EditorTutorial } = await import(
+            `./editor/tutorial.js?v=${version}`
+        );
+
+        word._editorTutorial = new EditorTutorial();
+        word._editorTutorial.start();
+    } catch (e) {
+        console.warn('[Word] EditorTutorial load failed:', e);
     }
 }
 
@@ -149,6 +240,16 @@ export async function closeEditor(word) {
 
     // ★ Invalidate any pending openEditor
     word._editorToken = (word._editorToken || 0) + 1;
+
+    // ★ Tear down the tutorial (if any) — the editor is going away.
+    if (word._editorTutorial) {
+        try {
+            word._editorTutorial.stop();
+        } catch (e) {
+            console.warn('[Word] tutorial.stop() error:', e);
+        }
+        word._editorTutorial = null;
+    }
 
     word.toolbarEl?.classList.remove('core-engine-lib-word-toolbar-hidden');
 

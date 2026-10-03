@@ -17,7 +17,10 @@
       data-nav-id        — nav instance this page belongs to
                            (used by Word / Pages to scope their API calls)
 
-    All hints are read by CoreEngine in its constructor.
+    data-auth-form is read by Base (see lib/base/base.js), not by
+    CoreEngine. CoreEngine forwards all GET query params as-is via
+    props.params — that is the generic channel for module-specific
+    hints like ?auth=<form> and ?section=<name>.
 -->
 
 <!DOCTYPE html>
@@ -39,22 +42,18 @@
     <script src="{{ 'core/engine/engine.js'|static }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const moduleName = document.body.dataset.module || 'assistent';
+            const moduleName   = document.body.dataset.module || 'assistent';
             const authRequired = document.body.dataset.authRequired === 'true';
             const authRedirect = document.body.dataset.authRedirect || null;
-            const configPath = document.body.dataset.configPath || null;
-            const authForm = document.body.dataset.authForm || null;
-            const navId = document.body.dataset.navId || null;
+            const configPath   = document.body.dataset.configPath || null;
+            const navId        = document.body.dataset.navId || null;
 
             const engine = new CoreEngine(moduleName);
             engine.static_version = '{{ static_version }}';
-            engine.authRequired = authRequired;
-            engine.authRedirect = authRedirect;
+            engine.authRequired   = authRequired;
+            engine.authRedirect   = authRedirect;
             if (configPath) {
                 engine.configPath = configPath;
-            }
-            if (authForm) {
-                engine.authForm = authForm;
             }
             if (navId != null) {
                 engine.navId = navId;

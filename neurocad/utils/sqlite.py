@@ -363,27 +363,41 @@ async def ensure_user_balance(user_id: int, log=None) -> int:
     limits as llm). The lazy reset in BalanceChecked.reset_if_needed()
     will switch them to free after 1 day.
 
+    Trial is granted WITH tokens already topped up to the trial
+    cap — otherwise llm_allowed() sees tokens=0 against a non-zero
+    limit_tokens and reports 'tokens_exhausted' on the very first
+    LLM request. reset_if_needed() does NOT top up trial tokens
+    (trial has no daily/monthly accrual), so it must be done here.
+
     Default values for a new user:
 
-        tarif          = 3       (trial, 1 day)
-        tokens         = 0       (will be filled on first reset)
+        tarif          = 3         (trial, 1 day)
+        tokens         = 2_000_000 (same as limit_tokens — trial is
+                                    "unlimited" for its 1-day window)
         gen            = 0
         sum            = 0
         mb             = 0
         pages          = 0
         price          = 0
         refer_id       = None
-        acc_at         = None    (set on first lazy reset)
+        day            = today.day (so billing/expiry math has a value)
+        acc_at         = today     (trial start date — the 24h clock)
 
         limit_genday   = 0
         limit_genmon   = 0
-        limit_mb       = 1024    (1 GB, same as llm)
-        limit_pages    = 0       (unlimited, same as llm)
+        limit_mb       = 1024      (1 GB, same as llm)
+        limit_pages    = 0         (unlimited, same as llm)
         limit_tokens   = 2_000_000 (2M, same as llm)
 
     Returns the balance row id, or 0 on error / user not found.
     """
+    from datetime import date
     from ..core.models.base import Balance, User
+
+    # Must match limit_tokens below. Kept local on purpose: utils/
+    # must not import from core/engine/lib at module level (see the
+    # note in init_sqlite about the utils/ → core/engine dependency).
+    TRIAL_TOKENS = 2_000_000
 
     async with AsyncSessionLocal() as session:
         # 1. Verify the user exists (defensive — avoids FK errors).
@@ -413,13 +427,16 @@ async def ensure_user_balance(user_id: int, log=None) -> int:
             )
             return existing.id
 
-        # 3. Create it with TRIAL defaults (code 3, same limits as llm).
+        # 3. Create it with TRIAL defaults (code 3, same limits as llm),
+        #    tokens topped up so the first LLM call passes llm_allowed().
+        today = date.today()
+
         bal = Balance(
             user_id=user_id,
-            tarif=3,                # trial
-            day=None,
+            tarif=3,                       # trial
+            day=today.day,                 # needed for billing-day math
             gen=0,
-            tokens=0,
+            tokens=TRIAL_TOKENS,           # trial is "unlimited" for 1 day
             sum=0,
             mb=0,
             pages=0,
@@ -429,8 +446,8 @@ async def ensure_user_balance(user_id: int, log=None) -> int:
             limit_genmon=0,
             limit_mb=1024,
             limit_pages=0,
-            limit_tokens=2_000_000,
-            acc_at=None,
+            limit_tokens=TRIAL_TOKENS,
+            acc_at=today,                  # trial clock starts now
             is_delete=False,
         )
         session.add(bal)
@@ -440,6 +457,6 @@ async def ensure_user_balance(user_id: int, log=None) -> int:
         _log_sync(
             log, "info",
             f"ensure_user_balance: created balance id={bal.id} "
-            f"for user {user_id} (trial)",
+            f"for user {user_id} (trial, tokens={TRIAL_TOKENS})",
         )
         return bal.id

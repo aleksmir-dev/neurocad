@@ -27,6 +27,13 @@
  *
  * Caption: saves the current header/tab title on open and restores it
  * on destroy.
+ *
+ * Post-registration event:
+ *   After a successful register + auto-login, the form dispatches
+ *   `auth:registered` with { user, userId, login } on `document`.
+ *   Anyone interested (balance, media, analytics) subscribes on
+ *   that event themselves. The form neither knows nor cares who
+ *   listens.
  */
 
 const MIN_LOGIN_LENGTH = 8;
@@ -225,7 +232,7 @@ export class BaseAuthRegister {
             this.toggleBtn.addEventListener('click', () => {
                 const type = this.passwordInput.type === 'password' ? 'text' : 'password';
                 this.passwordInput.type = type;
-                this.toggleBtn.textContent = type === 'password' ? '👁️' : '🙈';
+                this.toggleBtn.textContent = type === 'password' ? '👁️' : '👀';
             });
         }
 
@@ -233,7 +240,7 @@ export class BaseAuthRegister {
             this.toggleConfirmBtn.addEventListener('click', () => {
                 const type = this.passwordConfirmInput.type === 'password' ? 'text' : 'password';
                 this.passwordConfirmInput.type = type;
-                this.toggleConfirmBtn.textContent = type === 'password' ? '👁️' : '🙈';
+                this.toggleConfirmBtn.textContent = type === 'password' ? '👁️' : '👀';
             });
         }
 
@@ -495,6 +502,23 @@ export class BaseAuthRegister {
 
                 if (loginData.success) {
                     const user = loginData.data?.user || loginData.data;
+
+                    // Announce the fact. Anyone who cares — balance,
+                    // media, analytics — subscribes on this event
+                    // themselves. The registration form neither knows
+                    // nor cares who listens.
+                    try {
+                        document.dispatchEvent(new CustomEvent('auth:registered', {
+                            detail: {
+                                user,
+                                userId: user?.id ?? null,
+                                login: user?.login ?? login,
+                            },
+                        }));
+                    } catch (e) {
+                        console.warn('[BaseAuthRegister] auth:registered emit failed:', e);
+                    }
+
                     if (this.onSuccess) {
                         this.onSuccess(user);
                     }

@@ -29,6 +29,21 @@ class Settings(BaseSettings):
     # Main page URL (redirect from /).
     APP_MAIN_PAGE: str = "/core/engine/admin"
 
+    # Root domain the application runs on.
+    #
+    # Used by the "Custom domains" module (base/profile/domain):
+    #   - to build the free third-level subdomain (<login>.<APP_DOMAIN>)
+    #   - to reject custom domains that end with .<APP_DOMAIN>
+    #     (those are handled by the wildcard certificate, not by
+    #     On-Demand TLS)
+    #
+    # MUST match a domain that Caddy actually serves with a wildcard
+    # certificate (e.g. *.neurocad-dev.ru).
+    #
+    # Dev  : neurocad-dev.ru
+    # Prod : neurocad.ru
+    APP_DOMAIN: str = "neurocad.ru"
+
     # Debug mode.
     DEBUG: bool = True
 

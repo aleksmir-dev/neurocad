@@ -29,6 +29,12 @@
  * used by actions.setHeaderTitle() to swap the header/tab title to the
  * page title, and by destroy() to restore whatever was there before.
  *
+ * Empty-article hint:
+ *   When the page has no content AND the user can edit, an onboarding
+ *   tooltip (EmptyArticleHint, see ./hint.js) is shown under the
+ *   "Редактировать" button. It can be dismissed (✕) or permanently
+ *   suppressed via a "Не показывать больше" checkbox (localStorage).
+ *
  * Effects: each effect is its own file under editor/effects/fx/,
  * loaded on every page — so that effects applied in the editor
  * (classes like .fx-shadow-top-n) render on the public page as well.
@@ -91,6 +97,9 @@ export class Word {
         // Fallback header title (used only if caption helpers are unavailable).
         this._originalHeaderTitle = null;
 
+        // Onboarding hint for an empty article. Created in _init().
+        this._emptyHint = null;
+
         // Path to Base icons
         this._iconsBase = '/static/core/engine/lib/base/images';
 
@@ -143,6 +152,7 @@ export class Word {
 
         window.coreEngine.loadCSS('core/engine/lib/word/word.css');
         window.coreEngine.loadCSS('core/engine/lib/word/llm/llm.css');
+        window.coreEngine.loadCSS('core/engine/lib/word/hint.css');
 
         // Shared content classes (.btn, .card, .grid, .h1, .text, ...)
         // AND --theme-* variables (defined at the top of content.css).
@@ -256,6 +266,12 @@ export class Word {
             actions.setHeaderTitle(this);
             await view.render(this);
 
+            // Empty-article hint — load the class and show if the page
+            // has no content and the user can edit.
+            const { EmptyArticleHint } = await import(`./hint.js?v=${version}`);
+            this._emptyHint = new EmptyArticleHint();
+            this._updateEmptyArticleHint();
+
             this._initialized = true;
             console.log('[Word] _init() COMPLETE');
         } catch (error) {
@@ -264,6 +280,46 @@ export class Word {
             this._initialized = false;
             throw error;
         }
+    }
+
+    /**
+     * Show the empty-article hint when the page has no content AND
+     * the user can edit (has an "edit" button in the toolbar).
+     *
+     * Deferred to the next tick so the toolbar DOM exists by the time
+     * we measure its position.
+     */
+    _updateEmptyArticleHint() {
+        if (!this._emptyHint) return;
+
+        if (this._isContentEmpty() && this._canEdit()) {
+            setTimeout(() => {
+                if (this._emptyHint) this._emptyHint.show();
+            }, 0);
+        } else {
+            this._emptyHint.hide();
+        }
+    }
+
+    /**
+     * Whether the article content is effectively empty.
+     *
+     * Strips HTML tags and collapses whitespace — "<p> </p>" or
+     * "<p>&nbsp;</p>" counts as empty. Matches the same notion of
+     * "empty" that view.buildArticle() uses when it substitutes
+     * the "Контент пуст" placeholder.
+     */
+    _isContentEmpty() {
+        const html = this.pageData?.content;
+        if (!html) return true;
+
+        const text = String(html)
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')   // ignore <style>
+            .replace(/<[^>]*>/g, '')                          // strip tags
+            .replace(/&nbsp;/g, ' ')
+            .trim();
+
+        return text.length === 0;
     }
 
     // ============================================
@@ -307,6 +363,9 @@ export class Word {
     // ============================================
 
     async _openEditor() {
+        // The user is about to edit — the hint has done its job.
+        if (this._emptyHint) this._emptyHint.hide();
+
         const version = window.coreEngine?.static_version || Date.now();
         const mod = await import(`./bridge.js?v=${version}`);
         await mod.openEditor(this);
@@ -409,6 +468,12 @@ export class Word {
 
     destroy() {
         console.log('[Word] destroy()');
+
+        // Remove the onboarding hint (if visible).
+        if (this._emptyHint) {
+            this._emptyHint.remove();
+            this._emptyHint = null;
+        }
 
         // Restore the title that was on screen before Word opened.
         if (this._restoreCaption) {

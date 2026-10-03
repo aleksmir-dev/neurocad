@@ -5,9 +5,13 @@
  *
  * Rendered into area-center by Base.showProfile('domain').
  *
- * Two blocks:
- *   1. Free subdomain — read-only. <login>.neurocad.ru + copy button.
- *   2. Custom domain — either:
+ * Three blocks:
+ *   1. Free subdomain — read-only. <login>.<APP_DOMAIN> + copy button.
+ *   2. Home page — select from the user's pages + Save / Reset.
+ *      Drives the "/" redirect on the user's subdomain (and on the
+ *      custom domain once it's attached). Falls back to the first
+ *      page (ORDER BY datetime ASC) when no explicit choice is made.
+ *   3. Custom domain — either:
  *        - input + "Подключить" (when no custom domain is set), or
  *        - the current domain + status badge + "Отключить" button
  *          (when one is set).
@@ -21,6 +25,8 @@
  *   GET    /core/engine/lib/base/profile/domain/
  *   POST   /core/engine/lib/base/profile/domain/add
  *   DELETE /core/engine/lib/base/profile/domain/remove
+ *   POST   /core/engine/lib/base/profile/domain/home
+ *   DELETE /core/engine/lib/base/profile/domain/home
  *
  * Uses window.coreEngine.fetchJson.
  *
@@ -53,6 +59,11 @@ export class BaseProfileDomain {
         this._submitting = false;
         this._lastError = null;
         this._lastAddInfo = null; // { domain, dns_ok, caddy_available, server_ip, message }
+
+        // Home page UI state.
+        this._homeSaving = false;
+        this._homeError = null;
+        this._homeSaved = false;
 
         this._initialized = false;
         this._initPromise = null;
@@ -166,6 +177,7 @@ export class BaseProfileDomain {
 
                 <div class="domain-scroll">
                     ${this._renderSubdomainCard()}
+                    ${this._renderHomeCard()}
                     ${this._renderCustomCard()}
                     ${this._renderAddResultBlock()}
                 </div>
@@ -200,6 +212,98 @@ export class BaseProfileDomain {
             </section>
         `;
     }
+
+    // ============================================
+    // HOME PAGE CARD
+    // ============================================
+
+    _renderHomeCard() {
+        const pages = this.data.pages || [];
+        const homeId = this.data.home_page_id;
+
+        // ---- No pages yet — nothing to choose from ----
+        if (!pages.length) {
+            return `
+                <section class="domain-card">
+                    <div class="domain-card-title">Главная страница</div>
+                    <p class="domain-card-hint">
+                        У вас пока нет страниц. Создайте статью в
+                        <a href="/core/engine/pages">каталоге статей</a> — и
+                        сможете назначить её главной.
+                    </p>
+                </section>
+            `;
+        }
+
+        // ---- Pages exist — render the selector ----
+        const optionsHtml = pages.map(p => {
+            const selected = (homeId != null && p.id === homeId) ? 'selected' : '';
+            return `<option value="${p.id}" ${selected}>${this._escapeAttr(p.title)}</option>`;
+        }).join('');
+
+        // Effective home when nothing is chosen explicitly — the
+        // same fallback the backend applies in utils/routes.py.
+        const firstPage = pages[0];
+        const effectiveId = homeId != null ? homeId : firstPage.id;
+
+        const currentLabel = homeId != null
+            ? 'Выбрана вручную'
+            : 'По умолчанию — первая по дате';
+
+        const statusHtml = this._homeSaved
+            ? `<div class="domain-success-inline">Сохранено</div>`
+            : (this._homeError
+                ? `<div class="domain-error-inline">${this._escapeAttr(this._homeError)}</div>`
+                : '');
+
+        return `
+            <section class="domain-card">
+                <div class="domain-card-title">Главная страница</div>
+                <p class="domain-card-hint">
+                    Открывается, когда посетитель заходит на ваш поддомен
+                    <code>${this._escapeAttr(this.data.subdomain.subdomain)}</code>
+                    без пути. Если не выбрать вручную — показывается первая
+                    страница по дате.
+                </p>
+
+                <div class="domain-form-row">
+                    <select class="domain-select"
+                            data-js="home-select"
+                            ${this._homeSaving ? 'disabled' : ''}>
+                        ${optionsHtml}
+                    </select>
+
+                    <button type="button"
+                            class="domain-btn domain-btn-primary"
+                            data-action="home-save"
+                            ${this._homeSaving ? 'disabled' : ''}>
+                        ${this._homeSaving ? 'Сохраняю…' : 'Сохранить'}
+                    </button>
+
+                    ${homeId != null ? `
+                        <button type="button"
+                                class="domain-btn"
+                                data-action="home-clear"
+                                ${this._homeSaving ? 'disabled' : ''}>
+                            Сбросить
+                        </button>
+                    ` : ''}
+                </div>
+
+                <p class="domain-card-hint domain-card-hint-subtle">
+                    ${currentLabel}. Текущая: <b>${this._escapeAttr(
+                        (pages.find(p => p.id === effectiveId) || firstPage).title
+                    )}</b>
+                </p>
+
+                ${statusHtml}
+            </section>
+        `;
+    }
+
+    // ============================================
+    // CUSTOM DOMAIN CARD
+    // ============================================
 
     _renderCustomCard() {
         const caddyOff = !this.data.caddy_available;
@@ -364,7 +468,7 @@ export class BaseProfileDomain {
             addBtn.addEventListener('click', () => this._submitAdd(root));
         }
 
-        // Enter in the input submits the form
+        // Enter in the domain input submits the form
         const input = root.querySelector('[data-js="domain-input"]');
         if (input) {
             input.addEventListener('keydown', (e) => {
@@ -379,6 +483,18 @@ export class BaseProfileDomain {
         const removeBtn = root.querySelector('[data-action="remove-domain"]');
         if (removeBtn) {
             removeBtn.addEventListener('click', () => this._submitRemove());
+        }
+
+        // ---- Home page: save ----
+        const homeSave = root.querySelector('[data-action="home-save"]');
+        if (homeSave) {
+            homeSave.addEventListener('click', () => this._submitHomeSave(root));
+        }
+
+        // ---- Home page: clear ----
+        const homeClear = root.querySelector('[data-action="home-clear"]');
+        if (homeClear) {
+            homeClear.addEventListener('click', () => this._submitHomeClear());
         }
     }
 
@@ -465,6 +581,80 @@ export class BaseProfileDomain {
     }
 
     // ============================================
+    // SUBMIT — HOME PAGE
+    // ============================================
+
+    async _submitHomeSave(root) {
+        if (this._homeSaving) return;
+
+        const select = root.querySelector('[data-js="home-select"]');
+        const raw = select?.value;
+        const pageId = parseInt(raw, 10);
+
+        if (!Number.isFinite(pageId)) {
+            this._homeError = 'Выберите страницу';
+            this._homeSaved = false;
+            this._rerender();
+            return;
+        }
+
+        this._homeSaving = true;
+        this._homeError = null;
+        this._homeSaved = false;
+        this._rerender();
+
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            await fetchJson(`${this._apiBase}/home`, {
+                method: 'POST',
+                body: { page_id: pageId },
+            });
+
+            this._homeSaved = true;
+            console.log('[BaseProfileDomain] Home page set:', pageId);
+        } catch (err) {
+            console.error('[BaseProfileDomain] Home save error:', err);
+            this._homeError = err?.message || 'Не удалось сохранить';
+        }
+
+        this._homeSaving = false;
+        await this._reload();
+
+        // Auto-clear the "Сохранено" badge after a moment.
+        if (this._homeSaved) {
+            setTimeout(() => {
+                this._homeSaved = false;
+                // Only redraw if the element is still on screen.
+                if (this.element && this.element.isConnected) {
+                    this._rerender();
+                }
+            }, 2000);
+        }
+    }
+
+    async _submitHomeClear() {
+        if (this._homeSaving) return;
+
+        this._homeSaving = true;
+        this._homeError = null;
+        this._homeSaved = false;
+        this._rerender();
+
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            await fetchJson(`${this._apiBase}/home`, { method: 'DELETE' });
+
+            console.log('[BaseProfileDomain] Home page cleared');
+        } catch (err) {
+            console.error('[BaseProfileDomain] Home clear error:', err);
+            this._homeError = err?.message || 'Не удалось сбросить';
+        }
+
+        this._homeSaving = false;
+        await this._reload();
+    }
+
+    // ============================================
     // UI HELPERS
     // ============================================
 
@@ -508,5 +698,8 @@ export class BaseProfileDomain {
         this._submitting = false;
         this._lastError = null;
         this._lastAddInfo = null;
+        this._homeSaving = false;
+        this._homeError = null;
+        this._homeSaved = false;
     }
 }

@@ -38,6 +38,12 @@
  * the usual global `done` frame, so the progress bubble is removed
  * exactly once at the end of the run — no special-casing needed here.
  *
+ * Message actions:
+ *   `addMessage()` accepts an optional `msg.action` of shape
+ *   `{ label, href?, onClick? }`. It is rendered as an inline link
+ *   under the bubble text. Used by the error path in handler.js to
+ *   offer "Перейти к балансу" when the LLM quota is exhausted.
+ *
  * User-facing strings are in Russian.
  */
 export class LLMChatUI {
@@ -214,8 +220,11 @@ export class LLMChatUI {
     /**
      * Add a message bubble.
      *
-     * msg = { role, content, created_at? }
-     *   role = 'user' | 'assistant' | 'error'
+     * msg = { role, content, created_at?, action? }
+     *   role   = 'user' | 'assistant' | 'error'
+     *   action = { label, href?, onClick? } — optional inline link
+     *            under the bubble text (used by the error path to
+     *            offer e.g. "Перейти к балансу").
      */
     addMessage(msg) {
         this._render(msg);
@@ -251,9 +260,36 @@ export class LLMChatUI {
 
         const bubble = document.createElement('div');
         bubble.className = 'core-engine-lib-word-llm-chat-bubble';
-        bubble.textContent = msg.content;
-        el.appendChild(bubble);
 
+        // Text — via textContent (not innerHTML) so no XSS is possible
+        // from server-controlled error strings.
+        const text = document.createElement('span');
+        text.className = 'core-engine-lib-word-llm-chat-bubble-text';
+        text.textContent = msg.content || '';
+        bubble.appendChild(text);
+
+        // Optional inline action (link / button) under the text.
+        // Shape: { label, href?, onClick? }.
+        //   - if onClick is provided, it runs on click (href is a
+        //     no-op, mostly for cursor/hover styling);
+        //   - otherwise the <a> navigates to href as usual.
+        if (msg.action && msg.action.label) {
+            const link = document.createElement('a');
+            link.className = 'core-engine-lib-word-llm-chat-bubble-action';
+            link.href = msg.action.href || '#';
+            link.textContent = msg.action.label;
+
+            link.addEventListener('click', (e) => {
+                if (typeof msg.action.onClick === 'function') {
+                    e.preventDefault();
+                    msg.action.onClick(e);
+                }
+            });
+
+            bubble.appendChild(link);
+        }
+
+        el.appendChild(bubble);
         this.messagesEl.appendChild(el);
     }
 

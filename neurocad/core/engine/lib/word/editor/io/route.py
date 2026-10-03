@@ -31,9 +31,14 @@ Media on import:
 
     - lazy-load attributes are normalized: `data-original` is dropped
       (src is preserved / promoted), `data-content-cover-bg` becomes
-      an inline `style="background-image: ..."`;
-    - every inline `<svg>...</svg>` is saved as a real .svg file
-      under media/<nav_id>/ and replaced with an <img>.
+      an inline `style="background-image: ..."`.
+
+    - inline `<svg>...</svg>` is intentionally kept as-is. Earlier
+      the import pipeline moved every inline SVG into a separate
+      file under media/<nav_id>/ and replaced the markup with
+      <img src="..."> — that broke the visual design (CSS classes
+      were dropped, `currentColor` and viewBox sizing stopped
+      working). See media.extract_inline_svg for details.
 
   The `assets` map is dropped from the response: the editor already
   has URLs inside the HTML.
@@ -181,7 +186,9 @@ async def _extract_all_media(
       1b. lazy-load attributes        → normalized (data-original
                                         dropped, src preserved)
       1c. cover backgrounds           → inline style (data-content-cover-bg)
-      4.  inline <svg> in `html`      → media/<nav_id>/
+
+    Inline SVG is NOT touched here anymore — it stays in the markup.
+    See media.extract_inline_svg for the reasoning.
 
     The data-URIs themselves (in `html`, `project_json`, `css`) stay
     as-is; the editor renders them directly, and the save pipeline
@@ -191,11 +198,11 @@ async def _extract_all_media(
     `warnings`.
     """
     # ============================================================
-    # NOTE: the following two blocks are DISABLED on purpose.
-    # They extract data-URIs from HTML / JSON *before* the editor
-    # parses the page, which breaks GrapesJS for large Tilda imports.
-    # The extraction now happens in save_content, after the editor
-    # has already seen the raw base64.
+    # NOTE: the following three blocks are DISABLED on purpose.
+    # They extract data-URIs from HTML / JSON / CSS *before* the
+    # editor parses the page, which breaks GrapesJS for large Tilda
+    # imports. The extraction now happens in save_content, after
+    # the editor has already seen the raw base64.
     # ============================================================
     #
     # # ---- 1. HTML data-URIs ----
@@ -257,16 +264,23 @@ async def _extract_all_media(
         warnings.append(f"Конвертировано фонов: {map_cover['converted']}")
 
     # ---- 4. Inline SVG ----
-    new_html, map_svg = media.extract_inline_svg(
-        result.get("html") or "",
-        nav_id,
-    )
-    result["html"] = new_html
-
-    if map_svg.get("extracted"):
-        warnings.append(f"Извлечено SVG: {map_svg['extracted']}")
-    if map_svg.get("errors"):
-        warnings.append(f"Ошибок при извлечении SVG: {map_svg['errors']}")
+    # DISABLED on purpose. Inline SVG is part of the markup and must
+    # not be extracted into media/<nav_id>/: doing so strips the
+    # original CSS classes and breaks `currentColor` / viewBox-based
+    # sizing. media.extract_inline_svg is now a no-op; the call is
+    # kept commented out so it is obvious that this step used to
+    # exist and is intentionally skipped.
+    #
+    # new_html, map_svg = media.extract_inline_svg(
+    #     result.get("html") or "",
+    #     nav_id,
+    # )
+    # result["html"] = new_html
+    #
+    # if map_svg.get("extracted"):
+    #     warnings.append(f"Извлечено SVG: {map_svg['extracted']}")
+    # if map_svg.get("errors"):
+    #     warnings.append(f"Ошибок при извлечении SVG: {map_svg['errors']}")
 
     # The inlined base64 assets map is no longer needed: the editor
     # now sees plain URLs inside `html` / `project_json` / `css`.
@@ -296,9 +310,10 @@ async def import_url(
         "data": { "html": "...", "css": "...", "warnings": [...] }
       }
 
-    All inline SVG and Tilda lazy-load attributes are normalized —
-    lazy-load is replaced with plain src/style. Data-URIs stay as-is;
-    the save pipeline extracts them on the first save.
+    Tilda lazy-load attributes are normalized — lazy-load is
+    replaced with plain src/style. Data-URIs stay as-is; the save
+    pipeline extracts them on the first save. Inline SVG is kept
+    as-is (see media.extract_inline_svg).
 
     Any authenticated user.
     """
@@ -360,10 +375,11 @@ async def import_file(
         }
       }
 
-    All inline SVG and lazy-load attributes are normalized. Data-URIs
-    stay as-is; the save pipeline extracts them on the first save.
-    CSS url(...) references are NOT fetched — an uploaded archive has
-    no origin URL to resolve relative paths against.
+    Tilda lazy-load attributes are normalized. Data-URIs stay as-is;
+    the save pipeline extracts them on the first save. CSS url(...)
+    references are NOT fetched — an uploaded archive has no origin
+    URL to resolve relative paths against. Inline SVG is kept as-is
+    (see media.extract_inline_svg).
 
     Any authenticated user.
     """

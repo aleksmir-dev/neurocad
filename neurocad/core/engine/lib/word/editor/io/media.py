@@ -31,13 +31,12 @@ Six entry points:
         - `#fragment`, `mailto:`, `tel:`, `javascript:` URLs
 
   extract_inline_svg(html, nav_id) -> (new_html, mapping)
-      Find every inline `<svg>...</svg>`, save it as a real `.svg` file
-      under `media/<nav_id>/`, and replace the markup with an
-      `<img src="...">`.
-
-      Why: foreign SVGs may be someone else's IP. They must not live
-      inside the shared editor asset library — they go into the
-      per-nav media folder, exactly like regular images.
+      DISABLED — see the function's own docstring.
+      Historically this moved every inline <svg> into media/<nav_id>/
+      and replaced the markup with <img src="...">. That broke the
+      visual design: the original CSS classes were dropped, and
+      `currentColor` / `viewBox`-based sizing stopped working.
+      Now it is a no-op: inline SVG stays inline.
 
   strip_lazy_attrs(html) -> (new_html, mapping)
       Normalize Tilda-style lazy-load <img> tags.
@@ -141,12 +140,6 @@ _DATA_URI_RE = re.compile(
 _CSS_URL_RE = re.compile(
     r"""url\(\s*(?P<quote>['"]?)(?P<url>[^'")]+)(?P=quote)\s*\)""",
     re.IGNORECASE,
-)
-
-#: `<svg ...>...</svg>` — non-greedy, DOTALL.
-_SVG_RE = re.compile(
-    r"<svg\b[^>]*>.*?</svg>",
-    re.DOTALL | re.IGNORECASE,
 )
 
 #: `<img ...>` opening tag (no nested >).
@@ -429,7 +422,7 @@ def extract_from_css(
 
 
 # ============================================
-# INLINE SVG EXTRACTION
+# INLINE SVG EXTRACTION — DISABLED
 # ============================================
 
 def extract_inline_svg(
@@ -437,51 +430,36 @@ def extract_inline_svg(
     nav_id: int,
 ) -> Tuple[str, Dict[str, Any]]:
     """
-    Find every inline `<svg>...</svg>`, save it as a real `.svg`
-    file under `media/<nav_id>/`, and replace the markup with an
-    `<img src="...">`.
+    DISABLED — inline SVG is kept as-is.
 
-    Why: foreign SVGs may be someone else's IP. They must not live
-    inside the shared editor asset library — they go into the
-    per-nav media folder, exactly like regular images.
+    Earlier this function extracted every inline `<svg>...</svg>`
+    into a separate file under media/<nav_id>/ and replaced the
+    markup with `<img src="...">`. That broke the visual design:
 
-    Returns (new_html, mapping).
+      - the original `class="featured__icon"` was replaced with
+        `class="ti-svg"`, so all CSS rules targeting the original
+        class stopped applying;
+      - `stroke="currentColor"` / `fill="currentColor"` no longer
+        worked, because `<img>` has no notion of the inherited
+        text color;
+      - `viewBox` sizing broke — with no CSS class the `<img>`
+        fell back to its intrinsic pixel size.
+
+    Inline SVG is part of the markup, not an external asset. It
+    must be styled by the page CSS exactly like any other element.
+    The editor and the LLM that generate these SVGs own them, so
+    there is no IP reason to move them into media/.
+
+    The function is kept (not deleted) so its import sites do not
+    need to change; it simply returns the HTML unchanged.
+
+    Returns (html, mapping) where mapping is always empty.
     """
     mapping: Dict[str, Any] = {
         "extracted": 0,
         "errors": 0,
     }
-
-    if not html or "<svg" not in html.lower():
-        return html, mapping
-
-    def _replace(match: re.Match) -> str:
-        svg = match.group(0)
-
-        # Ensure the SVG has an xmlns so it renders standalone.
-        if "xmlns=" not in svg[:200]:
-            svg_out = re.sub(
-                r"<svg\b",
-                '<svg xmlns="http://www.w3.org/2000/svg"',
-                svg,
-                count=1,
-                flags=re.IGNORECASE,
-            )
-        else:
-            svg_out = svg
-
-        try:
-            data = svg_out.encode("utf-8")
-            url = _write_file(nav_id, data, "image/svg+xml")
-        except Exception:
-            mapping["errors"] += 1
-            return svg
-
-        mapping["extracted"] += 1
-        return f'<img src="{url}" alt="" class="ti-svg" />'
-
-    new_html = _SVG_RE.sub(_replace, html)
-    return new_html, mapping
+    return html, mapping
 
 
 # ============================================

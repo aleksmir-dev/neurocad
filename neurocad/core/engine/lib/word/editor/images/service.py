@@ -247,7 +247,7 @@ class CoreEngineLibWordImagesService:
                 "order": int(item.get("order", 100)),
             })
 
-        result.sort(key=lambda e: (e["order"], e["id"]))
+        result.sort(key=lambda e: (-e["order"], e["id"]))
         return result
 
     # ============================================

@@ -33,6 +33,23 @@
  *   stays generic: it only renders the buttons and calls their
  *   onClick with a context object.
  *
+ * Media sources:
+ *   The "logo" field also declares `mediaSources` and `mediaSource`.
+ *   The picker (BaseAssets) will show two tabs — «Медиатека» and
+ *   «Логотипы» — and open on «Логотипы» by default. The user can
+ *   still switch to «Медиатека» and pick any uploaded image.
+ *
+ * Onboarding hints:
+ *   Two independent hints (see ./hint.js), both stored per-browser
+ *   in localStorage:
+ *
+ *     EmptyArticlesHint — when the catalog is empty. Points at the
+ *       "+" button, explains how to create the first article.
+ *
+ *     CardActionsHint — after ANY card is created. Anchored to the
+ *       newly created card. Explains right-click → «Редактировать»
+ *       and double-click → open the article.
+ *
  * Grid layout:
  *   Grid is defined in cards.css:
  *       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))
@@ -74,6 +91,14 @@ export class Pages {
         this._restoreCaption = null;
         this._savedCaption = null;
 
+        // Onboarding hints. Created in _init().
+        this._emptyHint = null;    // empty-catalog tooltip
+        this._cardHint = null;     // how-to-use-a-card tooltip
+
+        // Last known item count — used to detect "a card was created"
+        // between two _reload() calls (prevCount < newCount).
+        this._lastItemCount = 0;
+
         this._loadCSS();
 
         this._initPromise = this._init();
@@ -82,6 +107,7 @@ export class Pages {
     _loadCSS() {
         if (window.coreEngine?.loadCSS) {
             window.coreEngine.loadCSS('core/engine/lib/pages/pages.css');
+            window.coreEngine.loadCSS('core/engine/lib/pages/hint.css');
         }
     }
 
@@ -123,6 +149,15 @@ export class Pages {
             const { makeLogoGeneratorButton } = await import(
                 `./logo.js?v=${version}`
             );
+
+            // Onboarding hints (both variants live in the same module).
+            const { EmptyArticlesHint, CardActionsHint } = await import(
+                `./hint.js?v=${version}`
+            );
+            this._EmptyArticlesHint = EmptyArticlesHint;
+            this._CardActionsHint = CardActionsHint;
+            this._emptyHint = new EmptyArticlesHint();
+            this._cardHint = new CardActionsHint();
 
             const canEdit = this._canEdit();
 
@@ -187,6 +222,12 @@ export class Pages {
                         label: 'Логотип',
                         type: 'media',
                         placeholder: 'Не выбрано',
+                        // Picker sources: two tabs in BaseAssets.
+                        // Opens on «Логотипы» by default, but the user
+                        // can switch to «Медиатека» and pick any uploaded
+                        // image.
+                        mediaSources: ['media', 'logos'],
+                        mediaSource: 'logos',
                         // Extra button: "Генерировать".
                         // Rendered between "Выбрать" и "Очистить".
                         // The behaviour lives in logo.js.
@@ -266,6 +307,15 @@ export class Pages {
             // stay untouched.
             this._patchPayloadNormalization();
 
+            // Remember the current item count so the first _reload()
+            // can tell "created" from "unchanged".
+            this._lastItemCount = (this.cardsInstance?.props?.items
+                                || this.props.items
+                                || []).length;
+
+            // Show the empty-catalog hint if the catalog is empty.
+            this._updateEmptyHint();
+
             this._initialized = true;
             console.log('[Pages] _init() COMPLETE');
         } catch (error) {
@@ -273,6 +323,86 @@ export class Pages {
             this._initialized = false;
             throw error;
         }
+    }
+
+    // ============================================
+    // ONBOARDING HINTS
+    // ============================================
+
+    /**
+     * Show or hide the empty-catalog hint based on the current item count.
+     *
+     * Shown when:
+     *   - items array is empty;
+     *   - the user can edit (has a "+" button in the toolbar);
+     *   - the user has not chosen "never show again".
+     *
+     * Called from _init() (first paint) and _reload() (after create /
+     * delete). The show() is deferred to the next tick so the toolbar
+     * DOM node exists by the time we measure its position.
+     */
+    _updateEmptyHint() {
+        if (!this._emptyHint) return;
+
+        const items = this.cardsInstance?.props?.items
+                   || this.props.items
+                   || [];
+
+        if (items.length === 0 && this._canEdit()) {
+            // Defer so the toolbar (with the "+" button) is in the DOM.
+            setTimeout(() => {
+                if (this._emptyHint) this._emptyHint.show();
+            }, 0);
+        } else {
+            this._emptyHint.hide();
+        }
+    }
+
+    /**
+     * Show the "how to use a card" hint right after a card is created.
+     *
+     * Trigger: previous item count < current item count. This fires
+     * for ANY new card, not only the first one. It stays visible
+     * until the user closes it, checks "never show again", or the
+     * next catalog reload happens without a new card.
+     *
+     * Suppressed by its own localStorage flag — independent from the
+     * empty-catalog hint.
+     *
+     * @param {number} prevCount — item count before the reload
+     * @param {number} newCount  — item count after the reload
+     */
+    _updateCardActionsHint(prevCount, newCount) {
+        if (!this._cardHint) return;
+
+        const created = newCount > prevCount;
+
+        if (!created) {
+            // Nothing was created — do not show, but keep an already
+            // visible hint (the user may still be reading it).
+            return;
+        }
+
+        // A card was created — hide the empty-catalog hint if it was
+        // still on screen, then show the card-actions hint.
+        if (this._emptyHint) {
+            this._emptyHint.hide();
+        }
+
+        // Give the grid a beat to render the new card, then anchor
+        // the hint to it.
+        setTimeout(() => {
+            if (!this._cardHint) return;
+
+            // Newest card is at the top of the grid (backend returns
+            // items sorted by datetime desc). Fall back to the first
+            // card in the DOM if the class name ever changes.
+            const cardEl = document.querySelector(
+                '.core-engine-lib-base-cards-card, .pages-card-wrapper'
+            );
+
+            this._cardHint.show(cardEl);
+        }, 150);
     }
 
     // ============================================
@@ -497,6 +627,11 @@ export class Pages {
     async _reload() {
         console.log('[Pages] _reload()');
 
+        // Remember the count BEFORE we reload — to detect a creation.
+        const prevCount = (this.cardsInstance?.props?.items
+                        || this.props.items
+                        || []).length;
+
         await this._loadFromServer();
 
         if (this._canEdit()) {
@@ -511,6 +646,16 @@ export class Pages {
                 widgetStatus: `${this.props.items.length} статей`,
             });
         }
+
+        const newCount = (this.props.items || []).length;
+
+        // Update the empty-catalog hint after every reload.
+        this._updateEmptyHint();
+
+        // Show the card-actions hint if a card was just created.
+        this._updateCardActionsHint(prevCount, newCount);
+
+        this._lastItemCount = newCount;
     }
 
     // ============================================
@@ -623,6 +768,16 @@ export class Pages {
             this._restoreCaption(this._savedCaption);
         }
         this._savedCaption = null;
+
+        // Remove both onboarding hints (if visible).
+        if (this._emptyHint) {
+            this._emptyHint.remove();
+            this._emptyHint = null;
+        }
+        if (this._cardHint) {
+            this._cardHint.remove();
+            this._cardHint = null;
+        }
 
         if (this.cardsInstance?.destroy) {
             this.cardsInstance.destroy();

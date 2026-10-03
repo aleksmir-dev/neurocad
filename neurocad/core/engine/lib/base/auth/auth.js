@@ -3,8 +3,8 @@
 /**
  * BaseAuth — core auth state manager.
  *
- * Holds the current user, exposes auth pages (login / register /
- * restore / password / profile), and listens to auth events:
+ * Holds the current user, exposes AUTH pages (login / register /
+ * restore / password), and listens to auth events:
  *
  *   auth:login         → set user, save session, emit auth:changed
  *   auth:logout        → run the full logout flow (with confirm)
@@ -12,10 +12,44 @@
  *   auth:unauthorized  → clear user, clear session, emit auth:changed,
  *                        show login form
  *   auth:show-password → open password-change page
+ *   auth:registered    → post-registration side effects
+ *                        (currently: ensure a Balance row exists)
+ *
+ * `auth` vs `page`
+ * ----------------
+ * This module is strictly about AUTHENTICATION. It owns the forms
+ * that a user needs to prove who they are:
+ *
+ *   login / register / restore / password
+ *
+ * It does NOT own the user-facing pages that live inside the app
+ * shell once the user is authenticated — those belong to
+ * BasePages (base/pages.js):
+ *
+ *   profile / setup  (+ sub-pages: balance, domain, llm, ...)
+ *
+ * The URL scheme reflects that split:
+ *
+ *   <module>?auth=login      → BaseAuth.showLogin()
+ *   <module>?auth=register   → BaseAuth.showRegister()
+ *   <module>?auth=restore    → BaseAuth.showRestore()
+ *   <module>?auth=password   → BaseAuth.showPassword()
+ *
+ *   <module>?page=profile    → Base.showProfile('main')
+ *   <module>?page=setup      → Base.showSetup('main')
+ *
+ * `?auth=profile` is NOT a thing — profile is not an auth form.
+ * See base/pages.js for the app pages.
  *
  * The `auth:unauthorized` event is emitted by fetchJson on 401
  * (see base/auth/api.js) — this is how session expiry propagates
  * through the app without every module knowing about auth.
+ *
+ * The `auth:registered` event is emitted by the registration form
+ * (base/auth/register.js) right after a successful register +
+ * auto-login. The form neither knows nor cares who listens. This
+ * module listens and performs the side effects that make a new
+ * user usable.
  *
  * Caption: Base passes setCaption / restoreCaption down to every auth
  * form via _renderForm() options, so that forms can change the header /
@@ -136,6 +170,13 @@ export class BaseAuth {
         document.addEventListener('auth:show-password', () => {
             this.showPassword();
         });
+
+        // auth:registered — emitted by the registration form
+        // (base/auth/register.js) after a successful register +
+        // auto-login. Post-registration side effects happen here.
+        document.addEventListener('auth:registered', (e) => {
+            this._handleRegistered(e.detail);
+        });
     }
 
     _handleLogin(data) {
@@ -145,6 +186,34 @@ export class BaseAuth {
         this._saveSession();
         this._clearContainer();
         this._emit('auth:changed', { user: this.user, isAuthenticated: true });
+    }
+
+    /**
+     * Post-registration side effects.
+     *
+     * The registration form only announces the fact (auth:registered).
+     * Everything the new user needs to exist cleanly — currently just
+     * a Balance row — is created here.
+     *
+     * Fire-and-forget: a failure must NOT break the registration flow.
+     * The balance row is also created lazily on first use (media
+     * upload / page create / LLM call), so a hiccup here is not fatal.
+     */
+    async _handleRegistered(detail) {
+        console.log('[BaseAuth] _handleRegistered()', detail);
+
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            if (!fetchJson) return;
+
+            await fetchJson('/core/engine/lib/balance/ensure', {
+                method: 'POST',
+                skipAuthRedirect: true,   // best-effort side effect
+            });
+            console.log('[BaseAuth] balance ensured for new user');
+        } catch (err) {
+            console.warn('[BaseAuth] balance ensure failed:', err);
+        }
     }
 
     /**
@@ -379,30 +448,6 @@ export class BaseAuth {
         }
     }
 
-    async showProfile() {
-        console.log('[BaseAuth] showProfile()');
-        if (!this.isAuthenticated) {
-            this.showLogin();
-            return;
-        }
-
-        try {
-            const version = window.coreEngine?.static_version || Date.now();
-            const { BaseAuthProfile } = await import(`./profile.js?v=${version}`);
-            await this._renderForm(BaseAuthProfile, {
-                user: this.user,
-                onSuccess: (data) => {
-                    this.user = data.user;
-                    this._saveSession();
-                    this._emit('auth:changed', { user: this.user, isAuthenticated: true });
-                    this._clearContainer();
-                }
-            });
-        } catch (err) {
-            console.error('[BaseAuth] profile.js load error:', err);
-        }
-    }
-
     showPage(container) {
         console.log('[BaseAuth] showPage()', container);
         this.container = container;
@@ -435,9 +480,27 @@ export class BaseAuth {
      *    has unsaved changes — the user is prompted via confirmClose().
      *    If the user cancels — abort: no server call, session stays
      *    alive, editor stays open.
-     * 2. POST /core/auth/logout to kill the server-side session.
+     * 2. POST /core/auth/login/logout to kill the server-side session.
+     *    Note the "/login/logout" path: the backend mounts logout
+     *    under the login router (see core/auth/login/route.py —
+     *    APIRouter(prefix="/login")), so the effective URL is
+     *    /auth/login/logout, not /auth/logout.
      * 3. Local cleanup: clear user, clear session, emit auth:changed.
-     * 4. Reload the page (so the app boots fresh on the login form).
+     * 4. Hard redirect to the module home (window.coreEngine.baseUrl,
+     *    e.g. /core/engine/admin) so the engine boots fresh in a
+     *    guest state.
+     *
+     * Why replace() and not reload():
+     *   reload() keeps the current URL — e.g. /core/engine/admin/page/5/
+     *   20261003/105847. The page would boot in guest mode, but its
+     *   URL still points at an article that no longer has an owner:
+     *   the area-center stays empty, and any stale caption ("Статья 2")
+     *   set by the previous page remains on screen.
+     *
+     *   location.replace(home) swaps the current history entry for the
+     *   module home. The "Back" button then goes to whatever the user
+     *   visited before the article, not to the article itself — no way
+     *   to return to a page they no longer own.
      */
     async logout() {
         console.log('[BaseAuth] logout()');
@@ -458,9 +521,17 @@ export class BaseAuth {
         }
 
         // Now it's safe to kill the session.
+        //
+        // NOTE: the URL is /core/auth/login/logout, not /core/auth/logout.
+        // The backend mounts logout under the login router (see
+        // core/auth/login/route.py: APIRouter(prefix="/login")), so the
+        // effective path is /auth/login/logout. Hitting /auth/logout
+        // returns 404 and leaves the cookie in place — which then makes
+        // the next page load resolve nav_id from the OLD session, and
+        // Pages loads the previous user's catalog.
         try {
             const fetchJson = window.coreEngine?.fetchJson;
-            await fetchJson('/core/auth/logout', {
+            await fetchJson('/core/auth/login/logout', {
                 method: 'POST',
                 skipAuthRedirect: true,   // logging out is not an auth failure
             });
@@ -470,9 +541,12 @@ export class BaseAuth {
 
         this._handleLogoutLocal();
 
-        setTimeout(() => {
-            window.location.reload();
-        }, 100);
+        // Hard redirect to the module home (e.g. /core/engine/admin).
+        // replace() — not reload() — so the logged-out page does not
+        // stay in history: pressing Back must not return the user to
+        // a page they no longer own.
+        const home = window.coreEngine?.baseUrl || '/';
+        window.location.replace(home);
     }
 
     destroy() {

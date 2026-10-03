@@ -9,10 +9,11 @@
  *   .core-engine-lib-base-assets            — overlay (fixed, fullscreen)
  *     └── .assets-content                   — modal window
  *         ├── .assets-header                — title + close
- *         ├── .assets-toolbar               — upload button + file input
+ *         ├── .assets-toolbar               — tabs + upload button + file input
+ *         │   └── .assets-tabs              — «Медиатека» / «Логотипы»
  *         ├── .assets-body
  *         │   ├── .assets-grid              — grid of items
- *         │   └── .assets-dropzone          — drag & drop hint
+ *         │   └── .assets-dropzone          — drag & drop hint (media only)
  *         └── .assets-footer                — cancel button
  *
  * Item:
@@ -22,6 +23,12 @@
  *
  * All styles are scoped under .core-engine-lib-base-assets.
  * Uses CSS variables --color-* where available, with sensible fallbacks.
+ *
+ * Z-index scale (project-wide):
+ *   1000 — content modals (BaseCardsEdit, BaseAssets)
+ *   1100 — dialogs on top (BaseModalConfirm, BaseModalMessage)
+ * Do NOT use 4-5 digit values. If you think you need a higher
+ * value, you are fighting a sibling element — fix the root cause.
  */
 
 /* ============================================ */
@@ -37,7 +44,7 @@
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 20000;
+    z-index: 1000;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
 }
@@ -146,11 +153,51 @@
     font-weight: 500;
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s;
+    margin-left: auto;   /* push to the right when tabs are present */
 }
 
 .core-engine-lib-base-assets .assets-upload-btn:hover {
     background: #f1f5f9;
     border-color: #cbd5e1;
+}
+
+/* ============================================ */
+/* TABS (Медиатека / Логотипы)                  */
+/* ============================================ */
+
+.core-engine-lib-base-assets .assets-tabs {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.core-engine-lib-base-assets .assets-tab {
+    padding: 6px 14px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: var(--radius, 8px);
+    background: var(--color-white, #ffffff);
+    color: var(--color-text, #1e293b);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.core-engine-lib-base-assets .assets-tab:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.core-engine-lib-base-assets .assets-tab-active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+}
+
+.core-engine-lib-base-assets .assets-tab-active:hover {
+    background: #2563eb;
+    border-color: #2563eb;
 }
 
 /* ============================================ */
@@ -356,5 +403,11 @@
 
     .core-engine-lib-base-assets .assets-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Tabs on narrow screens — smaller padding / font */
+    .core-engine-lib-base-assets .assets-tab {
+        padding: 6px 10px;
+        font-size: 12px;
     }
 }

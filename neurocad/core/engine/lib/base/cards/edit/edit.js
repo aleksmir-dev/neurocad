@@ -20,6 +20,18 @@
  *
  * Other field types keep the standard label-above-input layout.
  *
+ * Media sources
+ * -------------
+ * A media field may declare which picker sources to show:
+ *
+ *   mediaSources: ['media', 'logos']   — tabs in the picker
+ *   mediaSources: ['logos']            — logos only
+ *   mediaSource:  'logos'              — same, legacy single-value form
+ *
+ * Default (no declaration): ['media'] — current behavior.
+ *
+ *   mediaSource: 'logos'               — which tab opens first
+ *
  * Extra media buttons
  * -------------------
  * A media field may declare `extraButtons: [{ label, className,
@@ -420,10 +432,32 @@ export class BaseCardsEdit {
     /**
      * Open the media picker (BaseAssets) and update the field value.
      *
+     * Sources are read from the field descriptor:
+     *   - field.mediaSources: ['media'] | ['logos'] | ['media','logos']
+     *   - field.mediaSource:  'media' | 'logos'  (legacy single-value)
+     * Default: ['media'].
+     *
+     * The initial tab is field.mediaSource if it is among the
+     * available sources, otherwise sources[0].
+     *
      * @param {Object} field
      */
     async _openMediaPicker(field) {
         const version = window.coreEngine?.static_version || Date.now();
+
+        // ---- 1. Available sources ----
+        let sources = ['media'];
+        if (Array.isArray(field.mediaSources) && field.mediaSources.length) {
+            sources = field.mediaSources.filter(s => s === 'media' || s === 'logos');
+            if (!sources.length) sources = ['media'];
+        } else if (field.mediaSource === 'logos') {
+            sources = ['logos'];
+        }
+
+        // ---- 2. Initial tab ----
+        const initialSource = sources.includes(field.mediaSource)
+            ? field.mediaSource
+            : sources[0];
 
         try {
             const { BaseAssets } = await import(
@@ -431,13 +465,31 @@ export class BaseCardsEdit {
             );
 
             BaseAssets.open({
+                sources,
+                initialSource,
                 onSelect: (src) => {
                     this._setMediaValue(field, src);
                 },
             });
         } catch (e) {
             console.warn('[BaseCardsEdit] BaseAssets unavailable:', e);
-            alert('Не удалось открыть медиатеку');
+
+            // Fallback to a modal message if available — do not use
+            // native alert() in production UI.
+            try {
+                const { createModal } = await import(
+                    `/static/core/engine/lib/base/modal/index.js?v=${version}`
+                );
+                const modal = await createModal('message');
+                if (modal) {
+                    modal.setOnOk(() => modal.destroy());
+                    modal.open('Не удалось открыть медиатеку', 'Ошибка');
+                    return;
+                }
+            } catch (_) { /* ignore */ }
+
+            // Last-resort fallback.
+            window.alert('Не удалось открыть медиатеку');
         }
     }
 

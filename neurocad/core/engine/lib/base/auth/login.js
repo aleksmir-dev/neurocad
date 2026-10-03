@@ -271,8 +271,31 @@ export class BaseAuthLogin {
 
         } catch (error) {
             console.error('[BaseAuthLogin] Login error:', error);
+
+            // On the login endpoint, a 401 means "wrong username or
+            // password" — NOT "session expired". fetchJson may still
+            // put a generic "Session expired..." message into
+            // error.message (it does not know that this particular
+            // caller opted out with skipAuthRedirect). So we
+            // deliberately ignore whatever message came with a 401
+            // and show our own text instead.
+            //
+            // For any other error we prefer the server-provided
+            // detail; if there is none, fall back to the same
+            // Russian text so the user never sees a raw
+            // English/system string.
+            let message;
+            if (error?.status === 401) {
+                message = 'Неверный логин или пароль';
+            } else {
+                message = error?.data?.detail
+                    || error?.data?.message
+                    || error?.message
+                    || 'Неверный логин или пароль';
+            }
+
             if (errorEl) {
-                errorEl.textContent = error.message || 'Неверный логин или пароль';
+                errorEl.textContent = message;
                 errorEl.style.display = 'block';
             }
             if (this.captcha && typeof this.captcha.refresh === 'function') {

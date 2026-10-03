@@ -1,0 +1,145 @@
+/* app/core/engine/lib/word/hint.css */
+
+/**
+ * EmptyArticleHint — onboarding tooltip for an empty article.
+ *
+ * Namespace: .core-engine-lib-word-empty-article-hint
+ *
+ * Structure:
+ *   .core-engine-lib-word-empty-article-hint
+ *     ├── .core-engine-lib-word-empty-article-hint-close   — ✕
+ *     ├── .core-engine-lib-word-empty-article-hint-title   — heading
+ *     ├── .core-engine-lib-word-empty-article-hint-text    — body
+ *     └── .core-engine-lib-word-empty-article-hint-check   — «Не показывать больше»
+ *
+ * position: fixed, placed by JS below the "Редактировать" button
+ * (see hint.js → show). The ::before / ::after pseudo-elements draw
+ * the arrow pointing up-left toward the button.
+ *
+ * Same visual language as the article-catalog hints
+ * (core/engine/lib/pages/hint.css).
+ */
+
+.core-engine-lib-word-empty-article-hint {
+    position: fixed;
+    z-index: 900;                    /* below modals (1000+), above content */
+    max-width: 340px;
+    padding: 16px 18px 14px;
+
+    background: linear-gradient(180deg, #f0f6ff 0%, #e8effb 100%);
+    color: #1e293b;
+
+    border: 1px solid #c7d6ea;
+    border-radius: 12px;
+
+    box-shadow:
+        0 12px 32px rgba(30, 41, 59, 0.14),
+        0 4px 12px rgba(30, 41, 59, 0.08);
+
+    font-size: 14px;
+    line-height: 1.45;
+    pointer-events: auto;
+
+    animation: word-empty-article-hint-in 0.22s ease;
+}
+
+@keyframes word-empty-article-hint-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Arrow pointing up-left toward the "Редактировать" button */
+.core-engine-lib-word-empty-article-hint::before {
+    content: '';
+    position: absolute;
+    top: -9px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-bottom: 9px solid #f0f6ff;
+}
+
+/* Thin outline on the arrow so it visually merges with the border */
+.core-engine-lib-word-empty-article-hint::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-bottom: 9px solid #c7d6ea;
+    z-index: -1;
+}
+
+.core-engine-lib-word-empty-article-hint-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #0f172a;
+    margin-bottom: 6px;
+    padding-right: 22px;    /* room for the close button */
+}
+
+.core-engine-lib-word-empty-article-hint-text {
+    color: #475569;
+    margin-bottom: 12px;
+}
+
+.core-engine-lib-word-empty-article-hint-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #64748b;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+}
+
+.core-engine-lib-word-empty-article-hint-check:hover {
+    color: #334155;
+}
+
+.core-engine-lib-word-empty-article-hint-check input[type="checkbox"] {
+    margin: 0;
+    accent-color: #3b82f6;
+    cursor: pointer;
+}
+
+.core-engine-lib-word-empty-article-hint-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1;
+
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.core-engine-lib-word-empty-article-hint-close:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+}

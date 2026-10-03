@@ -5,19 +5,24 @@ Balance routes (admin, superadmin-only).
 
 Endpoints:
     GET  /core/engine/lib/balance/list   — all users + their balance
+    POST /core/engine/lib/balance/ensure — idempotent, self-serve
 
 Also mounts child routers:
     edit  → /core/engine/lib/balance/edit/...
     paid  → /core/engine/lib/balance/paid/...
     qr    → /core/engine/lib/balance/qr/...
 
-All endpoints require superadmin.
+Access:
+    /list and child routers require superadmin.
+    /ensure — any authenticated user, but only ever touches their
+    own row.
 
 Included by the global router (wherever lib/* routers are mounted):
     router.include_router(balance_router)
 
 Full URLs (with parent prefixes /core/engine/lib):
     GET    /core/engine/lib/balance/list
+    POST   /core/engine/lib/balance/ensure
     GET    /core/engine/lib/balance/edit/{user_id}
     PUT    /core/engine/lib/balance/edit/{user_id}
     POST   /core/engine/lib/balance/paid/{user_id}
@@ -82,6 +87,56 @@ async def get_balance_list(
         # уходят на клиент строками.
         "data": [item.model_dump(mode="json") for item in items],
         "total": len(items),
+    })
+
+
+# ============================================
+# ENSURE (idempotent, self-serve)
+# ============================================
+
+@router.post("/ensure")
+async def ensure_balance(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Create a Balance row for the current user if one does not exist.
+
+    Called as a post-registration side effect by BaseAuth
+    (see core/engine/lib/base/auth/auth.js, _handleRegistered).
+    The registration form itself does not know about balance —
+    it only emits `auth:registered`, and BaseAuth reacts.
+
+    Idempotent:
+        - if the user already has a balance row → 200, no change;
+        - if not → creates it with defaults, 200.
+
+    Any authenticated user — it only ever touches their OWN row.
+    No superadmin check: a freshly registered user must be able to
+    call it on themselves.
+    """
+    user_id = current_user.get("id") if isinstance(current_user, dict) else None
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # Lazy import — avoids loading the sqlite helper (and its deps)
+    # at module import time, keeps the router light.
+    from neurocad.utils.sqlite import ensure_user_balance
+
+    try:
+        await ensure_user_balance(int(user_id), log=request.app.state.log)
+    except Exception as e:
+        # Non-fatal: lazy creation in BalanceChecked / assets will
+        # create the row on first real use (media upload / page
+        # create / LLM call). The user does not need to see this.
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to ensure balance: {e}",
+        )
+
+    return JSONResponse({
+        "success": True,
+        "message": "Balance ensured",
     })
 
 
