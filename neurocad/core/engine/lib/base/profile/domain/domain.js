@@ -6,20 +6,27 @@
  * Rendered into area-center by Base.showProfile('domain').
  *
  * Three blocks:
- *   1. Free subdomain — read-only. <login>.<APP_DOMAIN> + copy button.
+ *   1. Free subdomain — clickable link <login>.<APP_DOMAIN> + copy
+ *      button. The link opens the URL in a new tab; the button
+ *      copies the full URL (https://...) to the clipboard.
  *   2. Home page — select from the user's pages + Save / Reset.
  *      Drives the "/" redirect on the user's subdomain (and on the
  *      custom domain once it's attached). Falls back to the first
  *      page (ORDER BY datetime ASC) when no explicit choice is made.
  *   3. Custom domain — either:
  *        - input + "Подключить" (when no custom domain is set), or
- *        - the current domain + status badge + "Отключить" button
- *          (when one is set).
+ *        - the current domain as a clickable link + status badge +
+ *          copy button + "Отключить" (when one is set).
  *
  * After submit, the backend checks DNS + Caddy and returns
  * { dns_ok, caddy_available, server_ip, message }. The page renders
  * a DNS-instruction block when dns_ok is false, and a Caddy warning
- * when caddy_available is false.
+ * when caddy_available is false. The final "Готово" block carries
+ * a clickable link to the new domain plus a copy button.
+ *
+ * URL scheme: every domain is shown as a full URL (https://...) —
+ * both as href on the <a> and as the payload of the copy button.
+ * Users copy the whole URL, not just the host.
  *
  * API:
  *   GET    /core/engine/lib/base/profile/domain/
@@ -190,22 +197,25 @@ export class BaseProfileDomain {
 
     _renderSubdomainCard() {
         const sub = this.data.subdomain;
+        const url = this._fullUrl(sub.subdomain);
+
         return `
             <section class="domain-card">
                 <div class="domain-card-title">Бесплатный поддомен</div>
                 <p class="domain-card-hint">
-                    Выдан автоматически при регистрации. Уже работает —
-                    сертификат покрывает все <code>*.${this._escapeAttr(sub.root_domain)}</code>.
+                    Выдан автоматически при регистрации
                 </p>
-                <div class="domain-copy-row">
-                    <input type="text"
-                           class="domain-copy-input"
-                           readonly
-                           value="${this._escapeAttr(sub.subdomain)}">
+                <div class="domain-link-row">
+                    <a class="domain-link"
+                       href="${this._escapeAttr(url)}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       title="${this._escapeAttr(url)}">${this._escapeAttr(url)}</a>
                     <button type="button"
                             class="domain-btn domain-copy-btn"
-                            data-action="copy-subdomain"
-                            data-copy="${this._escapeAttr(sub.subdomain)}">
+                            data-action="copy-link"
+                            data-copy="${this._escapeAttr(url)}"
+                            title="Копировать ссылку">
                         Копировать
                     </button>
                 </div>
@@ -348,14 +358,26 @@ export class BaseProfileDomain {
             `;
         }
 
-        // ---- Custom domain is set — show it with a status badge ----
+        // ---- Custom domain is set — show it as a clickable link ----
         const badge = this._statusBadge(custom.status);
+        const url = this._fullUrl(custom.domain);
 
         return `
             <section class="domain-card">
                 <div class="domain-card-title">Свой домен 2 уровня</div>
-                <div class="domain-current-row">
-                    <code class="domain-current-name">${this._escapeAttr(custom.domain)}</code>
+                <div class="domain-link-row">
+                    <a class="domain-link"
+                       href="${this._escapeAttr(url)}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       title="${this._escapeAttr(url)}">${this._escapeAttr(url)}</a>
+                    <button type="button"
+                            class="domain-btn domain-copy-btn"
+                            data-action="copy-link"
+                            data-copy="${this._escapeAttr(url)}"
+                            title="Копировать ссылку">
+                        Копировать
+                    </button>
                     ${badge}
                 </div>
                 ${custom.message ? `
@@ -413,13 +435,29 @@ export class BaseProfileDomain {
             `;
         }
 
-        // Everything ok.
+        // Everything ok — final block with the clickable URL.
+        const url = this._fullUrl(info.domain);
+
         return `
             <section class="domain-card">
                 <div class="domain-card-title">Готово</div>
                 <p class="domain-card-hint">
                     ${this._escapeAttr(info.message || 'Домен подключён.')}
                 </p>
+                <div class="domain-link-row">
+                    <a class="domain-link"
+                       href="${this._escapeAttr(url)}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       title="${this._escapeAttr(url)}">${this._escapeAttr(url)}</a>
+                    <button type="button"
+                            class="domain-btn domain-copy-btn"
+                            data-action="copy-link"
+                            data-copy="${this._escapeAttr(url)}"
+                            title="Копировать ссылку">
+                        Копировать
+                    </button>
+                </div>
             </section>
         `;
     }
@@ -456,11 +494,10 @@ export class BaseProfileDomain {
             });
         }
 
-        // Copy subdomain
-        const copyBtn = root.querySelector('[data-action="copy-subdomain"]');
-        if (copyBtn) {
-            copyBtn.addEventListener('click', () => this._copySubdomain(copyBtn));
-        }
+        // Copy links (any data-action="copy-link" button)
+        root.querySelectorAll('[data-action="copy-link"]').forEach((btn) => {
+            btn.addEventListener('click', () => this._copyLink(btn));
+        });
 
         // Add custom domain
         const addBtn = root.querySelector('[data-action="add-domain"]');
@@ -498,20 +535,26 @@ export class BaseProfileDomain {
         }
     }
 
-    async _copySubdomain(btn) {
+    async _copyLink(btn) {
         const text = btn.getAttribute('data-copy') || '';
         if (!text) return;
 
+        const prev = btn.textContent;
+
         try {
             await navigator.clipboard.writeText(text);
-            const prev = btn.textContent;
             btn.textContent = 'Скопировано';
-            setTimeout(() => { btn.textContent = prev || 'Копировать'; }, 1500);
         } catch (err) {
             console.error('[BaseProfileDomain] Copy error:', err);
             btn.textContent = 'Не удалось';
-            setTimeout(() => { btn.textContent = 'Копировать'; }, 1500);
         }
+
+        setTimeout(() => {
+            // Only restore if the button is still on screen.
+            if (btn.isConnected) {
+                btn.textContent = prev || 'Копировать';
+            }
+        }, 1500);
     }
 
     // ============================================
@@ -657,6 +700,22 @@ export class BaseProfileDomain {
     // ============================================
     // UI HELPERS
     // ============================================
+
+    /**
+     * Build a full URL from a bare hostname.
+     *
+     *   "testuser1.neurocad.ru" → "https://testuser1.neurocad.ru"
+     *   "atou.ru"               → "https://atou.ru"
+     *
+     * Every domain on this page is shown and copied as a full URL —
+     * users paste it straight into the address bar.
+     */
+    _fullUrl(host) {
+        const h = String(host ?? '').trim();
+        if (!h) return '';
+        if (h.startsWith('http://') || h.startsWith('https://')) return h;
+        return `https://${h}`;
+    }
 
     _escapeAttr(text) {
         return String(text ?? '')

@@ -163,7 +163,74 @@
     font-weight: 600;
 }
 
-/* ===== Subdomain copy row ===== */
+/* ===== Domain link row (clickable URL + copy button) ===== */
+/*
+ * Used in three places, all of them share the same look:
+ *   - "Бесплатный поддомен" card  → https://<login>.<APP_DOMAIN>
+ *   - "Свой домен 2 уровня" card  → https://<custom domain>
+ *   - "Готово" block after POST /add → https://<new domain>
+ *
+ * The link itself is a full URL (https://...) so it can be copied
+ * straight into the address bar. The "Копировать" button on the
+ * right copies the same string.
+ */
+
+.core-engine-lib-base-profile-domain .domain-link-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.core-engine-lib-base-profile-domain .domain-link {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    background: #ffffff;
+    color: #2563eb;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.2;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.core-engine-lib-base-profile-domain .domain-link:hover {
+    border-color: #93c5fd;
+    background: #eff6ff;
+    color: #1d4ed8;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.core-engine-lib-base-profile-domain .domain-link:focus-visible {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/*
+ * The copy button sits to the right of the link. It is a regular
+ * .domain-btn but without the default left margin, since the row's
+ * own gap handles the spacing.
+ */
+.core-engine-lib-base-profile-domain .domain-copy-btn {
+    flex-shrink: 0;
+    margin-left: 0;
+}
+
+/* ===== Legacy subdomain copy row (kept for backward compatibility) ===== */
+/*
+ * No longer emitted by domain.js — replaced by .domain-link-row.
+ * Left here so older builds / cached markup do not lose styling.
+ */
 
 .core-engine-lib-base-profile-domain .domain-copy-row {
     display: flex;
@@ -186,10 +253,6 @@
 
 .core-engine-lib-base-profile-domain .domain-copy-input:focus {
     border-color: #cbd5e1;
-}
-
-.core-engine-lib-base-profile-domain .domain-copy-btn {
-    flex-shrink: 0;
 }
 
 /* ===== Custom domain form ===== */
@@ -270,6 +333,7 @@
     transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
     white-space: nowrap;
+    margin-left: 20px;
 }
 
 .core-engine-lib-base-profile-domain .domain-btn:hover:not(:disabled) {
@@ -312,7 +376,11 @@
     color: #991b1b;
 }
 
-/* ===== Current custom domain row ===== */
+/* ===== Current custom domain row (legacy) ===== */
+/*
+ * No longer emitted by domain.js — replaced by .domain-link-row.
+ * Kept so that any leftover markup still renders as expected.
+ */
 
 .core-engine-lib-base-profile-domain .domain-current-row {
     display: flex;
@@ -468,9 +536,14 @@
         flex-direction: column;
     }
 
+    .core-engine-lib-base-profile-domain .domain-link-row {
+        flex-direction: column;
+    }
+
     .core-engine-lib-base-profile-domain .domain-btn {
         width: 100%;
         padding: 10px 14px;
+        margin-left: 0;
     }
 
     .core-engine-lib-base-profile-domain .domain-copy-row {

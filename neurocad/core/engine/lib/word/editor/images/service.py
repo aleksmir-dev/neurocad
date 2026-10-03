@@ -64,6 +64,17 @@ _FORBIDDEN_SVG = [
 #: Current registry schema version.
 REGISTRY_VERSION = 1
 
+#: File mode for every file this service writes (svg + registry).
+#:
+#: `tempfile.mkstemp()` creates a file with mode 0600 — only the
+#: owner (root) can read it. That is fine for a private temp file,
+#: but after `os.replace()` the mode carries over to the published
+#: file, and the web server (running as nginx / www-data) gets
+#: Permission denied → the browser shows a broken image.
+#:
+#: 0o644 = rw- r-- r-- : owner can write, everyone can read.
+_FILE_MODE = 0o644
+
 
 class CoreEngineLibWordImagesService:
     """Read / write image SVG files + registry in package + static trees."""
@@ -418,6 +429,13 @@ class CoreEngineLibWordImagesService:
         try:
             with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
                 f.write(content)
+
+            # mkstemp() creates the file with mode 0600 (owner-only).
+            # Bump it to 0644 BEFORE the atomic replace, so the
+            # published file is readable by the web server / nginx,
+            # not only by root.
+            os.chmod(tmp_path, _FILE_MODE)
+
             os.replace(tmp_path, path)
         except Exception:
             if os.path.exists(tmp_path):

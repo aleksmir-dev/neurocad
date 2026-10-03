@@ -29,6 +29,7 @@ import json
 import os
 import re
 import socket
+import ssl
 from datetime import datetime, timedelta
 from typing import Optional, Tuple, List
 
@@ -112,6 +113,19 @@ _DOMAIN_RE = re.compile(
 
 DEFAULT_CADDY_ADMIN = "http://127.0.0.1:2019"
 CADDY_PROBE_TIMEOUT = 2.0
+
+#: TLS-probe timing (see _ask_caddy).
+#:
+#: First attempt: Caddy issues the certificate ON this handshake.
+#: Let's Encrypt ACME takes 10–25 seconds in practice — 30 is a
+#: safe upper bound. If it does not finish in time, the connection
+#: is dropped and we retry.
+#:
+#: Second attempt: the certificate is already issued (or Caddy has
+#: cached the ACME response), so the handshake is instantaneous.
+#: 5 seconds is plenty.
+TLS_PROBE_FIRST_TIMEOUT = 30.0
+TLS_PROBE_RETRY_TIMEOUT = 5.0
 
 
 class CoreEngineLibBaseProfileDomainService:
@@ -594,16 +608,118 @@ class CoreEngineLibBaseProfileDomainService:
         log=None,
     ) -> Tuple[bool, Optional[str]]:
         """
-        On-Demand TLS issues the certificate automatically on the
-        first HTTPS handshake for this domain. There is no admin
-        API to pre-issue it — Caddy's /issue endpoint does not exist.
+        Force Caddy to issue the certificate for `domain` and verify
+        it is actually served.
 
-        This method is a placeholder for a future explicit-issuance
-        flow (e.g. a Go helper). For now it always reports success
-        so the UI doesn't show a spurious "Caddy вернул 404".
+        Caddy's On-Demand TLS issues the certificate on the FIRST
+        HTTPS handshake for that domain. There is no admin API to
+        pre-issue it. The only way to trigger issuance is to make
+        an HTTPS request to the domain — which is exactly what we
+        do here, from the server itself.
+
+        Algorithm:
+          1. First probe with a generous timeout (TLS_PROBE_FIRST_TIMEOUT).
+             This is the handshake that triggers issuance. Let's
+             Encrypt ACME takes 10–25 seconds in practice, so the
+             timeout is set to 30 s.
+          2. If the first probe fails with a timeout or SSL error,
+             retry once with a short timeout (TLS_PROBE_RETRY_TIMEOUT).
+             At this point the certificate is either already issued
+             (Caddy caches the ACME response) or Caddy has given up;
+             the retry distinguishes the two without waiting another
+             30 seconds on the second call.
+          3. TLS verification is NOT skipped — we need to know that
+             the certificate was issued by a trusted CA for this
+             exact hostname. `ssl.create_default_context()` +
+             `server_hostname=domain` does exactly that.
+
+        Returns (ok, message):
+          (True,  "Сертификат выпущен")   — TLS-handshake passed,
+                                             cert valid for the domain.
+          (False, "<причина>")             — handshake failed, timed out,
+                                             or the cert does not match.
         """
-        cls._log(log, "info", f"_ask_caddy: no-op for {domain} (On-Demand TLS)")
-        return True, None
+        ok, message = await cls._tls_probe(
+            domain,
+            timeout=TLS_PROBE_FIRST_TIMEOUT,
+            log=log,
+        )
+        if ok:
+            return True, message
+
+        # First attempt failed. Retry once with a short timeout —
+        # if the cert was issued during the first attempt (but the
+        # connection timed out before completing the handshake),
+        # the retry will succeed instantly.
+        cls._log(
+            log, "info",
+            f"_ask_caddy: {domain} first probe failed ({message}); retrying",
+        )
+        ok2, message2 = await cls._tls_probe(
+            domain,
+            timeout=TLS_PROBE_RETRY_TIMEOUT,
+            log=log,
+        )
+        if ok2:
+            return True, message2
+
+        # Both attempts failed — report the retry's message (usually
+        # the more specific one, since by then Caddy has definitely
+        # made up its mind).
+        return False, message2
+
+    @staticmethod
+    async def _tls_probe(
+        domain: str,
+        timeout: float,
+        log=None,
+    ) -> Tuple[bool, str]:
+        """
+        One TLS probe to `https://<domain>/`.
+
+        Runs the blocking ssl/socket code in a thread so the event
+        loop is not blocked while waiting for the ACME handshake.
+
+        Returns (ok, message).
+        """
+        import asyncio
+
+        def _probe() -> Tuple[bool, str]:
+            ctx = ssl.create_default_context()
+            try:
+                with socket.create_connection((domain, 443), timeout=timeout) as sock:
+                    with ctx.wrap_socket(sock, server_hostname=domain) as ssock:
+                        # Handshake succeeded → cert is valid for the
+                        # hostname (wrap_socket raises if it is not).
+                        _ = ssock.getpeercert()
+                        return True, "Сертификат выпущен"
+            except ssl.SSLCertVerificationError as e:
+                return False, f"Сертификат не выпущен: {e.verify_message or e}"
+            except socket.timeout:
+                return False, (
+                    f"Таймаут {int(timeout)} с при выпуске сертификата "
+                    f"(Caddy не ответил)"
+                )
+            except ConnectionRefusedError:
+                return False, (
+                    f"Порт 443 недоступен для {domain} "
+                    f"(Caddy не слушает или закрыт файрволом)"
+                )
+            except socket.gaierror as e:
+                return False, f"DNS не резолвится для {domain}: {e}"
+            except OSError as e:
+                return False, f"Ошибка соединения с {domain}: {e}"
+            except Exception as e:
+                return False, f"Ошибка TLS-проверки {domain}: {type(e).__name__}: {e}"
+
+        ok, message = await asyncio.get_event_loop().run_in_executor(None, _probe)
+
+        cls._log(
+            log, "info",
+            f"_tls_probe: {domain} (timeout={int(timeout)}s) → "
+            f"{'ok' if ok else 'fail'}: {message}",
+        )
+        return ok, message
 
     @staticmethod
     async def _get_caddy_admin() -> str:

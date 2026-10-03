@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-10-03
+- Real certificate-issuance check for custom domains: `_ask_caddy` replaced the no-op stub with an actual TLS handshake (`ssl.create_default_context` + `socket.create_connection`), first attempt with a 30-second timeout to trigger On-Demand TLS issuance and a second attempt with a 5-second timeout once the certificate is cached. "Сертификат выпущен" is now shown only when the handshake actually succeeds; on failure the UI displays the specific reason (timeout, connection refused, DNS not resolving, SSL verification error). Domain cards now show full clickable URLs (`https://testuser1.neurocad.ru`, `https://atou.ru`) and a "Копировать" button that copies the full URL — ready to paste into the address bar — instead of the bare hostname.
+
 ## [1.0.2] - 2026-10-03
 - Home-page selection (Profile → Domains) that also powers custom domains: both `<login>.<APP_DOMAIN>` and a connected second-level domain now resolve to the owner's chosen home page, with `APP_DOMAIN` moved from a hardcode to settings, the header menu fixed to survive re-renders, logout corrected to `/core/auth/login/logout`, login errors shown in Russian, inline SVG preserved on import/export, and new users granted a "Trial" tariff with 2 000 000 tokens up front.
 
@@ -47,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release: FastAPI backend, SQLite storage, BaseCards widgets, GrapesJS Word editor, LLM chat panel, presets, media library, page history.
 
+[1.0.3]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.29...v1.0.0
