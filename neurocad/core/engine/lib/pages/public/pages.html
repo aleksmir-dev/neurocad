@@ -18,6 +18,14 @@
 
     {# Catalog CSS — self-contained, no dependency on the editor #}
     <link rel="stylesheet" href="{{ 'core/engine/lib/pages/public/pages.css'|static }}">
+
+    {# Cookie consent banner.
+       Self-contained: injects its own <style>, no CSS file needed.
+       Runs with `defer`, so it executes after the HTML is parsed
+       (document.body is available) but before DOMContentLoaded
+       handlers fire. See cookie.js for the localStorage key and
+       the reset instructions. #}
+    <script src="{{ 'core/engine/lib/pages/public/cookie.js'|static }}" defer></script>
 </head>
 <body class="core-engine-lib-pages-public-body">
 

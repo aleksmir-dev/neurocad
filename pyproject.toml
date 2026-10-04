@@ -1,6 +1,6 @@
 [project]
 name = "neurocad"
-version = "1.0.5"
+version = "1.0.6"
 description = "NeuroCad — core engine + CMS + visual editor for FastAPI"
 readme = "README.md"
 requires-python = ">=3.10"

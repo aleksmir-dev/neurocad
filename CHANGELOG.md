@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-10-04
+- `sitemap.xml` generated on the fly (nothing stored), cookie-consent banner on public pages, `domain.js` split into `cards.js` / `actions.js` / `modals.js` / `helpers.js`, and fixes for tokens not being credited on tariff upgrade plus the "Перейти к балансу" link going to the login form instead of the profile page.
+
 ## [1.0.5] - 2026-10-04
 - Admin impersonation, `neurocad create-user` CLI, public `/pages` catalog with editable title, plus fixes for `POST /impersonate/stop` 422, stale `sessionStorage` after impersonation, and `auth._restoreSession()` not falling back to the server.
 
@@ -56,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release: FastAPI backend, SQLite storage, BaseCards widgets, GrapesJS Word editor, LLM chat panel, media library, page history.
 
+[1.0.6]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.2...v1.0.3

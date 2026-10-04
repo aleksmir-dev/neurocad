@@ -15,7 +15,10 @@ service:
   - lists the user's pages and reads / writes `users.home_page_id`;
   - reads / writes `users.robots_2` (custom domain) and
     `users.robots_3` (free subdomain), and toggles `robots_3`
-    automatically when a custom domain is added or removed.
+    automatically when a custom domain is added or removed;
+  - generates sitemap.xml ON THE FLY from the user's pages (nothing
+    is stored, so adding / editing / deleting a page requires no
+    cache invalidation).
 
 Status is derived, not stored: on each read, the service resolves
 DNS and probes Caddy, then returns "active" / "dns_fail" /
@@ -35,6 +38,16 @@ Default state:
   - when the custom domain is removed, robots_3 is set back to OPEN;
   - the modal in the UI edits whichever field the caller selects
     (robots_2 or robots_3), via POST /domain/robots with `which`.
+
+sitemap.xml is generated on the fly:
+
+  - build_sitemap(user_id) walks the user's pages and returns a
+    complete XML string. Nothing is persisted — the DB is the
+    single source of truth;
+  - the public endpoint (on the user's own domain) and the admin
+    endpoint (for the in-admin modal) both call build_sitemap();
+  - the base URL for <loc> comes from get_public_base_url(): custom
+    domain if set, otherwise <login>.<ROOT_DOMAIN>.
 
 No cache.
 
@@ -249,6 +262,205 @@ class CoreEngineLibBaseProfileDomainService:
             robots_2=robots_2,
             robots_3=robots_3,
         )
+
+    # ========================================
+    # PUBLIC BASE URL
+    # ========================================
+
+    @classmethod
+    async def get_public_base_url(cls, user_id: int) -> Optional[str]:
+        """
+        Public base URL of the user's site (no trailing slash).
+
+        Rules:
+          - custom second-level domain (users.domain) → https://<domain>;
+          - otherwise → https://<login>.<ROOT_DOMAIN>.
+
+        Returns None if the user does not exist or has no login.
+        Used by:
+          - build_sitemap() — to prefix <loc> entries;
+          - the pages module on the frontend — via GET /domain/
+            (`pages_url` field), for the "Открыть каталог статей"
+            button. That button must be an absolute URL pointing at
+            the user's own host, not a relative "/pages" which would
+            resolve against the admin host during impersonation.
+        """
+        async for session in get_db_sqlite():
+            user = await session.get(User, user_id)
+            if user is None or user.is_delete:
+                return None
+            if not user.login:
+                return None
+
+            custom = (getattr(user, "domain", None) or "").strip()
+            if custom:
+                if custom.startswith("http://") or custom.startswith("https://"):
+                    return custom.rstrip("/")
+                return f"https://{custom}".rstrip("/")
+
+            return f"https://{user.login}.{ROOT_DOMAIN}".rstrip("/")
+
+        return None
+
+    # ========================================
+    # SITEMAP.XML — GENERATED ON THE FLY
+    # ========================================
+
+    @classmethod
+    async def build_sitemap(cls, user_id: int) -> str:
+        """
+        Build a sitemap.xml string for the given user.
+
+        Generated on the fly from the `pages` table. NOTHING IS
+        STORED — the DB is the single source of truth, so adding,
+        editing or deleting a page requires no cache invalidation
+        and no static file regeneration.
+
+        Layout:
+
+            <?xml version="1.0" encoding="UTF-8"?>
+            <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+              <url>
+                <loc>https://user.domain/path</loc>
+                <lastmod>2026-10-04T01:10:46+00:00</lastmod>
+              </url>
+              ...
+            </urlset>
+
+        Entries:
+          - "/" — always, with lastmod = newest page's updated_at
+            (omitted if the user has no pages);
+          - one <url> per non-deleted page, in datetime ASC order;
+          - <lastmod> from pages.updated_at (falls back to datetime).
+
+        Both the public endpoint (on the user's own domain) and the
+        admin endpoint (for the in-admin SitemapModal viewer) call
+        this method. The XML string is identical in both cases; only
+        the Content-Type and cache headers differ (see router.py and
+        utils/routes.py).
+        """
+        base = await cls.get_public_base_url(user_id)
+        if not base:
+            # No public host — return a valid empty sitemap rather
+            # than an error, so both the browser and search-engine
+            # crawlers see well-formed XML.
+            return cls._empty_sitemap()
+
+        async for session in get_db_sqlite():
+            stmt = (
+                select(Page)
+                .join(Nav, Nav.id == Page.nav_id)
+                .where(
+                    Nav.user_id == user_id,
+                    Nav.is_delete.is_(False),
+                    Page.is_delete == 0,
+                )
+                .order_by(Page.datetime.asc(), Page.id.asc())
+            )
+            rows = (await session.execute(stmt)).scalars().all()
+
+            urls: List[Tuple[str, Optional[str]]] = []
+
+            # ---- Site root ----
+            # lastmod = newest page datetime, or omit the tag.
+            newest: Optional[datetime] = None
+            for page in rows:
+                dt = getattr(page, "updated_at", None) or getattr(page, "datetime", None)
+                if dt and (newest is None or dt > newest):
+                    newest = dt
+
+            urls.append((f"{base}/", cls._iso_z(newest) if newest else None))
+
+            # ---- One entry per page ----
+            for page in rows:
+                loc = cls._absolute_page_url(base, page)
+                if not loc:
+                    continue
+                dt = getattr(page, "updated_at", None) or getattr(page, "datetime", None)
+                urls.append((loc, cls._iso_z(dt) if dt else None))
+
+            return cls._render_sitemap(urls)
+
+        return cls._empty_sitemap()
+
+    # ---- sitemap helpers ----
+
+    @staticmethod
+    def _empty_sitemap() -> str:
+        """A well-formed sitemap with no <url> entries."""
+        return (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            '</urlset>\n'
+        )
+
+    @staticmethod
+    def _iso_z(dt: datetime) -> str:
+        """
+        W3C datetime for <lastmod>. Sitemaps accept both
+        "YYYY-MM-DD" and full ISO-8601; we emit the full form with
+        an explicit timezone.
+
+        SQLite stores naive datetimes — we treat them as UTC, which
+        is what the app writes (datetime.utcnow / datetime.now on a
+        UTC server). If a datetime carries tzinfo, we honor it.
+        """
+        if dt.tzinfo is None:
+            return dt.strftime("%Y-%m-%dT%H:%M:%S+00:00")
+        return dt.astimezone().strftime("%Y-%m-%dT%H:%M:%S%z")
+
+    @classmethod
+    def _absolute_page_url(cls, base: str, page) -> Optional[str]:
+        """
+        Public absolute URL of a single page on the user's domain.
+
+        Uses the same /page/<nav_id>/<YYYYMMDD>/<HHMMSS> shape as
+        _page_public_url() below, but prefixes it with the user's
+        base URL so sitemap <loc> entries are absolute.
+
+        Returns None if the page has no datetime — that should not
+        happen (page.datetime is NOT NULL in the model), but we
+        skip rather than emit a malformed URL.
+        """
+        if page.datetime is None:
+            return None
+        date = page.datetime.strftime("%Y%m%d")
+        time = page.datetime.strftime("%H%M%S")
+        return f"{base}/page/{page.nav_id}/{date}/{time}"
+
+    @staticmethod
+    def _xml_escape(s: str) -> str:
+        """Escape text for use inside an XML element."""
+        return (
+            str(s)
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&apos;")
+        )
+
+    @classmethod
+    def _render_sitemap(cls, urls: List[Tuple[str, Optional[str]]]) -> str:
+        """
+        Serialize (loc, lastmod) tuples into a sitemap.xml string.
+
+        lastmod may be None — in that case the tag is omitted. Both
+        forms are valid for search engines; omitting is cleaner than
+        emitting an empty <lastmod/>.
+        """
+        lines = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        ]
+        for loc, lastmod in urls:
+            lines.append("  <url>")
+            lines.append(f"    <loc>{cls._xml_escape(loc)}</loc>")
+            if lastmod:
+                lines.append(f"    <lastmod>{lastmod}</lastmod>")
+            lines.append("  </url>")
+        lines.append("</urlset>")
+        return "\n".join(lines) + "\n"
 
     # ========================================
     # HOME PAGE

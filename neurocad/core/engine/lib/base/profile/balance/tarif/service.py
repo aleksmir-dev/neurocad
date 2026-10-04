@@ -8,7 +8,14 @@ tariffs, and switches the user's tariff.
 
 Rules on change:
     - limits (limit_*) are OVERWRITTEN with TARIF_PRESETS[new_tarif];
-    - balances (gen, tokens, sum, mb, pages) are NOT touched;
+    - balances (gen, tokens, sum, mb, pages) are NOT reset — they
+      accumulate;
+    - EXCEPT: `tokens` are raised UP TO the new tariff's limit_tokens
+      when the current balance is below the new cap. This is the only
+      top-up on tariff change, and it can only raise tokens, never
+      lower them. Free has limit_tokens = 0, so a first upgrade to
+      pro / llm would otherwise leave the user with tokens=0 and a
+      2M cap — the LLM would be blocked until the next billing day;
     - price of the new tariff is debited from `sum` (always);
     - `day` is set to today's day of month (new billing anchor);
     - `acc_at` is reset to today (new accrual anchor);
@@ -316,6 +323,8 @@ class CoreEngineLibBaseProfileBalanceTarifService:
         On success:
             - sum -= price (for free price is 0 — nothing debited);
             - limit_* ← TARIF_PRESETS[new_tarif];
+            - tokens ← max(current tokens, new limit_tokens) — top-up
+              only, never a reset (see the note below);
             - tarif ← new_tarif;
             - day ← today's day of month (new billing anchor);
             - acc_at ← today (new accrual anchor);
@@ -369,6 +378,34 @@ class CoreEngineLibBaseProfileBalanceTarifService:
             bal.limit_pages  = presets["limit_pages"]
             bal.limit_tokens = presets["limit_tokens"]
 
+            # ==== Top up tokens if below the new cap ====
+            #
+            # Balances are "not reset" on tariff change — they
+            # accumulate. That works for gen and for pro / llm
+            # users who already have a token balance, but it broke
+            # the FIRST upgrade from free to a paid tariff: free has
+            # limit_tokens = 0, so `tokens` was 0, and after the
+            # change the user had a 2M cap but a 0 balance. The LLM
+            # stayed blocked until the next billing day.
+            #
+            # Rule: raise tokens UP TO the new cap, never down.
+            #   - free → llm / pro : tokens 0 → new cap      (top up)
+            #   - pro  → llm       : tokens 500k → 2M         (top up)
+            #   - llm  → pro       : tokens 2M, cap 1M        (no change)
+            #   - pro  → free      : cap 0                    (no change)
+            # This prevents farming (downgrade + upgrade does not
+            # refill) while still giving the first paid change a
+            # working starting balance.
+            new_cap = presets["limit_tokens"]
+            current_tokens = bal.tokens or 0
+            if new_cap > 0 and current_tokens < new_cap:
+                bal.tokens = new_cap
+                cls._log(
+                    log, "info",
+                    f"user {user_id}: tokens topped up "
+                    f"{current_tokens} → {new_cap} for tariff {new_tarif}",
+                )
+
             # ==== Tariff + anchors ====
             bal.tarif = new_tarif
             bal.day = today.day             # billing anchor
@@ -376,9 +413,6 @@ class CoreEngineLibBaseProfileBalanceTarifService:
 
             # ==== Refresh timestamp ====
             bal.updated_at = now
-
-            # NOTE: balances (gen, tokens, sum, mb, pages)
-            # are intentionally NOT touched — they accumulate.
 
             await session.commit()
             await session.refresh(bal)

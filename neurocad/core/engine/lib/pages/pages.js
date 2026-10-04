@@ -53,7 +53,16 @@
  *       element in .core-engine-lib-base-area-center.
  *
  *     - «Открыть каталог статей» (link.svg) — opens the public,
- *       JS-free catalog at /pages in a new tab.
+ *       JS-free catalog in a new tab.
+ *
+ *       The href is an ABSOLUTE URL pointing at the USER's public
+ *       domain — see _loadPublicPagesUrl(). It must NOT be a
+ *       relative "/pages": when the admin panel is impersonating
+ *       another user from the ADMIN's host, a relative link would
+ *       resolve against the admin's host (admin.<domain>/pages)
+ *       instead of the user's domain (<login>.<domain>/pages or
+ *       <custom-domain>/pages). The backend exposes the right
+ *       base in profile/domain → `pages_url`.
  *
  *   Both are passed to BaseCards via `extraToolbarButtons` and
  *   rendered by toolbar.js in the LEFT group, last. Guests do not
@@ -132,6 +141,12 @@ export class Pages {
         // Kept on the instance so destroy() can remove it.
         this._onTitleBtnClick = null;
 
+        // Absolute URL of the public catalog for the CURRENT user.
+        // Defaults to a relative "/pages" so the button never ends
+        // up without a href; real value is loaded in _init() from
+        // profile/domain → `pages_url`.
+        this._publicPagesUrl = '/pages';
+
         this._loadCSS();
 
         this._initPromise = this._init();
@@ -167,6 +182,46 @@ export class Pages {
         if (!navPart) return `${endpoint}${sep}${extra}`;
         if (!extra) return `${endpoint}${sep}${navPart}`;
         return `${endpoint}${sep}${navPart}${extra}`;
+    }
+
+    /**
+     * Load the ABSOLUTE public catalog URL for the current user
+     * from `profile/domain` (`pages_url` field).
+     *
+     * Why this exists:
+     *   The «Открыть каталог статей» button used to be `href: '/pages'`.
+     *   That works when the panel runs on the user's own domain, but
+     *   breaks when an admin impersonates a user from the ADMIN's
+     *   host — the relative URL resolves against the admin host, not
+     *   the user's public domain.
+     *
+     *   The backend already knows the user's login, custom domain,
+     *   and APP_DOMAIN, so it returns a ready-made `pages_url`:
+     *       https://<login>.<APP_DOMAIN>/pages
+     *   or, if a 2nd-level custom domain is attached:
+     *       https://<custom-domain>/pages
+     *
+     * Failure mode:
+     *   If the request fails (network, endpoint missing), we keep
+     *   the relative `/pages` fallback set in the constructor — the
+     *   button still works, just not cross-domain. Logged at warn.
+     */
+    async _loadPublicPagesUrl() {
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            if (!fetchJson) return;
+
+            const res = await fetchJson('/core/engine/lib/base/profile/domain/');
+            const url = res?.data?.pages_url;
+            if (res?.success && typeof url === 'string' && url) {
+                this._publicPagesUrl = url;
+                console.log('[Pages] public catalog URL:', url);
+            } else {
+                console.warn('[Pages] pages_url not present in domain response');
+            }
+        } catch (e) {
+            console.warn('[Pages] pages_url fetch failed, using /pages', e);
+        }
     }
 
     async _init() {
@@ -219,6 +274,12 @@ export class Pages {
             if (canEdit) {
                 await this._loadTemplates();
             }
+
+            // Public catalog URL — needed for the "Открыть каталог
+            // статей" button. Must be loaded BEFORE BaseCards is
+            // constructed so extraToolbarButtons already carries the
+            // final href.
+            await this._loadPublicPagesUrl();
 
             // Set header/tab title from Nav.name (falls back to the
             // generic "Каталог статей" inside PagesTitle.loadCaption).
@@ -342,7 +403,15 @@ export class Pages {
                 //      the comment there for why not this.container).
                 //
                 //   2. «Открыть каталог статей» — opens the public,
-                //      JS-free catalog at /pages in a new tab.
+                //      JS-free catalog in a new tab.
+                //
+                //      href is an ABSOLUTE URL from profile/domain →
+                //      `pages_url` (see _loadPublicPagesUrl). It MUST
+                //      be absolute: a relative "/pages" would resolve
+                //      against the ADMIN host when impersonating from
+                //      the admin panel, sending the admin to
+                //      admin.<domain>/pages instead of the user's
+                //      <login>.<domain>/pages. See the class JSDoc.
                 //
                 // Guests do not get either button — they already
                 // see the public catalog themselves, and an
@@ -362,7 +431,7 @@ export class Pages {
                             className: 'js-open-title-modal',
                         },
                         {
-                            href: '/pages',
+                            href: this._publicPagesUrl,
                             label: 'Открыть каталог статей',
                             title: 'Открыть публичный каталог статей в новой вкладке',
                             icon: 'link',

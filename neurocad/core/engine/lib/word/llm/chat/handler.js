@@ -64,6 +64,25 @@
  *   `ui.addMessage()` renders the action as an inline link under
  *   the error text.
  *
+ * URL scheme for the fallback action
+ * ----------------------------------
+ * The link points at the profile page and its balance section,
+ * using the documented app-page parameters:
+ *
+ *     ?page=profile&section=balance
+ *
+ * NOT ?auth=profile. The `auth` parameter is reserved for auth
+ * FORMS (login / register / restore / password) — see base.js,
+ * `_initAuth()`. Sending `auth=profile` there would make Base
+ * take the auth-form branch, not find a form named "profile",
+ * and leave the user on the guest shell.
+ *
+ * The current page path (nav_id, date, time) is preserved, so
+ * the link works from the editor as well as from anywhere else.
+ * Any stale `?auth=` that happens to be on the URL is stripped
+ * defensively — otherwise it would win over `?page=` and take
+ * the user to the login form.
+ *
  * User-facing strings are in Russian — they go straight to the chat UI.
  * Internal log strings stay in English.
  */
@@ -110,10 +129,9 @@ export function createLLMChatHandler({
      *   - can be copied to the clipboard.
      *
      * Current page path is preserved (nav_id and other context
-     * params survive); only `auth` and `section` are set. That way
-     * clicking the link from the editor keeps the user inside the
-     * same module — the profile page opens over the current page
-     * and Base handles the rest via ?auth= + ?section=.
+     * params survive); the app-page params `page=profile` and
+     * `section=balance` are set. Any stale `?auth=` is removed so
+     * that it cannot take precedence over `?page=`.
      *
      * @param {Object} msg — the error frame
      * @returns {{label: string, href: string} | null}
@@ -127,8 +145,19 @@ export function createLLMChatHandler({
 
         if (isTokensExhausted) {
             const u = new URL(window.location.href);
-            u.searchParams.set('auth', 'profile');
+            // Use ?page=, not ?auth= — profile is an APP page,
+            // not an auth form. ?auth= is reserved for login /
+            // register / restore / password (see base.js
+            // _initAuth). A leftover ?auth=profile would otherwise
+            // send the user to the login form instead of the
+            // balance page.
+            u.searchParams.set('page', 'profile');
             u.searchParams.set('section', 'balance');
+            // Defensive: drop a stale ?auth= if it is already on
+            // the URL — otherwise Base._initAuth() takes the
+            // auth-form branch first and never opens the profile
+            // page.
+            u.searchParams.delete('auth');
 
             return {
                 label: 'Перейти к балансу',

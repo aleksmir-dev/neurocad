@@ -13,6 +13,9 @@ Endpoints (mounted under /core/engine/lib/base/profile/domain):
     DELETE /home              — clear the home page
     POST   /robots            — save users.robots_2 or users.robots_3
                                 (which one is chosen by `which`)
+    GET    /sitemap           — sitemap.xml for the current user,
+                                generated on the fly, returned as
+                                text/plain for the in-admin modal
 
 Full URLs:
     GET    /core/engine/lib/base/profile/domain/
@@ -21,6 +24,7 @@ Full URLs:
     POST   /core/engine/lib/base/profile/domain/home
     DELETE /core/engine/lib/base/profile/domain/home
     POST   /core/engine/lib/base/profile/domain/robots
+    GET    /core/engine/lib/base/profile/domain/sitemap
 
 All endpoints require an authenticated user.
 
@@ -28,7 +32,7 @@ Namespace: CoreEngineLibBaseProfileDomain*
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 
 from neurocad.core.auth.dependencies import get_current_user
 from .schema import (
@@ -270,3 +274,58 @@ async def set_robots(
         "success": True,
         "data": {"which": body.which, "robots": saved},
     })
+
+
+# ============================================
+# SITEMAP.XML — VIEW (admin-side, for the modal)
+# ============================================
+
+@router.get("/sitemap")
+async def get_sitemap(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> PlainTextResponse:
+    """
+    sitemap.xml for the currently authenticated user, generated on
+    the fly from the `pages` table (nothing is stored — see
+    CoreEngineLibBaseProfileDomainService.build_sitemap).
+
+    Returns text/plain, NOT application/xml, on purpose:
+
+      - this endpoint serves the in-admin SitemapModal (a <pre>
+        viewer), so a plain-text body is what we want;
+      - the PUBLIC sitemap — the one search engines crawl — is
+        served at https://<user-host>/sitemap.xml with
+        Content-Type: application/xml, by a separate route (see
+        utils/routes.py). Both endpoints call the same
+        build_sitemap() and produce byte-identical XML; only the
+        headers differ.
+
+    We deliberately do NOT make this endpoint return application/xml:
+    if it did, a browser navigating to it during debugging would
+    download the file instead of rendering it inline — awkward when
+    the whole point is to eyeball the XML.
+
+    Cache-Control is no-store so that a page created / edited /
+    deleted between two modal opens is reflected immediately, and
+    no intermediate proxy caches a stale sitemap.
+
+    Errors:
+      401 — not authenticated (handled by _require_user)
+    """
+    user = _require_user(current_user)
+
+    xml = await CoreEngineLibBaseProfileDomainService.build_sitemap(
+        user_id=int(user["id"]),
+    )
+
+    return PlainTextResponse(
+        content=xml,
+        media_type="text/plain; charset=utf-8",
+        headers={
+            "Cache-Control": "no-store, must-revalidate",
+            # The sitemap itself must not be indexed — it is a
+            # crawler input, not a page.
+            "X-Robots-Tag": "noindex",
+        },
+    )

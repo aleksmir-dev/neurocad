@@ -1,0 +1,318 @@
+/* neurocad/core/engine/lib/base/profile/domain/sitemap.css */
+
+/**
+ * SitemapModal styles.
+ *
+ * Loaded by BaseProfileDomain._loadCSS() together with domain.css
+ * and robots.css — the modal is only reachable from the domain
+ * page, so it does not need to be pulled in anywhere else.
+ *
+ * Visually follows robots.css: same overlay color, same dialog
+ * box shadow, same border tokens, same animation timing. If you
+ * change the look of one modal, change the other — users see
+ * them as the same surface.
+ *
+ * IMPORTANT — why buttons are styled locally here and not via
+ * .domain-btn from domain.css:
+ *
+ *   .domain-btn in domain.css is scoped as
+ *       .core-engine-lib-base-profile-domain .domain-btn { ... }
+ *
+ *   The sitemap modal renders directly under <body> (see the
+ *   appendChild call in sitemap.js), OUTSIDE the
+ *   .core-engine-lib-base-profile-domain container. Scoped rules
+ *   therefore do not apply inside the modal, and buttons fall
+ *   back to the browser default. The same issue affects
+ *   .domain-icon-btn. We replicate both here with unprefixed
+ *   selectors, scoped instead under .domain-sitemap-modal so
+ *   they cannot leak out and affect the page.
+ *
+ *   This is a known pattern in this project — robots.css does
+ *   the same thing for its preset/action buttons.
+ */
+
+/* ============================================
+   OVERLAY
+   ============================================ */
+
+.core-engine-lib-base-profile-domain-sitemap-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+    box-sizing: border-box;
+
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+
+    animation: sitemap-overlay-in 0.12s ease-out;
+}
+
+@keyframes sitemap-overlay-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ============================================
+   DIALOG
+   ============================================ */
+
+.domain-sitemap-modal {
+    width: 100%;
+    max-width: 720px;
+    max-height: calc(100vh - 48px);
+
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    box-shadow:
+        0 10px 30px rgba(15, 23, 42, 0.18),
+        0 2px 6px rgba(15, 23, 42, 0.08);
+
+    animation: sitemap-dialog-in 0.15s ease-out;
+}
+
+@keyframes sitemap-dialog-in {
+    from { transform: translateY(6px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.domain-sitemap-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+
+    flex-shrink: 0;
+}
+
+.domain-sitemap-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main, #1e293b);
+    line-height: 1.2;
+
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Icon button — replicating .domain-icon-btn from domain.css
+   without the container prefix. See the file header comment. */
+.domain-sitemap-modal .domain-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    background: transparent;
+    color: #475569;
+    font-size: 16px;
+    font-family: inherit;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.domain-sitemap-modal .domain-icon-btn:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 0.08);
+    color: #3b82f6;
+}
+
+.domain-sitemap-modal .domain-icon-btn:active:not(:disabled) {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+/* ============================================
+   HINT
+   ============================================ */
+
+.domain-sitemap-hint {
+    padding: 10px 18px 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #475569;
+    flex-shrink: 0;
+}
+
+.domain-sitemap-hint code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: rgba(15, 23, 42, 0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #0f172a;
+}
+
+/* ============================================
+   XML BODY
+   ============================================ */
+
+.domain-sitemap-body {
+    flex: 1 1 auto;
+    min-height: 180px;
+    max-height: 55vh;
+
+    margin: 12px 18px;
+    padding: 12px 14px;
+    box-sizing: border-box;
+
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    background: #f8fafc;
+    color: var(--text-main, #1e293b);
+
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.55;
+
+    overflow: auto;
+    white-space: pre;
+    tab-size: 2;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.domain-sitemap-body::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.domain-sitemap-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.domain-sitemap-body::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.15);
+    border-radius: 5px;
+}
+
+.domain-sitemap-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 23, 42, 0.25);
+}
+
+/* ============================================
+   ACTIONS
+   ============================================ */
+
+.domain-sitemap-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    padding: 12px 18px 14px;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+
+    flex-shrink: 0;
+}
+
+/*
+ * Buttons inside the actions row.
+ *
+ * We deliberately do NOT rely on .domain-btn from domain.css —
+ * that rule is scoped under .core-engine-lib-base-profile-domain,
+ * and this modal lives directly under <body>. See the file header.
+ *
+ * The look mirrors .domain-btn exactly: padding, gradient, border,
+ * shadow, hover. If you change .domain-btn in domain.css, change
+ * this block too.
+ */
+.domain-sitemap-modal .domain-btn {
+    padding: 10px 18px;
+    border: 1px solid var(--border-color, #d5dee9);
+    border-radius: var(--radius-md, 8px);
+    background: linear-gradient(180deg, #ffffff 0%, #f5f8fd 100%);
+    color: var(--text-main, #2c3e50);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.domain-sitemap-modal .domain-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #f5f8fd 0%, #e8edf5 100%);
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 6px rgba(44, 62, 80, 0.08);
+}
+
+.domain-sitemap-modal .domain-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+.domain-sitemap-modal .domain-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   MOBILE
+   ============================================ */
+
+@media (max-width: 480px) {
+    .core-engine-lib-base-profile-domain-sitemap-overlay {
+        padding: 12px;
+        align-items: stretch;
+    }
+
+    .domain-sitemap-modal {
+        max-height: none;
+        height: 100%;
+    }
+
+    .domain-sitemap-body {
+        margin: 10px 12px;
+        font-size: 11px;
+        max-height: none;
+    }
+
+    .domain-sitemap-header,
+    .domain-sitemap-hint,
+    .domain-sitemap-actions {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .domain-sitemap-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .domain-sitemap-modal .domain-btn {
+        width: 100%;
+        padding: 10px 14px;
+    }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .core-engine-lib-base-profile-domain-sitemap-overlay,
+    .domain-sitemap-modal {
+        animation: none;
+    }
+}

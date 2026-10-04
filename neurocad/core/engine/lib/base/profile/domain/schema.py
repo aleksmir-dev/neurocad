@@ -37,6 +37,16 @@ Both fields follow the same rules:
     subdomain), and POST /domain/robots carries `which` to tell the
     backend where to save the text.
 
+sitemap.xml is NOT part of this JSON payload and has NO schema here.
+It is generated on the fly (nothing is stored), and returned as
+text/plain by GET /domain/sitemap for the in-admin modal viewer, and
+as application/xml by the public /sitemap.xml route. Since both
+responses are raw XML, a Pydantic model would be wrong: it would
+serialize to JSON, not to an XML string. See:
+  - service.py  → CoreEngineLibBaseProfileDomainService.build_sitemap()
+  - router.py   → GET /sitemap (admin-side, text/plain)
+  - utils/routes.py (or equivalent) → public /sitemap.xml (XML)
+
 Namespace: CoreEngineLibBaseProfileDomain*
 """
 
@@ -247,3 +257,30 @@ class CoreEngineLibBaseProfileDomainSetRobotsData(BaseModel):
 class CoreEngineLibBaseProfileDomainSetRobotsResponse(BaseModel):
     success: bool = True
     data: CoreEngineLibBaseProfileDomainSetRobotsData
+
+
+# ============================================
+# SITEMAP.XML — NO SCHEMA
+# ============================================
+#
+# There is intentionally NO Pydantic model for sitemap.xml.
+#
+# Why: both endpoints that serve it return a raw XML string, not
+# JSON:
+#
+#   GET /core/engine/lib/base/profile/domain/sitemap
+#       → text/plain       (admin-side, for the SitemapModal viewer)
+#
+#   GET /sitemap.xml  (on the user's public host)
+#       → application/xml  (for search-engine crawlers)
+#
+# A Pydantic model would be serialized to JSON by FastAPI — that is
+# the wrong content type for both endpoints. The XML is built as a
+# plain string by CoreEngineLibBaseProfileDomainService.build_sitemap()
+# and returned with an explicit Response(media_type=...) so FastAPI
+# does not touch it.
+#
+# If a schema is ever needed for documentation purposes, define it
+# in the router with response_class=Response and an explicit
+# responses={200: {"content": {"application/xml": {}}}} entry —
+# do NOT route it through a BaseModel.
