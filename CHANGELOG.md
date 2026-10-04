@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-10-04
+- Admin impersonation, `neurocad create-user` CLI, public `/pages` catalog with editable title, plus fixes for `POST /impersonate/stop` 422, stale `sessionStorage` after impersonation, and `auth._restoreSession()` not falling back to the server.
+
 ## [1.0.4] - 2026-10-04
 - robots.txt editing for both domains: a "Редактировать robots.txt" button in each card (subdomain and custom domain) opens a shared modal, the body is stored in `users.robots_3` / `users.robots_2`, served at `GET /robots.txt`, and saved via `POST /domain/robots` with `{ which, robots }`.
 
@@ -53,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release: FastAPI backend, SQLite storage, BaseCards widgets, GrapesJS Word editor, LLM chat panel, media library, page history.
 
+[1.0.5]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.1...v1.0.2

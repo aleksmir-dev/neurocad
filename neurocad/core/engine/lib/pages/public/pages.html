@@ -1,0 +1,92 @@
+<!-- neurocad/core/engine/lib/pages/public/pages.html -->
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {# Page title and meta #}
+    <title>{{ title }}</title>
+    {% if description %}
+    <meta name="description" content="{{ description }}">
+    {% endif %}
+
+    {# Favicon — per-nav, same as on the single-page template #}
+    <link rel="icon" type="image/x-icon"
+          href="/media/{{ nav_id }}/favicon.ico">
+
+    {# Catalog CSS — self-contained, no dependency on the editor #}
+    <link rel="stylesheet" href="{{ 'core/engine/lib/pages/public/pages.css'|static }}">
+</head>
+<body class="core-engine-lib-pages-public-body">
+
+    {#
+      Catalog layout:
+
+        .pages-catalog                  — page container
+          .pages-catalog-header         — title + counter
+          .pages-catalog-list           — grid of cards
+            .pages-catalog-card         — one card (an <a>)
+              .pages-catalog-card-logo  — optional image
+              .pages-catalog-card-body  — title / description / date
+
+      Each item already carries a ready URL
+      (/page/<nav_id>/<YYYYMMDD>/<HHMMSS>) built by
+      _page_to_list_item in the service — the template just prints it.
+    #}
+    <main class="pages-catalog">
+
+        <header class="pages-catalog-header">
+            <h1 class="pages-catalog-title">{{ title }}</h1>
+            {% if total %}
+            <p class="pages-catalog-subtitle">
+                {{ total }}
+                {% if total == 1 %}статья{% elif total < 5 %}статьи{% else %}статей{% endif %}
+            </p>
+            {% endif %}
+        </header>
+
+        {% if items %}
+        <ul class="pages-catalog-list">
+            {% for item in items %}
+            <li class="pages-catalog-item">
+                <a class="pages-catalog-card" href="{{ item.url }}">
+                    {% if item.logo %}
+                    <span class="pages-catalog-card-logo">
+                        <img src="{{ item.logo }}"
+                             alt="{{ item.title }}"
+                             loading="lazy">
+                    </span>
+                    {% endif %}
+
+                    <span class="pages-catalog-card-body">
+                        <span class="pages-catalog-card-title">
+                            {{ item.title }}
+                        </span>
+
+                        {% if item.description %}
+                        <span class="pages-catalog-card-desc">
+                            {{ item.description }}
+                        </span>
+                        {% endif %}
+
+                        {% if item.datetime %}
+                        <time class="pages-catalog-card-date"
+                              datetime="{{ item.datetime.isoformat() }}">
+                            {{ item.datetime.strftime('%d.%m.%Y') }}
+                        </time>
+                        {% endif %}
+                    </span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="pages-catalog-empty">Пока нет статей.</p>
+        {% endif %}
+
+    </main>
+
+</body>
+</html>

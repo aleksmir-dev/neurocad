@@ -26,19 +26,29 @@ CSS handling:
     below. The utility ensure_css_file() takes both as parameters
     and stays module-agnostic.
 
+Catalog:
+  get_list() returns the active, non-deleted pages of a nav, sorted
+  by datetime DESC. Used by the public /pages route to render a
+  full catalog page without the admin UI. Each item carries a
+  ready-to-use `url` (/page/<nav_id>/<YYYYMMDD>/<HHMMSS>) so the
+  template does not have to assemble it.
+
 Namespace: CoreEngineLibPagesPublicService
 """
 
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy import select
 
 from .....models.base import Page
 from ......utils.sqlite import get_db_sqlite
 from ......utils.css import split_style_from_html
-from .schema import CoreEngineLibPagesPublicItem
+from .schema import (
+    CoreEngineLibPagesPublicItem,
+    CoreEngineLibPagesPublicItemListItem,
+)
 
 
 # ============================================
@@ -62,8 +72,85 @@ PAGES_CSS_DIR = _MODULE_STATIC_DIR / "pages"
 PAGES_CSS_URL = _MODULE_STATIC_URL + "/pages"
 
 
+# ============================================
+# URL HELPERS (module-level)
+# ============================================
+
+def _public_url(nav_id: int, page_dt: Optional[datetime]) -> str:
+    """
+    Build the public URL of a page:
+
+        /page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+
+    Same format as the public route in public/route.py and as the
+    editor's _openArticle() in pages.js. Kept here so the catalog
+    and the single-page route stay in sync — changing the format
+    is a one-line change.
+
+    If `page_dt` is missing (should not happen: page.datetime is
+    NOT NULL in the DB), falls back to a path that at least hits
+    the nav root instead of 500.
+    """
+    if page_dt is None:
+        return f"/pages?nav_id={nav_id}"
+    return (
+        f"/page/{nav_id}/"
+        f"{page_dt.strftime('%Y%m%d')}/"
+        f"{page_dt.strftime('%H%M%S')}"
+    )
+
+
 class CoreEngineLibPagesPublicService:
     """Read-only service for public page rendering."""
+
+    # ========================================
+    # LIST (for the /pages catalog)
+    # ========================================
+
+    @staticmethod
+    async def get_list(
+        nav_id: int,
+        limit: int = 100,
+    ) -> List[CoreEngineLibPagesPublicItemListItem]:
+        """
+        List active, non-deleted pages of a nav — for the public
+        /pages catalog.
+
+        Order: datetime DESC, id DESC (newest first; id DESC breaks
+        ties when two pages share the same datetime second — which
+        can happen, since the editor lets the user pick the time).
+
+        No pagination yet: up to `limit` items in one response.
+        Default 100 is generous enough for a personal catalog;
+        swap to a paginated query if this ever becomes a hot path.
+
+        Only active, non-deleted pages are returned — same filter
+        as get_by_datetime / get_by_id. That keeps the catalog
+        consistent with what a visitor can actually open.
+        """
+        items: List[CoreEngineLibPagesPublicItemListItem] = []
+
+        async for session in get_db_sqlite():
+            stmt = (
+                select(Page)
+                .where(
+                    Page.nav_id == nav_id,
+                    Page.is_delete == 0,
+                    Page.is_active == 1,
+                )
+                .order_by(Page.datetime.desc(), Page.id.desc())
+                .limit(limit)
+            )
+            rows = (await session.execute(stmt)).scalars().all()
+
+            for page in rows:
+                items.append(
+                    CoreEngineLibPagesPublicService._page_to_list_item(page)
+                )
+
+            break
+
+        return items
 
     # ========================================
     # MAIN PAGE
@@ -211,4 +298,28 @@ class CoreEngineLibPagesPublicService:
             content=content,
             css=css,
             template_id=page.template_id,
+        )
+
+    @staticmethod
+    def _page_to_list_item(
+        page: Page,
+    ) -> CoreEngineLibPagesPublicItemListItem:
+        """
+        Convert Page ORM object to the list-item schema used by the
+        /pages catalog.
+
+        Unlike _page_to_public, this does NOT touch content or css —
+        the catalog only needs the card fields (title, description,
+        logo, datetime) plus a ready URL. Keeping the two converters
+        separate makes it obvious at a glance which fields each
+        consumer depends on.
+        """
+        return CoreEngineLibPagesPublicItemListItem(
+            id=page.id,
+            nav_id=page.nav_id,
+            datetime=page.datetime,
+            title=page.title or "",
+            description=page.description,
+            logo=page.logo,
+            url=_public_url(page.nav_id, page.datetime),
         )

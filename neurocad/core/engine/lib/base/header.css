@@ -2,10 +2,9 @@
 
 .core-engine-lib-base-header {
     flex-shrink: 0;
-    height: 3.5rem;
     display: flex;
-    align-items: center;
-    padding: 0 1.25rem;
+    flex-direction: column;      /* header-inner on top, impersonation bar below */
+    padding: 0;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -16,10 +15,13 @@
 }
 
 .core-engine-lib-base-header-inner {
+    height: 3.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    padding: 0 1.25rem;
+    box-sizing: border-box;
     gap: 1.5rem;
     position: relative;
 }
@@ -163,6 +165,79 @@ body.menu-open {
     overflow: hidden;
 }
 
+/* ============================================ */
+/* IMPERSONATION BAR                            */
+/* ============================================ */
+/*
+ * Rendered below the main header row while a superadmin is acting
+ * as another user (see core/auth/impersonate/route.py). Yellow is
+ * deliberately intrusive — the admin should always be aware they
+ * are not in their own session.
+ *
+ * The bar sits inside <header> but outside .header-inner, so the
+ * top row keeps its fixed 3.5rem height and the bar adds its own
+ * height below. The <header> is a column flex container for this
+ * reason.
+ */
+
+.core-engine-lib-base-impersonation-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    padding: 6px 16px;
+    box-sizing: border-box;
+    width: 100%;
+
+    background: #fef3c7;             /* amber-100 */
+    border-top: 1px solid #fcd34d;   /* amber-300 */
+    color: #78350f;                  /* amber-900 */
+
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.core-engine-lib-base-impersonation-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60vw;
+}
+
+.core-engine-lib-base-impersonation-text b {
+    font-weight: 700;
+    color: #451a03;                  /* amber-950 */
+}
+
+.core-engine-lib-base-impersonation-stop {
+    flex-shrink: 0;
+
+    padding: 4px 12px;
+
+    background: #ffffff;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+
+    color: #78350f;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.core-engine-lib-base-impersonation-stop:hover {
+    background: #fffbeb;
+    border-color: #fbbf24;
+}
+
+.core-engine-lib-base-impersonation-stop:active {
+    transform: translateY(1px);
+}
+
 @media (max-width: 768px) {
     .core-engine-lib-base-title {
         flex: 1;
@@ -248,6 +323,19 @@ body.menu-open {
     .core-engine-lib-base-menu .core-engine-lib-base-menu-login:hover {
         background: rgba(0, 0, 0, 0.04);
         color: #1a1a2e;
+    }
+
+    .core-engine-lib-base-impersonation-bar {
+        flex-direction: column;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .core-engine-lib-base-impersonation-text {
+        max-width: 100%;
+        white-space: normal;
+        text-align: center;
     }
 }
 

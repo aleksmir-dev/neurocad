@@ -7,17 +7,27 @@ Clean HTML rendering — no admin UI, no JS engine.
 Uses base template + CSS from /static, content from DB.
 
 URL schema:
-    GET /page/<nav_id>/<date>/<time>
+    GET /page/<nav_id>/<date>/<time>   — single page
+    GET /pages                         — catalog (list of pages)
 
 Pages are scoped to a nav instance (Page.nav_id). The nav_id is part
-of the URL, so the same <date>/<time> pair can exist in different
-nav instances without collision.
+of the single-page URL, so the same <date>/<time> pair can exist in
+different nav instances without collision. The catalog route uses a
+query parameter (?nav_id=) instead, because /pages is a single
+stable URL.
+
+Catalog title:
+    /pages uses Nav.name as the page title and the H1 in the
+    template. If Nav.name is empty or the nav is missing, falls
+    back to "Каталог статей". Nav.name is edited from the admin
+    catalog via PUT /core/engine/lib/pages/nav-name.
 
 Lazy tariff check:
-    Before rendering, the owner's tariff is checked via
-    BalanceChecked.page_renderable(user_id). If the owner is on the
-    free tariff and has more pages than limit_pages, the guest sees
-    a "Страница недоступна" placeholder (HTTP 200) — not a 404.
+    Before rendering (both single page and catalog), the owner's
+    tariff is checked via BalanceChecked.page_renderable(user_id).
+    If the owner is on the free tariff and has more pages than
+    limit_pages, the guest sees a "Страница недоступна" placeholder
+    (HTTP 200) — not a 404.
 
 Body wrapper cleanup:
     GrapesJS sometimes exports page content wrapped in
@@ -43,7 +53,7 @@ import re
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from bs4 import BeautifulSoup
 from sqlalchemy import select
@@ -64,6 +74,12 @@ from .schema import CoreEngineLibPagesPublicItem
 # Mounted by parent router (utils/routes.py) without extra prefix,
 # so the final URL is /page/<nav_id>/<date>/<time>.
 router = APIRouter(prefix="/page", tags=["core/engine/lib/pages/public"])
+
+
+# Mounted without a prefix — the final URL is /pages. Kept as a
+# separate router because `router` above is /page-only and FastAPI
+# does not allow a router to have two different prefixes.
+router_pages = APIRouter(tags=["core/engine/lib/pages/public"])
 
 
 # ============================================
@@ -132,7 +148,120 @@ async def render_page_public(
 
 
 # ============================================
-# RENDER HELPER
+# CATALOG (LIST OF PAGES)
+# ============================================
+
+@router_pages.get("/pages", response_class=HTMLResponse)
+async def render_pages_catalog(
+    request: Request,
+    nav_id: Optional[int] = Query(
+        None,
+        description="Nav instance ID. If omitted, the first non-deleted nav is used.",
+    ),
+) -> HTMLResponse:
+    """
+    Render the public catalog of a nav's pages.
+
+    URL:
+        GET /pages
+        GET /pages?nav_id=5
+
+    The catalog lists every active, non-deleted page of the nav,
+    newest first. No pagination yet — up to PUBLIC_CATALOG_LIMIT
+    items in one response. Same lazy tariff check as a single page:
+    if the owner's tariff blocks rendering, the guest sees the
+    "Страница недоступна" placeholder.
+
+    The page title (both <title> and the H1 in the template) comes
+    from Nav.name. If Nav.name is empty, falls back to
+    "Каталог статей".
+
+    No admin UI, no JS engine — plain HTML rendered from a Jinja
+    template, same pattern as the single-page public route.
+    """
+    # Resolve the nav: explicit ?nav_id= wins, otherwise the first
+    # non-deleted nav in the DB (same fallback as utils/routes.py
+    # uses for "/").
+    if nav_id is None:
+        nav_id = await _resolve_first_nav_id()
+    if nav_id is None:
+        raise HTTPException(status_code=404, detail="No nav found")
+
+    return await _render_pages_catalog(request, nav_id)
+
+
+# ============================================
+# CATALOG RENDER HELPER
+# ============================================
+
+#: Maximum number of items in the catalog. Kept as a module-level
+#: constant so a future paginated version has one place to change.
+PUBLIC_CATALOG_LIMIT = 100
+
+#: Fallback title when Nav.name is empty or the nav is missing.
+#: Kept as a constant so tests and (potentially) an admin UI can
+#: reference the same string.
+PUBLIC_CATALOG_DEFAULT_TITLE = "Каталог статей"
+
+
+async def _render_pages_catalog(
+    request: Request,
+    nav_id: int,
+) -> HTMLResponse:
+    """
+    Build and render the /pages catalog.
+
+    Steps:
+      1. Same lazy tariff check as a single page: if the owner's
+         tariff blocks rendering, return the placeholder.
+      2. Load up to PUBLIC_CATALOG_LIMIT active, non-deleted pages
+         via CoreEngineLibPagesPublicService.get_list().
+      3. Render public/pages.html with the list and the catalog
+         title taken from Nav.name.
+
+    Each item already carries a ready `url`
+    (/page/<nav_id>/<YYYYMMDD>/<HHMMSS>) — see
+    _page_to_list_item in the service. The template just prints it.
+    """
+    # ==== LAZY TARIFF CHECK ====
+    # Same rule as a single page: the catalog is only shown if the
+    # owner's tariff allows rendering pages at all. Otherwise the
+    # guest sees the placeholder instead of a list of titles.
+    user_id = await _resolve_nav_owner(nav_id)
+    if user_id is not None:
+        allowed = await BalanceChecked.page_renderable(
+            user_id, log=getattr(request.app.state, "log", None)
+        )
+        if not allowed:
+            return _render_unavailable(request)
+
+    items = await CoreEngineLibPagesPublicService.get_list(
+        nav_id,
+        limit=PUBLIC_CATALOG_LIMIT,
+    )
+
+    # Заголовок каталога — Nav.name. Редактируется из админки
+    # через PUT /core/engine/lib/pages/nav-name. Если name пуст
+    # или nav отсутствует — общий фолбэк, чтобы каталог никогда
+    # не открывался без заголовка.
+    nav_name = await _resolve_nav_name(nav_id)
+    title = (nav_name or "").strip() or PUBLIC_CATALOG_DEFAULT_TITLE
+
+    return templates.TemplateResponse(
+        request=request,
+        name="core/engine/lib/pages/public/pages.html",
+        context={
+            "title": title,
+            "description": "",
+            "items": items,
+            "nav_id": nav_id,
+            "total": len(items),
+        },
+    )
+
+
+# ============================================
+# RENDER HELPER (SINGLE PAGE)
 # ============================================
 
 async def _render_public_page(
@@ -214,6 +343,7 @@ def _render_unavailable(request: Request) -> HTMLResponse:
 
     Shown when the page owner is on the free tariff and has more
     pages than limit_pages (e.g. dropped from pro back to free).
+    Used by both the single-page route and the /pages catalog.
     """
     html = """<!DOCTYPE html>
 <html lang="ru">
@@ -338,7 +468,7 @@ def _apply_template(template_html: str, content_html: str) -> str:
 
 
 # ============================================
-# NAV OWNER
+# NAV OWNER / NAV RESOLUTION
 # ============================================
 
 async def _resolve_nav_owner(nav_id: int) -> Optional[int]:
@@ -352,6 +482,47 @@ async def _resolve_nav_owner(nav_id: int) -> Optional[int]:
         stmt = select(Nav.user_id).where(
             Nav.id == nav_id,
             Nav.is_delete.is_(False),
+        )
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+    return None
+
+
+async def _resolve_nav_name(nav_id: int) -> Optional[str]:
+    """
+    Return Nav.name for the given nav, or None.
+
+    Used as the title of the /pages catalog (both <title> and the
+    H1 in the template). Never raises on missing nav — the caller
+    falls back to PUBLIC_CATALOG_DEFAULT_TITLE.
+
+    Same nav-resolution guards as _resolve_nav_owner: only
+    non-deleted navs are considered.
+    """
+    async for session in get_db_sqlite():
+        stmt = select(Nav.name).where(
+            Nav.id == nav_id,
+            Nav.is_delete.is_(False),
+        )
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+    return None
+
+
+async def _resolve_first_nav_id() -> Optional[int]:
+    """
+    Return the first non-deleted nav id (ORDER BY id ASC), or None.
+
+    Fallback for /pages without an explicit ?nav_id=. Same logic as
+    the "/" handler in utils/routes.py — the visitor sees the oldest
+    nav, which for a single-user setup is the owner's catalog.
+    """
+    async for session in get_db_sqlite():
+        stmt = (
+            select(Nav.id)
+            .where(Nav.is_delete.is_(False))
+            .order_by(Nav.id.asc())
+            .limit(1)
         )
         result = await session.execute(stmt)
         return result.scalar_one_or_none()

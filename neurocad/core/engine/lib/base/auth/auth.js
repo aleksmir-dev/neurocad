@@ -55,6 +55,33 @@
  * form via _renderForm() options, so that forms can change the header /
  * tab title while they are on screen and restore it when destroyed.
  *
+ * Session restoration
+ * -------------------
+ * The primary source of truth for the current session is the
+ * HttpOnly `access_token` cookie — the browser sends it on every
+ * request, and the backend resolves the user from it. The
+ * sessionStorage entry `auth_user` is a frontend cache: it lets us
+ * skip the round-trip on a normal page load.
+ *
+ * Two scenarios require re-reading from the server:
+ *
+ *   1. sessionStorage is empty (fresh tab, cleared on purpose,
+ *      private mode). Without a fallback the frontend would treat
+ *      an authenticated cookie session as "guest".
+ *
+ *   2. The cookie was swapped outside of our flow. The main case
+ *      is impersonation: POST /core/auth/impersonate/{id} sets a
+ *      new cookie with a different `sub`, then the frontend clears
+ *      sessionStorage and reloads. On boot we must fetch the new
+ *      user from the server instead of trusting the (now empty)
+ *      cache.
+ *
+ * So `_restoreSessionAsync()` first tries the sessionStorage cache
+ * and, if that is empty, calls GET /core/engine/lib/base/profile/ —
+ * the lightweight "who am I" endpoint that reads the cookie and
+ * returns { id, login, name, is_superadmin }. That response is
+ * cached back into sessionStorage, so subsequent loads stay fast.
+ *
  * Logout vs 401
  * -------------
  * logout() — user-initiated. It first calls Base.teardownAreas(), which
@@ -90,7 +117,7 @@ export class BaseAuth {
     async _init() {
         console.log('[BaseAuth] _init() START');
         try {
-            this._restoreSession();
+            await this._restoreSessionAsync();
             this._bindEvents();
             this._initialized = true;
             console.log('[BaseAuth] _init() COMPLETE, isAuthenticated:', this.isAuthenticated);
@@ -101,21 +128,84 @@ export class BaseAuth {
         }
     }
 
-    _restoreSession() {
-        console.log('[BaseAuth] _restoreSession()');
+    /**
+     * Read the current user, preferring sessionStorage but falling
+     * back to the server when the cache is empty.
+     *
+     * - sessionStorage has auth_user → parse it, done (no network).
+     * - sessionStorage empty → GET /core/engine/lib/base/profile/.
+     *   If the cookie is valid, that returns the current user; if
+     *   not, it 401s and we stay a guest.
+     *
+     * The result is cached back into sessionStorage, so repeated
+     * loads inside the same tab remain offline-fast.
+     *
+     * Never throws — any failure is treated as "not authenticated".
+     */
+    async _restoreSessionAsync() {
+        console.log('[BaseAuth] _restoreSessionAsync()');
+
+        // 1. Fast path — cached user.
+        const cached = this._readCachedSession();
+        if (cached) {
+            this.user = cached;
+            this.isAuthenticated = true;
+            console.log('[BaseAuth] Session restored from sessionStorage');
+            return;
+        }
+
+        console.log('[BaseAuth] No session in sessionStorage, trying server');
+
+        // 2. Slow path — ask the server who we are.
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            if (typeof fetchJson !== 'function') {
+                console.log('[BaseAuth] fetchJson not available yet — treating as guest');
+                return;
+            }
+
+            const json = await fetchJson(
+                '/core/engine/lib/base/profile/',
+                {
+                    // A 401 here is "no session", not "session expired".
+                    // Do not fire auth:unauthorized — that would tear
+                    // down the whole shell and show the login form
+                    // before the app even started rendering.
+                    skipAuthRedirect: true,
+                },
+            );
+
+            const user = json?.data || null;
+            if (!user || !user.id) {
+                console.log('[BaseAuth] Server returned no user — guest');
+                return;
+            }
+
+            // Cache it for the next load.
+            this.user = user;
+            this.isAuthenticated = true;
+            this._saveSession();
+            console.log('[BaseAuth] Session restored from server:', user.login);
+        } catch (err) {
+            // 401 / network error / anything else — stay a guest.
+            console.log('[BaseAuth] Server session check failed — guest:', err?.message || err);
+        }
+    }
+
+    /**
+     * Synchronous read of the cached user from sessionStorage.
+     * Returns null on miss or on malformed JSON.
+     */
+    _readCachedSession() {
         try {
             const saved = sessionStorage.getItem('auth_user');
-            if (saved) {
-                this.user = JSON.parse(saved);
-                this.isAuthenticated = true;
-                console.log('[BaseAuth] Session restored from sessionStorage');
-            } else {
-                console.log('[BaseAuth] No session in sessionStorage');
-            }
+            if (!saved) return null;
+            const parsed = JSON.parse(saved);
+            if (!parsed || !parsed.id) return null;
+            return parsed;
         } catch (error) {
-            console.error('[BaseAuth] Error restoring session:', error);
-            this.user = null;
-            this.isAuthenticated = false;
+            console.error('[BaseAuth] Error reading session cache:', error);
+            return null;
         }
     }
 
@@ -176,6 +266,21 @@ export class BaseAuth {
         // auto-login. Post-registration side effects happen here.
         document.addEventListener('auth:registered', (e) => {
             this._handleRegistered(e.detail);
+        });
+
+        // auth:reload — generic "session on the server has changed,
+        // re-read it" event. Emitted by impersonate flows (balance.js,
+        // header.js) right before they clear sessionStorage and
+        // reload the page. The reload path uses _restoreSessionAsync
+        // on boot, so this listener is not strictly required — it
+        // exists so a caller can trigger a re-read without a full
+        // page reload if it ever wants to.
+        document.addEventListener('auth:reload', async () => {
+            await this._restoreSessionAsync();
+            this._emit('auth:changed', {
+                user: this.user,
+                isAuthenticated: this.isAuthenticated,
+            });
         });
     }
 

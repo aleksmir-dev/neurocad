@@ -10,7 +10,7 @@ from ..models.base import User
 
 
 def shorten_name(full_name: str) -> str:
-    """Преобразует 'Иванов Иван Иванович' в 'Иванов И.И.'"""
+    """Convert 'Иванов Иван Иванович' to 'Иванов И.И.'."""
     if not full_name:
         return full_name
 
@@ -23,14 +23,14 @@ def shorten_name(full_name: str) -> str:
 
 
 def serialize_datetime(value):
-    """Преобразует datetime в строку ISO format"""
+    """Convert a datetime to an ISO string."""
     if isinstance(value, datetime):
         return value.isoformat()
     return value
 
 
 def serialize_user(user) -> Dict[str, Any]:
-    """Сериализует объект User в dict с преобразованием datetime"""
+    """Serialize a User object into a dict, converting datetimes."""
     return {
         "id": user.id,
         "login": user.login,
@@ -47,7 +47,7 @@ def serialize_user(user) -> Dict[str, Any]:
 
 
 class CoreAuthService:
-    """Общие методы для работы с пользователями"""
+    """Shared helpers for working with users."""
 
     # ============================================
     # READ
@@ -55,7 +55,7 @@ class CoreAuthService:
 
     @staticmethod
     async def get_user_by_id(user_id: int, log=None) -> Optional[Dict[str, Any]]:
-        """Получение пользователя по ID"""
+        """Fetch a user by id."""
         if log:
             await log.log_info(target="auth", message=f"get_user_by_id: user_id={user_id}")
 
@@ -73,7 +73,7 @@ class CoreAuthService:
 
     @staticmethod
     async def find_user_by_login_or_email(value: str, log=None) -> Optional[Dict[str, Any]]:
-        """Поиск пользователя по логину или email"""
+        """Find a user by login or by email."""
         if log:
             await log.log_info(target="auth", message=f"find_user_by_login_or_email: {value}")
 
@@ -147,7 +147,7 @@ class CoreAuthService:
 
     @staticmethod
     async def update_user(user_id: int, log=None, **kwargs) -> Optional[Dict[str, Any]]:
-        """Обновление данных пользователя"""
+        """Update user fields."""
         if log:
             await log.log_info(target="auth", message=f"update_user: user_id={user_id}, fields={list(kwargs.keys())}")
 
@@ -180,14 +180,14 @@ class CoreAuthService:
     async def create_user(login: str, password: str, name: Optional[str] = None,
                           email: Optional[str] = None, is_superadmin: bool = False,
                           log=None) -> Optional[Dict[str, Any]]:
-        """Создание нового пользователя"""
+        """Create a new user."""
         if log:
             await log.log_info(target="auth", message=f"create_user: login={login}")
 
         hashed_password = get_hash_string(password)
 
         async for session in get_db_sqlite():
-            # Проверяем существование
+            # Check whether the user already exists.
             stmt = select(User).where(User.login == login)
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()

@@ -12,6 +12,24 @@
  *
  * All submodules are loaded dynamically with a version to avoid
  * browser cache issues on updates.
+ *
+ * extraToolbarButtons
+ * -------------------
+ * Optional array of link buttons rendered in the toolbar, in the
+ * right group AFTER the standard buttons (add / edit / delete /
+ * trash / search / status filter). Each entry is a plain object:
+ *
+ *     { href, label?, title?, icon?, target?, rel?, className? }
+ *
+ * `href` is required (entries without it are dropped). The buttons
+ * are passed through to BaseCardsToolbar via initToolbar, which
+ * renders them as <a class="cards-toolbar-btn cards-toolbar-btn-link">
+ * with an optional <img class="icon">. This keeps BaseCards agnostic
+ * about what the links actually do — consumers use it, for example,
+ * to add an "open the public catalog in a new tab" link.
+ *
+ * The array is empty by default, so existing consumers that do not
+ * pass it see no change.
  */
 export class BaseCards {
     constructor(container, props = {}) {
@@ -75,6 +93,16 @@ export class BaseCards {
             delete: '/items/{id}',
             restore: '/items/{id}/restore'
         };
+
+        // Optional extra toolbar link-buttons. Passed through to
+        // BaseCardsToolbar via initToolbar. Filtered here (fail-closed)
+        // so initToolbar / toolbar.js can assume the shape is sane.
+        this.extraToolbarButtons = Array.isArray(props.extraToolbarButtons)
+            ? props.extraToolbarButtons.filter(
+                  (b) => b && typeof b === 'object'
+                        && typeof b.href === 'string' && b.href
+              )
+            : [];
 
         this.items = props.items || [];
         this.selectedIds = new Set();

@@ -79,11 +79,23 @@ class CoreEngineLibPagesPublicItem(CoreEngineLibPagesPublicItemBase):
 # ============================================
 
 class CoreEngineLibPagesPublicItemListItem(CoreEngineLibPagesPublicItemBase):
-    """Public page for list view — without heavy content field"""
+    """
+    Public page for list view — without the heavy content field.
+
+    Carries a pre-built `url` so the /pages catalog template does
+    not have to assemble /page/<nav_id>/<YYYYMMDD>/<HHMMSS> by
+    itself. The service is the single source of truth for that
+    format (same as CoreEngineLibPagesPublicService._page_to_public
+    and the public route).
+    """
 
     logo: Optional[str] = Field(
         None,
         description="Logo / thumbnail URL",
+    )
+    url: str = Field(
+        ...,
+        description="Public URL of the page: /page/<nav_id>/<YYYYMMDD>/<HHMMSS>",
     )
 
     class Config:
@@ -95,9 +107,15 @@ class CoreEngineLibPagesPublicItemListItem(CoreEngineLibPagesPublicItemBase):
 # ============================================
 
 class CoreEngineLibPagesPublicListResponse(BaseModel):
-    """Response with a list of public pages"""
+    """
+    Response for the /pages catalog.
+
+    No pagination yet — the catalog returns up to `limit` items
+    (default 100) in one go. `total` mirrors `len(items)`; it is
+    kept as a separate field so a future pagination layer can
+    change it without breaking the shape.
+    """
 
     items: list[CoreEngineLibPagesPublicItemListItem]
     total: int = 0
-    page: int = 1
-    limit: int = 20
+    nav_id: int

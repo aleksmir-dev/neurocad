@@ -14,6 +14,19 @@ brandable word (studio, market, design, coffee, ...) is 7 chars or
 shorter, so it can never collide with a user subdomain. No separate
 reserved list is needed.
 
+skip_min_length
+---------------
+validate_login() accepts an optional `skip_min_length` flag. When
+True, the 8-char minimum is skipped and even shorter logins (e.g.
+"demo") are allowed. This is set ONLY by the `neurocad create-user`
+CLI command — the operator explicitly asks for a short technical
+account with shell access to the server.
+
+The normal registration flow (POST /core/auth/register), the live
+check-login endpoint, and every other caller leave the flag at its
+default (False), so short logins remain unavailable through the
+public API.
+
 Storage format: the login is always saved in lower case. Two logins
 that differ only by case ("User1" / "user1") are the same login.
 
@@ -39,17 +52,25 @@ def normalize_login(login: str) -> str:
     return (login or "").strip().lower()
 
 
-def validate_login(login: str) -> Optional[str]:
+def validate_login(
+    login: str,
+    skip_min_length: bool = False,
+) -> Optional[str]:
     """
     Return None if the login is valid, or a Russian error message
     if not. Never raises.
+
+    skip_min_length — allow logins shorter than LOGIN_MIN_LENGTH.
+    Set ONLY by the `neurocad create-user` CLI command. Everywhere
+    else (the registration form, the check-login endpoint) the flag
+    stays at its default False, so the 8-char minimum is enforced.
     """
     s = normalize_login(login)
 
     if not s:
         return "Введите логин"
 
-    if len(s) < LOGIN_MIN_LENGTH:
+    if not skip_min_length and len(s) < LOGIN_MIN_LENGTH:
         return (
             f"Логин должен быть не короче {LOGIN_MIN_LENGTH} символов — "
             "короткие имена зарезервированы системой"

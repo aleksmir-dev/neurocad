@@ -1072,6 +1072,14 @@
       "source": "logo",
       "builtin": false,
       "order": 1360
+    },
+    {
+      "id": "img-d5404cc8",
+      "alt": "АстраКарта",
+      "file": "files/img-d5404cc8.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1370
     }
   ]
 }

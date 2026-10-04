@@ -1,4 +1,4 @@
-# neurocad 1.0.4
+# neurocad 1.0.5
 
 Release date: 2026-10-04
 
@@ -7,46 +7,71 @@ Release date: 2026-10-04
 ## English
 
 ### Added
-- **robots.txt editor.** Both domain cards (free subdomain and custom second-level domain) now have a "Редактировать robots.txt" button that opens a universal modal — one modal, two targets. On save it stores the text in `users.robots_3` or `users.robots_2`.
-- **`users.robots_2` and `users.robots_3` columns.** Two new `TEXT` columns on `users` hold the robots.txt body for the custom second-level domain and the free third-level subdomain respectively. Both are nullable — `NULL` is substituted with the default "closed" body at read time.
-- **`GET /robots.txt`.** Served for any host: subdomain → `robots_3`, custom domain → `robots_2`, apex / unknown → `ROBOTS_CLOSED`. Always `200 text/plain`, no redirects, no caching.
-- **`POST /core/engine/lib/base/profile/domain/robots`.** New endpoint with body `{ which: "2" | "3", robots: "<text>" }`. Saves the file for the selected target.
+- **Admin impersonation.** A superadmin can log in as any user from the balance page ("Войти" per row) without knowing their password, and return to their own session with one click. A yellow bar under the header always shows the impersonated login. The session switch is a JWT cookie (`sub` = target, `imp_by` = admin) — no DB writes, no password access.
+- **`neurocad create-user` CLI.** New subcommand creates a user through the same code path as the registration form, but skips the 8-character login minimum. For technical accounts with short logins (`demo`, `docs`, `wiki`) that would otherwise collide with system subdomains. Balance and personal Nav are created like for a regular signup.
+- **Public article catalog at `/pages`.** A JS-free page listing every active, non-deleted article of the current nav. Reachable from the admin catalog toolbar and from the subdomain root. Title comes from `Nav.name` and is editable in place via a new "Заголовок" toolbar button.
 
 ### Changed
-- **Default robots.txt state.** The free subdomain is closed to crawlers by default. Attaching a custom domain opens its robots.txt (`ROBOTS_OPEN` if it was empty) and closes the subdomain's (`ROBOTS_CLOSED`). Detaching reopens the subdomain (`ROBOTS_OPEN`), keeping the custom-domain body for the next attach.
+- **`profile/route.py`** now returns `impersonated_by` in the current-user payload, so the frontend can tell an impersonated session from a normal one.
+- **`Header.setUser()`** re-renders the header in place, so the impersonation bar appears the moment the session switches.
+- **Login, impersonate and stop share one `_set_session_cookie` helper** so their cookie attributes cannot drift apart.
 
 ### Fixed
-- **Nothing from 1.0.3 was regressed.** The real TLS certificate check and clickable domain links stay as they were.
+- **`POST /core/auth/impersonate/stop` returned 422.** The route was declared after `POST /impersonate/{user_id}`, so `stop` was parsed as a `user_id` value. Literal routes now come before dynamic ones.
+- **Frontend kept stale session data after impersonation.** `sessionStorage.clear()` before reload forces `auth._restoreSessionAsync()` to fetch the current user from the server via `GET /core/engine/lib/base/profile/`.
+- **`auth._restoreSession()` only read `sessionStorage`.** Now, if the cache is empty and a valid cookie is present, it falls back to the server — so a fresh tab or an externally swapped cookie no longer appears as a guest.
 
 ---
 
 ## Русский
 
 ### Добавлено
-- **Редактор robots.txt.** В обеих карточках (бесплатный поддомен и свой домен 2 уровня) появилась кнопка «Редактировать robots.txt», открывающая универсальную модалку — одна модалка, две цели. При сохранении текст пишется в `users.robots_3` или `users.robots_2`.
-- **Поля `users.robots_2` и `users.robots_3`.** Две новые колонки типа `TEXT` в таблице `users` хранят тело robots.txt для кастомного домена 2 уровня и для бесплатного поддомена 3 уровня соответственно. Обе nullable — при чтении `NULL` подменяется дефолтным «закрытым» текстом.
-- **`GET /robots.txt`.** Отдаётся для любого хоста: поддомен → `robots_3`, кастомный домен → `robots_2`, апекс / неизвестный → `ROBOTS_CLOSED`. Всегда `200 text/plain`, без редиректов и без кеша.
-- **`POST /core/engine/lib/base/profile/domain/robots`.** Новый эндпоинт с телом `{ which: "2" | "3", robots: "<текст>" }`. Сохраняет файл для выбранной цели.
+- **Импосонация администратором.** Суперадмин может войти под любым пользователем со страницы баланса (кнопка «Войти» в строке) без знания пароля и одной кнопкой вернуться в свою сессию. Под шапкой всегда видна жёлтая плашка с логином импосонированного. Переключение — JWT-cookie (`sub` = цель, `imp_by` = админ), без записи в БД и без доступа к паролю.
+- **CLI `neurocad create-user`.** Новая подкоманда создаёт пользователя тем же путём, что и форма регистрации, но пропускает минимум 8 символов в логине. Для технических аккаунтов с короткими логинами (`demo`, `docs`, `wiki`), которые иначе конфликтуют с системными поддоменами. Баланс и личный Nav создаются как при обычной регистрации.
+- **Публичный каталог статей на `/pages`.** JS-free страница со списком всех активных неудалённых статей текущего nav'а. Доступна из тулбара админского каталога и из корня поддомена. Заголовок берётся из `Nav.name` и правится на месте кнопкой «Заголовок» в тулбаре.
 
 ### Изменено
-- **Дефолтное состояние robots.txt.** Бесплатный поддомен по умолчанию закрыт от роботов. При подключении кастомного домена его robots.txt открывается (`ROBOTS_OPEN`, если был пустым), а поддомен закрывается (`ROBOTS_CLOSED`). При отключении поддомен снова открывается (`ROBOTS_OPEN`), текст кастомного домена сохраняется на случай повторного подключения.
+- **`profile/route.py`** теперь возвращает `impersonated_by` в payload текущего пользователя — фронт отличает импосонированную сессию от обычной.
+- **`Header.setUser()`** перерисовывает шапку на месте — плашка импосонации появляется в момент переключения сессии.
+- **Login, impersonate и stop используют один `_set_session_cookie`** — атрибуты cookie больше не разъезжаются.
 
 ### Исправлено
-- **Ничего из 1.0.3 не сломано.** Реальная TLS-проверка сертификата и кликабельные ссылки на домены остались как были.
+- **`POST /core/auth/impersonate/stop` возвращал 422.** Роут был объявлен после `POST /impersonate/{user_id}`, поэтому `stop` парсился как значение `user_id`. Теперь литеральные роуты идут до динамических.
+- **Фронт сохранял старые данные сессии после импосонации.** `sessionStorage.clear()` перед reload заставляет `auth._restoreSessionAsync()` сходить на сервер за текущим пользователем через `GET /core/engine/lib/base/profile/`.
+- **`auth._restoreSession()` читал только `sessionStorage`.** Теперь при пустом кэше и валидной cookie идёт fallback на сервер — свежая вкладка или подменённая извне cookie больше не выглядят как гость.
 
 ---
 
-## Файлы, затронутые в 1.0.4
+## Файлы, затронутые в 1.0.5
 
 ### Backend
-- `app/core/models/user.py` — поля `robots_2`, `robots_3` (Text, nullable).
-- `alembic/versions/b34d42853cc7_*.py` — миграция через `batch_alter_table` (SQLite).
-- `neurocad/core/engine/lib/base/profile/domain/schema.py` — `robots_2` / `robots_3` в `Data`, поле `which` в `SetRobotsRequest` / `SetRobotsData`.
-- `neurocad/core/engine/lib/base/profile/domain/service.py` — `robots_3` в `get_for_user`, `set_robots(which, text)`, тогглы `robots_2` / `robots_3` в `add_custom` / `remove_custom`.
-- `neurocad/core/engine/lib/base/profile/domain/route.py` — `POST /robots` прокидывает `which` и отвечает `{which, robots}`.
-- `neurocad/utils/routes.py` — `GET /robots.txt`.
+- `neurocad/core/auth/validators.py` — `validate_login(login, skip_min_length=False)`.
+- `neurocad/core/auth/register/service.py` — `register_user(..., skip_login_length_check=False)`.
+- `neurocad/core/auth/register/schema.py` — docstring про CLI-обход.
+- `neurocad/core/auth/dependencies.py` — чтение `imp_by` из JWT, проброс в user как `impersonated_by`.
+- `neurocad/core/auth/service.py` — комментарии на английском.
+- `neurocad/core/auth/route.py` — подключение `impersonate_router`.
+- `neurocad/core/auth/impersonate/__init__.py` — новый.
+- `neurocad/core/auth/impersonate/route.py` — новый: `POST /stop` (объявлен первым), `POST /{user_id}`.
+- `neurocad/core/engine/lib/base/profile/route.py` — `impersonated_by` в ответе.
+- `neurocad/core/engine/lib/pages/route.py` — `GET /nav-name`, `PUT /nav-name`.
+- `neurocad/core/engine/lib/pages/public/route.py` — `router_pages`, `GET /pages`, `_resolve_nav_name`.
+- `neurocad/core/engine/lib/pages/public/service.py` — `get_list`, `_page_to_list_item`.
+- `neurocad/core/engine/lib/pages/public/schema.py` — `url` в `ListItem`, `nav_id` в `ListResponse`.
+- `neurocad/utils/routes.py` — подключение `router_pages`.
+- `neurocad/cli.py` — подкоманда `create-user`.
 
 ### Frontend
-- `neurocad/core/engine/lib/base/profile/domain/domain.js` — две кнопки `edit-robots` (`data-which="3"` в поддомене, `data-which="2"` в кастомном), `_openRobotsModal(which)` с передачей домена через `setDomain`.
-- `neurocad/core/engine/lib/base/profile/domain/robots.js` — новый файл: `RobotsModal`, `open(which, initialText)`, `setDomain(domain)`, пресеты «Открыть всем» / «Закрыть от всех», кнопки «Отмена» / «ОК».
-- `neurocad/core/engine/lib/base/profile/domain/robots.css` — новый файл: оверлей, диалог, пресеты сверху слева, кнопки внизу справа, мобильная адаптация.
+- `neurocad/core/engine/lib/base/auth/auth.js` — `_restoreSessionAsync()`, fallback на `/profile/`.
+- `neurocad/core/engine/lib/base/header.js` — `_renderImpersonationBar()`, `_rerender()`, `_handleStopImpersonate()`.
+- `neurocad/core/engine/lib/base/header.css` — стили плашки, `.header` → `flex-direction: column`.
+- `neurocad/core/engine/lib/base/balance/balance.js` — кнопка «Войти», `_handleImpersonate()`.
+- `neurocad/core/engine/lib/base/cards/toolbar.js` — extra-кнопки в левой группе.
+- `neurocad/core/engine/lib/base/cards/toolbar/toolbar.css` — стили `<a>.cards-toolbar-btn`.
+- `neurocad/core/engine/lib/base/cards/cards.js` — `extraToolbarButtons` в конструкторе.
+- `neurocad/core/engine/lib/base/cards/initool.js` — нормализация `extraToolbarButtons`.
+- `neurocad/core/engine/lib/pages/pages.js` — две extra-кнопки, вызов модалки заголовка.
+- `neurocad/core/engine/lib/pages/title.js` — новый: `PagesTitle`.
+- `neurocad/core/engine/lib/pages/public/pages.html` — новый шаблон каталога.
+- `neurocad/core/engine/lib/pages/public/pages.css` — новый.
+- `neurocad/core/engine/lib/base/images/title.svg` — новая иконка.

@@ -1,0 +1,316 @@
+/* neurocad/core/engine/lib/pages/public/pages.css */
+
+/**
+ * Public pages catalog — /pages
+ *
+ * Self-contained styles for the catalog page. Does not depend on
+ * public.css (which is the wrapper layout for a single article)
+ * and does not load anything from the editor directory.
+ *
+ * Layout:
+ *   body.core-engine-lib-pages-public-body
+ *     └─ main.pages-catalog
+ *          ├─ header.pages-catalog-header
+ *          └─ ul.pages-catalog-list
+ *               └─ li.pages-catalog-item
+ *                    └─ a.pages-catalog-card
+ *                         ├─ span.pages-catalog-card-logo  (optional)
+ *                         └─ span.pages-catalog-card-body
+ *                              ├─ span.pages-catalog-card-title
+ *                              ├─ span.pages-catalog-card-desc (optional)
+ *                              └─ time.pages-catalog-card-date (optional)
+ *
+ * The card is an <a>, so everything inside is inline-block / flex
+ * — no block-level children leaking outside the link.
+ *
+ * Title color: the H1 uses a deep teal (#134e4a) instead of the
+ * default near-black. It is dark enough to read as a heading, but
+ * livelier than plain #0f172a. Change the single `color:` line
+ * under .pages-catalog-title to switch to another shade — e.g.
+ * #7f1d1d (deep red) or #1e3a8a (deep blue) were also considered.
+ *
+ * Subtitle: the "N статей" line under the H1 is intentionally
+ * hidden (`display: none`) for now — it was judged to be noise
+ * while the catalog is still small. The markup is still emitted
+ * by pages.html, so flipping this rule brings it back.
+ */
+
+/* ============================================ */
+/* BODY / ROOT                                  */
+/* ============================================ */
+
+html {
+    height: 100%;
+}
+
+.core-engine-lib-pages-public-body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    background: #f8fafc;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #1e293b;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================ */
+/* CATALOG CONTAINER                            */
+/* ============================================ */
+
+.pages-catalog {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 40px 20px 64px;
+    box-sizing: border-box;
+}
+
+/* ============================================ */
+/* HEADER                                       */
+/* ============================================ */
+
+.pages-catalog-header {
+    margin: 0 0 28px;
+}
+
+.pages-catalog-title {
+    margin: 0 0 6px;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: #134e4a;   /* deep teal */
+}
+
+/*
+ * Hidden for now — the "N статей" line under the title was
+ * determined to be noise while the catalog is still small.
+ * The markup is still emitted by pages.html, so we only need
+ * to flip this rule to bring it back.
+ */
+.pages-catalog-subtitle {
+    display: none;
+}
+
+/* ============================================ */
+/* GRID                                         */
+/* ============================================ */
+
+.pages-catalog-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.pages-catalog-item {
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+/* ============================================ */
+/* CARD                                         */
+/* ============================================ */
+
+.pages-catalog-card {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+
+    padding: 16px;
+    box-sizing: border-box;
+    height: 100%;
+
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+}
+
+.pages-catalog-card:hover {
+    border-color: #93c5fd;
+    box-shadow:
+        0 12px 28px rgba(59, 130, 246, 0.10),
+        0 4px 10px rgba(15, 23, 42, 0.06);
+    transform: translateY(-2px);
+}
+
+.pages-catalog-card:active {
+    transform: translateY(0);
+    box-shadow:
+        0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.pages-catalog-card:focus-visible {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* ============================================ */
+/* LOGO                                         */
+/* ============================================ */
+
+.pages-catalog-card-logo {
+    flex: 0 0 auto;
+    display: block;
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+}
+
+.pages-catalog-card-logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ============================================ */
+/* BODY                                         */
+/* ============================================ */
+
+.pages-catalog-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.pages-catalog-card-title {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #0f172a;
+
+    /* Truncate to 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pages-catalog-card:hover .pages-catalog-card-title {
+    color: #1d4ed8;
+}
+
+.pages-catalog-card-desc {
+    font-size: 14px;
+    line-height: 1.4;
+    color: #64748b;
+
+    /* Truncate to 3 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pages-catalog-card-date {
+    margin-top: auto;
+    padding-top: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #94a3b8;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* ============================================ */
+/* EMPTY STATE                                  */
+/* ============================================ */
+
+.pages-catalog-empty {
+    margin: 40px 0 0;
+    padding: 32px 20px;
+    text-align: center;
+    font-size: 15px;
+    color: #64748b;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+}
+
+/* ============================================ */
+/* ADAPTIVE                                     */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    .pages-catalog {
+        padding: 28px 16px 48px;
+    }
+
+    .pages-catalog-title {
+        font-size: 26px;
+    }
+
+    .pages-catalog-list {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .pages-catalog-card {
+        padding: 14px;
+        border-radius: 12px;
+    }
+
+    .pages-catalog-card-logo {
+        width: 64px;
+        height: 64px;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pages-catalog {
+        padding: 20px 12px 40px;
+    }
+
+    .pages-catalog-title {
+        font-size: 22px;
+    }
+
+    .pages-catalog-subtitle {
+        font-size: 12px;
+    }
+
+    .pages-catalog-card-title {
+        font-size: 16px;
+    }
+
+    .pages-catalog-card-desc {
+        font-size: 13px;
+    }
+
+    .pages-catalog-card-logo {
+        width: 56px;
+        height: 56px;
+    }
+}
+
+/* ============================================ */
+/* REDUCED MOTION                               */
+/* ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .pages-catalog-card {
+        transition: none;
+    }
+}

@@ -18,7 +18,7 @@ from ....config import settings
 
 
 class CoreAuthRegisterService:
-    """Сервис для регистрации пользователей"""
+    """Service for user registration."""
 
     @staticmethod
     async def register_user(
@@ -27,30 +27,46 @@ class CoreAuthRegisterService:
         password_confirm: str,
         name: Optional[str] = None,
         email: Optional[str] = None,
+        skip_login_length_check: bool = False,
         log=None
     ) -> Dict[str, Any]:
         """
-        Регистрация нового пользователя.
+        Register a new user.
 
-        Порядок проверок:
-          1. Формат логина (длина >= 8, разрешённые символы).
-          2. Логин уже занят (точное совпадение в users.login).
-          3. Slug уже занят (другой логин даёт тот же поддомен).
-          4. Email уже занят.
-          5. Пароли совпадают, длина пароля >= 8.
-          6. Создание пользователя + auto-create nav.
+        Checks, in order:
+          1. Login format (length >= 8, allowed characters).
+          2. Login already taken (exact match in users.login).
+          3. Slug already taken (a different login yields the same subdomain).
+          4. Email already taken.
+          5. Passwords match, password length >= 8.
+          6. Create the user + auto-create the personal Nav.
+
+        skip_login_length_check
+        -----------------------
+        Bypasses the "login must be at least 8 characters" rule.
+        Set ONLY by the `neurocad create-user` CLI command, for
+        technical accounts with short logins (demo, docs, wiki).
+        The registration form and the public API always call with
+        skip_login_length_check=False, so short logins remain
+        unavailable from outside.
 
         Returns:
-            Dict с ключами:
+            Dict with keys:
             - success: bool
             - message: str
-            - data: dict с данными пользователя (при успехе)
+            - data: dict with user data (on success)
         """
         if log:
             await log.log_info(target="auth", message=f"register_user called for login: {login}")
 
-        # ---- 1. Формат логина ----
-        err = validate_login(login)
+        # ---- 1. Login format ----
+        # skip_min_length is passed through only when the caller
+        # explicitly asks for it (CLI). The registration form and
+        # the public API never set it.
+        err = validate_login(
+            login,
+            skip_min_length=skip_login_length_check,
+        )
         if err:
             if log:
                 await log.log_warning(target="auth", message=f"Invalid login {login!r}: {err}")
@@ -62,7 +78,7 @@ class CoreAuthRegisterService:
         normalized_login = normalize_login(login)
         slug = slugify_login(normalized_login)
 
-        # ---- 2. Логин занят ----
+        # ---- 2. Login already taken ----
         if await CoreAuthService.is_login_taken(normalized_login, log=log):
             if log:
                 await log.log_warning(target="auth", message=f"Login {normalized_login} already exists")
@@ -71,7 +87,7 @@ class CoreAuthRegisterService:
                 "message": "Этот логин уже занят"
             }
 
-        # ---- 3. Slug занят (другой логин → тот же поддомен) ----
+        # ---- 3. Slug already taken (different login → same subdomain) ----
         if await CoreAuthService.is_slug_taken(slug, log=log):
             if log:
                 await log.log_warning(
@@ -83,7 +99,7 @@ class CoreAuthRegisterService:
                 "message": "Этот логин уже занят"
             }
 
-        # ---- 4. Email занят ----
+        # ---- 4. Email already taken ----
         if email:
             existing_email = await CoreAuthService.find_user_by_login_or_email(email, log=log)
             if existing_email:
@@ -94,7 +110,7 @@ class CoreAuthRegisterService:
                     "message": "Пользователь с таким email уже существует"
                 }
 
-        # ---- 5. Пароли ----
+        # ---- 5. Passwords ----
         if password != password_confirm:
             return {
                 "success": False,
@@ -107,7 +123,7 @@ class CoreAuthRegisterService:
                 "message": "Пароль должен содержать минимум 8 символов"
             }
 
-        # ---- 6. Создание пользователя ----
+        # ---- 6. Create the user ----
         user = await CoreAuthService.create_user(
             login=normalized_login,
             password=password,
@@ -199,6 +215,6 @@ class CoreAuthRegisterService:
                 "name": user["name"],
                 "email": user["email"],
                 "is_superadmin": user["is_superadmin"],
-                "created_at": user["created_at"]  # Уже строка из serialize_user
+                "created_at": user["created_at"]  # Already a string from serialize_user
             }
         }

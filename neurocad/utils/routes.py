@@ -7,7 +7,10 @@ from fastapi.responses import RedirectResponse, Response
 from sqlalchemy import select
 
 from neurocad.core.route import router as core_router
-from neurocad.core.engine.lib.pages.public.route import router as pages_public_router
+from neurocad.core.engine.lib.pages.public.route import (
+    router as pages_public_router,
+    router_pages as pages_public_catalog_router,
+)
 
 # Internal routes — called by Caddy, not by end users.
 # Lives at /internal/* — outside the /core/engine/... tree
@@ -364,8 +367,14 @@ def setup_routes(app: FastAPI) -> None:
     # Core routes — /core/*
     app.include_router(core_router)
 
-    # Public pages — /pages/*
+    # Public pages — /page/<nav_id>/<date>/<time> (single article)
     app.include_router(pages_public_router)
+
+    # Public pages catalog — /pages (list of articles)
+    # Mounted separately because the single-article router is
+    # prefixed with /page, and FastAPI does not allow one router
+    # to carry two different prefixes.
+    app.include_router(pages_public_catalog_router)
 
     # Internal TLS verification — /internal/tls/verify
     # Called by Caddy before issuing an On-Demand TLS certificate.

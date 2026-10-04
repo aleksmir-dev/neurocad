@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     SUPERADMIN_LOGIN: str = "admin"
 
     # Default superadmin password.
-    SUPERADMIN_PASSWORD: str = "admin"
+    SUPERADMIN_PASSWORD: str = ""
 
     # ============================================
     # USERS

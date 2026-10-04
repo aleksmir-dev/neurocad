@@ -62,9 +62,18 @@ async def get_profile(
     """
     Minimal profile summary for the current user.
 
-    Used by the profile landing page — the client already has the
-    user in sessionStorage (auth_user), but this endpoint lets the
-    page refresh the values from the server if needed.
+    Used by:
+      - the profile landing page (refresh values from the server);
+      - BaseAuth._restoreSessionAsync() — the "who am I" fallback
+        when sessionStorage is empty but a valid access_token
+        cookie is present (e.g. after impersonation, or on a fresh
+        tab).
+
+    The response includes `impersonated_by` when the current session
+    was issued by an admin acting as this user (see
+    core/auth/impersonate/route.py). Without this field the frontend
+    would not know it is impersonating and would hide the yellow
+    "Вы вошли под пользователем X" bar.
 
     Available to any authenticated user.
     """
@@ -77,6 +86,12 @@ async def get_profile(
             "login": user.get("login"),
             "name": user.get("name"),
             "is_superadmin": bool(user.get("is_superadmin", False)),
+            # Impersonation marker, if any. get_current_user puts
+            # `impersonated_by` into the returned dict when the JWT
+            # carries `imp_by` (see core/auth/dependencies.py). For
+            # a normal session this is absent/None — the frontend
+            # then renders the header without the yellow bar.
+            "impersonated_by": user.get("impersonated_by"),
         },
     })
 

@@ -10,9 +10,14 @@
  *   GET /core/engine/lib/balance/list
  * and shows them in a table.
  *
- * Each row has two action buttons:
- *   - "Редактировать" → opens edit/edit.js (modal, all Balance fields)
- *   - "Оплата"        → opens paid/paid.js (modal, sum += N)
+ * Each row has three action buttons:
+ *   - "Редактировать"  → opens edit/edit.js (modal, all Balance fields)
+ *   - "Оплата"         → opens paid/paid.js (modal, sum += N)
+ *   - "Войти"          → impersonate the user: calls
+ *                        POST /core/auth/impersonate/{user_id}, then
+ *                        reloads the page so every component
+ *                        re-reads the new session. Available only
+ *                        because the page itself is superadmin-only.
  *
  * QR-код Сбера:
  *   Above the table there's a small toolbar:
@@ -429,6 +434,13 @@ export class Balance {
                                 data-user-id="${item.user_id}">
                             Оплата
                         </button>
+                        <button type="button"
+                                class="balance-action-btn balance-action-btn-impersonate"
+                                data-action="impersonate"
+                                data-user-id="${item.user_id}"
+                                title="Войти под этим пользователем">
+                            Войти
+                        </button>
                     </td>
                 </tr>
             `;
@@ -492,8 +504,85 @@ export class Balance {
                     this._openEdit(userId);
                 } else if (action === 'paid') {
                     this._openPaid(userId);
+                } else if (action === 'impersonate') {
+                    this._handleImpersonate(userId);
                 }
             });
+        }
+    }
+
+    // ============================================
+    // IMPERSONATE
+    // ============================================
+
+    /**
+     * Start an impersonated session for `userId` and reload the page.
+     *
+     * The backend sets a new HttpOnly `access_token` cookie whose JWT
+     * carries `sub = userId` and `imp_by = admin_id`. We do not see
+     * the token here (it is HttpOnly by design) — we only verify the
+     * success flag, then reload so every component re-reads the new
+     * session.
+     *
+     * The endpoint is superadmin-only on the server side; the
+     * surrounding page is already superadmin-only, so we do not
+     * double-check the flag here.
+     *
+     * sessionStorage.clear()
+     * ----------------------
+     * The frontend keeps the current user in sessionStorage
+     * (BaseAuth._restoreSession). After impersonation the cookie
+     * already carries the impersonated user, but sessionStorage
+     * still holds the admin — so on the next page load the UI
+     * would render the admin shell while the backend sees the
+     * impersonated user, causing spurious 403s.
+     *
+     * Clearing sessionStorage before reloading forces
+     * auth._restoreSession() to re-read the session from the
+     * (now updated) cookie instead of trusting stale data.
+     */
+    async _handleImpersonate(userId) {
+        console.log('[Balance] _handleImpersonate() user =', userId);
+
+        // Optional guard: do not impersonate the admin themselves.
+        // Harmless, but avoids a pointless reload.
+        const me = window.coreEngine?.auth?.getUser?.();
+        if (me && Number(me.id) === Number(userId)) {
+            this._showStatus('Вы уже вошли под этим пользователем', 'info');
+            return;
+        }
+
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const res = await fetchJson(`/core/auth/impersonate/${userId}`, {
+                method: 'POST',
+            });
+
+            if (!res || !res.success) {
+                this._showStatus('Не удалось войти под пользователем', 'error');
+                return;
+            }
+
+            // Drop the cached user so that after reload
+            // auth._restoreSession() re-reads the session from the
+            // (now updated) cookie instead of trusting stale data
+            // from sessionStorage.
+            try {
+                sessionStorage.clear();
+            } catch (e) {
+                // sessionStorage may be unavailable in some privacy
+                // modes — ignore and rely on the reload alone.
+            }
+
+            // Reload so the whole UI re-reads the new session.
+            window.location.reload();
+        } catch (err) {
+            console.error('[Balance] impersonate error:', err);
+            const msg = err?.data?.detail?.message
+                || err?.data?.detail
+                || err.message
+                || 'Не удалось войти под пользователем';
+            this._showStatus(msg, 'error');
         }
     }
 

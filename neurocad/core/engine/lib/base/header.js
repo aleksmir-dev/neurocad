@@ -15,6 +15,20 @@
  *     </div>
  *   </header>
  *
+ * Impersonation bar
+ * -----------------
+ * When the current session was started through the admin
+ * "Войти под пользователем" button, the JWT carries `imp_by`
+ * (see core/auth/dependencies.py) and get_current_user() puts
+ * it on the user dict as `impersonated_by`. In that case we
+ * render a thin yellow bar right below the main header, with
+ * the target login and a "Вернуться" button that calls
+ * POST /core/auth/impersonate/stop and reloads the page.
+ *
+ * The bar is rendered from the same render() as the header —
+ * no extra sub-component, no extra CSS file: the bar's markup
+ * and its styles live in header.html + header.css.
+ *
  * Lifecycle:
  *   1. new Header(props)   — stores props, starts loading header.css.
  *   2. await header.init() — loads Logo / Title / Menu modules and
@@ -30,6 +44,24 @@
  * custom-domain and subdomain deployments, where "/" triggers the
  * owner's home-page redirect. If `module` is missing, Logo falls
  * back to "admin".
+ *
+ * Re-render on setUser()
+ * ----------------------
+ * `Base.render()` calls `Header.render()` once, at a point when the
+ * authentication session has not necessarily been restored yet: on
+ * a cold load, BaseAuth is created AFTER the header is rendered, so
+ * `this.user` is still null on the first pass. The impersonation
+ * bar — which depends on this.user — is therefore rendered as an
+ * empty string and never appears.
+ *
+ * When BaseAuth later calls `header.setUser(user)`, we must redraw.
+ * `setUser()` therefore ends with `_rerender()`, which replaces the
+ * current <header> node in the DOM with a freshly rendered version
+ * and re-runs bindEvents() for the nodes that were recreated.
+ *
+ * `_rerender()` is a no-op when the header is not in the DOM yet
+ * (e.g. called before Base.render() appended it) — safe to call
+ * from setUser() in every case.
  *
  * IMPORTANT — WHEN bindEvents IS CALLED
  * -------------------------------------
@@ -56,6 +88,11 @@
  *
  * The `Header._menuEventsBound` flag prevents duplicate attachments
  * for the "click outside closes the mobile menu" handler.
+ *
+ * The impersonation "Вернуться" button uses the same document-level
+ * delegation trick: its click handler is attached once, on document,
+ * and matches the button by class. After every Base.render() the
+ * button node is fresh, but the listener on document survives.
  */
 export class Header {
     constructor(props) {
@@ -74,6 +111,11 @@ export class Header {
         // `document`, leaking memory and firing closeMobile()
         // multiple times per click.
         this._menuEventsBound = false;
+
+        // Guard for the document-level listener that handles the
+        // "Вернуться" button in the impersonation bar. Same idea:
+        // one listener per Header instance, on document, idempotent.
+        this._impersonateEventsBound = false;
 
         this._loadCSS();
     }
@@ -135,6 +177,14 @@ export class Header {
         if (this.menu) {
             this.menu.setUser(user);
         }
+
+        // Re-render so that user-dependent parts of the header
+        // (currently: the impersonation bar) reflect the new value.
+        // On a cold load, Base.render() draws the header before
+        // BaseAuth has restored the session, so this.user was null
+        // at that point; setUser() is called later with the real
+        // user and the header must be redrawn to show the bar.
+        this._rerender();
     }
 
     setAuth(auth) {
@@ -144,12 +194,25 @@ export class Header {
         }
     }
 
+    /**
+     * Whether the current session is impersonated.
+     *
+     * The flag lives on the user object that get_current_user()
+     * returns; Base passes it down through Header.setUser().
+     * It is not stored anywhere in the DB — it comes from the JWT
+     * and lives only for the duration of the session.
+     */
+    _isImpersonating() {
+        return !!(this.user && this.user.impersonated_by);
+    }
+
     render() {
         if (!this.logo || !this.title || !this.menu) {
             return '<header class="core-engine-lib-base-header">Загрузка...</header>';
         }
 
         const menuHtml = this.menu.render();
+        const impersonationHtml = this._renderImpersonationBar();
 
         return `
             <header class="core-engine-lib-base-header">
@@ -161,8 +224,65 @@ export class Header {
                     </div>
                     <button class="core-engine-lib-base-burger" data-js="burger">☰</button>
                 </div>
+                ${impersonationHtml}
             </header>
         `;
+    }
+
+    /**
+     * Render the yellow bar shown while impersonating.
+     *
+     * Returns an empty string in normal sessions, so render() does
+     * not have to branch.
+     */
+    _renderImpersonationBar() {
+        if (!this._isImpersonating()) {
+            return '';
+        }
+
+        const login = (this.user && this.user.login) || '?';
+
+        return `
+            <div class="core-engine-lib-base-impersonation-bar" data-js="impersonation-bar">
+                <span class="core-engine-lib-base-impersonation-text">
+                    Вы вошли под пользователем <b>${this._escape(login)}</b>
+                </span>
+                <button type="button"
+                        class="core-engine-lib-base-impersonation-stop"
+                        data-action="impersonate-stop">
+                    Вернуться
+                </button>
+            </div>
+        `;
+    }
+
+    /**
+     * Re-render the header in place, replacing the current <header>
+     * node in the DOM with a freshly rendered version. Called from
+     * setUser() so that changes to this.user — in particular, going
+     * in or out of impersonation — are reflected immediately.
+     *
+     * The burger button node is recreated by render(); its listener
+     * is attached in bindEvents() without an idempotency guard, so
+     * calling bindEvents() here re-attaches the burger listener to
+     * the fresh node. The document-level listeners (menu outside-click,
+     * impersonate-stop) are guarded by _menuEventsBound /
+     * _impersonateEventsBound and will not be duplicated.
+     *
+     * Does nothing if the header is not in the DOM yet (e.g. called
+     * before Base.render() appended it) — safe in every case.
+     */
+    _rerender() {
+        const current = document.querySelector('.core-engine-lib-base-header');
+        if (!current) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = this.render();
+        const fresh = wrapper.firstElementChild;
+        if (!fresh) return;
+
+        current.replaceWith(fresh);
+        this.bindEvents();
     }
 
     /**
@@ -180,6 +300,10 @@ export class Header {
      *     needs re-attaching, but ONLY ONCE per Header instance,
      *     because it lives on `document` and `document` does not
      *     get rewritten.
+     *   - The impersonation "Вернуться" button — handled the same
+     *     way as the menu: one listener on document, matched by
+     *     data-action. The button node is fresh after every
+     *     Base.render(), but the listener on document survives.
      */
     bindEvents() {
         if (this.title) {
@@ -230,5 +354,84 @@ export class Header {
                 }
             });
         }
+
+        // "Вернуться" in the impersonation bar — one listener per
+        // Header instance, on document, matched by data-action.
+        // The button is recreated on every Base.render(), but the
+        // listener lives on document and survives.
+        if (!this._impersonateEventsBound) {
+            this._impersonateEventsBound = true;
+
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-action="impersonate-stop"]');
+                if (!btn) return;
+
+                e.preventDefault();
+                this._handleStopImpersonate();
+            });
+        }
+    }
+
+    /**
+     * Stop the current impersonated session and reload the page.
+     *
+     * The backend rewrites the HttpOnly `access_token` cookie to
+     * a normal admin session and returns { success: true }. We do
+     * not see the token here (HttpOnly by design) — we only check
+     * the flag and reload so every component re-reads the new
+     * session.
+     *
+     * sessionStorage.clear()
+     * ----------------------
+     * BaseAuth keeps the current user in sessionStorage. After
+     * stopping impersonation the cookie already carries the admin
+     * again, but sessionStorage still holds the impersonated user
+     * (id, login, is_superadmin), so on the next page load the UI
+     * would render a mix: the backend sees the admin, the frontend
+     * believes it is still impersonating.
+     *
+     * Clearing sessionStorage before reloading forces
+     * auth._restoreSession() to re-read the session from the (now
+     * updated) cookie instead of trusting stale data. Mirrors the
+     * same fix in balance.js::_handleImpersonate.
+     */
+    async _handleStopImpersonate() {
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const res = await fetchJson('/core/auth/impersonate/stop', {
+                method: 'POST',
+            });
+
+            if (!res || !res.success) {
+                console.warn('[Header] impersonate/stop returned failure');
+                return;
+            }
+
+            // Drop the cached user so auth._restoreSession() re-reads
+            // the session from the (now updated) cookie on reload.
+            try {
+                sessionStorage.clear();
+            } catch (e) {
+                // sessionStorage may be unavailable in some privacy
+                // modes — ignore and rely on the reload alone.
+            }
+
+            // Reload so the whole UI re-reads the new session.
+            window.location.reload();
+        } catch (err) {
+            console.error('[Header] impersonate/stop failed:', err);
+        }
+    }
+
+    /**
+     * Escape a string for safe interpolation into HTML.
+     * Mirrors the helper used elsewhere in the codebase.
+     */
+    _escape(str) {
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 }

@@ -3,6 +3,19 @@
 /**
  * Панель инструментов для Cards
  * Управляет кнопками, фильтрацией и состоянием
+ *
+ * extraToolbarButtons
+ * -------------------
+ * Дополнительные кнопки-ссылки, которые потребитель может передать
+ * через props. Каждая — объект { href, label?, title?, icon?,
+ * target?, rel?, className? }. Рендерятся в ЛЕВОЙ группе, ПОСЛЕ
+ * стандартных кнопок (add / edit / delete / restore) и ДО счётчика
+ * выделенных — то есть визуально рядом с «+», «карандашом» и
+ * «корзиной», а не в правой группе рядом с поиском и фильтром.
+ *
+ * Нормализуются в initool.js (и защитно — в cards.js), но здесь
+ * есть собственный guard на случай standalone-использования
+ * BaseCardsToolbar без BaseCards.
  */
 export class BaseCardsToolbar {
     constructor(container, props = {}) {
@@ -24,6 +37,16 @@ export class BaseCardsToolbar {
         this.showDeleteButton = props.showDeleteButton !== false;
         this.showRestoreButton = props.showRestoreButton !== false;
         this.showTrashButton = props.showTrashButton !== false;
+
+        // Extra buttons — links rendered in the LEFT group, after
+        // the standard buttons and before the selection counter.
+        // Normalized in initool.js / cards.js, but guard here too
+        // so BaseCardsToolbar can be used standalone.
+        this.extraToolbarButtons = Array.isArray(props.extraToolbarButtons)
+            ? props.extraToolbarButtons.filter(
+                  (b) => b && typeof b === 'object' && typeof b.href === 'string' && b.href
+              )
+            : [];
 
         // Состояние
         this.isDeletedMode = false;
@@ -82,9 +105,20 @@ export class BaseCardsToolbar {
 
     /**
      * Получить шаблон тулбара
+     *
+     * Порядок кнопок в левой группе:
+     *   add → edit → delete → restore → extras → selected-counter
+     *
+     * Порядок в правой группе:
+     *   status-filter → search → trash
+     *
+     * extrasHtml стоит в ЛЕВОЙ группе, потому что кнопки-ссылки
+     * («Заголовок», «Открыть каталог») — это действия над каталогом,
+     * а не фильтры. См. JSDoc класса.
      */
     _getTemplate() {
         const statusOptions = this._getStatusOptions();
+        const extrasHtml = this._getExtraButtonsHtml();
 
         return `
             <div class="cards-toolbar-left">
@@ -112,6 +146,8 @@ export class BaseCardsToolbar {
                     </button>
                 ` : ''}
 
+                ${extrasHtml}
+
                 <span class="cards-toolbar-selected" data-js="selected-counter"></span>
             </div>
 
@@ -136,6 +172,47 @@ export class BaseCardsToolbar {
                 ` : ''}
             </div>
         `;
+    }
+
+    /**
+     * Построить HTML для extraToolbarButtons.
+     *
+     * Каждая кнопка — <a>, а не <button>, потому что это навигация
+     * или действие, открывающее модалку, а не встроенная кнопка
+     * тулбара. Стили те же, что у .cards-toolbar-btn, плюс
+     * модификатор .cards-toolbar-btn-link для <a>-специфичных правок
+     * (text-decoration: none и т.п.). Иконка — <img class="icon">,
+     * тот же размер 20×20, что у остальных кнопок.
+     *
+     * Класс кнопки передаётся в `className` и используется
+     * потребителем для делегированного перехвата клика (например,
+     * js-open-title-modal — открыть модалку «Заголовок»).
+     */
+    _getExtraButtonsHtml() {
+        if (!this.extraToolbarButtons.length) return '';
+
+        return this.extraToolbarButtons.map((btn) => {
+            const label = String(btn.label || '').trim();
+            const title = String(btn.title || label || '').trim();
+            const target = String(btn.target || '_blank').trim();
+            const rel = String(btn.rel || 'noopener noreferrer').trim();
+            const extraClass = String(btn.className || '').trim();
+
+            const iconHtml = btn.icon
+                ? `<img class="icon" src="${this._icon(btn.icon)}" alt="" aria-hidden="true" width="20" height="20">`
+                : '';
+
+            return `
+                <a class="cards-toolbar-btn cards-toolbar-btn-link ${extraClass}"
+                   href="${btn.href}"
+                   target="${target}"
+                   rel="${rel}"
+                   title="${title}"
+                   aria-label="${label || title}">
+                    ${iconHtml}
+                </a>
+            `;
+        }).join('');
     }
 
     /**
