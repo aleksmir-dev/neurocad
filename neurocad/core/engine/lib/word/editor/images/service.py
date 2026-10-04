@@ -11,12 +11,19 @@ Two mirrored roots, same pattern as the effects service:
           registry.json
           files/<id>.svg
 
-  STATIC_ROOT — mirror served by nginx:
+  STATIC_ROOT — mirror served by the web server:
       <STATIC_ROOT>/core/engine/lib/word/editor/images/
           registry.json
           files/<id>.svg
 
 Both are written on every POST/DELETE. Reads come from MODEL_ROOT.
+
+The MODEL_ROOT path is derived from __file__ (it is the package
+tree — one and the same for every running project). The STATIC_ROOT
+path is derived from user_static_dir() in neurocad/utils/paths.py,
+which is the single source of truth for the user's static directory
+across the whole project. These two must NOT be computed the same
+way: a package is shared, a project is not.
 
 The path does NOT include the module name — images are shared across
 all modules.
@@ -85,19 +92,48 @@ class CoreEngineLibWordImagesService:
 
     @staticmethod
     def _project_root() -> str:
+        """
+        Root of the PACKAGE checkout — the directory that contains
+        the `neurocad/` Python package and a sibling `static/` tree.
+
+        Derived from __file__: images → editor → word → lib →
+        engine → core → neurocad → <package_root>.
+
+        This is used only for the MODEL_ROOT (pkg) side — the tree
+        that stores the source-of-truth SVG files and registry.json
+        and ships with the package. It is the same for every running
+        project that uses this checkout.
+
+        Do NOT use this for the STATIC_ROOT side: a package is
+        shared, a project is not. See _static_root() below.
+        """
         here = os.path.abspath(__file__)
-        # images → editor → word → lib → engine → core → neurocad → <project>
         return os.path.normpath(
             os.path.join(here, "..", "..", "..", "..", "..", "..", "..", "..")
         )
 
     @staticmethod
     def _static_root() -> str:
-        return os.path.join(
-            CoreEngineLibWordImagesService._project_root(),
-            "test",
-            "static",
-        )
+        """
+        Static root — the tree served by the web server.
+
+        Delegates to neurocad.utils.paths.user_static_dir(), which
+        is the single source of truth for the user's static
+        directory across the whole project. That helper returns
+        Path("static") — resolved against the current working
+        directory — which is exactly where uvicorn serves /static/
+        from (cwd is the project root at runtime).
+
+        Do NOT compute this from __file__: a package is shared, a
+        project is not. Every running project (test, prod, CI) has
+        its own static/ next to main.py. A previous version of this
+        method hardcoded _project_root() / "test" / "static", which
+        resolved to a package-relative path on prod, created a
+        phantom "test" directory, and left every new SVG in a tree
+        the web server never served.
+        """
+        from neurocad.utils.paths import user_static_dir
+        return str(user_static_dir().resolve())
 
     @staticmethod
     def _pkg_images_dir() -> str:

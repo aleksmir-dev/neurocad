@@ -1080,6 +1080,30 @@
       "source": "logo",
       "builtin": false,
       "order": 1370
+    },
+    {
+      "id": "img-14fde338",
+      "alt": "АстраКарта",
+      "file": "files/img-14fde338.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1380
+    },
+    {
+      "id": "img-46f06fd0",
+      "alt": "АстраКарта",
+      "file": "files/img-46f06fd0.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1390
+    },
+    {
+      "id": "img-ae76ed02",
+      "alt": "АстраКарта",
+      "file": "files/img-ae76ed02.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1400
     }
   ]
 }
