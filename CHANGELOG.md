@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.12] - 2026-10-05
+- The `page-link` trait in the editor now inserts public URLs without `nav_id` — `GET /pages/my-list` returns `/page/<date>/<time>` instead of `/page/<nav_id>/<date>/<time>`, matching the host-based public URL scheme from 1.0.11; and the test environment's root domain (`neurocad-dev.ru`) is bound to the first superadmin via `users.domain` so it resolves the same way as on prod.
+
 ## [1.0.11] - 2026-10-05
 - Public URLs are now host-based and contain no `nav_id` — single pages live at `/page/<date>/<time>`, the catalog at `/pages`, and the page/catalog is resolved from the request Host; this also fixes `demo.neurocad.ru/pages` returning 404 because the catalog used to fall back to "the first nav in the DB" (admin's) before the host-ownership check rejected it.
 
@@ -74,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release: FastAPI backend, SQLite storage, BaseCards widgets, GrapesJS Word editor, LLM chat panel, media library, page history.
 
+[1.0.12]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.11...v1.0.12
 [1.0.11]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.10...v1.0.11
 [1.0.10]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.9...v1.0.10
 [1.0.9]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.8...v1.0.9

@@ -103,8 +103,15 @@ class CoreEngineLibPagesService:
         Список страниц пользователя — для выбора ссылки в редакторе.
 
         Возвращает только активные, неудалённые, не-шаблонные страницы
-        всех nav текущего юзера. Каждая с готовым URL вида
-        /page/<nav_id>/<YYYYMMDD>/<HHMMSS>.
+        всех nav текущего юзера. Каждая с готовым ПУБЛИЧНЫМ URL вида
+
+            /page/<YYYYMMDD>/<HHMMSS>
+
+        NO nav_id — публичные URL host-based (пользователь резолвится
+        из Host, страница ищется среди его nav'ов; см.
+        pages/public/route.py). Ссылка, вставленная в контент статьи
+        через trait page-link, попадает в <a href="..."> и позже
+        рендерится на публичном домене — там nav_id быть не должно.
 
         exclude_page_id — исключить конкретную страницу (обычно — ту,
         которую сейчас редактирует пользователь: нельзя ссылаться на
@@ -114,7 +121,7 @@ class CoreEngineLibPagesService:
             {
               "id": <page.id>,
               "title": <page.title>,
-              "url": "/page/<nav_id>/<YYYYMMDD>/<HHMMSS>"
+              "url": "/page/<YYYYMMDD>/<HHMMSS>"
             }
         """
         async for session in get_db_sqlite():
@@ -154,8 +161,11 @@ class CoreEngineLibPagesService:
             for p in rows:
                 if not p.datetime:
                     continue
+                # Public URL — host-based, no nav_id. The owner of
+                # the URL is resolved from the Host on the public
+                # side (see pages/public/route.py).
                 url = (
-                    f"/page/{p.nav_id}/"
+                    f"/page/"
                     f"{p.datetime.strftime('%Y%m%d')}/"
                     f"{p.datetime.strftime('%H%M%S')}"
                 )

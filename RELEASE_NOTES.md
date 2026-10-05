@@ -1,4 +1,4 @@
-# neurocad 1.0.11
+# neurocad 1.0.12
 
 Release date: 2026-10-05
 
@@ -6,22 +6,22 @@ Release date: 2026-10-05
 
 ## English
 
-### Changed
-
-- **Public URLs are now host-based and contain no `nav_id`.** Single pages live at `/page/<YYYYMMDD>/<HHMMSS>` and the catalog at `/pages` — the user is resolved from the request Host (subdomain `<login>.<APP_DOMAIN>` or a registered custom domain), and the page is looked up within that user's navs. `nav_id` remains an internal concept (used by the admin editor and admin API), but never appears in a public address. This makes URLs shorter, shareable, and consistent with the multi-tenant host model.
-
 ### Fixed
 
-- **`demo.neurocad.ru/pages` returned 404.** The catalog without an explicit `?nav_id=` used to resolve "the first nav in the DB" (which is admin's), then the host-ownership check rejected it. Now the nav is resolved from the request Host — `demo.neurocad.ru/pages` shows demo's catalog, `user1.neurocad.ru/pages` shows user1's, and the DB-wide fallback is only used for dev hosts.
+- **Page-link trait in the editor now inserts public URLs without `nav_id`.** The `GET /pages/my-list` endpoint (used by the trait's `<select>`) used to return `/page/<nav_id>/<date>/<time>` for every page. Links inserted into article content via the trait therefore carried `nav_id`, which does not belong in a public URL. The service now returns `/page/<date>/<time>` — matching the host-based public URL scheme introduced in 1.0.11.
+
+### Added
+
+- **Platform root domain is bound to the system admin in the test environment.** `users.domain = 'neurocad-dev.ru'` for the first superadmin, so `https://neurocad-dev.ru/page/...` and `https://neurocad-dev.ru/pages` resolve through the custom-domain path just like on prod. This is a database-only change, no code — kept here for reference so both environments stay in sync.
 
 ---
 
 ## Русский
 
-### Изменено
-
-- **Публичные URL теперь host-based и не содержат `nav_id`.** Отдельные страницы живут по адресу `/page/<YYYYMMDD>/<HHMMSS>`, каталог — по `/pages`. Пользователь определяется по Host'у запроса (поддомен `<login>.<APP_DOMAIN>` или привязанный домен второго уровня), а страница ищется среди nav'ов этого пользователя. `nav_id` остался внутренним понятием (используется редактором и админским API), но никогда не появляется в публичном адресе. Это делает URL короче, удобнее для шаринга и согласованнее с моделью мультитенантных доменов.
-
 ### Исправлено
 
-- **`demo.neurocad.ru/pages` возвращал 404.** Каталог без явного `?nav_id=` резолвился как «первый nav в БД» (это nav admin'а), после чего host-ownership проверка его отклоняла. Теперь nav резолвится из Host'а запроса — `demo.neurocad.ru/pages` показывает каталог demo, `user1.neurocad.ru/pages` показывает каталог user1, а общий fallback используется только для dev-хостов.
+- **Trait «Ссылка» в редакторе теперь вставляет публичные URL без `nav_id`.** Эндпоинт `GET /pages/my-list` (его использует `<select>` внутри trait'а) отдавал `/page/<nav_id>/<date>/<time>` для каждой страницы. Ссылки, которые вставлялись в контент статьи через trait, несли с собой `nav_id`, а он в публичном URL не нужен. Теперь сервис отдаёт `/page/<date>/<time>` — в соответствии с host-based схемой публичных URL из 1.0.11.
+
+### Добавлено
+
+- **Корневой домен тестового окружения привязан к системному админу.** `users.domain = 'neurocad-dev.ru'` у первого суперадмина — теперь `https://neurocad-dev.ru/page/...` и `https://neurocad-dev.ru/pages` резолвятся через custom-domain ветку, как и на проде. Это правка только в базе, без кода — оставлено для справки, чтобы окружения не разъезжались.
