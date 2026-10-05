@@ -744,8 +744,12 @@ async def _build_public_url(page) -> Optional[str]:
     """
     Build the absolute public URL of a page:
 
-        https://<login>.<APP_DOMAIN>/page/<nav_id>/<YYYYMMDD>/<HHMMSS>
-        https://<custom-domain>/page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+        https://<login>.<APP_DOMAIN>/page/<YYYYMMDD>/<HHMMSS>
+        https://<custom-domain>/page/<YYYYMMDD>/<HHMMSS>
+
+    NO nav_id in the public URL — the owner is resolved from the
+    Host, and the page is looked up within that user's navs. See
+    pages/public/route.py for the public route.
 
     Returns None when:
       - the nav owner cannot be resolved (missing nav, deleted user);
@@ -781,7 +785,7 @@ async def _build_public_url(page) -> Optional[str]:
 
     date = page.datetime.strftime("%Y%m%d")
     time = page.datetime.strftime("%H%M%S")
-    return f"{base}/page/{page.nav_id}/{date}/{time}"
+    return f"{base}/page/{date}/{time}"
 
 
 async def _resolve_nav_owner(nav_id: int) -> Optional[int]:

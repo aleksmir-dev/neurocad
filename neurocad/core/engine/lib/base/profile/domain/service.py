@@ -47,7 +47,10 @@ sitemap.xml is generated on the fly:
   - the public endpoint (on the user's own domain) and the admin
     endpoint (for the in-admin modal) both call build_sitemap();
   - the base URL for <loc> comes from get_public_base_url(): custom
-    domain if set, otherwise <login>.<ROOT_DOMAIN>.
+    domain if set, otherwise <login>.<ROOT_DOMAIN>;
+  - page URLs are /page/<YYYYMMDD>/<HHMMSS> — no nav_id. The
+    public URL scheme is host-based (see pages/public/route.py);
+    the nav is a backend concept.
 
 pages_url — the absolute public URL of the article catalog on the
 owner's public host, exposed by GET /domain/ and consumed by
@@ -356,6 +359,9 @@ class CoreEngineLibBaseProfileDomainService:
           - one <url> per non-deleted page, in datetime ASC order;
           - <lastmod> from pages.updated_at (falls back to datetime).
 
+        Page URLs are /page/<YYYYMMDD>/<HHMMSS> — no nav_id. The
+        public URL scheme is host-based, see pages/public/route.py.
+
         Both the public endpoint (on the user's own domain) and the
         admin endpoint (for the in-admin SitemapModal viewer) call
         this method. The XML string is identical in both cases; only
@@ -437,9 +443,12 @@ class CoreEngineLibBaseProfileDomainService:
         """
         Public absolute URL of a single page on the user's domain.
 
-        Uses the same /page/<nav_id>/<YYYYMMDD>/<HHMMSS> shape as
-        _page_public_url() below, but prefixes it with the user's
-        base URL so sitemap <loc> entries are absolute.
+        Format:
+            <base>/page/<YYYYMMDD>/<HHMMSS>
+
+        NO nav_id — the public URL is host-based: the request Host
+        resolves to a user, and the page is looked up within that
+        user's navs. See pages/public/route.py.
 
         Returns None if the page has no datetime — that should not
         happen (page.datetime is NOT NULL in the model), but we
@@ -449,7 +458,7 @@ class CoreEngineLibBaseProfileDomainService:
             return None
         date = page.datetime.strftime("%Y%m%d")
         time = page.datetime.strftime("%H%M%S")
-        return f"{base}/page/{page.nav_id}/{date}/{time}"
+        return f"{base}/page/{date}/{time}"
 
     @staticmethod
     def _xml_escape(s: str) -> str:
@@ -807,8 +816,9 @@ class CoreEngineLibBaseProfileDomainService:
           - `is_delete = 0`.
 
         Each item carries the pre-built public URL
-        (/page/<nav_id>/<YYYYMMDD>/<HHMMSS>), so the frontend does
-        not have to assemble it.
+        (/page/<YYYYMMDD>/<HHMMSS>), so the frontend does not have
+        to assemble it. NO nav_id in the URL — public URLs are
+        host-based; see pages/public/route.py.
         """
         items: List[CoreEngineLibBaseProfileDomainPageItem] = []
 
@@ -830,7 +840,7 @@ class CoreEngineLibBaseProfileDomainService:
                     id=page.id,
                     title=page.title or f"Страница #{page.id}",
                     datetime=page.datetime.isoformat() if page.datetime else None,
-                    url=_page_public_url(page.nav_id, page.datetime),
+                    url=_page_public_url(page.datetime),
                 ))
             break
 
@@ -1166,19 +1176,23 @@ class CoreEngineLibBaseProfileDomainService:
 # HELPERS (module-level)
 # ============================================
 
-def _page_public_url(nav_id: int, page_dt) -> str:
+def _page_public_url(page_dt) -> str:
     """
     Build the public page URL:
-        /page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+        /page/<YYYYMMDD>/<HHMMSS>
 
-    Same format used by utils/routes.py when redirecting from a
-    user subdomain, and by the editor when it opens an article.
+    NO nav_id — the public URL is host-based: the request Host
+    resolves to a user, and the page is looked up within that
+    user's navs. See pages/public/route.py.
+
+    Used by the home-page selector so the frontend does not have
+    to assemble the URL itself.
     """
     if page_dt is None:
         # Defensive fallback — page.datetime is NOT NULL in the model,
         # so this branch should never fire. If it does, return a path
         # that at least hits the catalog rather than 500.
-        return "/core/engine/pages"
+        return "/pages"
     date = page_dt.strftime("%Y%m%d")
     time = page_dt.strftime("%H%M%S")
-    return f"/page/{nav_id}/{date}/{time}"
+    return f"/page/{date}/{time}"

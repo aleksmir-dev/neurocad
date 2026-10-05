@@ -7,35 +7,44 @@ Clean HTML rendering — no admin UI, no JS engine.
 Uses base template + CSS from /static, content from DB.
 
 URL schema:
-    GET /page/<nav_id>/<date>/<time>   — single page
-    GET /pages                         — catalog (list of pages)
+    GET /page/<date>/<time>   — single page
+    GET /pages                — catalog (list of pages)
 
-Pages are scoped to a nav instance (Page.nav_id). The nav_id is part
-of the single-page URL, so the same <date>/<time> pair can exist in
-different nav instances without collision. The catalog route uses a
-query parameter (?nav_id=) instead, because /pages is a single
-stable URL.
+Public URLs are HOST-based: the user is resolved from the request
+Host (subdomain <login>.<APP_DOMAIN> or a registered custom domain),
+and the page / catalog is looked up within that user's navs. There
+is NO nav_id in the URL — the nav is a backend concept and never
+appears in a public address.
 
-Host ownership check (ADDED):
+  - demo.neurocad.ru/page/20260927/152812  → page of demo's nav;
+  - demo.neurocad.ru/pages                 → catalog of demo's nav;
+  - user1.neurocad.ru/page/20260927/152812 → 404 (page not user1's);
+  - neurocad.ru/page/20260927/152812       → admin's page (once the
+                                             platform root is bound
+                                             to admin via users.domain).
+
+Admin-side URLs (editor, admin catalog) keep their nav_id — the
+admin panel is multi-tenant and its host is shared, so nav_id is
+the only way to know which nav a page belongs to. This module is
+public-only and never sees nav_id in the URL.
+
+Host ownership check:
     Every public page and the catalog are scoped to the OWNER of
     the request Host. Without this check, ANY subdomain of
     APP_DOMAIN — or the bare APP_DOMAIN itself — would happily
-    serve any nav_id from the DB, producing duplicate content
-    across domains (bad for SEO) and leaking pages across users.
+    serve any nav from the DB, producing duplicate content across
+    domains (bad for SEO) and leaking pages across users.
 
     Rule:
-      - Host resolves to a user via slug or custom domain
-        → that user must own the nav (nav.user_id == host_user_id)
-        → otherwise 404
       - Host is a dev host (localhost, 127.0.0.1, [::1])
-        → any nav_id allowed (local development)
-      - Host does not resolve to any user (bare APP_DOMAIN,
-        www., random domain, unknown subdomain)
-        → 404
+        → any nav allowed (local development);
+      - Host resolves to a user → only that user's navs are served;
+      - Host does not resolve to a user (bare APP_DOMAIN with no
+        owner, www., random domain, unknown subdomain) → 404.
 
-    The check is centralised in _enforce_host_owner() — call it
-    once at the top of every public route. See
-    neurocad/utils/hosts.py for the resolution helpers.
+    The 404 (not 403) is deliberate: leaking "this page exists but
+    is not yours" is worse than pretending it does not exist.
+    Crawlers and casual visitors see the same thing either way.
 
 Catalog title:
     /pages uses Nav.name as the page title and the H1 in the
@@ -99,7 +108,7 @@ from .schema import CoreEngineLibPagesPublicItem
 
 
 # Mounted by parent router (utils/routes.py) without extra prefix,
-# so the final URL is /page/<nav_id>/<date>/<time>.
+# so the final URL is /page/<date>/<time>.
 router = APIRouter(prefix="/page", tags=["core/engine/lib/pages/public"])
 
 
@@ -161,8 +170,13 @@ async def _enforce_host_owner(
 
     Raises HTTPException(404) if the Host is not the nav owner's.
 
-    Rules (see the module docstring for the rationale):
+    Called AFTER the nav has been resolved — either from the Host
+    itself (public routes) or from an explicit ?nav_id= (legacy /
+    admin-provided links). The check is the last line of defence:
+    even if a nav_id somehow got into the request, only the host
+    that owns that nav may see it.
 
+    Rules:
       - Dev host (localhost, 127.0.0.1, [::1]) → allow any nav_id.
         Local development has no APP_DOMAIN and no user subdomains.
       - Host resolves to a user → that user must own the nav.
@@ -173,8 +187,8 @@ async def _enforce_host_owner(
     Crawlers and casual visitors see the same thing either way.
 
     This function is the single entry point for the rule — the
-    public routes call it once at the top. Any future public route
-    (e.g. /feed.xml) should do the same.
+    public routes call it once, after resolving the nav. Any future
+    public route (e.g. /feed.xml) should do the same.
     """
     host = request.headers.get("host")
 
@@ -185,8 +199,8 @@ async def _enforce_host_owner(
     # ---- 2. Resolve Host to a user ----
     host_user_id = await user_id_from_host(host)
     if host_user_id is None:
-        # Bare APP_DOMAIN, www., random domain, unknown subdomain.
-        # Nothing personal is served here.
+        # Bare APP_DOMAIN with no owner, www., random domain,
+        # unknown subdomain. Nothing personal is served here.
         raise HTTPException(status_code=404, detail="Page not found")
 
     # ---- 3. Nav must belong to the Host user ----
@@ -199,33 +213,55 @@ async def _enforce_host_owner(
 # PAGE BY DATETIME
 # ============================================
 
-@router.get("/{nav_id}/{date}/{time}", response_class=HTMLResponse)
+@router.get("/{date}/{time}", response_class=HTMLResponse)
 async def render_page_public(
-    nav_id: int,
     date: str,
     time: str,
     request: Request,
 ) -> HTMLResponse:
     """
-    Render a page by nav_id + date/time.
+    Render a page by date/time — resolved through the request Host.
 
     URL:
-        GET /page/<nav_id>/20260919/023649
+        GET /page/<date>/<time>
+        GET /page/20260919/023649
 
-    Host ownership is enforced before the DB lookup for the page
-    itself: a page is only served on the host that owns the nav.
-    Otherwise a page reachable on demo.neurocad.ru would also be
-    reachable on user1.neurocad.ru, duplicating content across
-    domains (SEO problem) and leaking it across users.
+    There is NO nav_id in the URL. The page is looked up within
+    the navs of the user that the Host resolves to:
+      - <login>.<APP_DOMAIN>  → that user's navs;
+      - <custom-domain>       → that user's navs;
+      - dev host              → first nav in the DB (dev convenience);
+      - anything else         → 404.
+
+    Host ownership is enforced by _enforce_host_owner() before any
+    page is served: a page reachable on demo.neurocad.ru cannot be
+    reached through user1.neurocad.ru, so content is not duplicated
+    across user domains (SEO) and not leaked between users.
+
+    A page with the same <date>/<time> may exist in more than one
+    nav. Within one Host (one owner) the collision is impossible
+    in practice: datetime is chosen by the user, and both pages
+    would belong to the same person — the first match wins. Across
+    different Hosts, only the owner's page is visible.
     """
-    # ---- Host ownership check ----
-    # Done BEFORE loading the page so that a wrong-host request
-    # for a non-existent nav_id returns 404 as well (no information
-    # leak about "this nav exists but is not yours").
-    await _enforce_host_owner(request, nav_id)
+    host = request.headers.get("host")
 
-    page = await CoreEngineLibPagesPublicService.get_by_datetime(
-        date, time, nav_id=nav_id
+    # ---- Dev host: search across all navs (dev convenience) ----
+    if is_dev_host(host):
+        page = await CoreEngineLibPagesPublicService.get_by_datetime_any_nav(
+            date, time
+        )
+        if not page:
+            raise HTTPException(status_code=404, detail="Page not found")
+        return await _render_public_page(request, page)
+
+    # ---- Regular host: resolve user, then search within their navs ----
+    host_user_id = await user_id_from_host(host)
+    if host_user_id is None:
+        raise HTTPException(status_code=404, detail="Page not found")
+
+    page = await CoreEngineLibPagesPublicService.get_by_datetime_for_user(
+        date, time, user_id=host_user_id
     )
     if not page:
         raise HTTPException(status_code=404, detail="Page not found")
@@ -242,7 +278,11 @@ async def render_pages_catalog(
     request: Request,
     nav_id: Optional[int] = Query(
         None,
-        description="Nav instance ID. If omitted, the first non-deleted nav is used.",
+        description=(
+            "Nav instance ID (optional). Kept for backward compatibility "
+            "with old links; ignored by the public UI, which resolves "
+            "the nav from the request Host."
+        ),
     ),
 ) -> HTMLResponse:
     """
@@ -250,7 +290,7 @@ async def render_pages_catalog(
 
     URL:
         GET /pages
-        GET /pages?nav_id=5
+        GET /pages?nav_id=5   (legacy — see below)
 
     The catalog lists every active, non-deleted page of the nav,
     newest first. No pagination yet — up to PUBLIC_CATALOG_LIMIT
@@ -262,26 +302,44 @@ async def render_pages_catalog(
     from Nav.name. If Nav.name is empty, falls back to
     "Каталог статей".
 
-    No admin UI, no JS engine — plain HTML rendered from a Jinja
-    template, same pattern as the single-page public route.
+    Nav resolution order:
+      1. Explicit ?nav_id= — kept for backward compatibility with
+         links that were generated before the public URL scheme
+         moved to host-based resolution. The host check below will
+         reject a foreign nav_id.
+      2. Otherwise — resolve from the request Host:
+         - <login>.<APP_DOMAIN>  → that user's first nav;
+         - <custom-domain>       → that user's first nav;
+         - dev host              → first nav in the DB;
+         - unknown host          → first nav in the DB, then the
+                                   host check rejects it.
 
-    Host ownership: after resolving nav_id (explicit or fallback),
-    the same _enforce_host_owner check applies. Without it, the
-    catalog of any nav could be listed on any subdomain.
+    Host ownership: after the nav is resolved, the same
+    _enforce_host_owner check applies. Without it, the catalog of
+    any nav could be listed on any subdomain.
     """
-    # Resolve the nav: explicit ?nav_id= wins, otherwise the first
-    # non-deleted nav in the DB (same fallback as utils/routes.py
-    # uses for "/").
+    # ---- 1. Explicit ?nav_id= wins (legacy) ----
     if nav_id is None:
-        nav_id = await _resolve_first_nav_id()
+        # ---- 2. Resolve by Host ----
+        host = request.headers.get("host")
+
+        if is_dev_host(host):
+            # Dev — no host scope. First nav in the DB is fine.
+            nav_id = await _resolve_first_nav_id()
+        else:
+            host_user_id = await user_id_from_host(host)
+            if host_user_id is None:
+                raise HTTPException(status_code=404, detail="No nav found")
+            nav_id = await _resolve_first_nav_id_for_user(host_user_id)
+
     if nav_id is None:
         raise HTTPException(status_code=404, detail="No nav found")
 
-    # ---- Host ownership check ----
-    # Done AFTER nav resolution: if nav_id came from ?nav_id= we
-    # check it against the host; if it came from the fallback, the
-    # first nav might or might not belong to the host — either way,
-    # the same rule applies.
+    # ---- 3. Host ownership check ----
+    # Done AFTER nav resolution: an explicit ?nav_id= is validated
+    # against the host; a host-derived nav_id is validated too, so
+    # an unknown host that fell back to "first nav in the DB" is
+    # still rejected (the owner of that nav is not the host).
     await _enforce_host_owner(request, nav_id)
 
     return await _render_pages_catalog(request, nav_id)
@@ -317,8 +375,8 @@ async def _render_pages_catalog(
          title taken from Nav.name.
 
     Each item already carries a ready `url`
-    (/page/<nav_id>/<YYYYMMDD>/<HHMMSS>) — see
-    _page_to_list_item in the service. The template just prints it.
+    (/page/<YYYYMMDD>/<HHMMSS>) — see _page_to_list_item in the
+    service. The template just prints it.
     """
     # ==== LAZY TARIFF CHECK ====
     # Same rule as a single page: the catalog is only shown if the
@@ -612,19 +670,36 @@ async def _resolve_nav_name(nav_id: int) -> Optional[str]:
     return None
 
 
+async def _resolve_first_nav_id_for_user(user_id: int) -> Optional[int]:
+    """
+    Return the first non-deleted nav id of the given user
+    (ORDER BY id ASC), or None.
+
+    Used by /pages when the request Host belongs to a user — the
+    catalog then shows THAT user's articles, not the oldest nav
+    in the DB. The DB-wide fallback (_resolve_first_nav_id) stays
+    for hosts that do not belong to any user (dev host, unknown
+    host) where "the first nav" is the most reasonable default.
+    """
+    async for session in get_db_sqlite():
+        stmt = (
+            select(Nav.id)
+            .where(Nav.user_id == user_id, Nav.is_delete.is_(False))
+            .order_by(Nav.id.asc())
+            .limit(1)
+        )
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+    return None
+
+
 async def _resolve_first_nav_id() -> Optional[int]:
     """
     Return the first non-deleted nav id (ORDER BY id ASC), or None.
 
-    Fallback for /pages without an explicit ?nav_id=. Same logic as
-    the "/" handler in utils/routes.py — the visitor sees the oldest
-    nav, which for a single-user setup is the owner's catalog.
-
-    Note: with the host-ownership check in place, /pages on
-    testuser1.<APP_DOMAIN> with no ?nav_id= will pick nav_id=1
-    (the oldest), and if that nav belongs to a different user,
-    the request returns 404. This is intentional — the fallback
-    is a convenience, not a privilege escalation.
+    Used only as a fallback for hosts that do not resolve to a
+    user (dev host, unknown host). For user hosts the catalog
+    uses _resolve_first_nav_id_for_user() instead.
     """
     async for session in get_db_sqlite():
         stmt = (

@@ -197,8 +197,10 @@ async def _resolve_home_url_for_slug(slug: str) -> Optional[str]:
     falls back to the Host → module resolution.
 
     The final URL uses the public "pages" route:
-        /page/<nav_id>/<YYYYMMDD>/<HHMMSS>
-    which is what the existing public router understands.
+        /page/<YYYYMMDD>/<HHMMSS>
+    which is what the existing public router understands. NO nav_id
+    in the URL — the public URL scheme is host-based, and the nav
+    is a backend concept (see pages/public/route.py).
     """
     # Late imports — avoid pulling SQLAlchemy models at module import
     # time (this file is loaded very early by main.py).
@@ -264,22 +266,26 @@ async def _resolve_home_url_for_slug(slug: str) -> Optional[str]:
             return "/core/engine/pages"
 
         # ---- 4. Build the public URL -----------------------------
-        return _page_public_url(nav.id, page.datetime)
+        return _page_public_url(page.datetime)
 
     return None
 
 
-def _page_public_url(nav_id: int, page_dt) -> str:
+def _page_public_url(page_dt) -> str:
     """
     Build the public page URL:
-        /page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+        /page/<YYYYMMDD>/<HHMMSS>
 
-    Matches what the public router expects and what the editor
-    produces when it opens an article.
+    NO nav_id — the public URL is host-based: the request Host
+    resolves to a user, and the page is looked up within that
+    user's navs. See pages/public/route.py.
+
+    Used by _resolve_home_url_for_slug() to build the redirect
+    target for "/" on a user's domain.
     """
     date = page_dt.strftime("%Y%m%d")
     time = page_dt.strftime("%H%M%S")
-    return f"/page/{nav_id}/{date}/{time}"
+    return f"/page/{date}/{time}"
 
 
 # ============================================
@@ -292,7 +298,7 @@ def setup_routes(app: FastAPI) -> None:
     # Core routes — /core/*
     app.include_router(core_router)
 
-    # Public pages — /page/<nav_id>/<date>/<time> (single article)
+    # Public pages — /page/<date>/<time> (single article)
     app.include_router(pages_public_router)
 
     # Public pages catalog — /pages (list of articles)

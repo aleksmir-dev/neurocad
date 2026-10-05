@@ -1,4 +1,4 @@
-# neurocad 1.0.10
+# neurocad 1.0.11
 
 Release date: 2026-10-05
 
@@ -6,18 +6,22 @@ Release date: 2026-10-05
 
 ## English
 
+### Changed
+
+- **Public URLs are now host-based and contain no `nav_id`.** Single pages live at `/page/<YYYYMMDD>/<HHMMSS>` and the catalog at `/pages` — the user is resolved from the request Host (subdomain `<login>.<APP_DOMAIN>` or a registered custom domain), and the page is looked up within that user's navs. `nav_id` remains an internal concept (used by the admin editor and admin API), but never appears in a public address. This makes URLs shorter, shareable, and consistent with the multi-tenant host model.
+
 ### Fixed
 
-- **The "Открыть каталог статей" toolbar button** now opens the public catalog on the owner's domain (`https://neurocad.ru/pages`) instead of a relative `/pages` that resolved against the admin host. The `pages_url` field is now part of the `GET /domain/` response and is computed via `get_public_base_url()` — the same source the sitemap and the "Открыть публичную версию" button use.
-- **`normalize_host()` no longer special-cases `APP_DOMAIN`** — `neurocad.ru` now resolves through the custom-domain path, which restores public pages, `robots.txt` and `sitemap.xml` on the platform's root domain.
-- **The "Отключить" button for platform domains** (`neurocad.ru`, `neurocad-dev.ru`, `neurocad-demo.ru` and their subdomains) is now disabled in the UI with a "Системный домен — отключение запрещено" tooltip — an accidental click can no longer detach the platform's root domain and put its certificate into the deletion queue.
+- **`demo.neurocad.ru/pages` returned 404.** The catalog without an explicit `?nav_id=` used to resolve "the first nav in the DB" (which is admin's), then the host-ownership check rejected it. Now the nav is resolved from the request Host — `demo.neurocad.ru/pages` shows demo's catalog, `user1.neurocad.ru/pages` shows user1's, and the DB-wide fallback is only used for dev hosts.
 
 ---
 
 ## Русский
 
+### Изменено
+
+- **Публичные URL теперь host-based и не содержат `nav_id`.** Отдельные страницы живут по адресу `/page/<YYYYMMDD>/<HHMMSS>`, каталог — по `/pages`. Пользователь определяется по Host'у запроса (поддомен `<login>.<APP_DOMAIN>` или привязанный домен второго уровня), а страница ищется среди nav'ов этого пользователя. `nav_id` остался внутренним понятием (используется редактором и админским API), но никогда не появляется в публичном адресе. Это делает URL короче, удобнее для шаринга и согласованнее с моделью мультитенантных доменов.
+
 ### Исправлено
 
-- **Кнопка «Открыть каталог статей»** в тулбаре каталога теперь открывает публичный каталог на домене владельца (`https://neurocad.ru/pages`), а не относительный `/pages`, который резолвился в хост админки. Поле `pages_url` добавлено в ответ `GET /domain/` и вычисляется через `get_public_base_url()` — тот же источник, что у sitemap и кнопки «Открыть публичную версию».
-- **`normalize_host()` больше не отсекает `APP_DOMAIN`** — `neurocad.ru` теперь резолвится через custom-domain ветку, что возвращает публичные страницы, `robots.txt` и `sitemap.xml` на корневом домене платформы.
-- **Кнопка «Отключить» для системных доменов** (`neurocad.ru`, `neurocad-dev.ru`, `neurocad-demo.ru` и их поддомены) теперь `disabled` в UI с подсказкой «Системный домен — отключение запрещено» — случайный клик больше не отвяжет корневой домен платформы и не отправит его сертификат в очередь на удаление.
+- **`demo.neurocad.ru/pages` возвращал 404.** Каталог без явного `?nav_id=` резолвился как «первый nav в БД» (это nav admin'а), после чего host-ownership проверка его отклоняла. Теперь nav резолвится из Host'а запроса — `demo.neurocad.ru/pages` показывает каталог demo, `user1.neurocad.ru/pages` показывает каталог user1, а общий fallback используется только для dev-хостов.

@@ -4,12 +4,19 @@
 Public pages service.
 
 Read-only access to Page records for public HTML rendering.
-No admin fields (content_json, is_active, is_delete, etc.).
+No admin fields (content_json, etc.).
 
 Scoping:
-  Pages are scoped to a nav instance (Page.nav_id). A nav is the
-  object that owns pages; the module behind it is irrelevant here —
-  the public page just needs "all active pages of this nav".
+  Pages are scoped to a nav instance (Page.nav_id) — but nav_id is
+  an INTERNAL concept and never appears in a public URL. Public
+  routes resolve the user from the request Host and look up the
+  page within that user's navs:
+
+    get_by_datetime_for_user(date, time, user_id)  — regular hosts
+    get_by_datetime_any_nav(date, time)            — dev hosts
+
+  Both return the same CoreEngineLibPagesPublicItem shape, so the
+  render path stays single.
 
 CSS handling:
   - Page.css is the source of truth for the page's content CSS.
@@ -30,8 +37,8 @@ Catalog:
   get_list() returns the active, non-deleted pages of a nav, sorted
   by datetime DESC. Used by the public /pages route to render a
   full catalog page without the admin UI. Each item carries a
-  ready-to-use `url` (/page/<nav_id>/<YYYYMMDD>/<HHMMSS>) so the
-  template does not have to assemble it.
+  ready-to-use `url` (/page/<YYYYMMDD>/<HHMMSS>) so the template
+  does not have to assemble it.
 
 Namespace: CoreEngineLibPagesPublicService
 """
@@ -43,6 +50,7 @@ from typing import List, Optional
 from sqlalchemy import select
 
 from .....models.base import Page
+from .....models.nav import Nav
 from ......utils.sqlite import get_db_sqlite
 from ......utils.css import split_style_from_html
 from .schema import (
@@ -76,25 +84,27 @@ PAGES_CSS_URL = _MODULE_STATIC_URL + "/pages"
 # URL HELPERS (module-level)
 # ============================================
 
-def _public_url(nav_id: int, page_dt: Optional[datetime]) -> str:
+def _public_url(page_dt: Optional[datetime]) -> str:
     """
     Build the public URL of a page:
 
-        /page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+        /page/<YYYYMMDD>/<HHMMSS>
 
-    Same format as the public route in public/route.py and as the
-    editor's _openArticle() in pages.js. Kept here so the catalog
-    and the single-page route stay in sync — changing the format
-    is a one-line change.
+    NO nav_id — the public URL is host-based: the request Host
+    resolves to a user, and the page is looked up within that
+    user's navs. See public/route.py.
+
+    Used by the catalog list items so the template does not have
+    to assemble the URL itself. Changing the format is a one-line
+    change here and in the route.
 
     If `page_dt` is missing (should not happen: page.datetime is
-    NOT NULL in the DB), falls back to a path that at least hits
-    the nav root instead of 500.
+    NOT NULL in the DB), falls back to /pages instead of 500.
     """
     if page_dt is None:
-        return f"/pages?nav_id={nav_id}"
+        return "/pages"
     return (
-        f"/page/{nav_id}/"
+        f"/page/"
         f"{page_dt.strftime('%Y%m%d')}/"
         f"{page_dt.strftime('%H%M%S')}"
     )
@@ -187,7 +197,7 @@ class CoreEngineLibPagesPublicService:
         return None
 
     # ========================================
-    # PAGE BY DATETIME
+    # PAGE BY DATETIME — nav-scoped (internal)
     # ========================================
 
     @staticmethod
@@ -197,7 +207,13 @@ class CoreEngineLibPagesPublicService:
         nav_id: int,
     ) -> Optional[CoreEngineLibPagesPublicItem]:
         """
-        Find page by date/time within a nav instance.
+        Find page by date/time within a SPECIFIC nav.
+
+        Kept for internal callers that already know the nav_id
+        (e.g. the home-page selector, template resolution). The
+        PUBLIC route does not use this — public lookups go through
+        get_by_datetime_for_user / get_by_datetime_any_nav below,
+        which never expose nav_id.
 
         date = "20260914" (YYYYMMDD)
         time = "153910"   (HHMMSS)
@@ -221,6 +237,120 @@ class CoreEngineLibPagesPublicService:
                 Page.datetime < dt_end,
                 Page.is_delete == 0,
                 Page.is_active == 1,
+            )
+            result = await session.execute(stmt)
+            page = result.scalar_one_or_none()
+            if not page:
+                return None
+
+            return CoreEngineLibPagesPublicService._page_to_public(page)
+
+        return None
+
+    # ========================================
+    # PAGE BY DATETIME — user-scoped (public route)
+    # ========================================
+
+    @staticmethod
+    async def get_by_datetime_for_user(
+        date: str,
+        time: str,
+        user_id: int,
+    ) -> Optional[CoreEngineLibPagesPublicItem]:
+        """
+        Find a page by date/time among ALL navs of the given user.
+
+        This is the lookup used by the public /page/<date>/<time>
+        route: the request Host resolves to a user_id, and the page
+        is searched across every nav that user owns. There is no
+        nav_id in the URL.
+
+        Only active, non-deleted pages are returned.
+
+        If two navs of the same user contain a page with the same
+        <date>/<time> (rare but possible — datetime is user-picked),
+        the one with the lowest nav_id wins. This is a deterministic
+        tie-breaker, and in practice it never happens within a
+        single user's content.
+        """
+        try:
+            dt_start = datetime.strptime(f"{date}{time}", "%Y%m%d%H%M%S")
+        except ValueError:
+            return None
+
+        dt_end = dt_start + timedelta(seconds=1)
+
+        async for session in get_db_sqlite():
+            stmt = (
+                select(Page)
+                .join(Nav, Nav.id == Page.nav_id)
+                .where(
+                    Nav.user_id == user_id,
+                    Nav.is_delete.is_(False),
+                    Page.datetime >= dt_start,
+                    Page.datetime < dt_end,
+                    Page.is_delete == 0,
+                    Page.is_active == 1,
+                )
+                .order_by(Nav.id.asc(), Page.id.asc())
+                .limit(1)
+            )
+            result = await session.execute(stmt)
+            page = result.scalar_one_or_none()
+            if not page:
+                return None
+
+            return CoreEngineLibPagesPublicService._page_to_public(page)
+
+        return None
+
+    # ========================================
+    # PAGE BY DATETIME — any nav (dev only)
+    # ========================================
+
+    @staticmethod
+    async def get_by_datetime_any_nav(
+        date: str,
+        time: str,
+    ) -> Optional[CoreEngineLibPagesPublicItem]:
+        """
+        Find a page by date/time across ALL navs in the DB.
+
+        DEV ONLY. Used by the public route when the request comes
+        from a dev host (localhost, 127.0.0.1, [::1]) — during
+        local development there is no APP_DOMAIN and no per-user
+        host resolution, so the page is looked up globally.
+
+        On prod this method is never reached: every real request
+        has a Host that either resolves to a user (then
+        get_by_datetime_for_user is used) or does not (then the
+        route returns 404 without a DB call).
+
+        Only active, non-deleted pages are returned.
+
+        If two pages in different navs share the same <date>/<time>,
+        the one with the lowest nav_id wins — deterministic.
+        """
+        try:
+            dt_start = datetime.strptime(f"{date}{time}", "%Y%m%d%H%M%S")
+        except ValueError:
+            return None
+
+        dt_end = dt_start + timedelta(seconds=1)
+
+        async for session in get_db_sqlite():
+            stmt = (
+                select(Page)
+                .join(Nav, Nav.id == Page.nav_id)
+                .where(
+                    Nav.is_delete.is_(False),
+                    Page.datetime >= dt_start,
+                    Page.datetime < dt_end,
+                    Page.is_delete == 0,
+                    Page.is_active == 1,
+                )
+                .order_by(Nav.id.asc(), Page.id.asc())
+                .limit(1)
             )
             result = await session.execute(stmt)
             page = result.scalar_one_or_none()
@@ -321,5 +451,5 @@ class CoreEngineLibPagesPublicService:
             title=page.title or "",
             description=page.description,
             logo=page.logo,
-            url=_public_url(page.nav_id, page.datetime),
+            url=_public_url(page.datetime),
         )
