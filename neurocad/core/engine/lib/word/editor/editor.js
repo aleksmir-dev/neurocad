@@ -8,7 +8,7 @@
  *   widgets.js    -> builds DOM of three areas (left / center / right) + toolbar
  *   styles.js     -> provides StyleManager sections
  *   grapes/       -> loads GrapesJS CSS/JS and calls grapesjs.init()
- *   assets.js     -> works with media library (GET /assets, POST /assets/upload)
+ *   assets.js     -> image picker (BaseAssets) + traits binding
  *   blocks/       -> registers block library
  *   resizer.js    -> handles for dragging borders between areas
  *   template.js   -> base template rendering + slot height sync
@@ -25,6 +25,16 @@
  *
  * All internal modules are loaded dynamically, with version from coreEngine,
  * to avoid browser cache on updates.
+ *
+ * Image picking
+ * -------------
+ * The built-in GrapesJS Asset Manager is disabled in the config
+ * (see grapes/config.js → assetManager.custom = true). Images are
+ * picked through BaseAssets — the shared full-screen media library
+ * picker with two tabs: «Медиатека» (media/<nav_id>/) and
+ * «Логотипы» (word/editor/images/). AssetsManager in ./assets.js
+ * exposes openPicker() and binds a "Выбрать из медиатеки" button
+ * to the src trait of every <img> component in the canvas.
  *
  * Auto-save (interval-based):
  *   Every AUTO_SAVE_INTERVAL_MS (30 s) we check a "dirty" flag that is
@@ -152,6 +162,13 @@ export class Editor {
         this.pageData = props.pageData || null;
 
         // Media library API — with module_name for multi-site support.
+        //
+        // NOTE: with the built-in GrapesJS Asset Manager disabled
+        // (grapes/config.js → assetManager.custom = true), these URLs
+        // are informational only. The actual picker (BaseAssets) uses
+        // its own endpoints under /core/engine/lib/base/assets and
+        // /core/engine/lib/word/editor/images. Kept here so any
+        // existing call sites do not break.
         const moduleName = window.coreEngine?.moduleName
             || document.body.dataset.module
             || '';
@@ -255,9 +272,12 @@ export class Editor {
                 this._blocks = new BlocksRegistry(this.editor);
                 await this._blocks.register();
 
-                // 6. Media library
+                // 6. Image picker — bind the "Choose from library"
+                //    button to the src trait of every <img> in the
+                //    canvas. Images themselves are selected through
+                //    BaseAssets (see ./assets.js → openPicker).
                 this._assets = new AssetsManager(this);
-                await this._assets.load();
+                this._assets.bindTraits(this.editor);
 
                 // 7. LLM Chat
                 this._chat = new LLMChat(this);
@@ -878,6 +898,19 @@ export class Editor {
         if (this._exporter) {
             try { this._exporter.destroy(); } catch (e) { console.warn(e); }
             this._exporter = null;
+        }
+
+        // Media picker — disconnect MutationObserver on the traits
+        // panel, if it was bound.
+        if (this._assets) {
+            try {
+                if (typeof this._assets.destroy === 'function') {
+                    this._assets.destroy();
+                }
+            } catch (e) {
+                console.warn('[Editor] assets.destroy() error:', e);
+            }
+            this._assets = null;
         }
 
         // Resizer

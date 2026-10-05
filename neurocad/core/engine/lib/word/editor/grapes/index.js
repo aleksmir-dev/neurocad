@@ -51,6 +51,25 @@
  * Cloned sections get a FRESH id — so a copy never inherits the
  * original's per-section styling.
  *
+ * Asset picker (replaces built-in Asset Manager)
+ * ----------------------------------------------
+ * By default, GrapesJS opens its own Asset Manager modal when the
+ * user double-clicks an <img> in the canvas (and in several other
+ * paths). That modal is a small grid with a URL input and a
+ * "Drop files here" zone — it cannot show tabs, cannot show the
+ * LLM-generated logos, and cannot be styled like the rest of the
+ * app.
+ *
+ * We replace it: `_bindAssetPicker()` overwrites the built-in
+ * `open-assets` command with our own, which opens BaseAssets (the
+ * shared full-screen picker with tabs «Медиатека» / «Логотипы»).
+ * GrapesJS resolves commands by id, and the last registration for
+ * a given id wins — so every built-in path that would have opened
+ * the default modal now goes through us.
+ *
+ * The BaseAssets instance itself lives on the parent Editor
+ * (editor.js → this._assets = new AssetsManager(this)).
+ *
  * Call order:
  *   const loader = new GrapesLoader(editor, options);
  *   await loader.load();
@@ -414,6 +433,13 @@ export class GrapesLoader {
         // ===== Reset block inline styles =====
         this._resetBlockInlineStyles(instance);
 
+        // ===== Asset picker — replace built-in Asset Manager =====
+        // Overwrites the built-in 'open-assets' command (triggered by
+        // double-clicking an <img>, by the media icon in the traits
+        // panel, and by any other built-in path) so it opens
+        // BaseAssets instead of GrapesJS's own tiny modal.
+        this._bindAssetPicker(instance);
+
         // ===== Body traits (Свойства) =====
         m.registerBodyTraits(instance);
 
@@ -588,6 +614,124 @@ export class GrapesLoader {
         } catch (e) {
             console.warn('[GrapesLoader] pre-existing auto-id failed:', e);
         }
+    }
+
+    // ============================================
+    // ASSET PICKER (replaces built-in Asset Manager)
+    // ============================================
+
+    /**
+     * Intercept the built-in 'open-assets' command and route it to
+     * BaseAssets instead of the GrapesJS Asset Manager modal.
+     *
+     * WHY
+     * ---
+     * By default, double-clicking an <img> in the canvas (and
+     * several other built-in paths) calls
+     * `editor.runCommand('open-assets')`, which opens GrapesJS's
+     * own modal: a small grid, a URL input and a "Drop files here"
+     * zone. It cannot show tabs, cannot show the LLM-generated
+     * logos, and cannot be styled to match the rest of the app.
+     *
+     * WHAT WE DO
+     * ----------
+     * We register our OWN 'open-assets' command with the same id.
+     * GrapesJS resolves commands by id, and the last registration
+     * for a given id wins — so every built-in path that would
+     * have opened the default modal now goes through us.
+     *
+     * Behaviour:
+     *   - <img> selected                    → open BaseAssets,
+     *                                         on pick set src;
+     *   - component with background-image   → on pick set the style;
+     *   - nothing selected                  → open BaseAssets;
+     *                                         picking logs a warning
+     *                                         (no target to apply to).
+     *
+     * The BaseAssets instance itself lives on the parent Editor
+     * (editor.js → this._assets = new AssetsManager(this)). We
+     * reach it via `this.editor._assets` — this GrapesLoader holds
+     * a reference to the parent Editor in `this.editor`.
+     *
+     * @param {Object} instance — GrapesJS instance
+     */
+    _bindAssetPicker(instance) {
+        const loader = this;   // for closures
+
+        // Overwrite the built-in command. Same id → our version wins.
+        instance.Commands.add('open-assets', {
+            run(editor) {
+                console.log('[GrapesLoader] open-assets intercepted → BaseAssets');
+
+                const parentEditor = loader.editor;   // our Editor class
+                const assets = parentEditor?._assets; // AssetsManager
+
+                if (!assets || typeof assets.openPicker !== 'function') {
+                    console.warn(
+                        '[GrapesLoader] AssetsManager not ready — ' +
+                        'BaseAssets cannot be opened yet'
+                    );
+                    return false;
+                }
+
+                // Try to figure out the target for the picked src.
+                // Priority:
+                //   1. currently selected component (GrapesJS selection);
+                //   2. null — user opened the picker without a target.
+                const selected = editor.getSelected();
+
+                assets.openPicker({
+                    sources: ['media', 'logos'],
+                    initialSource: 'media',
+                    onSelect: (src) => {
+                        if (!src) return;
+
+                        if (!selected) {
+                            console.warn(
+                                '[GrapesLoader] picked src but nothing ' +
+                                'is selected — result discarded'
+                            );
+                            return;
+                        }
+
+                        // <img> — set src. This is the primary case
+                        // (double-click on an image in the canvas).
+                        if (selected.get('tagName') === 'img') {
+                            selected.set('src', src);
+                            // Force GrapesJS to re-render the trait
+                            // input so the new value is visible in
+                            // the panel too.
+                            editor.TraitManager.render();
+                            return;
+                        }
+
+                        // Any other component — try background-image.
+                        // If the component already has a background-image
+                        // style, we replace it. Otherwise we add one.
+                        const style = selected.getStyle?.() || {};
+                        if (style['background-image']) {
+                            selected.addStyle({
+                                'background-image': `url('${src}')`,
+                            });
+                            return;
+                        }
+
+                        // Fallback — component type is unknown for us.
+                        // Log so it is visible in the console; do not
+                        // silently discard.
+                        console.warn(
+                            '[GrapesLoader] picked src for unsupported ' +
+                            'component type:',
+                            selected.get('tagName')
+                        );
+                    },
+                });
+
+                return false;   // tell GrapesJS "we handled it"
+            },
+        });
+
+        console.log('[GrapesLoader] open-assets command overridden');
     }
 
     /**

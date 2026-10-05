@@ -50,6 +50,7 @@ from sqlalchemy import delete as sa_delete
 
 from ....models.base import Page
 from ....models.page_hist import PageHist
+from ....models.nav import Nav
 from .....utils.sqlite import get_db_sqlite
 
 # Public pages module — provides the static namespace for page CSS files.
@@ -127,7 +128,7 @@ class CoreEngineLibWordService:
             if not page:
                 return None
 
-            return _page_to_dict(page)
+            return await _page_to_dict(page)
 
         return None
 
@@ -153,7 +154,7 @@ class CoreEngineLibWordService:
             if not page:
                 return None
 
-            return _page_to_dict(page)
+            return await _page_to_dict(page)
 
         return None
 
@@ -702,8 +703,22 @@ def _write_page_css_file(page_id: int, css: Optional[str]) -> None:
         print(f"[Word] failed to write page CSS file for page {page_id}: {e}", flush=True)
 
 
-def _page_to_dict(page) -> Dict[str, Any]:
-    """Serialize Page model to dict."""
+async def _page_to_dict(page) -> Dict[str, Any]:
+    """
+    Serialize Page model to dict.
+
+    Async because it also resolves the page's absolute public URL
+    via CoreEngineLibBaseProfileDomainService.get_public_base_url(),
+    which needs a DB session (users.domain or <login>.<APP_DOMAIN>).
+
+    `public_url` is what the word toolbar's "Открыть публичную
+    версию" button opens: the page rendered on the OWNER's host,
+    not on the technical host the admin panel runs on. Built here
+    (server-side) because the editor cannot know the owner's public
+    host on its own.
+    """
+    public_url = await _build_public_url(page)
+
     return {
         "id": page.id,
         "nav_id": page.nav_id,
@@ -721,7 +736,68 @@ def _page_to_dict(page) -> Dict[str, Any]:
         "rss_yandex_id": page.rss_yandex_id,
         "is_template": int(page.is_template) if page.is_template is not None else 0,
         "template_id": page.template_id,
+        "public_url": public_url,
     }
+
+
+async def _build_public_url(page) -> Optional[str]:
+    """
+    Build the absolute public URL of a page:
+
+        https://<login>.<APP_DOMAIN>/page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+        https://<custom-domain>/page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+
+    Returns None when:
+      - the nav owner cannot be resolved (missing nav, deleted user);
+      - get_public_base_url returns None (no APP_DOMAIN in settings
+        and no custom domain — misconfiguration);
+      - the page has no datetime (should not happen — page.datetime
+        is NOT NULL — but we guard against it anyway).
+
+    In all those cases the frontend falls back to a relative URL,
+    which on the technical host will 404 — that is why the server-
+    side path above is preferred.
+    """
+    if not page.datetime:
+        return None
+
+    # Owner of the nav. Late import — the domain service pulls in
+    # httpx/ssl/socket and models, which is heavy for the module
+    # import time of word/service.py.
+    user_id = await _resolve_nav_owner(page.nav_id)
+    if user_id is None:
+        return None
+
+    # Public base URL for this user (login.<APP_DOMAIN> or custom
+    # domain). Reused from the domain service — the same value the
+    # sitemap and the "Открыть каталог статей" button use.
+    from ..base.profile.domain.service import (
+        CoreEngineLibBaseProfileDomainService,
+    )
+
+    base = await CoreEngineLibBaseProfileDomainService.get_public_base_url(user_id)
+    if not base:
+        return None
+
+    date = page.datetime.strftime("%Y%m%d")
+    time = page.datetime.strftime("%H%M%S")
+    return f"{base}/page/{page.nav_id}/{date}/{time}"
+
+
+async def _resolve_nav_owner(nav_id: int) -> Optional[int]:
+    """
+    Return the user_id of the nav's owner, or None.
+
+    Missing / soft-deleted navs return None. Never raises.
+    """
+    async for session in get_db_sqlite():
+        stmt = select(Nav.user_id).where(
+            Nav.id == nav_id,
+            Nav.is_delete.is_(False),
+        )
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+    return None
 
 
 async def _is_duplicate_snapshot(

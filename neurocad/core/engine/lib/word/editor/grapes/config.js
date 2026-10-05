@@ -32,6 +32,37 @@
  * Without `componentFirst`, GrapesJS picks the first class of the
  * component — usually `.section` — and every section on the page
  * gets painted. That is the bug this option fixes.
+ *
+ * AssetManager — disabled (custom: true)
+ * --------------------------------------
+ * The built-in GrapesJS Asset Manager (a small modal with a
+ * "Drop files here" box, a URL input and a grid of tiny squares)
+ * is turned off. Image picking in the editor goes through the
+ * shared BaseAssets picker instead — the same full-screen modal
+ * the article edit form uses:
+ *
+ *     BaseAssets.open({
+ *         sources: ['media', 'logos'],
+ *         initialSource: 'logos',
+ *         onSelect: (src) => { ... },
+ *     })
+ *
+ * BaseAssets already knows how to:
+ *   - show the media library (media/<nav_id>/) and the shared
+ *     logos directory (word/editor/images/) as two tabs;
+ *   - list items on a full-screen grid;
+ *   - upload and delete files (with per-tariff storage limits);
+ *   - open on a specific tab.
+ *
+ * Wiring: see editor/assets.js → openPicker(). The GrapesJS
+ * `custom: true` flag below tells the editor "do not render the
+ * built-in asset modal on image-related actions" — the app
+ * handles asset selection itself.
+ *
+ * IMPORTANT: do NOT set `assets: []` or `upload: ...` here. With
+ * `custom: true` the built-in UI never runs, so those fields are
+ * dead config. Leaving them in is a maintenance hazard — the next
+ * developer might think the built-in manager is still active.
  */
 
 /**
@@ -97,18 +128,17 @@ export function buildConfig(loader, container, canvasStyles, plugins) {
             ],
         },
 
-        // Asset manager — bound to our API
+        // ===== Asset manager — DISABLED =====
+        //
+        // `custom: true` tells GrapesJS not to render its built-in
+        // Asset Manager modal on image-related actions. Selection
+        // goes through BaseAssets (see editor/assets.js → openPicker).
+        //
+        // Fields `assets` and `upload` are intentionally omitted:
+        // with `custom: true` the built-in UI never runs, so they
+        // would be dead config.
         assetManager: {
-            assets: [],
-            upload: e._assetsUploadApi,
-            uploadName: 'files',
-            autoAdd: 1,
-            dropzone: 1,
-            openAssetsOnDrop: 1,
-            headers: {},
-            uploadText: 'Перетащите файлы сюда или нажмите для выбора',
-            addBtnText: 'Добавить по ссылке',
-            modalTitle: 'Медиатека',
+            custom: true,
         },
 
         // CSS inside the iframe.

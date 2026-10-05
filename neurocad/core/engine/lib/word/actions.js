@@ -61,16 +61,56 @@ export function goBack(word) {
 }
 
 /**
- * Open public version of the page in a new tab.
+ * Open the public version of the page in a new tab.
  *
- * URL schema:
- *   /page/<nav_id>/<date>/<time>
+ * The URL comes from the backend as `word.pageData.public_url` —
+ * an absolute URL pointing at the OWNER's public host:
  *
- * nav_id comes from word.navId (injected via props). If it's missing,
- * we cannot build a valid public URL — bail out instead of guessing.
+ *     https://<login>.<APP_DOMAIN>/page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+ *     https://<custom-domain>/page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+ *
+ * Why not build the URL here (what this function used to do):
+ *
+ *   The word toolbar runs inside the ADMIN panel, which lives on
+ *   the TECHNICAL host (e.g. neurocad-dev.ru). A relative
+ *   "/page/<nav_id>/..." would resolve against the current host,
+ *   sending the user to
+ *
+ *       https://neurocad-dev.ru/page/<nav_id>/...    ← 404
+ *
+ *   instead of
+ *
+ *       https://testuser3.neurocad-dev.ru/page/...  ← correct
+ *
+ *   The editor cannot know the owner's public host on its own —
+ *   only the server can resolve it (via users.domain or
+ *   <login>.<APP_DOMAIN>). So we ask the backend for the final
+ *   absolute URL (CoreEngineLibWordService._build_public_url) and
+ *   just open it.
+ *
+ * The legacy builder is kept as a fallback: if the backend did not
+ * send public_url (older API, DB misconfig, missing nav owner), we
+ * still open *something* — a relative URL, which may 404 on the
+ * technical host, but at least the user is not left guessing why
+ * nothing happened.
  */
 export function openPublicPage(word) {
     console.log('[Word] Opening public page');
+
+    // ---- Preferred path: absolute URL from the backend ----
+    const absolute = word.pageData?.public_url;
+    if (absolute) {
+        console.log('[Word] Public URL (absolute):', absolute);
+        window.open(absolute, '_blank', 'noopener,noreferrer');
+        return;
+    }
+
+    // ---- Fallback: build a relative URL from pageData ----
+    // Used only when the backend did not send public_url. On the
+    // technical host this will 404 — that is why the backend path
+    // above is preferred. Logged so the cause is visible in the
+    // console.
+    console.warn('[Word] public_url missing in pageData — falling back to relative URL');
 
     const datetime = word.pageData?.datetime;
     if (!datetime) {
@@ -91,10 +131,9 @@ export function openPublicPage(word) {
         return;
     }
 
-    const url = `/page/${word.navId}/${date}/${time}`;
-    console.log('[Word] Public URL:', url);
-
-    window.open(url, '_blank', 'noopener,noreferrer');
+    const fallback = `/page/${word.navId}/${date}/${time}`;
+    console.log('[Word] Public URL (fallback, relative):', fallback);
+    window.open(fallback, '_blank', 'noopener,noreferrer');
 }
 
 // ============================================

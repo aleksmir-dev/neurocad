@@ -1,4 +1,4 @@
-# app/core/engine/lib/word/schema.py
+# neurocad/core/engine/lib/word/schema.py
 
 """
 Word schemas — page content, history, assets.
@@ -36,6 +36,33 @@ class CoreEngineLibWordItemResponse(BaseModel):
     created_at: Optional[dt] = None
     updated_at: Optional[dt] = None
     rss_yandex_id: Optional[str] = None
+
+    # Absolute public URL of this page on the owner's public host:
+    #     https://<login>.<APP_DOMAIN>/page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+    #     https://<custom-domain>/page/<nav_id>/<YYYYMMDD>/<HHMMSS>
+    #
+    # Built server-side by CoreEngineLibWordService using
+    # CoreEngineLibBaseProfileDomainService.get_public_base_url(user_id)
+    # — the same base the sitemap and the "Открыть каталог статей"
+    # button use.
+    #
+    # Why it must be absolute and come from the server:
+    #   The Word toolbar runs inside the ADMIN panel, which lives
+    #   on the technical host (e.g. neurocad-dev.ru). A relative
+    #   "/page/<nav_id>/..." would resolve against the current
+    #   host, sending the user to neurocad-dev.ru/page/... instead
+    #   of the owner's own host (testuser3.neurocad-dev.ru or the
+    #   user's custom domain). The editor cannot know the owner's
+    #   public host on its own — only the server can resolve it
+    #   (via users.domain or <login>.<APP_DOMAIN>).
+    #
+    # None when:
+    #   - the owner of the nav cannot be resolved (missing nav,
+    #     deleted user), or
+    #   - the page has no datetime (should not happen — page.datetime
+    #     is NOT NULL — but we guard against it anyway).
+    # In both cases the frontend falls back to a relative URL.
+    public_url: Optional[str] = None
 
     class Config:
         from_attributes = True

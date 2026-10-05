@@ -4,7 +4,6 @@ from typing import Optional
 
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse, Response
-from sqlalchemy import select
 
 from neurocad.core.route import router as core_router
 from neurocad.core.engine.lib.pages.public.route import (
@@ -22,6 +21,17 @@ from neurocad.core.engine.lib.base.profile.domain.internal_route import (
 
 from neurocad.config import settings
 
+# Host-header parsing and user resolution — single source of
+# truth. See neurocad/utils/hosts.py for the full contract.
+# Before this module existed, the same logic was duplicated
+# (and quietly diverged) between this file and pages/public/route.py.
+from neurocad.utils.hosts import (
+    slug_from_host,
+    normalize_host,
+    login_from_custom_domain,
+    user_id_from_host,
+)
+
 
 # ============================================
 # ROBOTS.TXT DEFAULTS
@@ -36,138 +46,21 @@ ROBOTS_CLOSED = "User-agent: *\nDisallow: /\n"
 
 
 # ============================================
-# SUBDOMAIN HELPERS
+# BACKWARD-COMPAT ALIASES
 # ============================================
+#
+# The three helpers below used to be defined in this module.
+# They are now in neurocad/utils/hosts.py and imported above.
+# These thin aliases keep any straggler references working
+# (and give `grep` something to find in the codebase) without
+# duplicating the implementation.
+#
+# Do NOT add new callers — import from hosts.py directly.
+# They will be removed once the codebase has no references left.
 
-def _slug_from_host(host: Optional[str]) -> Optional[str]:
-    """
-    Extract the user slug from a Host header.
-
-    Returns the slug ("testuser3") when the host is a subdomain of
-    settings.APP_DOMAIN ("testuser3.neurocad-dev.ru" with
-    APP_DOMAIN=neurocad-dev.ru). Returns None otherwise.
-
-    Guards:
-      - host is empty / missing                      → None
-      - port stripped, lowercased, trailing dot gone → canonical form
-      - host == APP_DOMAIN (no subdomain)            → None
-      - host is "www.<APP_DOMAIN>"                   → None
-        ("www" is a web convention, not a user slug)
-      - slug contains a dot ("a.b.<APP_DOMAIN>")     → None
-        (only one level of subdomain is a user)
-      - host does not end with ".<APP_DOMAIN>"       → None
-    """
-    if not host:
-        return None
-
-    host = host.strip().lower()
-    if ":" in host:
-        host = host.split(":", 1)[0]
-    if host.endswith("."):
-        host = host[:-1]
-    if not host:
-        return None
-
-    root = (settings.APP_DOMAIN or "").strip().lower()
-    if not root:
-        return None
-
-    # Exact root domain — not a subdomain.
-    if host == root:
-        return None
-
-    suffix = "." + root
-    if not host.endswith(suffix):
-        return None
-
-    slug = host[: -len(suffix)]
-    if not slug:
-        return None
-
-    # "www" is a web convention, not a user slug.
-    if slug == "www":
-        return None
-
-    # Only one level of subdomain. "a.b.example.com" is not a user.
-    if "." in slug:
-        return None
-
-    return slug
-
-
-def _normalize_host(host: Optional[str]) -> Optional[str]:
-    """
-    Shared host normalization for the custom-domain lookup:
-    strip port, lowercase, drop the trailing dot.
-
-    Returns None if the host is empty after normalization, or if it
-    equals APP_DOMAIN / starts with "www." (those never belong to
-    a custom-domain user — they are platform-hosted).
-    """
-    if not host:
-        return None
-
-    host = host.strip().lower()
-    if ":" in host:
-        host = host.split(":", 1)[0]
-    if host.endswith("."):
-        host = host[:-1]
-    if not host:
-        return None
-
-    root = (settings.APP_DOMAIN or "").strip().lower()
-    if root:
-        if host == root:
-            return None
-        if host.endswith("." + root):
-            # A subdomain of APP_DOMAIN — handled by _slug_from_host,
-            # not by the custom-domain lookup.
-            return None
-
-    return host
-
-
-async def _login_from_custom_domain(host: Optional[str]) -> Optional[str]:
-    """
-    If `host` is a custom domain registered by some user
-    (users.domain == host), return that user's login. Otherwise None.
-
-    This is the custom-domain counterpart of `_slug_from_host`:
-    the subdomain lookup reads the login from the host
-    ("testuser3.neurocad-dev.ru" → "testuser3"); the custom-domain
-    lookup reads it from the database ("atou.ru" → "admin").
-
-    Guards (all applied via _normalize_host):
-      - empty / missing host                → None
-      - host is APP_DOMAIN itself           → None
-      - host is a subdomain of APP_DOMAIN   → None (handled earlier)
-
-    Never raises on DB errors — treated as "not a custom domain".
-    """
-    normalized = _normalize_host(host)
-    if not normalized:
-        return None
-
-    # Late imports — avoid pulling SQLAlchemy models at module import
-    # time (this file is loaded very early by main.py).
-    from neurocad.core.models.user import User
-    from neurocad.utils.sqlite import get_db_sqlite
-
-    try:
-        async for session in get_db_sqlite():
-            stmt = select(User).where(
-                User.domain == normalized,
-                User.is_delete.is_(False),
-            )
-            user = (await session.execute(stmt)).scalar_one_or_none()
-            if user is None:
-                return None
-            return user.login
-    except Exception as e:
-        print(f"[Engine] custom-domain lookup failed for {normalized!r}: {e}")
-        return None
-
-    return None
+_slug_from_host = slug_from_host
+_normalize_host = normalize_host
+_login_from_custom_domain = login_from_custom_domain
 
 
 # ============================================
@@ -201,6 +94,7 @@ async def _robots_for_slug(slug: str) -> str:
 
     Never raises on DB errors — treated as "closed".
     """
+    from sqlalchemy import select
     from neurocad.core.models.user import User
     from neurocad.utils.sqlite import get_db_sqlite
 
@@ -232,6 +126,7 @@ async def _robots_for_custom_domain(host: str) -> str:
 
     Never raises on DB errors — treated as "closed".
     """
+    from sqlalchemy import select
     from neurocad.core.models.user import User
     from neurocad.utils.sqlite import get_db_sqlite
 
@@ -253,10 +148,10 @@ async def _robots_for_custom_domain(host: str) -> str:
 
 
 # ============================================
-# SITEMAP.XML HELPERS                                       # +++ NEW
-# ============================================              # +++ NEW
+# SITEMAP.XML HELPERS
+# ============================================
 
-def _sitemap_response(xml: str) -> Response:              # +++ NEW
+def _sitemap_response(xml: str) -> Response:
     """
     Build the /sitemap.xml response.
 
@@ -271,7 +166,7 @@ def _sitemap_response(xml: str) -> Response:              # +++ NEW
     `X-Robots-Tag: noindex` — the sitemap itself is a crawler
     input, not a page; it must not appear in search results.
     """
-    return Response(                                     # +++ NEW
+    return Response(
         content=xml,
         media_type="application/xml; charset=utf-8",
         headers={
@@ -279,65 +174,6 @@ def _sitemap_response(xml: str) -> Response:              # +++ NEW
             "X-Robots-Tag": "noindex",
         },
     )
-
-
-async def _user_id_for_slug(slug: str) -> Optional[int]:   # +++ NEW
-    """
-    Resolve a user subdomain slug ("testuser3") to users.id.
-
-    Returns None if the user does not exist or is soft-deleted.
-    Never raises on DB errors — treated as "no user".
-
-    Kept separate from _slug_from_host() (which only parses the
-    Host header) so that the parsing rules stay pure and testable,
-    and the DB lookup lives in one place shared by /robots.txt,
-    /sitemap.xml and any future per-user root-level endpoint.
-    """
-    from neurocad.core.models.user import User             # +++ NEW
-    from neurocad.utils.sqlite import get_db_sqlite        # +++ NEW
-
-    try:
-        async for session in get_db_sqlite():
-            stmt = select(User).where(
-                User.login == slug,
-                User.is_delete.is_(False),
-            )
-            user = (await session.execute(stmt)).scalar_one_or_none()
-            if user is None:
-                return None
-            return user.id
-    except Exception as e:
-        print(f"[Engine] user lookup by slug failed for {slug!r}: {e}")
-        return None
-
-    return None
-
-
-async def _user_id_for_custom_domain(host: str) -> Optional[int]:  # +++ NEW
-    """
-    Resolve a custom domain host ("atou.ru") to users.id.
-
-    Returns None if no user has that domain or the user is
-    soft-deleted. Never raises on DB errors.
-    """
-    from neurocad.core.models.user import User             # +++ NEW
-    from neurocad.utils.sqlite import get_db_sqlite        # +++ NEW
-
-    try:
-        async for session in get_db_sqlite():
-            stmt = select(User).where(
-                User.domain == host,
-                User.is_delete.is_(False),
-            )
-            user = (await session.execute(stmt)).scalar_one_or_none()
-            if user is None:
-                return None
-            return user.id
-    except Exception as e:
-        print(f"[Engine] user lookup by custom domain failed for {host!r}: {e}")
-        return None
-
-    return None
 
 
 async def _resolve_home_url_for_slug(slug: str) -> Optional[str]:
@@ -366,6 +202,7 @@ async def _resolve_home_url_for_slug(slug: str) -> Optional[str]:
     """
     # Late imports — avoid pulling SQLAlchemy models at module import
     # time (this file is loaded very early by main.py).
+    from sqlalchemy import select
     from neurocad.core.models.user import User
     from neurocad.core.models.nav import Nav
     from neurocad.core.models.page import Page
@@ -486,15 +323,15 @@ def setup_routes(app: FastAPI) -> None:
         host = request.headers.get("host")
 
         # ---- Step 1: user subdomain ------------------------------
-        slug = _slug_from_host(host)
+        slug = slug_from_host(host)
         if slug is not None:
             text = await _robots_for_slug(slug)
             return _robots_response(text)
 
         # ---- Step 2: user custom domain --------------------------
-        normalized = _normalize_host(host)
+        normalized = normalize_host(host)
         if normalized is not None:
-            custom_login = await _login_from_custom_domain(normalized)
+            custom_login = await login_from_custom_domain(normalized)
             if custom_login is not None:
                 text = await _robots_for_custom_domain(normalized)
                 return _robots_response(text)
@@ -502,52 +339,44 @@ def setup_routes(app: FastAPI) -> None:
         # ---- Step 3: fallback ------------------------------------
         return _robots_response(ROBOTS_CLOSED)
 
-    # /sitemap.xml — three-step resolution, same shape as robots.txt:  # +++ NEW
-    #                                                                  # +++ NEW
-    #   1. Host is a user subdomain (<login>.<APP_DOMAIN>):            # +++ NEW
-    #        testuser3.neurocad-dev.ru → build_sitemap(user_id)        # +++ NEW
-    #                                                                  # +++ NEW
-    #   2. Host is a user's custom domain (users.domain):             # +++ NEW
-    #        atou.ru → build_sitemap(user_id)                          # +++ NEW
-    #                                                                  # +++ NEW
-    #   3. Anything else (apex APP_DOMAIN, IP, unknown host):         # +++ NEW
-    #        a well-formed empty sitemap. Never 404, never HTML —     # +++ NEW
-    #        crawlers must see a 200 XML response even for unknown     # +++ NEW
-    #        hosts (they may be testing / discovering).                # +++ NEW
-    #                                                                  # +++ NEW
-    # The XML itself is generated by the domain service (build_sitemap) # +++ NEW
-    # — the SAME method the admin-side modal uses. Only the content   # +++ NEW
-    # type differs: application/xml here (for crawlers), text/plain   # +++ NEW
-    # at /core/engine/lib/base/profile/domain/sitemap (for the modal). # +++ NEW
-    @app.get("/sitemap.xml")                                          # +++ NEW
-    async def sitemap_xml(request: Request):                          # +++ NEW
-        from neurocad.core.engine.lib.base.profile.domain.service import (  # +++ NEW
-            CoreEngineLibBaseProfileDomainService,                    # +++ NEW
-        )                                                             # +++ NEW
+    # /sitemap.xml — three-step resolution, same shape as robots.txt:
+    #
+    #   1. Host is a user subdomain (<login>.<APP_DOMAIN>):
+    #        testuser3.neurocad-dev.ru → build_sitemap(user_id)
+    #
+    #   2. Host is a user's custom domain (users.domain):
+    #        atou.ru → build_sitemap(user_id)
+    #
+    #   3. Anything else (apex APP_DOMAIN, IP, unknown host):
+    #        a well-formed empty sitemap. Never 404, never HTML —
+    #        crawlers must see a 200 XML response even for unknown
+    #        hosts (they may be testing / discovering).
+    #
+    # The XML itself is generated by the domain service (build_sitemap)
+    # — the SAME method the admin-side modal uses. Only the content
+    # type differs: application/xml here (for crawlers), text/plain
+    # at /core/engine/lib/base/profile/domain/sitemap (for the modal).
+    @app.get("/sitemap.xml")
+    async def sitemap_xml(request: Request):
+        from neurocad.core.engine.lib.base.profile.domain.service import (
+            CoreEngineLibBaseProfileDomainService,
+        )
 
         host = request.headers.get("host")
 
-        # ---- Step 1: user subdomain ------------------------------  # +++ NEW
-        slug = _slug_from_host(host)
-        if slug is not None:
-            user_id = await _user_id_for_slug(slug)
-            if user_id is not None:
-                xml = await CoreEngineLibBaseProfileDomainService.build_sitemap(
-                    user_id=user_id,
-                )
-                return _sitemap_response(xml)
+        # ---- Steps 1 & 2: any user-owned host --------------------
+        # user_id_from_host tries subdomain first, then custom
+        # domain. Same two paths as the previous inline version,
+        # but now shared with pages/public/route.py (see
+        # neurocad/utils/hosts.py).
+        user_id = await user_id_from_host(host)
+        if user_id is not None:
+            xml = await CoreEngineLibBaseProfileDomainService.build_sitemap(
+                user_id=user_id,
+            )
+            return _sitemap_response(xml)
 
-        # ---- Step 2: user custom domain --------------------------  # +++ NEW
-        normalized = _normalize_host(host)
-        if normalized is not None:
-            user_id = await _user_id_for_custom_domain(normalized)
-            if user_id is not None:
-                xml = await CoreEngineLibBaseProfileDomainService.build_sitemap(
-                    user_id=user_id,
-                )
-                return _sitemap_response(xml)
-
-        # ---- Step 3: fallback ------------------------------------  # +++ NEW
+        # ---- Step 3: fallback ------------------------------------
         # Unknown host — return a well-formed empty sitemap instead
         # of a 404 so that crawlers get a valid XML document. No DB
         # call, no user lookup: just the empty envelope.
@@ -574,7 +403,7 @@ def setup_routes(app: FastAPI) -> None:
 
         # ---- Step 1: user subdomain ------------------------------
         # e.g. testuser3.neurocad-dev.ru → "testuser3"
-        slug = _slug_from_host(host)
+        slug = slug_from_host(host)
         if slug is not None:
             target = await _resolve_home_url_for_slug(slug)
             if target is not None:
@@ -585,7 +414,7 @@ def setup_routes(app: FastAPI) -> None:
 
         # ---- Step 2: user custom domain --------------------------
         # e.g. atou.ru → owner's login → home page
-        custom_login = await _login_from_custom_domain(host)
+        custom_login = await login_from_custom_domain(host)
         if custom_login is not None:
             target = await _resolve_home_url_for_slug(custom_login)
             if target is not None:
