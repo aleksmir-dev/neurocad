@@ -23,10 +23,60 @@
  * Pure functions — no access to the BaseProfileDomain instance, no
  * event binding. The orchestrator (domain.js) assembles the strings
  * into the page and binds events by data-action attributes.
+ *
+ * PROTECTED DOMAINS
+ * -----------------
+ * A few domains belong to the platform itself, not to any user:
+ *
+ *     neurocad.ru, neurocad-dev.ru, neurocad-demo.ru
+ *
+ * (and any subdomain of those.) They are listed here so the UI can
+ * disable the "Отключить" button for them — a user (or an admin in
+ * a hurry) must not be able to detach the platform's own root by
+ * accident, because that would immediately send it into Caddy's
+ * "delete certificate" queue.
+ *
+ * This is a UI-level guard only. The backend also refuses the
+ * request (see PROTECTED_DOMAINS in service.py → is_protected_domain
+ * and, if added, the guard in route.py → DELETE /remove). Keep the
+ * two lists in sync — three names, one place each.
+ *
+ * The check covers suffixes as well: any `<something>.neurocad.ru`
+ * is protected too, so a future subdomain of the platform cannot be
+ * accidentally detached.
  */
 
 export function makeCards(helpers) {
     const { fullUrl, escapeAttr, statusBadge } = helpers;
+
+    // ============================================
+    // PROTECTED DOMAINS — must match service.py
+    // ============================================
+    //
+    // Three apex names that belong to the platform. The "Отключить"
+    // button is disabled for any of them (and for any of their
+    // subdomains). See the module docstring for why.
+    const PROTECTED_DOMAINS = new Set([
+        'neurocad.ru',
+        'neurocad-dev.ru',
+        'neurocad-demo.ru',
+    ]);
+
+    /**
+     * True if `host` is one of the platform's own domains, or a
+     * subdomain of one.
+     *
+     * Normalizes the input: lowercases, strips one trailing dot
+     * ("example.com." → "example.com"). Returns false for empty
+     * input — the caller then renders the button normally.
+     */
+    function isProtectedDomain(host) {
+        const h = String(host ?? '').toLowerCase().replace(/\.$/, '');
+        if (!h) return false;
+        if (PROTECTED_DOMAINS.has(h)) return true;
+        // Any subdomain of a protected apex is protected too.
+        return [...PROTECTED_DOMAINS].some(d => h.endsWith('.' + d));
+    }
 
     // ============================================
     // SUBDOMAIN CARD
@@ -212,8 +262,20 @@ export function makeCards(helpers) {
         }
 
         // ---- Custom domain is set — show it as a clickable link ----
+        //
+        // If the domain belongs to the platform itself (neurocad.ru
+        // or a sibling), the "Отключить" button is disabled: an
+        // accidental click would detach the platform's root domain
+        // and put its certificate into Caddy's deletion queue. The
+        // backend guards this too — see the module docstring.
+        const customProtected = isProtectedDomain(custom.domain);
+
         const badge = statusBadge(custom.status);
         const url = fullUrl(custom.domain);
+
+        const removeTitle = customProtected
+            ? 'Системный домен — отключение запрещено'
+            : 'Отключить домен';
 
         return `
             <section class="domain-card">
@@ -247,7 +309,8 @@ export function makeCards(helpers) {
                     <button type="button"
                             class="domain-btn domain-btn-danger"
                             data-action="remove-domain"
-                            ${submitting ? 'disabled' : ''}>
+                            ${submitting || customProtected ? 'disabled' : ''}
+                            title="${escapeAttr(removeTitle)}">
                         ${submitting ? 'Отключаю…' : 'Отключить'}
                     </button>
                 </div>

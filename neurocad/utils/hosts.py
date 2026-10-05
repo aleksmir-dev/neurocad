@@ -15,11 +15,18 @@ in routes.py and quietly diverged. Now every caller imports from
 here, and changes (e.g. adding a new reserved subdomain) only
 need to be made once.
 
-Two concepts:
+Three concepts:
 
   normalize_host(host)
       Canonical form of a Host header: lowercase, port stripped,
       trailing dot removed. Returns None for empty / None input.
+
+      APP_DOMAIN (e.g. "neurocad.ru") is NOT special-cased away:
+      it passes through the same path as any other host, so the
+      custom-domain lookup below can resolve it. The platform's
+      bare domain is bound to the system admin via users.domain,
+      and its public pages, robots.txt and sitemap.xml work
+      exactly like any user's custom domain.
 
   slug_from_host(host)
       The "user slug" part of a subdomain of APP_DOMAIN.
@@ -29,10 +36,11 @@ Two concepts:
 
   login_from_custom_domain(host)
       Reverse lookup: which user has users.domain == host.
-      atou.ru → "admin"
-      Returns None for empty host, APP_DOMAIN itself, subdomains
-      of APP_DOMAIN (those are handled by slug_from_host), and
-      any host with no matching user.
+      atou.ru        → "admin"
+      neurocad.ru    → "admin"   (bound to the system admin)
+      Returns None for empty host, subdomains of APP_DOMAIN
+      (those are handled by slug_from_host), and any host with
+      no matching user.
 
   user_id_from_host(host)
       Convenience wrapper: tries subdomain first, then custom
@@ -71,11 +79,18 @@ def normalize_host(host: Optional[str]) -> Optional[str]:
       - lowercases
       - strips one trailing dot ("example.com." → "example.com")
 
-    Returns None if the result is empty, or if the host is the
-    APP_DOMAIN itself (the platform's bare domain is never a user
-    host). Subdomains of APP_DOMAIN are returned as-is — the
-    caller decides whether they mean a user subdomain (via
-    slug_from_host) or something else.
+    Returns None if the result is empty.
+
+    NOTE: APP_DOMAIN itself (e.g. "neurocad.ru") is NOT special-
+    cased away. It passes through the same path as any other host,
+    so login_from_custom_domain() can resolve it — the platform's
+    bare domain is bound to the system admin via users.domain, and
+    its public pages / robots.txt / sitemap.xml work exactly like
+    any user's custom domain.
+
+    Subdomains of APP_DOMAIN are also returned as-is — the caller
+    decides whether they mean a user subdomain (via slug_from_host)
+    or something else.
     """
     if not host:
         return None
@@ -88,16 +103,10 @@ def normalize_host(host: Optional[str]) -> Optional[str]:
     if not host:
         return None
 
-    root = (settings.APP_DOMAIN or "").strip().lower()
-    if root:
-        if host == root:
-            return None
-        # Subdomains of APP_DOMAIN are kept — the caller decides
-        # what to do with them (slug_from_host handles the user
-        # subdomain case).
-        if host.endswith("." + root):
-            return host
-
+    # No special-casing for APP_DOMAIN: it is a valid host for the
+    # custom-domain lookup (see the module docstring). Subdomains
+    # of APP_DOMAIN are handled by slug_from_host on the caller's
+    # side, not here.
     return host
 
 
@@ -117,6 +126,10 @@ def slug_from_host(host: Optional[str]) -> Optional[str]:
 
     Returns the slug (login) when the host is a valid user
     subdomain, or None otherwise.
+
+    Unlike normalize_host(), this function DOES special-case
+    APP_DOMAIN itself — the bare platform domain is not a user
+    subdomain, it has no slug.
     """
     if not host:
         return None
@@ -169,10 +182,17 @@ async def login_from_custom_domain(
     lookup reads the login from the host, this one reads it from
     the database.
 
-    Guards (all applied via normalize_host):
-      - empty / missing host              → None
-      - host is APP_DOMAIN itself         → None
-      - host is a subdomain of APP_DOMAIN → None (handled earlier)
+    APP_DOMAIN itself is a valid custom domain for the system admin
+    (users.domain = 'neurocad.ru'), so the platform's bare domain
+    resolves to that user here. Subdomains of APP_DOMAIN are NOT
+    custom domains — they are user subdomains, handled by
+    slug_from_host — but this function still checks the database
+    for them (defensive: nobody should register a subdomain of
+    APP_DOMAIN as a custom domain, but if the DB somehow has such
+    a row, we would honour it).
+
+    Guards:
+      - empty / missing host → None
 
     Never raises on DB errors — treated as "not a custom domain".
     """
@@ -212,12 +232,14 @@ async def user_id_from_host(host: Optional[str]) -> Optional[int]:
 
     Tries in order:
       1. slug_from_host(host) — subdomain of APP_DOMAIN → user by login;
-      2. login_from_custom_domain(host) → user by domain.
+      2. login_from_custom_domain(host) → user by domain
+         (covers the platform's bare APP_DOMAIN, bound to the system
+         admin via users.domain).
 
     Returns None if neither path matched — that means the host does
     not belong to any user, and the caller should treat it as a
-    "technical" host (the platform's bare domain, a random domain
-    pointed at us, etc.).
+    "technical" host (a random domain pointed at us, an unknown
+    subdomain, etc.).
 
     Never raises on DB errors.
     """
@@ -232,6 +254,9 @@ async def user_id_from_host(host: Optional[str]) -> Optional[int]:
             return user_id
 
     # ---- 2. Custom-domain path ----
+    # Covers both user-registered custom domains (atou.ru) and
+    # the platform's bare APP_DOMAIN, which is bound to the
+    # system admin via users.domain.
     login = await login_from_custom_domain(host)
     if login:
         return await _user_id_by_login(login)

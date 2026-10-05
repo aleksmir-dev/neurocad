@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2026-10-05
+- Platform root domain (`neurocad.ru`) is bound to the first superadmin so its public pages resolve again, `normalize_host()` no longer special-cases `APP_DOMAIN`, and the "Отключить" button for platform domains is now disabled in the UI.
+
 ## [1.0.8] - 2026-10-05
 - Media library picker in the editor now uses `BaseAssets` (same full-screen picker with tabs «Медиатека» / «Логотипы» as the article form) via an override of GrapesJS's `open-assets` command; public `/page/...` and `/pages` routes are now scoped to the owner's host (404 on foreign hosts, closing cross-domain duplication); the "Открыть публичную версию" button opens on the owner's public host via `pageData.public_url`; and `word/service.py` had a broken relative import (`...base` → `..base`) that crashed `/word/bydatetime` with HTTP 500.
 
@@ -65,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release: FastAPI backend, SQLite storage, BaseCards widgets, GrapesJS Word editor, LLM chat panel, media library, page history.
 
+[1.0.9]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.5...v1.0.6
