@@ -16,7 +16,12 @@ Responses carry:
                       used by the "Главная страница" selector;
   - home_page_id    — the user's chosen home page id (or None);
   - robots_2        — current text of the custom domain's robots.txt;
-  - robots_3        — current text of the free subdomain's robots.txt.
+  - robots_3        — current text of the free subdomain's robots.txt;
+  - pages_url       — absolute URL of the public catalog on the owner's
+                      public host (https://<login>.<APP_DOMAIN>/pages
+                      or https://<custom-domain>/pages). Consumed by
+                      pages.js → _loadPublicPagesUrl() for the
+                      «Открыть каталог статей» toolbar button.
 
 Status is NOT stored in the DB. It is derived at read time from the
 current DNS record and Caddy availability, so a user who fixed their
@@ -143,6 +148,22 @@ class CoreEngineLibBaseProfileDomainData(BaseModel):
         DEFAULT_ROBOTS_CLOSED,
         description="users.robots_3 — subdomain robots.txt body",
     )
+
+    #: Absolute URL of the public article catalog on the OWNER's
+    #: public host:
+    #:     https://<login>.<APP_DOMAIN>/pages
+    #:     https://<custom-domain>/pages
+    #:
+    #: Built from CoreEngineLibBaseProfileDomainService.get_public_base_url()
+    #: — the same base the sitemap and the word toolbar use. Consumed by
+    #: pages.js → _loadPublicPagesUrl() for the «Открыть каталог статей»
+    #: toolbar button.
+    #:
+    #: None when the user's public host cannot be resolved — the
+    #: frontend then falls back to a relative "/pages", which resolves
+    #: against whatever host the admin panel is on (usually not what
+    #: we want).
+    pages_url: Optional[str] = None
 
 
 class CoreEngineLibBaseProfileDomainResponse(BaseModel):

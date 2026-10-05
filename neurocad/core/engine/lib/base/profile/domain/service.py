@@ -49,6 +49,11 @@ sitemap.xml is generated on the fly:
   - the base URL for <loc> comes from get_public_base_url(): custom
     domain if set, otherwise <login>.<ROOT_DOMAIN>.
 
+pages_url — the absolute public URL of the article catalog on the
+owner's public host, exposed by GET /domain/ and consumed by
+pages.js → _loadPublicPagesUrl() for the «Открыть каталог статей»
+toolbar button.
+
 No cache.
 
 Namespace: CoreEngineLibBaseProfileDomain*
@@ -204,7 +209,8 @@ class CoreEngineLibBaseProfileDomainService:
     ) -> CoreEngineLibBaseProfileDomainData:
         """
         Read the subdomain + custom domain slot + Caddy availability
-        + the user's pages and home page id + robots_2 / robots_3.
+        + the user's pages and home page id + robots_2 / robots_3
+        + the absolute public URL of the article catalog (pages_url).
         """
         user = await cls._load_user(user_id)
         subdomain = cls._build_subdomain(login)
@@ -248,6 +254,21 @@ class CoreEngineLibBaseProfileDomainService:
         robots_2 = (user.robots_2 if user and user.robots_2 else None) or ROBOTS_CLOSED
         robots_3 = (user.robots_3 if user and user.robots_3 else None) or ROBOTS_CLOSED
 
+        # Absolute public URL of the article catalog on the OWNER's
+        # public host. Built from the same base as the sitemap:
+        #   https://<login>.<ROOT_DOMAIN>/pages
+        #   https://<custom-domain>/pages
+        #
+        # Consumed by pages.js → _loadPublicPagesUrl() so the
+        # «Открыть каталог статей» toolbar button opens the catalog
+        # on the user's own public domain (not the admin host).
+        #
+        # None when the base URL cannot be resolved — the frontend
+        # then falls back to a relative "/pages", which resolves
+        # against the current admin host (usually not what we want).
+        base = await cls.get_public_base_url(user_id)
+        pages_url = f"{base}/pages" if base else None
+
         return CoreEngineLibBaseProfileDomainData(
             subdomain=subdomain,
             custom=CoreEngineLibBaseProfileDomainCustom(
@@ -261,6 +282,7 @@ class CoreEngineLibBaseProfileDomainService:
             home_page_id=home_page_id,
             robots_2=robots_2,
             robots_3=robots_3,
+            pages_url=pages_url,
         )
 
     # ========================================
@@ -279,6 +301,7 @@ class CoreEngineLibBaseProfileDomainService:
         Returns None if the user does not exist or has no login.
         Used by:
           - build_sitemap() — to prefix <loc> entries;
+          - get_for_user() — to build `pages_url` (the catalog URL);
           - the pages module on the frontend — via GET /domain/
             (`pages_url` field), for the "Открыть каталог статей"
             button. That button must be an absolute URL pointing at
