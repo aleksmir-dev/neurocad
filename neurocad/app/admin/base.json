@@ -1,0 +1,9 @@
+{
+  "_file": "admin/base.json",  
+  "component": "base",
+  "logoText": "⚡ Нейрокад",
+  "title": "Нейрокад",
+  "menu": [
+    { "text": "Главная", "href": "/" }
+  ]
+}

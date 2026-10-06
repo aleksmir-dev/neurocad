@@ -1,0 +1,10 @@
+{
+  "_file": "admin/index.json",    
+  "component": "page",
+  "extend": "base",
+  "title": "Каталог статей",
+  "content": "{{ pages }}",
+  "components": [
+    { "component": "pages" }
+  ]
+}

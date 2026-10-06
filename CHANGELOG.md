@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.14] - 2026-10-06
+- Fixed `word/service.py` importing the domain service from the old module path after the 1.0.13 package split — admin page viewer returned 500 ("страница не найдена").
+
 ## [1.0.13] - 2026-10-06
 - Per-user policy / rules markdown pages served at `/policy` и `/rules` on the user's host, with universal fallback texts, a new `domain/public.py` router, `domain/service.py` split into a package, and async DNS checks.
 
@@ -80,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.14]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.13...v1.0.14
 [1.0.13]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.12...v1.0.13
 [1.0.12]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.11...v1.0.12
 [1.0.11]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.10...v1.0.11

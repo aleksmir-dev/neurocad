@@ -1,0 +1,10 @@
+{
+  "_file": "admin/page.json",        
+  "component": "page",
+  "extend": "base",
+  "title": "Статья",
+  "content": "{{ word }}",
+  "components": [
+    { "component": "word" }
+  ]
+}

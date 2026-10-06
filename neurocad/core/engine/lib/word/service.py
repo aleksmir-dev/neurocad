@@ -775,7 +775,13 @@ async def _build_public_url(page) -> Optional[str]:
     # Public base URL for this user (login.<APP_DOMAIN> or custom
     # domain). Reused from the domain service — the same value the
     # sitemap and the "Открыть каталог статей" button use.
-    from ..base.profile.domain.service import (
+    #
+    # NOTE: the domain service was refactored from a single module
+    # (domain/service.py) into a package (domain/service/), with
+    # the facade class living in domain/service/facade.py. The old
+    # import path (`..base.profile.domain.service`) no longer
+    # resolves — see the domain/service/ package for details.
+    from ..base.profile.domain.service.facade import (
         CoreEngineLibBaseProfileDomainService,
     )
 

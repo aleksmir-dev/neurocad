@@ -1,0 +1,10 @@
+{
+  "_file": "admin/nav.json",      
+  "component": "page",
+  "extend": "base",
+  "title": "Навигация",
+  "content": "{{ nav }}",
+  "components": [
+    { "component": "nav" }
+  ]
+}
