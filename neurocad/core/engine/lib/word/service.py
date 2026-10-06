@@ -43,6 +43,7 @@ import uuid
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
+from urllib.parse import urlparse
 from fastapi import UploadFile
 
 from sqlalchemy import select
@@ -708,16 +709,25 @@ async def _page_to_dict(page) -> Dict[str, Any]:
     Serialize Page model to dict.
 
     Async because it also resolves the page's absolute public URL
-    via CoreEngineLibBaseProfileDomainService.get_public_base_url(),
-    which needs a DB session (users.domain or <login>.<APP_DOMAIN>).
+    and public host via CoreEngineLibBaseProfileDomainService,
+    which need a DB session (users.domain or <login>.<APP_DOMAIN>).
 
-    `public_url` is what the word toolbar's "Открыть публичную
-    версию" button opens: the page rendered on the OWNER's host,
-    not on the technical host the admin panel runs on. Built here
-    (server-side) because the editor cannot know the owner's public
-    host on its own.
+    `public_url` — full public URL of the page on the OWNER's host
+    (subdomain or custom domain). Used by the editor's "Open public
+    version" button.
+
+    `public_host` — the bare hostname without scheme or path
+    (e.g. "testuser3.neurocad-dev.ru" or "atou.ru"). Used by the
+    editor to substitute the real host into the footer block when
+    a page is loaded — see dataloader.js → _applyFooterBrand().
     """
     public_url = await _build_public_url(page)
+    public_host = None
+    if public_url:
+        try:
+            public_host = urlparse(public_url).hostname or None
+        except Exception:
+            public_host = None
 
     return {
         "id": page.id,
@@ -737,6 +747,7 @@ async def _page_to_dict(page) -> Dict[str, Any]:
         "is_template": int(page.is_template) if page.is_template is not None else 0,
         "template_id": page.template_id,
         "public_url": public_url,
+        "public_host": public_host,
     }
 
 

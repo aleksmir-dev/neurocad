@@ -10,6 +10,10 @@
  *   grapes/       -> loads GrapesJS CSS/JS and calls grapesjs.init()
  *   assets.js     -> image picker (BaseAssets) + traits binding
  *   blocks/       -> registers block library
+ *   brand.js      -> substitutes the real public host into
+ *                    [data-footer-brand] on component:add
+ *   autosave.js   -> interval-based, dirty-flag driven auto-save
+ *   session.js    -> save / cancel / close / clear flow
  *   resizer.js    -> handles for dragging borders between areas
  *   template.js   -> base template rendering + slot height sync
  *   toolbar.js    -> editor toolbar + hotkeys + device switcher
@@ -36,32 +40,16 @@
  * exposes openPicker() and binds a "Выбрать из медиатеки" button
  * to the src trait of every <img> component in the canvas.
  *
- * Auto-save (interval-based):
- *   Every AUTO_SAVE_INTERVAL_MS (30 s) we check a "dirty" flag that is
- *   set by GrapesJS `update` events and cleared after a successful save.
- *   Nothing is saved if there were no changes since the last save, so
- *   an idle editor produces zero traffic.
+ * Auto-save:
+ *   The interval-based auto-save — dirty flag, timer, onAutoSave
+ *   fallback — lives in autosave.js.
  *
- *   Auto-save does NOT touch UndoManager — Undo/Redo stays usable for
- *   the whole lifetime of the editor. Manual save (toolbar / Ctrl+S)
- *   persists and closes the editor via onSave.
+ * Save / cancel / close:
+ *   The three-way save-on-close dialog, manual save, cancel, clear
+ *   page, redirect-to-login-on-401 — live in session.js.
  *
- *   Auto-save persists via onAutoSave (editor stays open). If onAutoSave
- *   is not provided, falls back to onSave.
- *
- *   If the session expires during auto-save, fetchJson emits
- *   auth:unauthorized and the editor is torn down by Base.
- *
- * Save-on-close (three-way):
- *   When the editor is closed with unsaved changes — either by the
- *   toolbar "✕" / Escape, or externally (Base navigates to setup /
- *   profile) — a three-way confirm modal asks:
- *
- *     Сохранить      → persist, then close (or proceed with navigation).
- *     Не сохранять   → close / proceed, dropping changes.
- *     Отмена         → do nothing, keep the editor open.
- *
- *   Editor.confirmClose() is the entry point for external closes.
+ *   Editor.confirmClose() is kept here as a thin public wrapper
+ *   because Word calls it directly during external close.
  *
  * Template mode:
  *   If props.templateHtml is provided:
@@ -112,18 +100,11 @@ export class Editor {
         this._initialized = false;
         this._initPromise = null;
 
-        // Auto-save — interval-based, dirty-flag driven.
-        //
-        // The interval just wakes up every AUTO_SAVE_INTERVAL_MS and
-        // checks `_dirty`. `_dirty` is set by GrapesJS `update` events
-        // (user-driven changes only — filtered below) and cleared after
-        // a successful save. No changes → no traffic.
+        // Auto-save configuration — consumed by autosave.js at
+        // construct time. Changing these on the Editor instance
+        // BEFORE _init() takes effect.
         this.AUTO_SAVE_ENABLED = true;
         this.AUTO_SAVE_INTERVAL_MS = 30_000;
-        this._autoSaveTimer = null;
-        this._autoSaveInFlight = false;
-        this._autoSaveFailed = false;
-        this._dirty = false;
 
         // Submodules (created in _init)
         this._widgets = null;
@@ -135,6 +116,8 @@ export class Editor {
         this._templateMgr = null;   // template.js module
         this._toolbarMgr = null;    // toolbar.js module
         this._dataLoader = null;    // dataloader.js module
+        this._autosave = null;      // autosave.js module
+        this._session = null;       // session.js module
         this._createModal = null;
         this._modals = null;        // modals.js module
         this._history = null;       // history.js module
@@ -142,6 +125,9 @@ export class Editor {
         this._presets = null;       // LLM presets
         this._importer = null;      // io/import.js module
         this._exporter = null;      // io/export.js module
+        this._bindFooterBrand = null;
+        this._AutosaveClass = null;
+        this._SessionClass = null;
 
         // DOM elements (filled by widgets.build())
         this.leftArea = null;
@@ -160,6 +146,14 @@ export class Editor {
         // Page data for LLM chat / presets
         this.pageId = props.pageId || null;
         this.pageData = props.pageData || null;
+
+        // Public host of the owner's site (subdomain or custom domain),
+        // e.g. "testuser3.neurocad-dev.ru" or "atou.ru". Resolved on the
+        // backend and passed in pageData.public_host. Passed to
+        // brand.js → bindFooterBrand(), which substitutes it into
+        // [data-footer-brand] elements when the core-footer block is
+        // dropped into the canvas.
+        this.publicHost = (props.pageData && props.pageData.public_host) || null;
 
         // Media library API — with module_name for multi-site support.
         //
@@ -205,6 +199,9 @@ export class Editor {
                 { StylesConfig },
                 { AssetsManager },
                 { BlocksRegistry },
+                { bindFooterBrand },
+                { Autosave },
+                { Session },
                 { Resizer },
                 { TemplateManager },
                 { ToolbarManager },
@@ -221,6 +218,9 @@ export class Editor {
                 import(`./styles.js?v=${version}`),
                 import(`./assets.js?v=${version}`),
                 import(`./blocks/index.js?v=${version}`),
+                import(`./brand.js?v=${version}`),
+                import(`./autosave.js?v=${version}`),
+                import(`./session.js?v=${version}`),
                 import(`./resizer.js?v=${version}`),
                 import(`./template.js?v=${version}`),
                 import(`./toolbar.js?v=${version}`),
@@ -235,6 +235,9 @@ export class Editor {
 
             this._createModal = createModal;
             this._modals = modalsModule;
+            this._bindFooterBrand = bindFooterBrand;
+            this._AutosaveClass = Autosave;
+            this._SessionClass = Session;
 
             // 2. Build DOM of three areas (left / center / right) + toolbar
             this._widgets = new WidgetsBuilder(this);
@@ -272,6 +275,14 @@ export class Editor {
                 this._blocks = new BlocksRegistry(this.editor);
                 await this._blocks.register();
 
+                // 5.1. Footer brand — subscribe to component:add and
+                //      substitute the real public host into any
+                //      [data-footer-brand] element that appears in
+                //      the canvas (see brand.js).
+                if (typeof this._bindFooterBrand === 'function') {
+                    this._bindFooterBrand(this);
+                }
+
                 // 6. Image picker — bind the "Choose from library"
                 //    button to the src trait of every <img> in the
                 //    canvas. Images themselves are selected through
@@ -298,10 +309,22 @@ export class Editor {
                 this._dataLoader = new DataLoader(this);
                 this._dataLoader.loadInitial();
 
-                // 9.5. Start tracking changes and auto-saving.
-                this._bindAutoSave();
+                // 9.5. Auto-save — subscribe to `update` and start
+                //      the timer. All auto-save state lives in the
+                //      Autosave instance (see autosave.js).
+                if (typeof this._AutosaveClass === 'function') {
+                    this._autosave = new this._AutosaveClass(this);
+                    this._autosave.bind();
+                }
             } else {
                 console.log('[Editor] Preview mode — GrapesJS not initialized, panels disabled');
+            }
+
+            // 9.6. Session — save / cancel / close / clear flow.
+            //      Created even in preview mode (clear/cancel still
+            //      make sense there — components list is empty).
+            if (typeof this._SessionClass === 'function') {
+                this._session = new this._SessionClass(this);
             }
 
             // 10. Toolbar + hotkeys.
@@ -314,138 +337,6 @@ export class Editor {
             console.error('[Editor] Init error:', error);
             this._initialized = false;
             throw error;
-        }
-    }
-
-    // ============================================
-    // AUTO-SAVE (interval + dirty flag)
-    // ============================================
-
-    /**
-     * Subscribe to GrapesJS change events and start the auto-save timer.
-     *
-     * `update` fires on any user-driven change (component add/remove,
-     * style, text). It also fires for internal things (selection, panel
-     * tabs, layout) — but those don't matter here: we only set a flag,
-     * and the actual save runs on the timer.
-     */
-    _bindAutoSave() {
-        if (!this.editor) return;
-
-        if (!this.AUTO_SAVE_ENABLED) {
-            console.log('[Editor] Auto-save disabled (AUTO_SAVE_ENABLED=false)');
-            return;
-        }
-
-        // Any user-driven change sets the dirty flag. We do NOT save here —
-        // just mark that there's something to save on the next tick.
-        this.editor.on('update', () => {
-            this._dirty = true;
-        });
-
-        this._startAutoSaveInterval();
-
-        console.log(`[Editor] Auto-save enabled (interval ${this.AUTO_SAVE_INTERVAL_MS}ms)`);
-    }
-
-    /**
-     * Start (or restart) the auto-save interval.
-     */
-    _startAutoSaveInterval() {
-        this._stopAutoSaveInterval();
-        this._autoSaveTimer = setInterval(() => {
-            if (!this._dirty) return;         // nothing changed — skip
-            if (this._autoSaveInFlight) return;
-            this._autoSave();
-        }, this.AUTO_SAVE_INTERVAL_MS);
-    }
-
-    /**
-     * Stop the auto-save interval.
-     */
-    _stopAutoSaveInterval() {
-        if (this._autoSaveTimer) {
-            clearInterval(this._autoSaveTimer);
-            this._autoSaveTimer = null;
-        }
-    }
-
-    /**
-     * True if there are user-driven changes since the last save.
-     *
-     * Used by the save-on-close dialog. Note: this is stricter than
-     * `_dirty` — UndoManager.hasUndo() reflects real history, while
-     * `_dirty` is just "something happened since the last save".
-     */
-    _hasUnsavedChanges() {
-        const um = this.editor?.UndoManager;
-        if (!um || typeof um.hasUndo !== 'function') {
-            // No UndoManager — fall back to the dirty flag.
-            return this._dirty;
-        }
-        return um.hasUndo() || this._dirty;
-    }
-
-    /**
-     * Perform the auto-save.
-     *
-     * Uses onAutoSave if provided; otherwise falls back to onSave.
-     * The editor stays open either way (onAutoSave must not close it).
-     *
-     * Does NOT clear UndoManager — Undo/Redo must stay usable while
-     * the editor is open, even after an auto-save.
-     */
-    async _autoSave() {
-        if (!this.editor) return;
-
-        const saveFn = this.onAutoSave || this.onSave;
-        if (!saveFn) return;
-        if (this._autoSaveInFlight) return;
-        if (!this._dirty) return;
-
-        this._autoSaveInFlight = true;
-
-        // Notify UI — "Сохранение…"
-        document.dispatchEvent(new CustomEvent('editor:autosave-pending'));
-
-        try {
-            const data = {
-                html: this.editor.getHtml(),
-                css: this.editor.getCss(),
-                project: this.editor.getProjectData(),
-            };
-
-            await saveFn(data);
-            console.log('[Editor] Auto-saved');
-
-            // Clear dirty flag only after a successful save.
-            this._dirty = false;
-
-            // Reset failure flag on success.
-            this._autoSaveFailed = false;
-
-            // Notify UI — "Сохранено".
-            document.dispatchEvent(new CustomEvent('editor:autosaved', {
-                detail: { at: Date.now() }
-            }));
-        } catch (error) {
-            console.error('[Editor] Auto-save error:', error);
-
-            // On 401 — fetchJson already emitted auth:unauthorized.
-            // Do not retry; the editor will be replaced by the login form.
-            if (error?.status === 401) {
-                console.warn('[Editor] Auto-save stopped (session expired)');
-                return;
-            }
-
-            // On other errors — keep the dirty flag, mark as failed.
-            // Next interval tick will retry.
-            this._autoSaveFailed = true;
-            document.dispatchEvent(new CustomEvent('editor:autosave-failed', {
-                detail: { error }
-            }));
-        } finally {
-            this._autoSaveInFlight = false;
         }
     }
 
@@ -586,184 +477,43 @@ export class Editor {
     }
 
     // ============================================
-    // SAVING / CLEAR / CANCEL
+    // SAVING / CLEAR / CANCEL — delegated to session.js
     // ============================================
 
     /**
      * Manual save — triggered by the toolbar / Ctrl+S.
-     *
-     * Stops the auto-save interval, persists via onSave (which also
-     * closes the editor), and resets auto-save state.
+     * Delegates to session.js → save().
      */
     async _handleSave() {
-        if (!this.editor) {
-            console.warn('[Editor] save: GrapesJS not initialized');
+        if (!this._session) {
+            console.warn('[Editor] session module not loaded');
             return;
         }
-
-        if (!this.onSave) {
-            console.warn('[Editor] onSave not bound');
-            return;
-        }
-
-        // Stop auto-save — the editor is about to close.
-        this._stopAutoSaveInterval();
-        this._dirty = false;
-
-        console.log('[Editor] Saving...');
-
-        const data = {
-            html: this.editor.getHtml(),
-            css: this.editor.getCss(),
-            project: this.editor.getProjectData(),
-        };
-
-        try {
-            await this.onSave(data);
-            console.log('[Editor] Saved');
-
-            // Reset auto-save state on manual save.
-            this._autoSaveFailed = false;
-        } catch (error) {
-            console.error('[Editor] Save error:', error);
-
-            // 401 — session expired. Redirect to login, preserving return URL.
-            if (error?.status === 401) {
-                this._redirectToLogin();
-                return;
-            }
-
-            // Other errors — show a message modal (best-effort).
-            this._showSaveError(error);
-        }
+        await this._session.save();
     }
 
     /**
      * Clear the whole edited page.
+     * Delegates to session.js → clear().
      */
     _handleClear() {
-        console.log('[Editor] Clear page');
-
-        if (!this.editor) return;
-
-        try {
-            this.editor.DomComponents.clear();
-            this.editor.Css.clear();
-            this.editor.select(null);
-
-            console.log('[Editor] Page cleared');
-        } catch (e) {
-            console.warn('[Editor] clear failed:', e);
-        }
-    }
-
-    /**
-     * Redirect to login page with ?next=<current URL>.
-     */
-    _redirectToLogin() {
-        console.log('[Editor] Session expired — redirecting to login');
-
-        const authRedirect = window.coreEngine?.authRedirect || '/login';
-        const returnUrl = encodeURIComponent(window.location.href);
-        const sep = authRedirect.includes('?') ? '&' : '?';
-
-        window.location.href = `${authRedirect}${sep}next=${returnUrl}`;
-    }
-
-    /**
-     * Show a small message modal with the save error text.
-     */
-    async _showSaveError(error) {
-        const message = error?.message || 'Не удалось сохранить';
-
-        if (!this._createModal) {
-            console.warn('[Editor] createModal not available — error not shown:', message);
+        if (!this._session) {
+            console.warn('[Editor] session module not loaded');
             return;
         }
-
-        try {
-            const modal = await this._createModal('message');
-            modal.open(message, 'Ошибка сохранения', 'Понятно');
-            modal.setOnOk(() => modal.destroy());
-        } catch (e) {
-            console.warn('[Editor] failed to show save error modal:', e);
-        }
+        this._session.clear();
     }
 
     /**
      * Cancel — triggered by the toolbar "✕" / Escape.
-     *
-     * If there are unsaved changes, ask the user:
-     *   - "Сохранить"      → run the manual save flow (persists + closes).
-     *   - "Не сохранять"   → close via onCancel (dropping changes).
-     *   - "Отмена"         → keep the editor open.
-     *
-     * If there are no unsaved changes — just close.
+     * Delegates to session.js → cancel().
      */
     async _handleCancel() {
-        console.log('[Editor] Cancel');
-
-        // No unsaved changes — close straight away.
-        if (!this._hasUnsavedChanges()) {
-            this._stopAutoSaveInterval();
-            if (this.onCancel) this.onCancel();
+        if (!this._session) {
+            console.warn('[Editor] session module not loaded');
             return;
         }
-
-        // Ask the user what to do.
-        const choice = await this._askSaveOnClose();
-
-        if (choice === 'save') {
-            // Save, then close (the toolbar ✕ is "save and close").
-            await this._handleSave();
-            return;
-        }
-
-        if (choice === 'cancel') {
-            // User cancelled — keep the editor open.
-            return;
-        }
-
-        // choice === 'discard' — close without saving.
-        this._stopAutoSaveInterval();
-        if (this.onCancel) this.onCancel();
-    }
-
-    /**
-     * Persist current editor state WITHOUT closing.
-     *
-     * Used by confirmClose() when the user picks "Сохранить" on an
-     * external close (Base navigates away). The editor will be torn
-     * down by Base right after — we just need the data on the server.
-     *
-     * Uses onAutoSave if set, otherwise onSave. Always resolves — a
-     * failure is logged, but the navigation still proceeds (Base
-     * cannot wait forever).
-     */
-    async saveForExternalClose() {
-        if (!this.editor) return;
-
-        const saveFn = this.onAutoSave || this.onSave;
-        if (!saveFn) return;
-
-        // Flush any pending auto-save state.
-        this._stopAutoSaveInterval();
-
-        const data = {
-            html: this.editor.getHtml(),
-            css: this.editor.getCss(),
-            project: this.editor.getProjectData(),
-        };
-
-        try {
-            await saveFn(data);
-            this._dirty = false;
-            this._autoSaveFailed = false;
-            console.log('[Editor] Saved (before external close)');
-        } catch (e) {
-            console.error('[Editor] Save before external close failed:', e);
-            // Do not throw — Base still needs to tear down.
-        }
+        await this._session.cancel();
     }
 
     // ============================================
@@ -774,6 +524,9 @@ export class Editor {
      * Ask the user what to do with unsaved changes before the editor
      * is torn down externally (e.g. Base navigates to setup / profile).
      *
+     * Kept on Editor as a thin wrapper because Word calls it directly.
+     * Delegates to session.js → confirmClose().
+     *
      * Returns:
      *   'save'    — user chose to save. Changes already persisted.
      *   'discard' — user chose to close without saving.
@@ -783,70 +536,11 @@ export class Editor {
      * (nothing to lose, no dialog).
      */
     async confirmClose() {
-        if (!this._hasUnsavedChanges()) {
+        if (!this._session) {
+            console.warn('[Editor] session module not loaded');
             return 'discard';
         }
-
-        const choice = await this._askSaveOnClose();
-
-        if (choice === 'save') {
-            await this.saveForExternalClose();
-        }
-
-        return choice;
-    }
-
-    /**
-     * Show a three-way dialog on close with unsaved changes.
-     *
-     * Returns: 'save' | 'discard' | 'cancel'.
-     *
-     *   Сохранить      → 'save'    (persists, editor stays open)
-     *   Не сохранять   → 'discard' (close, drop changes)
-     *   Отмена         → 'cancel'  (do nothing, keep editor open)
-     *
-     * Uses the shared createModal('confirm') with three buttons.
-     * Falls back to window.confirm() — 2-way (save / discard) — if
-     * createModal is unavailable.
-     */
-    async _askSaveOnClose() {
-        if (!this._createModal) {
-            const ok = window.confirm(
-                'Есть несохранённые изменения. Сохранить перед закрытием?'
-            );
-            return ok ? 'save' : 'discard';
-        }
-
-        try {
-            const modal = await this._createModal('confirm');
-
-            return await new Promise((resolve) => {
-                let settled = false;
-                const settle = (v) => {
-                    if (settled) return;
-                    settled = true;
-                    resolve(v);
-                };
-
-                modal.open(
-                    'Есть несохранённые изменения. Сохранить перед закрытием?',
-                    'Закрытие редактора',
-                    'Сохранить',      // ok-btn
-                    'Отмена',         // cancel-btn
-                    'Не сохранять'    // no-btn (enables 3-button mode)
-                );
-
-                modal.setOnOk(() => { modal.destroy(); settle('save'); });
-                modal.setOnCancel(() => { modal.destroy(); settle('cancel'); });
-                modal.setOnNo(() => { modal.destroy(); settle('discard'); });
-            });
-        } catch (e) {
-            console.warn('[Editor] _askSaveOnClose modal failed:', e);
-            const ok = window.confirm(
-                'Есть несохранённые изменения. Сохранить перед закрытием?'
-            );
-            return ok ? 'save' : 'discard';
-        }
+        return await this._session.confirmClose();
     }
 
     // ============================================
@@ -866,7 +560,7 @@ export class Editor {
         console.log('[Editor] destroy()');
 
         // Stop auto-save.
-        this._stopAutoSaveInterval();
+        this._autosave?.stop();
 
         // Toolbar manager — detach global keydown
         if (this._toolbarMgr) {
@@ -953,9 +647,14 @@ export class Editor {
         this._assets = null;
         this._blocks = null;
         this._dataLoader = null;
+        this._autosave = null;
+        this._session = null;
+        this._AutosaveClass = null;
+        this._SessionClass = null;
         this._createModal = null;
         this._modals = null;
         this._history = null;
+        this._bindFooterBrand = null;
 
         this._initialized = false;
         this._initPromise = null;

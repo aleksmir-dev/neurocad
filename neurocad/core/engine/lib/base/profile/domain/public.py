@@ -88,8 +88,8 @@ _INLINE_FALLBACK = {
 
 
 def _today_iso() -> str:
-    """Today's date in YYYY-MM-DD."""
-    return date.today().isoformat()
+    """Today's date in DD.MM.YYYY (Russian format)."""
+    return date.today().strftime("%d.%m.%Y")
 
 
 def read_default(which: str) -> str:

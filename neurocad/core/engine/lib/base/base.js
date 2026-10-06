@@ -704,8 +704,44 @@ export class Base {
                 </div>
             </main>
             <footer class="core-engine-lib-base-footer">
-                <div class="core-engine-lib-base-footer-inner">© 2026 NeuroCad - Смирнов Алексей Владимирович</div>
-            </footer>            
+                <div class="core-engine-lib-base-footer-inner">
+                    <span class="core-engine-lib-base-footer-copy">© 2026 NeuroCad</span>
+                    <nav class="core-engine-lib-base-footer-links" aria-label="Правовая информация">
+
+                        <a href="/policy" title="Политика обработки персональных данных" aria-label="Политика обработки персональных данных">
+                            <span class="footer-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+                                    <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                                </svg>
+                            </span>
+                            <span class="footer-text">Политика</span>
+                        </a>
+
+                        <a href="/rules" title="Правила использования" aria-label="Правила использования">
+                            <span class="footer-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="8" y1="13" x2="16" y2="13"></line>
+                                    <line x1="8" y1="17" x2="16" y2="17"></line>
+                                </svg>
+                            </span>
+                            <span class="footer-text">Правила</span>
+                        </a>
+
+                        <a href="https://max.ru/neurocad" target="_blank" rel="noopener noreferrer" title="Поддержка в Max" aria-label="Поддержка в Max">
+                            <span class="footer-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                </svg>
+                            </span>
+                            <span class="footer-text">Max</span>
+                        </a>
+
+                    </nav>
+                </div>
+            </footer>
         `;
 
         this.headerEl = document.querySelector('.core-engine-lib-base-header');

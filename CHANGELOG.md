@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.15] - 2026-10-07
+- Per-user policy / rules documents: markdown editors in the domain page, saved to `users.policy` / `users.rules`, served publicly at `/policy` and `/rules` on the user's host; `core-footer` block substitutes the real public host on drop; `editor.js` split into `brand.js`, `autosave.js`, `session.js`; fixed the old `word/service.py` import path, the footer-link blue underline in `ready.css`, and the ISO date format in the legal texts.
+
 ## [1.0.14] - 2026-10-06
 - Fixed `word/service.py` importing the domain service from the old module path after the 1.0.13 package split — admin page viewer returned 500 ("страница не найдена").
 
@@ -83,6 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.15]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.14...v1.0.15
 [1.0.14]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.13...v1.0.14
 [1.0.13]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.12...v1.0.13
 [1.0.12]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.11...v1.0.12

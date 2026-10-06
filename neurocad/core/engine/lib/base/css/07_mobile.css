@@ -165,11 +165,6 @@
         padding: var(--gap-sm);
         font-size: var(--font-size-sm);
     }
-
-    .core-engine-lib-base-footer {
-        font-size: 0.75rem;
-        padding: var(--gap-xs) var(--gap-sm);
-    }
 }
 
 @media (max-width: 480px) {
@@ -209,11 +204,6 @@
     .core-engine-lib-base-content {
         padding: var(--gap-xs);
         font-size: 0.75rem;
-    }
-
-    .core-engine-lib-base-footer {
-        font-size: 0.625rem;
-        padding: 0.0625rem var(--gap-xs);
     }
 
     .core-engine-lib-base-area-left,

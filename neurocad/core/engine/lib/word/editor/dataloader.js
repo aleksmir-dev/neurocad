@@ -33,6 +33,12 @@
  *     - re-apply the body-style traits — otherwise the Traits panel
  *       is empty when the wrapper is selected.
  *
+ *   NOTE: this module does NOT touch page content. Anything the user
+ *   has saved — including placeholder text inside blocks — is loaded
+ *   as-is and left alone. Footer-brand substitution, if any, happens
+ *   elsewhere and only at the moment a block is dropped from the
+ *   block panel (see brand.js).
+ *
  * Empty placeholder:
  *   A freshly created page is stored as <body><p></p></body>. This
  *   <p> is a GrapesJS canvas placeholder — it has no text, no
@@ -207,6 +213,11 @@ export class DataLoader {
     /**
      * Re-apply scope class + body traits after a load.
      * Called at the end of loadInitial() and applyRollback().
+     *
+     * Intentionally does NOT touch page content — anything the user
+     * saved is left exactly as it is. Footer-brand substitution, if
+     * any, happens only at the moment a block is dropped from the
+     * block panel (see brand.js).
      */
     _reapplyPostLoad() {
         this._reapplyScopeClass();

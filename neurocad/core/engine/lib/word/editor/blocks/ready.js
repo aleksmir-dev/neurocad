@@ -16,7 +16,7 @@
  *   - FAQ            — list of questions and answers
  *   - CTA            — dark call-to-action: heading + text + button
  *   - Contacts       — contact info: address, phone, email
- *   - Footer         — bottom section: logo, nav, copyright
+ *   - Footer         — bottom section: brand + legal links
  *
  * NOTE: blocks are NOT wrapped in .core-engine-lib-word-blocks anymore.
  * That class is the single scope wrapper for the whole page:
@@ -345,7 +345,34 @@ export class ReadyBlocks {
         // ===== FOOTER =====
 
         /*
-         * Bottom section: logo + nav + copyright.
+         * Bottom section: brand + legal links.
+         *
+         * The brand line ships with a placeholder "© 2026 site.ru".
+         * The real public host of the site owner — subdomain or
+         * custom domain — is substituted in one of two places:
+         *
+         *   - Editor._bindFooterBrandOnDrop() — when the block is
+         *     dropped into the canvas: the placeholder is replaced
+         *     with "© 2026 <editor.publicHost>" BEFORE the HTML is
+         *     written to the canvas. This covers new blocks.
+         *
+         *   - DataLoader._applyFooterBrand() — when an existing page
+         *     is loaded: any [data-footer-brand] element already in
+         *     the canvas is patched. This covers pages that already
+         *     have the block saved.
+         *
+         * Both use the same host (pageData.public_host, resolved on
+         * the backend) and the same year (2026 — the year of first
+         * publication; copyright does not expire and does not need
+         * annual renewal).
+         *
+         * The two links — "Политика" and "Правила" — point to the
+         * relative paths /policy and /rules, so they always resolve
+         * against whatever host the page is served on. No absolute
+         * URL is hardcoded.
+         *
+         * Layout: brand left, links right; wraps to two centered
+         * rows on narrow screens (see ready.css → .footer).
          */
         this.bm.add('core-footer', {
             label: 'Подвал',
@@ -354,11 +381,10 @@ export class ReadyBlocks {
             content: `
                 <footer class="section footer" data-block="core-footer">
                     <div class="container footer__inner">
-                        <div class="footer__brand">© Компания</div>
+                        <div class="footer__brand" data-footer-brand>© 2026 site.ru</div>
                         <nav class="footer__nav">
-                            <a href="#" class="footer__link">Главная</a>
-                            <a href="#" class="footer__link">Услуги</a>
-                            <a href="#" class="footer__link">Контакты</a>
+                            <a href="/policy" class="footer__link">Политика</a>
+                            <a href="/rules" class="footer__link">Правила</a>
                         </nav>
                     </div>
                 </footer>
