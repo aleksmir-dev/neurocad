@@ -1,6 +1,6 @@
 [project]
 name = "neurocad"
-version = "1.0.12"
+version = "1.0.13"
 description = "NeuroCad — core engine + CMS + visual editor for FastAPI"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -52,7 +52,8 @@ dependencies = [
     "tiktoken",
     "beautifulsoup4",
     "lxml",
-    "black"
+    "black",
+    "markdown-it-py",
 ]
 
 [project.optional-dependencies]

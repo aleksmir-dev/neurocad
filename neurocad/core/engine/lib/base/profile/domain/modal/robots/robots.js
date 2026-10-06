@@ -1,4 +1,4 @@
-// neurocad/core/engine/lib/base/profile/domain/robots.js
+// neurocad/core/engine/lib/base/profile/domain/modal/robots/robots.js
 
 /**
  * RobotsModal — universal editor for robots.txt.
@@ -59,6 +59,13 @@
  *
  * robots.css is loaded from here on first construction, so the modal
  * is self-contained.
+ *
+ * Module location
+ * ---------------
+ * This file lives at ./modal/robots/robots.js — under the domain
+ * page's ./modal/ subfolder, next to its own robots.css. It is
+ * imported on demand by ./modals.js (openRobotsModal), not at the
+ * top of any other module.
  *
  * Style scope
  * -----------
@@ -123,7 +130,9 @@ export class RobotsModal {
     _loadCSS() {
         console.log('[RobotsModal] _loadCSS()');
         if (window.coreEngine && typeof window.coreEngine.loadCSS === 'function') {
-            window.coreEngine.loadCSS('core/engine/lib/base/profile/domain/robots.css');
+            window.coreEngine.loadCSS(
+                'core/engine/lib/base/profile/domain/modal/robots/robots.css'
+            );
         }
     }
 

@@ -20,6 +20,16 @@
  *   .edit-group--checkbox    — checkbox on the left, label on the right
  *   .edit-group--media       — buttons top-left, preview right
  *
+ * Submission errors:
+ *   .edit-global-error        — red box at the top of the body
+ *     ├── .edit-global-error__text    — human-readable message
+ *     └── .edit-global-error__action  — optional follow-up link
+ *                                       (e.g. "Перейти к балансу")
+ *
+ *   The link is only present when the backend sends a structured
+ *   error with an `action` field. Plain errors render only the
+ *   text box (see _showSubmitError in edit.js).
+ *
  * All styles are scoped under .core-engine-lib-base-cards-edit.
  * No global .btn / .core-engine-lib-base-btn classes are used.
  *
@@ -444,14 +454,65 @@
     padding-left: 28px;
 }
 
+/* ============================================ */
+/* SUBMISSION ERROR — block at the top of body */
+/* ============================================ */
+
+/*
+ * Rendered by _showSubmitError() (see edit.js). Two shapes:
+ *
+ *   1. Plain error — only __text, no action.
+ *   2. Structured error — __text + __action link.
+ *
+ * Both variants are wrapped in .edit-global-error, which keeps the
+ * existing red-box style. The __text is a block, the __action sits
+ * below it as a compact link-button.
+ *
+ * The form has no knowledge of specific error codes / tariffs —
+ * the action, if any, is provided by the backend. This CSS is
+ * therefore fully generic.
+ */
 .core-engine-lib-base-cards-edit .edit-global-error {
-    padding: 8px 12px;
+    padding: 10px 12px;
     background: #fee2e2;
     color: #dc2626;
     border-radius: var(--radius, 8px);
     font-size: 14px;
+    line-height: 1.4;
     margin-bottom: 16px;
     border: 1px solid #fca5a5;
+}
+
+/* Text — the human-readable message. */
+.core-engine-lib-base-cards-edit .edit-global-error__text {
+    margin: 0;
+    color: #991b1b;
+    font-weight: 500;
+}
+
+/* Action — optional follow-up link (e.g. "Перейти к балансу"). */
+.core-engine-lib-base-cards-edit .edit-global-error__action {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 12px;
+    border-radius: calc(var(--radius, 8px) - 2px);
+    background: #dc2626;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.2;
+    transition: background 0.15s ease;
+}
+
+.core-engine-lib-base-cards-edit .edit-global-error__action:hover {
+    background: #b91c1c;
+    color: #ffffff;
+}
+
+.core-engine-lib-base-cards-edit .edit-global-error__action:focus-visible {
+    outline: 2px solid #7f1d1d;
+    outline-offset: 2px;
 }
 
 /* ============================================ */
@@ -618,6 +679,17 @@
     }
 
     .core-engine-lib-base-cards-edit .edit-media-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+
+    /* Submission error — smaller padding */
+    .core-engine-lib-base-cards-edit .edit-global-error {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    .core-engine-lib-base-cards-edit .edit-global-error__action {
         padding: 5px 10px;
         font-size: 12px;
     }

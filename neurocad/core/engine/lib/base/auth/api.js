@@ -18,6 +18,35 @@
  *   - non-2xx → throw Error with detail/message from the response;
  *   - success: false → also throw Error.
  *
+ * Structured errors
+ * -----------------
+ * `detail` in the response body can be either:
+ *
+ *   1. A plain string — the older shape, still used by many
+ *      endpoints ("Некорректное имя домена" and so on).
+ *
+ *   2. An object — the newer shape, used when the UI needs to
+ *      render more than a message:
+ *
+ *          {
+ *            "code":    "pages_exhausted",
+ *            "message": "У вас тариф Free. …",
+ *            "action":  { "label": "…", "href": "…" }
+ *          }
+ *
+ *   In both cases the caller gets:
+ *     - err.message — a string, ready to display (from
+ *       `detail.message` if detail is an object, else from
+ *       `detail` itself, else from a status-based fallback);
+ *     - err.detail  — the raw detail (string OR object), so a
+ *       component that understands the shape can read
+ *       `err.detail.code` / `err.detail.action`.
+ *
+ *   This is what BaseCardsEdit._showSubmitError() relies on to
+ *   render the "Перейти к балансу" link when the tariff limit is
+ *   hit. Other components can ignore `err.detail` entirely and
+ *   just use `err.message`.
+ *
  * skipAuthRedirect:
  *   For auth pages (login, register, restore, password) — on 401 there is
  *   no need to show the login form (it is already open), and no need to
@@ -62,7 +91,7 @@
  *   });
  *
  * Returns: parsed JSON (object) — whatever the server returned.
- * Throws:  Error with .status and .data (if the server returned JSON).
+ * Throws:  Error with .status, .data and .detail.
  */
 
 export async function fetchJson(url, options = {}) {
@@ -128,18 +157,30 @@ export async function fetchJson(url, options = {}) {
         }
 
         const data = await _readJson(response);
-        const detail = (data && (data.detail || data.message)) || '';
-        const err = new Error(detail);
+        const rawDetail = (data && (data.detail || data.message)) || '';
+        const message = _detailToMessage(rawDetail, '');
+        const err = new Error(message);
         err.status = 401;
         err.data = data;
+        err.detail = rawDetail;
         throw err;
     }
 
     // ---- 403: forbidden ----
+    //
+    // Used by endpoints that need to convey a specific business
+    // reason, not just "no". Today: POST /pages/item when the
+    // user has hit their tariff's page limit. The detail may be a
+    // structured object; we keep the whole thing on err.detail so
+    // a caller that understands the shape can render code/action.
     if (response.status === 403) {
-        const detail = await _readDetail(response);
-        const err = new Error(detail || 'Insufficient permissions.');
+        const data = await _readJson(response);
+        const rawDetail = data && (data.detail || data.message);
+        const message = _detailToMessage(rawDetail, 'Insufficient permissions.');
+        const err = new Error(message);
         err.status = 403;
+        err.data = data;
+        err.detail = rawDetail;
         throw err;
     }
 
@@ -153,21 +194,23 @@ export async function fetchJson(url, options = {}) {
 
     // ---- non-2xx: error ----
     if (!response.ok) {
-        const detail =
-            (data && (data.detail || data.message)) ||
-            `HTTP ${response.status}`;
-        const err = new Error(detail);
+        const rawDetail = (data && (data.detail || data.message));
+        const message = _detailToMessage(rawDetail, `HTTP ${response.status}`);
+        const err = new Error(message);
         err.status = response.status;
         err.data = data;
+        err.detail = rawDetail;
         throw err;
     }
 
     // ---- 2xx, but success: false ----
     if (data && data.success === false) {
-        const detail = data.message || data.detail || 'Error';
-        const err = new Error(detail);
+        const rawDetail = data.message || data.detail || 'Error';
+        const message = _detailToMessage(rawDetail, 'Error');
+        const err = new Error(message);
         err.status = response.status;
         err.data = data;
+        err.detail = rawDetail;
         throw err;
     }
 
@@ -192,9 +235,30 @@ async function _readJson(response) {
     }
 }
 
-async function _readDetail(response) {
-    const data = await _readJson(response);
-    return data && (data.detail || data.message);
+/**
+ * Normalize a server-supplied `detail` value to a display string.
+ *
+ * `detail` can be:
+ *   - undefined / null / '' — the fallback is returned;
+ *   - a plain string        — returned as-is;
+ *   - an object             — its `.message` field is used (or the
+ *                             fallback if `.message` is missing).
+ *
+ * The object form is the newer structured-error shape:
+ *     { code, message, action? }
+ * used e.g. by POST /pages/item on 403 (tariff page limit reached).
+ *
+ * The caller normally passes `err.detail` (which may be a string or
+ * an object) and reads `err.message` — both stay in sync:
+ *     err.message = _detailToMessage(err.detail, fallback)
+ */
+function _detailToMessage(rawDetail, fallback) {
+    if (!rawDetail) return fallback;
+    if (typeof rawDetail === 'string') return rawDetail;
+    if (typeof rawDetail === 'object' && typeof rawDetail.message === 'string') {
+        return rawDetail.message;
+    }
+    return fallback;
 }
 
 function _handleUnauthorized() {

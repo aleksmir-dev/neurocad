@@ -5,15 +5,20 @@
  *
  * Rendered into area-center by Base.showProfile('domain').
  *
- * Four blocks:
+ * Six blocks:
  *   1. Free subdomain — clickable link <login>.<APP_DOMAIN> + copy
  *      button + "Редактировать robots.txt" (data-which="3").
  *   2. Home page — select from the user's pages + Save / Reset.
  *   3. Custom domain — either input + "Подключить" or the current
  *      domain as a clickable link + status badge + copy button +
  *      "Редактировать robots.txt" (data-which="2") + "Отключить".
- *   4. Sitemap — read-only block at the very bottom; opens the
- *      generated sitemap.xml in a modal.
+ *   4. Sitemap — read-only block; opens the generated sitemap.xml
+ *      in a modal.
+ *   5. Legal — Policy / Rules editors. Two editable markdown
+ *      documents, each with a state badge and an "Редактировать"
+ *      button (data-which="policy" / "rules"); opens the shared
+ *      legal modal (see ./modal/legal/legal.js, opened from
+ *      ./modals.js → openLegalModal).
  *
  * MODULE LAYOUT
  * -------------
@@ -25,24 +30,30 @@
  *                  destroy. It only composes; it does not implement
  *                  the details.
  *
- *   cards.js     — makeCards(helpers) returns five render functions
- *                  (subdomain / home / custom / add-result / sitemap).
- *                  Pure HTML-string builders.
+ *   cards.js     — makeCards(helpers) returns six render functions
+ *                  (subdomain / home / custom / add-result / sitemap /
+ *                  legal). Pure HTML-string builders.
  *
  *   actions.js   — submitAdd / submitRemove / submitHomeSave /
  *                  submitHomeClear. HTTP calls + UI state transitions.
  *
- *   modals.js    — openRobotsModal / openSitemapModal. Lazy import
- *                  + open; one instance per page.
+ *   modals.js    — openRobotsModal / openSitemapModal /
+ *                  openLegalModal. Lazy import + open; one instance
+ *                  per page. This file stays at the top level: it is
+ *                  the bridge between this page and the modals, not
+ *                  a page and not a modal itself.
  *
  *   helpers.js   — fullUrl / escapeAttr / statusBadge /
  *                  copyToClipboard. Stateless utilities.
  *
- *   robots.js    — RobotsModal (separate).
- *   robots.css   — styles for RobotsModal.
- *   sitemap.js   — SitemapModal (read-only).
- *   sitemap.css  — styles for SitemapModal.
  *   domain.css   — styles for this page.
+ *
+ *   modal/robots/robots.js    — RobotsModal (separate).
+ *   modal/robots/robots.css   — styles for RobotsModal.
+ *   modal/sitemap/sitemap.js  — SitemapModal (read-only).
+ *   modal/sitemap/sitemap.css — styles for SitemapModal.
+ *   modal/legal/legal.js      — LegalModal (policy / rules editor).
+ *   modal/legal/legal.css     — styles for LegalModal.
  *
  * IMPORT STYLE
  * ------------
@@ -81,6 +92,11 @@
  * sitemap.xml: a SEPARATE read-only modal. Nothing is stored — the
  * file is generated on the fly from the `pages` table.
  *
+ * policy / rules: one shared modal serves both documents
+ * (data-which="policy" or "rules"); on save it POSTs to /domain/legal
+ * and calls onSaved() so we can update the local state without a
+ * full reload.
+ *
  * API:
  *   GET    /core/engine/lib/base/profile/domain/
  *   POST   /core/engine/lib/base/profile/domain/add
@@ -88,6 +104,7 @@
  *   POST   /core/engine/lib/base/profile/domain/home
  *   DELETE /core/engine/lib/base/profile/domain/home
  *   POST   /core/engine/lib/base/profile/domain/robots
+ *   POST   /core/engine/lib/base/profile/domain/legal
  *   GET    /core/engine/lib/base/profile/domain/sitemap
  *
  * Uses window.coreEngine.fetchJson.
@@ -132,6 +149,7 @@ export class BaseProfileDomain {
         // so modals.js can reuse them).
         this._robotsModal = null;
         this._sitemapModal = null;
+        this._legalModal = null;
 
         // Sibling modules, filled in _init(). Until then, render()
         // and bindEvents() must not be called — and they are not:
@@ -168,7 +186,7 @@ export class BaseProfileDomain {
             ]);
 
             // cards.js is a FACTORY — it takes helpers and returns
-            // an object with five render functions closed over them.
+            // an object with six render functions closed over them.
             // The other three are plain namespaces.
             this._cards   = cards.makeCards(helpers);
             this._actions = actions;
@@ -189,12 +207,20 @@ export class BaseProfileDomain {
     _loadCSS() {
         console.log('[BaseProfileDomain] _loadCSS()');
         if (window.coreEngine && typeof window.coreEngine.loadCSS === 'function') {
+            // Page styles — this file's own CSS lives right next to it.
             window.coreEngine.loadCSS('core/engine/lib/base/profile/domain/domain.css');
-            // The robots modal is only reachable from this page,
-            // so its styles are loaded here and not globally.
-            window.coreEngine.loadCSS('core/engine/lib/base/profile/domain/robots.css');
-            // Same for the sitemap modal.
-            window.coreEngine.loadCSS('core/engine/lib/base/profile/domain/sitemap.css');
+
+            // Modal styles — each modal lives in its own subfolder
+            // under ./modal/. Preloading them here means the styles
+            // are already in the DOM by the time the user opens a
+            // modal, so there is no flash of unstyled content on the
+            // first open. The modals themselves also load their own
+            // CSS defensively (see modal/robots/robots.js →
+            // _loadCSS, etc.), so a direct open without this
+            // preload still works.
+            window.coreEngine.loadCSS('core/engine/lib/base/profile/domain/modal/robots/robots.css');
+            window.coreEngine.loadCSS('core/engine/lib/base/profile/domain/modal/sitemap/sitemap.css');
+            window.coreEngine.loadCSS('core/engine/lib/base/profile/domain/modal/legal/legal.css');
         }
     }
 
@@ -241,11 +267,11 @@ export class BaseProfileDomain {
     // ============================================
 
     /**
-     * Build the whole page: titlebar + scroll container with the five
+     * Build the whole page: titlebar + scroll container with the six
      * blocks. Delegates each block to this._cards.* — see ./cards.js.
      *
      * The state object passed to renderHomeCard / renderCustomCard
-     * carries the three transient flags they read. Adding a new flag
+     * carries the transient flags they read. Adding a new flag
      * later = one more key here, one more destructure there.
      */
     render() {
@@ -299,6 +325,7 @@ export class BaseProfileDomain {
                     ${this._cards.renderCustomCard(this.data, cardsState)}
                     ${this._cards.renderAddResultBlock(this._lastAddInfo)}
                     ${this._cards.renderSitemapCard(this.data)}
+                    ${this._cards.renderLegalCard(this.data)}
                 </div>
             </div>
         `;
@@ -380,6 +407,16 @@ export class BaseProfileDomain {
             btn.addEventListener('click', () => this._modals.openSitemapModal(this));
         });
 
+        // Edit legal texts (Policy / Rules). Up to two such buttons:
+        // one in the legal card's "Политика" row (data-which="policy"),
+        // one in the "Правила" row (data-which="rules").
+        root.querySelectorAll('[data-action="edit-legal"]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const which = btn.getAttribute('data-which') || 'policy';
+                this._modals.openLegalModal(this, which);
+            });
+        });
+
         // ---- Home page: save ----
         const homeSave = root.querySelector('[data-action="home-save"]');
         if (homeSave) {
@@ -440,6 +477,19 @@ export class BaseProfileDomain {
                 console.warn('[BaseProfileDomain] sitemapModal.destroy error:', e);
             }
             this._sitemapModal = null;
+        }
+
+        // Close the legal modal if it is open — same safety as for
+        // the robots and sitemap modals.
+        if (this._legalModal) {
+            try {
+                if (typeof this._legalModal.destroy === 'function') {
+                    this._legalModal.destroy();
+                }
+            } catch (e) {
+                console.warn('[BaseProfileDomain] legalModal.destroy error:', e);
+            }
+            this._legalModal = null;
         }
 
         if (this.element) {

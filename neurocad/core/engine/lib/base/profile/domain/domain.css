@@ -223,6 +223,30 @@
 }
 
 /*
+ * Ghost link — an inline, minimal link used inside hints (e.g.
+ * the /policy and /rules preview links in the legal card). No
+ * border, no background: it reads as part of the surrounding
+ * text, not as a separate control.
+ */
+.core-engine-lib-base-profile-domain .domain-link-ghost {
+    color: #2563eb;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+}
+
+.core-engine-lib-base-profile-domain .domain-link-ghost:hover {
+    color: #1d4ed8;
+}
+
+.core-engine-lib-base-profile-domain .domain-link-ghost:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    border-radius: 3px;
+}
+
+/*
  * The copy button sits to the right of the link. It is a regular
  * .domain-btn but without the default left margin, since the row's
  * own gap handles the spacing. align-self: center keeps it from
@@ -413,7 +437,7 @@
  * Plain text, no background, no border. Vertically centered with
  * the link and the copy button by the parent .domain-link-row
  * (align-items: center). Themed via modifier classes:
- *   .domain-badge-ok   → "Активен"
+ *   .domain-badge-ok   → "Активен" / "Заполнено"
  *   .domain-badge-warn → "DNS не настроен" / "Caddy недоступен"
  */
 
@@ -537,6 +561,78 @@
     color: #dc2626;
 }
 
+/* ===== Legal card — rows for Policy / Rules ===== */
+/*
+ * Two side-by-side rows inside the "Документы сайта" card:
+ *
+ *   [ title + hint + preview link ]    [ badge + "Редактировать" ]
+ *
+ * The left column grows; the right column is fixed-width and
+ * right-aligned. Both rows have a top border (except the first)
+ * so the two documents read as separate entries, not as one
+ * paragraph.
+ *
+ * At <= 640px the row flips to a column: the left block stacks
+ * above the right block, and the button stretches full width.
+ */
+
+.core-engine-lib-base-profile-domain .domain-legal-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.core-engine-lib-base-profile-domain .domain-legal-row:first-of-type {
+    border-top: none;
+    padding-top: 4px;
+}
+
+.core-engine-lib-base-profile-domain .domain-legal-row-left {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.core-engine-lib-base-profile-domain .domain-legal-row-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.3;
+}
+
+.core-engine-lib-base-profile-domain .domain-legal-row-hint {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.core-engine-lib-base-profile-domain .domain-legal-row-hint code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: rgba(15, 23, 42, 0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #0f172a;
+}
+
+.core-engine-lib-base-profile-domain .domain-legal-row-right {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* The "Редактировать" button in the legal row sits in a flex row
+   with the badge, so reset .domain-btn's default left margin. */
+.core-engine-lib-base-profile-domain .domain-legal-row-right .domain-btn {
+    margin-left: 0;
+}
+
 /* ===== Mobile ===== */
 
 @media (max-width: 480px) {
@@ -573,5 +669,17 @@
 
     .core-engine-lib-base-profile-domain .domain-dns-table td:first-child {
         width: 90px;
+    }
+
+    /* Legal rows stack: text block above, badge + button below.
+       The button goes full-width (already set by the .domain-btn
+       rule above); the row itself stretches. */
+    .core-engine-lib-base-profile-domain .domain-legal-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .core-engine-lib-base-profile-domain .domain-legal-row-right {
+        justify-content: space-between;
     }
 }

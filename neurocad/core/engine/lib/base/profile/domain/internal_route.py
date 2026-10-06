@@ -34,7 +34,7 @@ Namespace: CoreEngineLibBaseProfileDomain*
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from .service import CoreEngineLibBaseProfileDomainService
+from .service.facade import CoreEngineLibBaseProfileDomainService
 
 
 router = APIRouter(prefix="/internal/tls", tags=["internal/tls"])

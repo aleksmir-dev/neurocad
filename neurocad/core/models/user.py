@@ -21,67 +21,100 @@ class User(Base):
     last_seen: Mapped[Optional[dt]] = mapped_column(DateTime)
     created_at: Mapped[dt] = mapped_column(DateTime, default=dt.now)
 
-    # Домен второго уровня, подключённый пользователем (example.com).
-    # NULL — пользователь не подключал кастомный домен.
-    # Значение — FQDN в нижнем регистре. Без unique и index —
-    # проверка уникальности не нужна, домен принадлежит конкретному
-    # человеку и проверяется через DNS.
+    # Second-level domain attached by the user (example.com).
+    # NULL — the user has not attached a custom domain.
+    # The value is a lowercase FQDN. No unique and no index —
+    # uniqueness is not enforced here: a domain belongs to a
+    # specific person and is verified via DNS.
     domain: Mapped[Optional[str]] = mapped_column(String(253), nullable=True)
 
-    # Главная страница пользователя.
+    # The user's home page.
     #
-    # Используется, когда пользователь заходит на свой поддомен
-    # (<login>.<APP_DOMAIN>) или на свой кастомный домен БЕЗ пути —
-    # например, https://testuser3.neurocad-dev.ru/ .
-    # В этом случае middleware резолвит этот id и редиректит на
-    # публичную страницу (/page/<nav_id>/<date>/<time>).
+    # Used when the user opens their subdomain
+    # (<login>.<APP_DOMAIN>) or their custom domain WITHOUT a path —
+    # for example, https://testuser3.neurocad-dev.ru/ .
+    # In that case the middleware resolves this id and redirects to
+    # the public page (/page/<date>/<time>).
     #
-    # NULL — главная не задана. Тогда показывается первая страница
-    # nav'а по datetime ASC; если и её нет — редирект на
-    # /core/engine/pages (каталог статей).
+    # NULL — no home page set. Then the first page of the nav by
+    # datetime ASC is shown; if there is none either — redirect to
+    # /core/engine/pages (the article catalog).
     #
-    # ondelete='SET NULL' — если страницу удалят, поле обнулится
-    # само, пользователь не останется с висящей ссылкой.
+    # ondelete='SET NULL' — if the page is deleted, the field is
+    # nulled automatically; the user does not end up with a dangling
+    # reference.
     home_page_id: Mapped[Optional[int]] = mapped_column(
         Integer,
         ForeignKey('pages.id', ondelete='SET NULL'),
         nullable=True,
     )
 
-    # robots.txt для домена 3 уровня (<login>.<APP_DOMAIN>).
+    # robots.txt for the third-level domain (<login>.<APP_DOMAIN>).
     #
-    # NULL — пользователь никогда не открывал модалку robots.txt
-    # для поддомена. В этом случае /robots.txt на поддомене
-    # отдаёт ROBOTS_CLOSED (закрыто от всех) — дефолт для новых
-    # пользователей.
+    # NULL — the user has never opened the robots.txt modal for the
+    # subdomain. In that case /robots.txt on the subdomain serves
+    # ROBOTS_CLOSED (closed to everyone) — the default for new users.
     #
-    # Автоматически управляется в service.py:
-    #   - add_custom   → robots_3 = ROBOTS_CLOSED (поддомен закрыт,
-    #                    пока активен кастомный домен);
-    #   - remove_custom → robots_3 = ROBOTS_OPEN (поддомен снова
-    #                     открыт после отключения кастомного).
+    # Automatically managed by the domain service:
+    #   - add_custom    → robots_3 = ROBOTS_CLOSED (subdomain closed
+    #                     while a custom domain is active);
+    #   - remove_custom → robots_3 = ROBOTS_OPEN (subdomain open
+    #                     again after the custom domain is detached).
     #
-    # Text, а не String(N): содержимое robots.txt может быть
-    # длинным (Allow/Disallow/Crawl-delay/Sitemap на много строк),
-    # ограничения по длине здесь ставить не нужно.
+    # Text, not String(N): robots.txt content can be long
+    # (Allow/Disallow/Crawl-delay/Sitemap across many lines), and
+    # no length limit is needed here.
     robots_3: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
-    # robots.txt для домена 2 уровня (кастомного).
+    # robots.txt for the second-level (custom) domain.
     #
-    # NULL — пользователь никогда не открывал модалку robots.txt
-    # для кастомного домена. В этом случае /robots.txt на
-    # кастомном домене отдаёт ROBOTS_CLOSED (закрыто от всех).
+    # NULL — the user has never opened the robots.txt modal for the
+    # custom domain. In that case /robots.txt on the custom domain
+    # serves ROBOTS_CLOSED (closed to everyone).
     #
-    # Редактируется пользователем через модальное окно в
-    # Профиль → Домены → «Редактировать robots.txt». Значение
-    # сохраняется в БД вербатим (включая пустую строку) — бэкенд
-    # не парсит и не валидирует синтаксис robots.txt.
+    # Edited by the user via the modal in
+    # Profile → Domains → "Edit robots.txt". The value is stored
+    # verbatim (including an empty string) — the backend does not
+    # parse or validate robots.txt syntax.
     #
-    # При подключении кастомного домена (add_custom) это поле
-    # инициализируется ROBOTS_OPEN, если было NULL. При отключении
-    # (remove_custom) не трогается — текст сохраняется на случай
-    # повторного подключения.
+    # When a custom domain is attached (add_custom), this field is
+    # initialized to ROBOTS_OPEN if it was NULL. When detached
+    # (remove_custom), it is left alone — the text is preserved in
+    # case the domain is re-attached later.
     robots_2: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Markdown body of the user's Policy page (e.g. a privacy policy
+    # for the user's own site).
+    #
+    # NULL — the user has never touched the field. The legal modal
+    # opens with an empty textarea.
+    # "" — the user cleared the field on purpose. The modal also
+    # opens with an empty textarea, but the DB keeps "" and NULL
+    # as distinct states so "cleared" and "never touched" remain
+    # distinguishable.
+    #
+    # Served publicly at /policy on the user's own host (subdomain
+    # or custom domain). NULL on the public side → 404.
+    #
+    # Edited via the legal modal in
+    # Profile → Domains → "Edit policy".
+    #
+    # Text, not String(N): a policy can be several pages long, and
+    # a hard length limit here would only cause trouble later.
+    policy: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Markdown body of the user's Rules page (terms of use for the
+    # user's own site).
+    #
+    # Same semantics as `policy`:
+    #   - NULL  — never touched, modal opens empty;
+    #   - ""    — cleared on purpose, DB state distinct from NULL;
+    #   - text  — stored verbatim, served at /rules on the user's
+    #             own host (NULL → 404).
+    #
+    # Edited via the legal modal in
+    # Profile → Domains → "Edit rules".
+    rules: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     __table_args__ = (
         Index('idx_users_login', 'login'),

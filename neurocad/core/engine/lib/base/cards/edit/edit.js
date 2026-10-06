@@ -51,6 +51,36 @@
  * This is the ONLY extension point for media fields. BaseCardsEdit
  * itself knows nothing about logos, LLM, or HTTP — callers provide
  * the extra behaviour through this list.
+ *
+ * Structured submission errors
+ * ----------------------------
+ * When onSubmit() throws, this form renders the error at the top of
+ * the body. Two error shapes are supported:
+ *
+ *   1. Plain Error — { message: "..." }
+ *      The message is rendered as-is. Block auto-removes after 3 s.
+ *
+ *   2. Structured error — the server returns
+ *
+ *          { "detail": { "code": "...", "message": "...",
+ *                        "action": { "label": "...", "href": "..." } } }
+ *
+ *      and fetchJson turns that into an Error whose `detail` field
+ *      holds the original object (and whose `message` is the
+ *      fallback). We read:
+ *
+ *          - detail.message → the human-readable text;
+ *          - detail.action  → optional { label, href } for a
+ *                             follow-up link-button.
+ *
+ *      When `action` is present, the block does NOT auto-remove —
+ *      the follow-up link should stay until the user clicks it or
+ *      submits again.
+ *
+ * This form has NO knowledge of specific error codes / tariffs.
+ * Business logic (what "pages_exhausted" means, where the balance
+ * page lives) is built on the backend, which is where tariffs are
+ * understood. The form is a generic renderer for that payload.
  */
 export class BaseCardsEdit {
     constructor(props = {}) {
@@ -777,6 +807,82 @@ export class BaseCardsEdit {
     }
 
     /**
+     * Render a submission error in the form.
+     *
+     * Two error shapes are supported — see the class docstring for
+     * the full description:
+     *
+     *   1. Plain Error — { message: "..." }
+     *      The message is rendered as-is. Block auto-removes after
+     *      a moment.
+     *
+     *   2. Structured error — the server returned
+     *          { detail: { code, message, action? } }
+     *      and fetchJson copied those fields onto the Error
+     *      instance as `error.detail`. We render `detail.message`
+     *      and, if `detail.action` is present, an <a> link-button
+     *      under it. The block does NOT auto-remove when there is
+     *      an action — a follow-up link should stay until the user
+     *      clicks it or submits again.
+     *
+     * This method has NO knowledge of specific error codes or
+     * tariffs. Business logic (what "pages_exhausted" means, where
+     * the balance page lives) is built on the backend, which
+     * understands tariffs. This form is a generic renderer for the
+     * payload shape.
+     *
+     * @param {Error} error — the error thrown by onSubmit
+     */
+    _showSubmitError(error) {
+        const detail = error?.detail;
+
+        // ---- 1. Human-readable text ----
+        // Prefer `detail.message` (server-formatted), fall back to
+        // `error.message` (generic Error), then a hard-coded default.
+        let text = 'Ошибка сохранения';
+        if (detail && typeof detail === 'object' && detail.message) {
+            text = String(detail.message);
+        } else if (error?.message) {
+            text = String(error.message);
+        }
+
+        // ---- 2. Optional action: { label, href } ----
+        let action = null;
+        if (detail && typeof detail === 'object' && detail.action) {
+            const a = detail.action;
+            if (a && typeof a.label === 'string' && typeof a.href === 'string') {
+                action = { label: a.label, href: a.href };
+            }
+        }
+
+        // ---- 3. Build the block ----
+        const box = document.createElement('div');
+        box.className = 'edit-global-error';
+
+        const textEl = document.createElement('div');
+        textEl.className = 'edit-global-error__text';
+        textEl.textContent = text;
+        box.appendChild(textEl);
+
+        if (action) {
+            const link = document.createElement('a');
+            link.className = 'edit-global-error__action';
+            link.href = action.href;
+            link.textContent = action.label;
+            box.appendChild(link);
+        }
+
+        this.editBody.prepend(box);
+
+        // Auto-remove only when there is no action button — a
+        // follow-up link should stay until the user clicks it or
+        // resubmits.
+        if (!action) {
+            setTimeout(() => box.remove(), 3000);
+        }
+    }
+
+    /**
      * Handle form submit
      */
     async _handleSubmit(e) {
@@ -815,14 +921,7 @@ export class BaseCardsEdit {
             this.close();
         } catch (error) {
             console.error('[BaseCardsEdit] Submit error:', error);
-            const errorMsg = document.createElement('div');
-            errorMsg.className = 'edit-global-error';
-            errorMsg.textContent = error.message || 'Ошибка сохранения';
-            this.editBody.prepend(errorMsg);
-
-            setTimeout(() => {
-                errorMsg.remove();
-            }, 3000);
+            this._showSubmitError(error);
         }
 
         this.isSubmitting = false;

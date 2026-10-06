@@ -19,6 +19,16 @@ from neurocad.core.engine.lib.base.profile.domain.internal_route import (
     router as internal_tls_router,
 )
 
+# Public legal pages — /policy and /rules. Resolved by Host header
+# (subdomain or custom domain), same as /robots.txt and /sitemap.xml.
+# Falls back to a universal short text when the user has not filled
+# the field. The router lives next to the domain module
+# (domain/public.py), so all legal-page logic is in one place and
+# utils/routes.py stays thin.
+from neurocad.core.engine.lib.base.profile.domain.public import (
+    router as domain_public_router,
+)
+
 from neurocad.config import settings
 
 # Host-header parsing and user resolution — single source of
@@ -38,7 +48,7 @@ from neurocad.utils.hosts import (
 # ============================================
 
 # Must match ROBOTS_OPEN / ROBOTS_CLOSED in
-# neurocad/core/engine/lib/base/profile/domain/service.py and
+# neurocad/core/engine/lib/base/profile/domain/service/robots.py and
 # DEFAULT_ROBOTS_CLOSED in the domain schema. If you change one,
 # change all three — they are checked by the test suite.
 ROBOTS_OPEN = "User-agent: *\nDisallow:\n"
@@ -90,7 +100,7 @@ async def _robots_for_slug(slug: str) -> str:
     Source: users.robots_3. If the user does not exist or the field
     is NULL, ROBOTS_CLOSED is returned — the subdomain is closed to
     crawlers by default, and add_custom / remove_custom toggle this
-    field automatically (see service.py).
+    field automatically (see service/domain.py).
 
     Never raises on DB errors — treated as "closed".
     """
@@ -311,6 +321,12 @@ def setup_routes(app: FastAPI) -> None:
     # Called by Caddy before issuing an On-Demand TLS certificate.
     app.include_router(internal_tls_router)
 
+    # Public legal pages — /policy and /rules on the user's own
+    # host (subdomain or custom domain), resolved by Host header.
+    # Falls back to a universal short text when the user has not
+    # filled the field. See domain/public.py for the full contract.
+    app.include_router(domain_public_router)
+
     # /robots.txt — three-step resolution:
     #
     #   1. Host is a user subdomain (<login>.<APP_DOMAIN>):
@@ -364,7 +380,7 @@ def setup_routes(app: FastAPI) -> None:
     # at /core/engine/lib/base/profile/domain/sitemap (for the modal).
     @app.get("/sitemap.xml")
     async def sitemap_xml(request: Request):
-        from neurocad.core.engine.lib.base.profile.domain.service import (
+        from neurocad.core.engine.lib.base.profile.domain.service.facade import (
             CoreEngineLibBaseProfileDomainService,
         )
 

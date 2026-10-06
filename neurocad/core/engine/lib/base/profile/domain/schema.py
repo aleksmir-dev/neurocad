@@ -10,18 +10,22 @@ Responses carry:
 
   - subdomain       — read-only free third-level host (<login>.<APP_DOMAIN>);
   - custom          — the user's custom domain, or None;
-  - caddy_available — probe result, drives the "Сервер Caddy не найден" hint;
+  - caddy_available — probe result, drives the "Caddy server not found" hint;
   - server_ip       — public IP, shown in DNS instructions;
   - pages           — list of the user's pages (id + title + datetime),
-                      used by the "Главная страница" selector;
+                      used by the "Home page" selector;
   - home_page_id    — the user's chosen home page id (or None);
   - robots_2        — current text of the custom domain's robots.txt;
   - robots_3        — current text of the free subdomain's robots.txt;
   - pages_url       — absolute URL of the public catalog on the owner's
                       public host (https://<login>.<APP_DOMAIN>/pages
-                      or https://<custom-domain>/pages). Consumed by
-                      pages.js → _loadPublicPagesUrl() for the
-                      «Открыть каталог статей» toolbar button.
+                      or https://<custom-domain>/pages);
+  - policy          — current markdown text of the user's policy;
+  - rules           — current markdown text of the user's rules;
+  - policy_default  — fallback markdown the public /policy serves
+                      when users.policy is NULL or "";
+  - rules_default   — fallback markdown the public /rules serves
+                      when users.rules is NULL or "".
 
 Status is NOT stored in the DB. It is derived at read time from the
 current DNS record and Caddy availability, so a user who fixed their
@@ -42,15 +46,39 @@ Both fields follow the same rules:
     subdomain), and POST /domain/robots carries `which` to tell the
     backend where to save the text.
 
+Legal texts (policy / rules) are ALSO stored per user:
+
+  - users.policy — markdown text of the user's Policy page;
+  - users.rules  — markdown text of the user's Rules page.
+
+Both fields follow the same rules as robots:
+
+  - NULL and "" are distinct: "" means the user cleared the field
+    on purpose, NULL means they never touched it;
+  - the modal edits whichever field the calling button selects
+    (data-which="policy" or data-which="rules"), and POST
+    /domain/legal carries `which` to tell the backend where to
+    save the text;
+  - the public endpoints /policy and /rules (see public.py) read
+    these fields by Host and render them to HTML on the fly;
+  - if the field is NULL, "", or whitespace-only, the public
+    endpoints serve a universal fallback from
+    modal/legal/policy.md / modal/legal/rules.md. The SAME text is
+    sent to the frontend in `policy_default` / `rules_default`, so
+    the legal modal can seed its textarea with it and show an
+    explanatory hint.
+  - the public endpoint returns 404 only when the Host does not
+    resolve to any user.
+
 sitemap.xml is NOT part of this JSON payload and has NO schema here.
 It is generated on the fly (nothing is stored), and returned as
 text/plain by GET /domain/sitemap for the in-admin modal viewer, and
 as application/xml by the public /sitemap.xml route. Since both
 responses are raw XML, a Pydantic model would be wrong: it would
 serialize to JSON, not to an XML string. See:
-  - service.py  → CoreEngineLibBaseProfileDomainService.build_sitemap()
-  - router.py   → GET /sitemap (admin-side, text/plain)
-  - utils/routes.py (or equivalent) → public /sitemap.xml (XML)
+  - service/sitemap.py  → SitemapMixin.build_sitemap()
+  - route.py            → GET /sitemap (admin-side, text/plain)
+  - utils/routes.py     → public /sitemap.xml (XML)
 
 Namespace: CoreEngineLibBaseProfileDomain*
 """
@@ -67,7 +95,7 @@ DOMAIN_STATUS_CADDY_OFF = "caddy_off"  # DNS ok, but Caddy is not up
 
 
 #: Default robots.txt body when the field is empty. Must match the
-#: constants in service.py and utils/routes.py.
+#: constants in service/robots.py and utils/routes.py.
 DEFAULT_ROBOTS_CLOSED = "User-agent: *\nDisallow: /\n"
 
 
@@ -89,12 +117,12 @@ class CoreEngineLibBaseProfileDomainCustom(BaseModel):
 
 class CoreEngineLibBaseProfileDomainPageItem(BaseModel):
     """
-    One page entry for the "Главная страница" selector.
+    One page entry for the "Home page" selector.
 
     Only the fields the selector needs — id, title, datetime (ISO),
     and the computed public URL. The URL is built server-side so the
-    frontend does not have to know how /page/<nav_id>/<date>/<time>
-    is assembled.
+    frontend does not have to know how /page/<date>/<time> is
+    assembled.
     """
 
     id: int
@@ -105,7 +133,7 @@ class CoreEngineLibBaseProfileDomainPageItem(BaseModel):
     )
     url: str = Field(
         ...,
-        description="Public URL: /page/<nav_id>/<YYYYMMDD>/<HHMMSS>",
+        description="Public URL: /page/<YYYYMMDD>/<HHMMSS>",
     )
 
 
@@ -154,16 +182,52 @@ class CoreEngineLibBaseProfileDomainData(BaseModel):
     #:     https://<login>.<APP_DOMAIN>/pages
     #:     https://<custom-domain>/pages
     #:
-    #: Built from CoreEngineLibBaseProfileDomainService.get_public_base_url()
-    #: — the same base the sitemap and the word toolbar use. Consumed by
-    #: pages.js → _loadPublicPagesUrl() for the «Открыть каталог статей»
-    #: toolbar button.
+    #: Built from get_public_base_url() — the same base the sitemap
+    #: and the word toolbar use. Consumed by pages.js →
+    #: _loadPublicPagesUrl() for the "Open article catalog" toolbar
+    #: button.
     #:
     #: None when the user's public host cannot be resolved — the
     #: frontend then falls back to a relative "/pages", which resolves
     #: against whatever host the admin panel is on (usually not what
     #: we want).
     pages_url: Optional[str] = None
+
+    #: Current markdown text of the user's Policy page (users.policy).
+    #: NULL or "" → the frontend opens the modal with `policy_default`
+    #: instead, and the public /policy endpoint serves the same
+    #: fallback.
+    policy: Optional[str] = Field(
+        None,
+        description="users.policy — markdown body of the Policy page",
+    )
+
+    #: Current markdown text of the user's Rules page (users.rules).
+    #: Same NULL / "" semantics as `policy`.
+    rules: Optional[str] = Field(
+        None,
+        description="users.rules — markdown body of the Rules page",
+    )
+
+    #: Fallback markdown for the Policy page — the same text the
+    #: public /policy endpoint serves when users.policy is NULL or
+    #: whitespace-only. Read from modal/legal/policy.md on every
+    #: request; {date} is substituted with today's ISO date.
+    #:
+    #: The frontend uses this to seed the legal modal's textarea
+    #: when the user has no text yet, and to show a hint that this
+    #: is the fallback currently published on the site.
+    policy_default: str = Field(
+        "",
+        description="Fallback markdown for the policy page",
+    )
+
+    #: Fallback markdown for the Rules page — same semantics as
+    #: `policy_default`, read from modal/legal/rules.md.
+    rules_default: str = Field(
+        "",
+        description="Fallback markdown for the rules page",
+    )
 
 
 class CoreEngineLibBaseProfileDomainResponse(BaseModel):
@@ -249,8 +313,8 @@ class CoreEngineLibBaseProfileDomainSetRobotsRequest(BaseModel):
     empty string. The backend does not parse or validate robots.txt
     syntax — that is the frontend's job (presets, hints).
 
-    The modal passes `which` based on which "Редактировать robots.txt"
-    button was clicked (data-which="2" or data-which="3").
+    The modal passes `which` based on which "Edit robots.txt" button
+    was clicked (data-which="2" or data-which="3").
     """
 
     which: Literal["2", "3"] = Field(
@@ -281,6 +345,62 @@ class CoreEngineLibBaseProfileDomainSetRobotsResponse(BaseModel):
 
 
 # ============================================
+# LEGAL — POLICY / RULES
+# ============================================
+
+#: Maximum size of a policy / rules markdown body, in characters.
+#: Bump this if a user's text ever exceeds it; 64 KB is roughly
+#: 20-30 pages of plain markdown, which is far more than any
+#: realistic policy or rules text needs.
+LEGAL_TEXT_MAX_LENGTH = 65536
+
+
+class CoreEngineLibBaseProfileDomainSetLegalRequest(BaseModel):
+    """
+    POST /domain/legal body.
+
+    `which` selects the target field:
+
+      - "policy" → users.policy;
+      - "rules"  → users.rules.
+
+    `text` — full markdown body of the document. Stored verbatim,
+    including an empty string. The backend does not parse or validate
+    markdown — that is the frontend's job when rendering, and the
+    public endpoints' job (markdown → HTML on the fly).
+
+    The modal passes `which` based on which "Edit policy" / "Edit
+    rules" button was clicked (data-which="policy" or
+    data-which="rules").
+    """
+
+    which: Literal["policy", "rules"] = Field(
+        ...,
+        description="Which text to save: 'policy' or 'rules'",
+    )
+    text: str = Field(
+        ...,
+        max_length=LEGAL_TEXT_MAX_LENGTH,
+        description="Full markdown body to store",
+    )
+
+
+class CoreEngineLibBaseProfileDomainSetLegalData(BaseModel):
+    """Result of POST /domain/legal."""
+
+    #: Echoed back so the frontend can update its state without a
+    #: second GET. `which` mirrors the request, `text` is the saved
+    #: text (== request text, since we store verbatim).
+    which: Literal["policy", "rules"]
+    text: str
+
+
+class CoreEngineLibBaseProfileDomainSetLegalResponse(BaseModel):
+    success: bool = True
+    data: CoreEngineLibBaseProfileDomainSetLegalData
+
+
+# ============================================
 # SITEMAP.XML — NO SCHEMA
 # ============================================
 #
@@ -297,9 +417,8 @@ class CoreEngineLibBaseProfileDomainSetRobotsResponse(BaseModel):
 #
 # A Pydantic model would be serialized to JSON by FastAPI — that is
 # the wrong content type for both endpoints. The XML is built as a
-# plain string by CoreEngineLibBaseProfileDomainService.build_sitemap()
-# and returned with an explicit Response(media_type=...) so FastAPI
-# does not touch it.
+# plain string by SitemapMixin.build_sitemap() and returned with an
+# explicit Response(media_type=...) so FastAPI does not touch it.
 #
 # If a schema is ever needed for documentation purposes, define it
 # in the router with response_class=Response and an explicit

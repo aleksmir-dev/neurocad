@@ -40,6 +40,63 @@ class CoreEngineLibPagesNavNameSetRequest(BaseModel):
 
 
 # ========================================
+# ERROR PAYLOAD HELPER
+# ========================================
+
+def _page_error_payload(err: str, bal, current_pages: int) -> dict:
+    """
+    Human-readable payload for the 403 error from page creation.
+
+    Returns a dict with:
+
+      - code    — machine-readable error code (unchanged);
+      - message — Russian explanation for the UI;
+      - action  — optional { label, href } for a follow-up link.
+
+    The universal frontend form (BaseCardsEdit) renders `message`
+    instead of the raw `err` and, if `action` is present, a
+    link-button under it. That form has NO knowledge of tariffs —
+    it only knows the shape (code / message / action), so business
+    logic lives here, on the backend, where tariffs are understood.
+
+    Error codes we know about today:
+
+      - "pages_exhausted" — user is on Free (or over limit) and
+                            tried to create another page. Show the
+                            upgrade hint with a link to the balance
+                            page.
+
+      - anything else     — pass the code through as-is. The
+                            frontend shows it as a fallback
+                            message (same as before this change),
+                            so we do not lose any information.
+    """
+    if err == "pages_exhausted":
+        # limit_pages is the effective cap on the user's current
+        # tariff. On Free it is 1; on Pro / LLM it is 0 (unlimited),
+        # but this branch is only reached when the limit is hit, so
+        # `limit_pages` will be a positive number. Guard anyway.
+        limit = (bal.limit_pages if bal and bal.limit_pages else 1)
+
+        return {
+            "code": err,
+            "message": (
+                f"У вас тариф Free. "
+                f"Для создания больше чем {limit} "
+                f"страницы перейдите на другой тариф."
+            ),
+            "action": {
+                "label": "Перейти к балансу",
+                "href": "/core/engine/admin?page=profile&section=balance",
+            },
+        }
+
+    # Generic fallback — the code is the message. Kept so callers
+    # that only know the raw code still see something.
+    return {"code": err, "message": err}
+
+
+# ========================================
 # NAV RESOLUTION
 # ========================================
 
@@ -274,8 +331,9 @@ async def get_my_pages_list(
     в редакторе (trait page-link).
 
     Возвращает только активные, неудалённые, не-шаблонные страницы
-    всех nav текущего юзера. Каждая с готовым URL вида
-    /page/<nav_id>/<YYYYMMDD>/<HHMMSS>.
+    всех nav текущего юзера. Каждая с готовым ПУБЛИЧНЫМ URL вида
+    /page/<YYYYMMDD>/<HHMMSS> (без nav_id — публичные URL
+    host-based, см. pages/public/route.py).
 
     Any authenticated user.
     """
@@ -367,7 +425,24 @@ async def create_page_item(
     Before creating — checks the page limit via BalanceChecked
     (lazy, based on the owner's tariff).
 
-    On limit exceeded → 403 with detail 'pages_exhausted'.
+    On limit exceeded → 403 with a STRUCTURED detail payload:
+
+        {
+          "detail": {
+            "code":    "pages_exhausted",
+            "message": "У вас тариф Free. Для создания больше чем 1
+                        страницы перейдите на другой тариф.",
+            "action":  {
+              "label": "Перейти к балансу",
+              "href":  "/core/engine/admin?page=profile&section=balance"
+            }
+          }
+        }
+
+    The universal frontend form (BaseCardsEdit) renders `message`
+    and, if `action` is present, a link-button under it. That form
+    has no knowledge of tariffs — the whole business message is
+    built here, where tariffs are understood.
     """
     # get_current_user raises 401 for guests — no extra permission check needed.
     user_id = current_user.get("id")
@@ -378,7 +453,10 @@ async def create_page_item(
         user_id, log=request.app.state.log
     )
     if err:
-        raise HTTPException(status_code=403, detail=err)
+        raise HTTPException(
+            status_code=403,
+            detail=_page_error_payload(err, bal, current_pages),
+        )
 
     item = await CoreEngineLibPagesService.create_item(data, nav_id=resolved_nav_id)
 

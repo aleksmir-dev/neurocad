@@ -1,4 +1,4 @@
-// neurocad/core/engine/lib/base/profile/domain/sitemap.js
+// neurocad/core/engine/lib/base/profile/domain/modal/sitemap/sitemap.js
 
 /**
  * SitemapModal — read-only viewer for the generated sitemap.xml.
@@ -22,8 +22,28 @@
  * times without leaking overlays. On each open it re-fetches, so
  * a page created after the last open shows up immediately.
  *
- * Styling lives in ./sitemap.css, which BaseProfileDomain loads
- * together with domain.css (see _loadCSS()).
+ * Module location
+ * ---------------
+ * This file lives at ./modal/sitemap/sitemap.js — under the domain
+ * page's ./modal/ subfolder, next to its own sitemap.css. It is
+ * imported on demand by ./modals.js (openSitemapModal), not at the
+ * top of any other module.
+ *
+ * Styling
+ * -------
+ * Unlike robots.js and legal.js, this modal does NOT call
+ * coreEngine.loadCSS() from its own constructor. The stylesheet
+ * ./modal/sitemap/sitemap.css is preloaded once by the domain page
+ * (see domain.js → _loadCSS), together with the other modal
+ * stylesheets. That is safe because:
+ *
+ *   - the sitemap modal is only ever opened from the domain page;
+ *   - the domain page already loads its CSS before the user can
+ *     click "Просмотреть sitemap.xml".
+ *
+ * If a future caller ever opens SitemapModal from a different
+ * page, add a _loadCSS() call here (mirroring robots.js) instead
+ * of relying on the domain page's preload.
  */
 
 export class SitemapModal {

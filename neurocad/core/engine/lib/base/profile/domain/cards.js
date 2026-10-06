@@ -3,7 +3,7 @@
 /**
  * Card renderers for the domain page.
  *
- * This is a FACTORY: makeCards(helpers) returns an object with five
+ * This is a FACTORY: makeCards(helpers) returns an object with six
  * render functions, each closed over the passed helpers. The factory
  * pattern exists because the whole project uses dynamic imports with
  * a cache-busting `?v=` — helpers.js cannot be imported statically
@@ -37,9 +37,9 @@
  * "delete certificate" queue.
  *
  * This is a UI-level guard only. The backend also refuses the
- * request (see PROTECTED_DOMAINS in service.py → is_protected_domain
- * and, if added, the guard in route.py → DELETE /remove). Keep the
- * two lists in sync — three names, one place each.
+ * request (see PROTECTED_DOMAINS in service/constants.py →
+ * is_protected_domain and the guard in route.py → DELETE /remove).
+ * Keep the two lists in sync — three names, one place each.
  *
  * The check covers suffixes as well: any `<something>.neurocad.ru`
  * is protected too, so a future subdomain of the platform cannot be
@@ -50,7 +50,7 @@ export function makeCards(helpers) {
     const { fullUrl, escapeAttr, statusBadge } = helpers;
 
     // ============================================
-    // PROTECTED DOMAINS — must match service.py
+    // PROTECTED DOMAINS — must match service/constants.py
     // ============================================
     //
     // Three apex names that belong to the platform. The "Отключить"
@@ -393,11 +393,11 @@ export function makeCards(helpers) {
     // ============================================
 
     /**
-     * Sitemap section — sits at the very bottom of the domain page.
+     * Sitemap section — sits near the bottom of the domain page.
      *
      * Not a "card" in the sense of the three main blocks: no inputs,
      * no save, no state. Just an explanation and one button that opens
-     * the read-only viewer (./sitemap.js).
+     * the read-only viewer (./modal/sitemap/sitemap.js).
      */
     function renderSitemapCard(data) {
         // Hint line — show the real public URL when we know it.
@@ -434,6 +434,138 @@ export function makeCards(helpers) {
     }
 
     // ============================================
+    // LEGAL CARD — POLICY / RULES
+    // ============================================
+
+    /**
+     * Legal section — sits at the very bottom of the domain page,
+     * below the sitemap card.
+     *
+     * Two editable markdown documents that the user can publish on
+     * their own site:
+     *
+     *   - Policy — served at /policy on the user's host;
+     *   - Rules  — served at /rules  on the user's host.
+     *
+     * Each row has a state badge and an "Edit" button that opens the
+     * shared legal modal (see ./modal/legal/legal.js, opened from
+     * ./modals.js → openLegalModal).
+     *
+     * Badge state is derived from the presence of the field:
+     *
+     *   - null / "" / whitespace → "Универсальный текст"
+     *     The user has not written their own text. The public page
+     *     serves the universal fallback from modal/legal/policy.md
+     *     (or rules.md), and the modal opens with that same text.
+     *
+     *   - any non-empty text → "Заполнено"
+     *     The public page serves the user's text.
+     *
+     * The NULL vs "" distinction (never touched vs cleared on
+     * purpose) is preserved in the DB but not surfaced in the UI —
+     * from the user's point of view both mean "my text is not set,
+     * the fallback is live".
+     */
+    function renderLegalCard(data) {
+        const policyText = data?.policy;
+        const rulesText = data?.rules;
+
+        // Public host for the preview links. Prefer the custom
+        // domain, fall back to the subdomain.
+        const publicHost = (() => {
+            const custom = data?.custom?.domain;
+            if (custom) return `https://${custom}`;
+            const sub = data?.subdomain?.subdomain;
+            if (sub) return `https://${sub}`;
+            return '';
+        })();
+
+        // A text is "set" if it exists and is non-empty after
+        // trimming. Whitespace-only content is treated as empty —
+        // there is no point showing "Заполнено" for a page that
+        // renders as nothing.
+        const isSet = (text) => typeof text === 'string' && text.trim().length > 0;
+
+        const policySet = isSet(policyText);
+        const rulesSet = isSet(rulesText);
+
+        // Badge: green "Заполнено" when the user's own text is set,
+        // neutral "Универсальный текст" otherwise (the fallback is
+        // live on the public page).
+        const policyBadge = policySet
+            ? `<span class="domain-badge domain-badge-ok">Заполнено</span>`
+            : `<span class="domain-badge">Универсальный текст</span>`;
+
+        const rulesBadge = rulesSet
+            ? `<span class="domain-badge domain-badge-ok">Заполнено</span>`
+            : `<span class="domain-badge">Универсальный текст</span>`;
+
+        const policyPreview = publicHost
+            ? `<a class="domain-link-ghost"
+                   href="${escapeAttr(publicHost + '/policy')}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="Открыть опубликованную версию">/policy</a>`
+            : `<code>/policy</code>`;
+
+        const rulesPreview = publicHost
+            ? `<a class="domain-link-ghost"
+                   href="${escapeAttr(publicHost + '/rules')}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="Открыть опубликованную версию">/rules</a>`
+            : `<code>/rules</code>`;
+
+        return `
+            <section class="domain-card">
+                <div class="domain-card-title">Документы сайта</div>
+                <p class="domain-card-hint">
+                    Тексты в формате Markdown. Публикуются на вашем сайте
+                    по адресам <code>/policy</code> и <code>/rules</code>.
+                    Если поле не заполнено — публикуется универсальный
+                    текст для сайта-визитки.
+                </p>
+
+                <div class="domain-legal-row">
+                    <div class="domain-legal-row-left">
+                        <div class="domain-legal-row-title">Политика</div>
+                        <div class="domain-legal-row-hint">
+                            Обработка персональных данных. ${policyPreview}
+                        </div>
+                    </div>
+                    <div class="domain-legal-row-right">
+                        ${policyBadge}
+                        <button type="button"
+                                class="domain-btn"
+                                data-action="edit-legal"
+                                data-which="policy">
+                            Редактировать
+                        </button>
+                    </div>
+                </div>
+
+                <div class="domain-legal-row">
+                    <div class="domain-legal-row-left">
+                        <div class="domain-legal-row-title">Правила</div>
+                        <div class="domain-legal-row-hint">
+                            Условия использования сайта. ${rulesPreview}
+                        </div>
+                    </div>
+                    <div class="domain-legal-row-right">
+                        ${rulesBadge}
+                        <button type="button"
+                                class="domain-btn"
+                                data-action="edit-legal"
+                                data-which="rules">
+                            Редактировать
+                        </button>
+                    </div>
+                </div>
+            </section>
+        `;
+    }
+
+    // ============================================
     // PUBLIC
     // ============================================
 
@@ -443,5 +575,6 @@ export function makeCards(helpers) {
         renderCustomCard,
         renderAddResultBlock,
         renderSitemapCard,
+        renderLegalCard,
     };
 }

@@ -7,11 +7,14 @@ Endpoints (mounted under /core/engine/lib/base/profile/domain):
     GET    /                  — subdomain + custom slot + Caddy status
                                 + pages + home_page_id
                                 + robots_2 + robots_3
+                                + policy + rules
     POST   /add               — set custom domain (checks DNS + Caddy)
     DELETE /remove            — clear the custom domain slot
     POST   /home              — set the home page (users.home_page_id)
     DELETE /home              — clear the home page
     POST   /robots            — save users.robots_2 or users.robots_3
+                                (which one is chosen by `which`)
+    POST   /legal             — save users.policy or users.rules
                                 (which one is chosen by `which`)
     GET    /sitemap           — sitemap.xml for the current user,
                                 generated on the fly, returned as
@@ -24,6 +27,7 @@ Full URLs:
     POST   /core/engine/lib/base/profile/domain/home
     DELETE /core/engine/lib/base/profile/domain/home
     POST   /core/engine/lib/base/profile/domain/robots
+    POST   /core/engine/lib/base/profile/domain/legal
     GET    /core/engine/lib/base/profile/domain/sitemap
 
 All endpoints require an authenticated user.
@@ -39,8 +43,9 @@ from .schema import (
     CoreEngineLibBaseProfileDomainAddRequest,
     CoreEngineLibBaseProfileDomainHomeSetRequest,
     CoreEngineLibBaseProfileDomainSetRobotsRequest,
+    CoreEngineLibBaseProfileDomainSetLegalRequest,
 )
-from .service import CoreEngineLibBaseProfileDomainService
+from .service.facade import CoreEngineLibBaseProfileDomainService
 
 
 router = APIRouter(prefix="/domain", tags=["core/engine/lib/base/profile/domain"])
@@ -65,7 +70,9 @@ async def get_domains(
     Free subdomain + custom domain slot + Caddy availability
     + the user's pages (for the home-page selector) + home_page_id
     + the current robots_2 and robots_3 texts (for the robots.txt
-    modal, which edits whichever field the user opened).
+    modal, which edits whichever field the user opened)
+    + the current policy and rules markdown texts (for the legal
+    modal, same pattern).
     """
     user = _require_user(current_user)
 
@@ -277,6 +284,69 @@ async def set_robots(
 
 
 # ============================================
+# LEGAL — POLICY / RULES SAVE
+# ============================================
+
+@router.post("/legal")
+async def set_legal(
+    body: CoreEngineLibBaseProfileDomainSetLegalRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Save a policy or rules markdown body for the current user.
+
+    Body:
+      {
+        "which": "policy",
+        "text": "# Политика обработки персональных данных\\n\\n..."
+      }
+
+    `which` selects the target field:
+
+      - "policy" → users.policy;
+      - "rules"  → users.rules.
+
+    The text is stored verbatim — the backend does not parse or
+    validate markdown. Empty string is stored as-is (distinct from
+    NULL in the DB: "" means the user cleared the field on purpose).
+
+    The public endpoints /policy and /rules (see utils/routes.py)
+    read these fields by Host and render them to HTML on the fly.
+
+    Response:
+      {
+        "success": true,
+        "data": { "which": "policy", "text": "<saved text>" }
+      }
+
+    Errors:
+      400 — invalid `which`
+      404 — user not found
+    """
+    user = _require_user(current_user)
+
+    saved = await CoreEngineLibBaseProfileDomainService.set_legal(
+        user_id=int(user["id"]),
+        which=body.which,
+        text=body.text,
+        log=request.app.state.log,
+    )
+
+    if saved is None:
+        # set_legal returns None either because the user does not
+        # exist or because `which` was outside {"policy", "rules"}.
+        # The Pydantic schema already constrains `which`, so the
+        # only remaining case is "user not found".
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    return JSONResponse({
+        "success": True,
+        "data": {"which": body.which, "text": saved},
+    })
+
+
+# ============================================
 # SITEMAP.XML — VIEW (admin-side, for the modal)
 # ============================================
 
@@ -288,7 +358,7 @@ async def get_sitemap(
     """
     sitemap.xml for the currently authenticated user, generated on
     the fly from the `pages` table (nothing is stored — see
-    CoreEngineLibBaseProfileDomainService.build_sitemap).
+    SitemapMixin.build_sitemap).
 
     Returns text/plain, NOT application/xml, on purpose:
 
