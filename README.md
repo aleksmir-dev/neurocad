@@ -292,3 +292,8 @@ MIT. См. [LICENSE](LICENSE).
 
 - PyPI: <https://pypi.org/project/neurocad/>
 - GitHub: <https://github.com/aleksmir-dev/neurocad>
+
+## Регистрация программы для ЭВМ
+
+Версия 1.0.4 направлена для государственной регистрации программы 
+для ЭВМ в Роспатент (заявка подана в 04.10.2026).

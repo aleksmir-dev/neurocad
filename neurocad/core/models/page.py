@@ -37,6 +37,22 @@ class Page(Base):
     # в static/pages/<id>.css, в HTML идёт <link> с ?v=<hash>.
     css: Mapped[Optional[str]] = mapped_column(Text)
 
+    # External URL for this page.
+    #
+    # When set, the page is treated as a "link card" — a catalog
+    # entry that points to an external site instead of to an
+    # internal page. The public catalog and the admin catalog both
+    # open this URL on click, in the CURRENT tab (target="_self").
+    #
+    # The page keeps its own content / content_json / css, and the
+    # editor still opens normally when the page is edited directly
+    # by URL — the external URL does not lock the page, it only
+    # changes how catalog cards resolve on click.
+    #
+    # NULL / "" → the page behaves exactly as before (internal
+    # /page/<date>/<time> target).
+    url: Mapped[Optional[str]] = mapped_column(String(2048), nullable=True)
+
     # ===== Template system =====
     # is_template = True → this page can be used as a base template
     #   by other pages (shown in "Наследовать от" dropdown).

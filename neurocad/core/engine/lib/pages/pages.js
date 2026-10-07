@@ -21,6 +21,16 @@
  *   - Authenticated users (including superadmin): full toolbar —
  *     add, edit, delete, restore.
  *
+ * External link cards:
+ *   A page may carry an external `url` (pages.url). When set, the
+ *   card is a "link card": clicking it navigates to that URL in
+ *   the CURRENT tab, instead of opening the internal editor at
+ *   /core/engine/<module>/page/<nav_id>/<date>/<time>. The editor
+ *   itself is still reachable — the page keeps its own admin URL —
+ *   the external url only changes where a catalog card click goes.
+ *
+ *   See _openArticle() for the exact branching.
+ *
  * Template system:
  *   - is_template: page can be used as a base template by other pages.
  *   - template_id: this page inherits layout from that template page;
@@ -324,6 +334,14 @@ export class Pages {
                         maxLength: 500,
                         rows: 3,
                         placeholder: 'Описание (необязательно)',
+                    },
+                    {
+                        key: 'url',
+                        label: 'Внешняя ссылка',
+                        type: 'text',
+                        maxLength: 2048,
+                        placeholder: 'https://example.com (необязательно)',
+                        hint: 'Если заполнено — карточка в каталоге ведёт на этот адрес вместо статьи.',
                     },
                     {
                         key: 'logo',
@@ -722,6 +740,10 @@ export class Pages {
             ? `<span class="pages-card-badge">Шаблон</span>`
             : '';
 
+        const externalBadge = item.url
+            ? `<span class="pages-card-badge pages-card-badge-external" title="Ведёт на внешний сайт">↗</span>`
+            : '';
+
         return `
             <div class="pages-card">
                 <div class="pages-card-glow"></div>
@@ -735,6 +757,7 @@ export class Pages {
                     ${item.description ? `<p class="pages-card-desc">${esc(item.description)}</p>` : ''}
                     ${date ? `<time class="pages-card-date">${esc(date)}</time>` : ''}
                     ${templateBadge}
+                    ${externalBadge}
                 </div>
             </div>
         `;
@@ -745,28 +768,44 @@ export class Pages {
     // ============================================
 
     /**
-     * Navigate to the article page.
+     * Open the clicked card.
      *
-     * URL form:
-     *   /core/engine/<module>/page/<nav_id>/<date>/<time>
+     * Two cases:
      *
-     * Example:
-     *   /core/engine/default/page/2/20260927/084039
+     *   1. The page has an external `url` (link card).
+     *      Navigate to that URL in the CURRENT tab. The card is
+     *      used to point at an external site from inside the
+     *      catalog, so a click should leave the panel and land on
+     *      the target. The editor for this page is still reachable
+     *      by opening its admin URL directly — `url` only changes
+     *      what a card click does.
      *
-     * Where:
-     *   - <module>  — the current module (window.coreEngine.baseUrl,
-     *                 e.g. /core/engine/default). Its config lives at
-     *                 app/<module>/<module>.json and
-     *                 app/<module>/page.json.
-     *   - "page"    — the module page (app/<module>/page.json),
-     *                 which renders the "word" component.
-     *   - <nav_id>  — the first numeric segment; _parse_path on the
-     *                 backend puts it into paramsList[0]. Word uses it
-     *                 to scope the page lookup.
-     *   - <date>/<time> — the page's publication date and time.
+     *   2. The page has no `url` (regular page).
+     *      Navigate to the internal editor:
      *
-     * When navId is null, we still build the URL — the backend will
-     * resolve the nav from the session. The path shape stays the same.
+     *        /core/engine/<module>/page/<nav_id>/<date>/<time>
+     *
+     *      Example:
+     *        /core/engine/default/page/2/20260927/084039
+     *
+     *      Where:
+     *        - <module>  — the current module
+     *                      (window.coreEngine.baseUrl, e.g.
+     *                      /core/engine/default). Its config lives
+     *                      at app/<module>/<module>.json and
+     *                      app/<module>/page.json.
+     *        - "page"    — the module page
+     *                      (app/<module>/page.json), which renders
+     *                      the "word" component.
+     *        - <nav_id>  — the first numeric segment; _parse_path
+     *                      on the backend puts it into
+     *                      paramsList[0]. Word uses it to scope the
+     *                      page lookup.
+     *        - <date>/<time> — the page's publication date and time.
+     *
+     *      When navId is null, the URL is still built — the
+     *      backend resolves the nav from the session. The path
+     *      shape stays the same.
      */
     _openArticle(id) {
         console.log('[Pages] _openArticle() id =', id, '(type:', typeof id, ')');
@@ -781,6 +820,20 @@ export class Pages {
             console.warn('[Pages] item not found');
             return;
         }
+
+        // ---- 1. External link card ----
+        // If the page has an external url, follow it. Trim and
+        // ignore whitespace-only values so a page that once had a
+        // url and later was cleared (or set to spaces) behaves as
+        // a regular page.
+        const externalUrl = typeof item.url === 'string' ? item.url.trim() : '';
+        if (externalUrl) {
+            console.log('[Pages] _openArticle() external url:', externalUrl);
+            window.location.href = externalUrl;
+            return;
+        }
+
+        // ---- 2. Regular page — open the internal editor ----
         if (!item.datetime) {
             console.warn('[Pages] item has no datetime');
             return;

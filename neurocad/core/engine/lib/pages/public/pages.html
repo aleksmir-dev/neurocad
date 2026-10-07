@@ -39,9 +39,10 @@
               .pages-catalog-card-logo  — optional image
               .pages-catalog-card-body  — title / description / date
 
-      Each item already carries a ready URL
-      (/page/<nav_id>/<YYYYMMDD>/<HHMMSS>) built by
-      _page_to_list_item in the service — the template just prints it.
+      Each item already carries a ready URL — either an internal
+      path (/page/<YYYYMMDD>/<HHMMSS>) for a regular page, or an
+      external URL for a link card (pages.url). The template just
+      prints it. See _resolve_card_url in the service.
     #}
     <main class="pages-catalog">
 

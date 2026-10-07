@@ -79,6 +79,7 @@ class CoreEngineLibPagesService:
                     "created_at": page_item.created_at.isoformat() if page_item.created_at else None,
                     "updated_at": page_item.updated_at.isoformat() if page_item.updated_at else None,
                     "rss_yandex_id": page_item.rss_yandex_id,
+                    "url": page_item.url,
                 })
 
             return {
@@ -113,6 +114,10 @@ class CoreEngineLibPagesService:
         через trait page-link, попадает в <a href="..."> и позже
         рендерится на публичном домене — там nav_id быть не должно.
 
+        Если у страницы задан `url` (внешняя ссылка), он попадает
+        в поле "url" элемента вместо внутреннего пути — чтобы trait
+        page-link вставлял именно внешнюю ссылку.
+
         exclude_page_id — исключить конкретную страницу (обычно — ту,
         которую сейчас редактирует пользователь: нельзя ссылаться на
         себя).
@@ -121,7 +126,7 @@ class CoreEngineLibPagesService:
             {
               "id": <page.id>,
               "title": <page.title>,
-              "url": "/page/<YYYYMMDD>/<HHMMSS>"
+              "url": "/page/<YYYYMMDD>/<HHMMSS>"  или  "<external url>"
             }
         """
         async for session in get_db_sqlite():
@@ -161,14 +166,20 @@ class CoreEngineLibPagesService:
             for p in rows:
                 if not p.datetime:
                     continue
-                # Public URL — host-based, no nav_id. The owner of
-                # the URL is resolved from the Host on the public
-                # side (see pages/public/route.py).
-                url = (
-                    f"/page/"
-                    f"{p.datetime.strftime('%Y%m%d')}/"
-                    f"{p.datetime.strftime('%H%M%S')}"
-                )
+
+                # If the page has an external URL, use it directly.
+                # Otherwise build the host-based public URL:
+                # /page/<YYYYMMDD>/<HHMMSS> — no nav_id, the owner
+                # is resolved from the Host on the public side.
+                if p.url and p.url.strip():
+                    url = p.url.strip()
+                else:
+                    url = (
+                        f"/page/"
+                        f"{p.datetime.strftime('%Y%m%d')}/"
+                        f"{p.datetime.strftime('%H%M%S')}"
+                    )
+
                 items.append({
                     "id": p.id,
                     "title": p.title or f"Страница {p.id}",
@@ -213,6 +224,7 @@ class CoreEngineLibPagesService:
                 "created_at": page_item.created_at.isoformat() if page_item.created_at else None,
                 "updated_at": page_item.updated_at.isoformat() if page_item.updated_at else None,
                 "rss_yandex_id": page_item.rss_yandex_id,
+                "url": page_item.url,
             }
 
         return None
@@ -272,6 +284,7 @@ class CoreEngineLibPagesService:
                 "created_at": page_item.created_at.isoformat() if page_item.created_at else None,
                 "updated_at": page_item.updated_at.isoformat() if page_item.updated_at else None,
                 "rss_yandex_id": page_item.rss_yandex_id,
+                "url": page_item.url,
             }
 
         return None
@@ -325,6 +338,7 @@ class CoreEngineLibPagesService:
                 is_delete=0,
                 is_template=getattr(data, "is_template", 0) or 0,
                 template_id=getattr(data, "template_id", None),
+                url=getattr(data, "url", None) or None,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )
@@ -346,6 +360,7 @@ class CoreEngineLibPagesService:
                 "template_id": new_item.template_id,
                 "created_at": new_item.created_at.isoformat() if new_item.created_at else None,
                 "updated_at": new_item.updated_at.isoformat() if new_item.updated_at else None,
+                "url": new_item.url,
             }
 
         return None
@@ -375,12 +390,22 @@ class CoreEngineLibPagesService:
 
             update_data = data.model_dump(exclude_unset=True)
 
-            # template_id can be explicitly set to None (unlink from template)
+            # Fields that may be explicitly set to None (meaning "clear"):
+            #   - template_id — unlink from a base template
+            #   - url         — turn a link card back into a regular page
+            # Any other field with None value is skipped: it means the
+            # caller did not send the field and we keep the current value.
+            noneable_fields = {"template_id", "url"}
+
             for key, value in update_data.items():
                 if not hasattr(page_item, key):
                     continue
-                if value is None and key != "template_id":
+                if value is None and key not in noneable_fields:
                     continue
+                # Normalize empty url to None so the page returns to
+                # the "internal target" behaviour.
+                if key == "url" and isinstance(value, str):
+                    value = value.strip() or None
                 setattr(page_item, key, value)
 
             page_item.updated_at = datetime.now()
@@ -401,6 +426,7 @@ class CoreEngineLibPagesService:
                 "template_id": page_item.template_id,
                 "created_at": page_item.created_at.isoformat() if page_item.created_at else None,
                 "updated_at": page_item.updated_at.isoformat() if page_item.updated_at else None,
+                "url": page_item.url,
             }
 
         return None

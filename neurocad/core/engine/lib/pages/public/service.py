@@ -37,8 +37,10 @@ Catalog:
   get_list() returns the active, non-deleted pages of a nav, sorted
   by datetime DESC. Used by the public /pages route to render a
   full catalog page without the admin UI. Each item carries a
-  ready-to-use `url` (/page/<YYYYMMDD>/<HHMMSS>) so the template
-  does not have to assemble it.
+  ready-to-use `url`:
+    - pages.url, if the page is a link card (external target);
+    - /page/<YYYYMMDD>/<HHMMSS>, otherwise.
+  The template does not have to assemble anything.
 
 Namespace: CoreEngineLibPagesPublicService
 """
@@ -110,6 +112,24 @@ def _public_url(page_dt: Optional[datetime]) -> str:
     )
 
 
+def _resolve_card_url(page: Page) -> str:
+    """
+    URL a catalog card should point at.
+
+    Priority:
+      1. page.url, if set and not blank — the page is a link card
+         pointing at an external site. Returned as-is (already
+         absolute or site-relative, depends on what the user typed).
+      2. /page/<YYYYMMDD>/<HHMMSS> — the internal page URL.
+
+    Whitespace-only values are ignored so a cleared url field
+    behaves exactly like NULL.
+    """
+    if isinstance(page.url, str) and page.url.strip():
+        return page.url.strip()
+    return _public_url(page.datetime)
+
+
 class CoreEngineLibPagesPublicService:
     """Read-only service for public page rendering."""
 
@@ -137,6 +157,10 @@ class CoreEngineLibPagesPublicService:
         Only active, non-deleted pages are returned — same filter
         as get_by_datetime / get_by_id. That keeps the catalog
         consistent with what a visitor can actually open.
+
+        Each item's `url` is resolved via _resolve_card_url: for
+        link cards it is the page's external url, for regular
+        pages it is /page/<date>/<time>.
         """
         items: List[CoreEngineLibPagesPublicItemListItem] = []
 
@@ -443,6 +467,11 @@ class CoreEngineLibPagesPublicService:
         logo, datetime) plus a ready URL. Keeping the two converters
         separate makes it obvious at a glance which fields each
         consumer depends on.
+
+        `url` is resolved via _resolve_card_url: for link cards
+        (page.url set) it is the external URL, for regular pages it
+        is /page/<date>/<time>. The template does not need to know
+        which case it is — it just renders <a href="{url}">.
         """
         return CoreEngineLibPagesPublicItemListItem(
             id=page.id,
@@ -451,5 +480,5 @@ class CoreEngineLibPagesPublicService:
             title=page.title or "",
             description=page.description,
             logo=page.logo,
-            url=_public_url(page.datetime),
+            url=_resolve_card_url(page),
         )

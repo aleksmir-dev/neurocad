@@ -82,11 +82,22 @@ class CoreEngineLibPagesPublicItemListItem(CoreEngineLibPagesPublicItemBase):
     """
     Public page for list view — without the heavy content field.
 
-    Carries a pre-built `url` so the /pages catalog template does
-    not have to assemble /page/<nav_id>/<YYYYMMDD>/<HHMMSS> by
-    itself. The service is the single source of truth for that
-    format (same as CoreEngineLibPagesPublicService._page_to_public
-    and the public route).
+    Carries a ready-to-use `url` so the /pages catalog template
+    does not have to assemble anything. The service is the single
+    source of truth for what that URL means
+    (see CoreEngineLibPagesPublicService._resolve_card_url).
+
+    `url` can be either:
+
+      - an internal path: /page/<YYYYMMDD>/<HHMMSS> — the regular
+        case, when the page has no external `url` set;
+
+      - an absolute external URL: https://example.com — when the
+        page is a "link card" (pages.url is set), used to point at
+        an external site from the catalog.
+
+    The template does not need to distinguish the two cases — it
+    just renders <a href="{url}">.
     """
 
     logo: Optional[str] = Field(
@@ -95,7 +106,11 @@ class CoreEngineLibPagesPublicItemListItem(CoreEngineLibPagesPublicItemBase):
     )
     url: str = Field(
         ...,
-        description="Public URL of the page: /page/<nav_id>/<YYYYMMDD>/<HHMMSS>",
+        description=(
+            "Target of the catalog card. Internal path "
+            "(/page/<YYYYMMDD>/<HHMMSS>) for regular pages, or an "
+            "external URL for link cards (pages.url)."
+        ),
     )
 
     class Config:

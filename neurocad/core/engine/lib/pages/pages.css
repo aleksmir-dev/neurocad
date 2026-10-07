@@ -173,6 +173,30 @@
 }
 
 /* ============================================
+   БЕЙДЖИ
+   ============================================ */
+
+.pages-card-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: rgba(15, 23, 42, 0.08);
+    color: #475569;
+}
+
+/* External link badge — shown on cards whose page has a `url`
+   set (link cards). Blue tint to signal "leads to another site";
+   the glyph itself is added by pages.js. */
+.pages-card-badge-external {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+/* ============================================
    АДАПТИВ
    ============================================ */
 
