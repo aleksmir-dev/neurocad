@@ -11,7 +11,10 @@ Provides:
                            return that user's policy / rules;
   - get_defaults()       — read both default markdown files from
                            disk (modal/legal/policy.md and
-                           modal/legal/rules.md).
+                           modal/legal/rules.md);
+  - load_home_context()  — read the user's home page (title,
+                           description, visible text) as context
+                           for the generate_legal agent.
 
 Every user owns their own policy and rules texts, because every
 user runs their own site on their own subdomain (or custom
@@ -30,6 +33,7 @@ exactly those two strings.
 Namespace: CoreEngineLibBaseProfileDomain*
 """
 
+import re
 from typing import Optional, Literal
 
 from sqlalchemy import select
@@ -38,6 +42,45 @@ from neurocad.core.models.user import User
 from neurocad.utils.sqlite import get_db_sqlite
 
 from ..public import read_default
+
+
+# ============================================
+# HTML STRIPPING (for legal generation)
+# ============================================
+
+def _strip_html(html: str, max_len: int = 3000) -> str:
+    """
+    Convert HTML to plain text and trim to max_len characters.
+
+    This is a cheap strip — not a full HTML parser. It removes
+    <script>, <style>, then tags, then collapses whitespace. Good
+    enough to give the LLM a feeling for what the page is about.
+
+    Trims at max_len to keep the prompt small.
+
+    Not used for public rendering — that goes through markdown-it-py
+    on the output side. This is only for extracting the "visible
+    text" of a page to feed into a prompt.
+    """
+    if not html:
+        return ""
+
+    s = html
+
+    # Drop script / style content entirely.
+    s = re.sub(r"<script\b[^>]*>.*?</script>", " ", s, flags=re.DOTALL | re.IGNORECASE)
+    s = re.sub(r"<style\b[^>]*>.*?</style>", " ", s, flags=re.DOTALL | re.IGNORECASE)
+
+    # Replace every tag with a space so words do not glue together.
+    s = re.sub(r"<[^>]+>", " ", s)
+
+    # Collapse whitespace.
+    s = re.sub(r"\s+", " ", s).strip()
+
+    if len(s) > max_len:
+        s = s[:max_len].rstrip() + "…"
+
+    return s
 
 
 class LegalMixin:
@@ -192,3 +235,100 @@ class LegalMixin:
             "policy": read_default("policy"),
             "rules": read_default("rules"),
         }
+
+    # ========================================
+    # GENERATE — home page context
+    # ========================================
+
+    @classmethod
+    async def load_home_context(cls, user_id: int) -> Optional[dict]:
+        """
+        Load the user's home page context for legal generation.
+
+        Resolution:
+          1. users.home_page_id — if set and points to a live page
+             of the user's first nav.
+          2. First page of the user's first nav (ORDER BY datetime
+             ASC, is_delete=0, is_active=1).
+          3. None — the user has no pages at all.
+
+        Returns a dict:
+            {
+              "owner_name":  <User.name or "">,
+              "title":       <page.title or "">,
+              "description": <page.description or "">,
+              "text":        <strip_html(page.content)>,
+            }
+        or None if the user has no pages.
+
+        HTML stripping is done here, not in the agent, so the agent
+        stays focused on LLM interaction, not on parsing. The
+        stripped text is trimmed to a reasonable size (see
+        _strip_html) — the LLM does not need the whole page.
+        """
+        from neurocad.core.models.nav import Nav
+        from neurocad.core.models.page import Page
+
+        async for session in get_db_sqlite():
+            # ---- 1. user ----
+            u_stmt = select(User).where(
+                User.id == user_id,
+                User.is_delete.is_(False),
+            )
+            user = (await session.execute(u_stmt)).scalar_one_or_none()
+            if user is None:
+                return None
+
+            owner_name = (user.name or "").strip()
+
+            # ---- 2. first nav ----
+            nav_stmt = (
+                select(Nav)
+                .where(
+                    Nav.user_id == user_id,
+                    Nav.is_delete.is_(False),
+                )
+                .order_by(Nav.id.asc())
+                .limit(1)
+            )
+            nav = (await session.execute(nav_stmt)).scalar_one_or_none()
+            if nav is None:
+                return None
+
+            page = None
+
+            # ---- 3a. explicit home page ----
+            if user.home_page_id:
+                hp_stmt = select(Page).where(
+                    Page.id == user.home_page_id,
+                    Page.nav_id == nav.id,
+                    Page.is_delete == 0,
+                    Page.is_active == 1,
+                )
+                page = (await session.execute(hp_stmt)).scalar_one_or_none()
+
+            # ---- 3b. fallback: first page by datetime ASC ----
+            if page is None:
+                fp_stmt = (
+                    select(Page)
+                    .where(
+                        Page.nav_id == nav.id,
+                        Page.is_delete == 0,
+                        Page.is_active == 1,
+                    )
+                    .order_by(Page.datetime.asc(), Page.id.asc())
+                    .limit(1)
+                )
+                page = (await session.execute(fp_stmt)).scalar_one_or_none()
+
+            if page is None:
+                return None
+
+            return {
+                "owner_name": owner_name,
+                "title": (page.title or "").strip(),
+                "description": (page.description or "").strip(),
+                "text": _strip_html(page.content or ""),
+            }
+
+        return None

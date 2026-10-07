@@ -1,5 +1,5 @@
 -- Demo data: pages
--- Rows: 54
+-- Rows: 55
 
 PRAGMA foreign_keys = OFF;
 
@@ -33905,6 +33905,502 @@ INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo",
 
 * { box-sizing: border-box; } body {margin: 0;}', 'https://neurocad.ru');
 INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url") VALUES (54, 4, '2026-10-05 23:17:28.757363', 'Статья 4', '', '', NULL, NULL, 1, 0, '2026-10-05 23:17:28.757389', '2026-10-05 23:17:28.757390', NULL, 0, NULL, NULL, NULL);
+INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url") VALUES (55, 6, '2026-10-07 07:41:29.741277', 'aleksmir.ru', '', '', '<body><section id="ii7n" class="aleksmir-home-hero"><svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true" class="aleksmir-home-hero__decor"><defs><radialGradient id="aleksmirHeroBlob1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#2563eb" stop-opacity="0.18"></stop><stop offset="100%" stop-color="#2563eb" stop-opacity="0"></stop></radialGradient><radialGradient id="aleksmirHeroBlob2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#60a5fa" stop-opacity="0.16"></stop><stop offset="100%" stop-color="#60a5fa" stop-opacity="0"></stop></radialGradient></defs><circle cx="180" cy="160" r="320" fill="url(#aleksmirHeroBlob1)"></circle><circle cx="1020" cy="640" r="380" fill="url(#aleksmirHeroBlob2)"></circle><circle cx="900" cy="140" r="180" fill="none" stroke="#2563eb" stroke-opacity="0.08" stroke-width="1.5"></circle><circle cx="900" cy="140" r="260" fill="none" stroke="#2563eb" stroke-opacity="0.05" stroke-width="1.5"></circle><circle cx="240" cy="680" r="200" fill="none" stroke="#2563eb" stroke-opacity="0.06" stroke-width="1.5"></circle></svg><div class="aleksmir-home-hero__inner"><p class="aleksmir-home-hero__eyebrow">Персональный сайт</p><h1 id="icq91" class="aleksmir-home-hero__title">Смирнов Алексей Владимирович</h1><p class="aleksmir-home-hero__subtitle">Разрабатываю веб-сервисы и AI-инструменты</p><p class="aleksmir-home-hero__lead">Меня зовут Алексей. Я делаю сервисы, которые упрощают повседневные задачи: от простых утилит до ассистентов на базе больших языковых моделей.</p></div></section><section id="i7ut2" class="aleksmir-home-about"><div class="aleksmir-home-about__inner"><h2 class="aleksmir-home-about__title" id="iqj3q">Обо мне</h2><div class="aleksmir-home-about__content"><p class="aleksmir-home-about__text">Я веб-разработчик. Начинал с обычных сайтов, сейчас в основном работаю с Python, FastAPI и всем, что связано с большими языковыми моделями.</p><p class="aleksmir-home-about__text">Aleksmir.ru — мой личный сайт, здесь я собираю свои проекты. Большинство сервисов бесплатны и не требуют регистрации — кроме тех, где нужен аккаунт для истории.</p></div></div></section><section id="ipvmu" class="projects fx-nuclei-electron-orbits"><div class="projects__inner"><h2 class="projects__title" id="iem9f">Мои проекты</h2><div class="projects__grid"><a href="https://neurocad.ru" id="ij8g4" class="projects__card"><div class="projects__icon"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div><h3 class="projects__card-title" id="ic2mj">Нейрокад</h3><p class="projects__card-text" id="iz4ye">Разработка многостраничных сайтов-визиток без программирования </p><span class="projects__card-link">Открыть →</span></a><a href="https://mx.aleksmir.ru" id="irl3l" class="projects__card"><div class="projects__icon"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="il9kw"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div><h3 class="projects__card-title">Проверка Email</h3><p class="projects__card-text" id="i9rlj">Сервис для проверки валидности email-адресов через MX-записи</p><span class="projects__card-link">Открыть →</span></a></div><div class="projects__actions" id="iewgy"><a href="/pages" data-block="core-btn" id="iindd" class="btn">Смотреть все проекты</a></div></div></section><footer id="i3j8o" class="aleksmir-home-footer"><div class="aleksmir-home-footer__inner"><p class="aleksmir-home-footer__copy">© 2026 Алексей Смирнов</p><nav class="aleksmir-home-footer__nav"><a href="/policy" class="aleksmir-home-footer__link">Политика</a><a href="/rules" class="aleksmir-home-footer__link">Правила</a><a href="https://vk.ru/alek_smir" id="iki9w" class="aleksmir-home-footer__link">VK</a><a href="https://max.ru/join/uMV8uesuBmfwihTcAel9QZK8DEbwuLG7mWVY2jFdDDU" id="i9wn6" class="aleksmir-home-footer__link">Max</a></nav></div></footer></body>', '{"assets":[],"styles":[{"selectors":[],"selectorsAdd":"0%","style":{"opacity":"0","transform":"translateY(12px)"},"mediaText":"aleksmir-hero-fade-in","atRuleType":"keyframes"},{"selectors":[],"selectorsAdd":"100%","style":{"opacity":"1","transform":"translateY(0px)"},"mediaText":"aleksmir-hero-fade-in","atRuleType":"keyframes"},{"selectors":["aleksmir-home-hero"],"style":{"position":"relative","padding-top":"120px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px","background-image":"radial-gradient(1200px 600px at 15% 0%, rgb(234, 241, 254) 0%, rgba(234, 241, 254, 0) 60%), radial-gradient(900px 500px at 100% 100%, rgb(238, 244, 255) 0%, rgba(238, 244, 255, 0) 55%), initial","background-position-x":"initial, initial, initial","background-position-y":"initial, initial, initial","background-size":"initial, initial, initial","background-repeat":"initial, initial, initial","background-attachment":"initial, initial, initial","background-origin":"initial, initial, initial","background-clip":"initial, initial, initial","background-color":"rgb(250, 251, 252)","overflow-y":"hidden","overflow-x":"hidden"}},{"selectors":["aleksmir-home-hero__decor"],"style":{"position":"absolute","top":"0px","right":"0px","bottom":"0px","left":"0px","width":"100%","height":"100%","max-width":"100%","pointer-events":"none"}},{"selectors":["aleksmir-home-hero__inner"],"style":{"position":"relative","max-width":"760px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","padding-top":"0px","padding-right":"24px","padding-bottom":"0px","padding-left":"24px","animation-duration":"0.7s","animation-timing-function":"ease-out","animation-delay":"0s","animation-iteration-count":"1","animation-direction":"normal","animation-fill-mode":"both","animation-play-state":"running","animation-name":"aleksmir-hero-fade-in","animation-timeline":"auto","animation-range-start":"normal","animation-range-end":"normal"}},{"selectors":["aleksmir-home-hero__eyebrow"],"style":{"font-size":"14px","font-weight":"600","letter-spacing":"0.08em","text-transform":"uppercase","color":"rgb(37, 99, 235)","margin-top":"0px","margin-right":"0px","margin-bottom":"20px","margin-left":"0px","animation-duration":"0.7s","animation-timing-function":"ease-out","animation-delay":"0.05s","animation-iteration-count":"1","animation-direction":"normal","animation-fill-mode":"both","animation-play-state":"running","animation-name":"aleksmir-hero-fade-in","animation-timeline":"auto","animation-range-start":"normal","animation-range-end":"normal"}},{"selectors":["aleksmir-home-hero__title"],"style":{"font-size":"64px","line-height":"1.08","font-weight":"800","letter-spacing":"-0.025em","color":"rgb(15, 23, 42)","margin-top":"0px","margin-right":"0px","margin-bottom":"20px","margin-left":"0px","animation-duration":"0.7s","animation-timing-function":"ease-out","animation-delay":"0.12s","animation-iteration-count":"1","animation-direction":"normal","animation-fill-mode":"both","animation-play-state":"running","animation-name":"aleksmir-hero-fade-in","animation-timeline":"auto","animation-range-start":"normal","animation-range-end":"normal"}},{"selectors":["aleksmir-home-hero__subtitle"],"style":{"font-size":"22px","line-height":"1.4","font-weight":"500","color":"rgb(51, 65, 85)","margin-top":"0px","margin-right":"0px","margin-bottom":"24px","margin-left":"0px","letter-spacing":"-0.01em","animation-duration":"0.7s","animation-timing-function":"ease-out","animation-delay":"0.2s","animation-iteration-count":"1","animation-direction":"normal","animation-fill-mode":"both","animation-play-state":"running","animation-name":"aleksmir-hero-fade-in","animation-timeline":"auto","animation-range-start":"normal","animation-range-end":"normal"}},{"selectors":["aleksmir-home-hero__lead"],"style":{"font-size":"18px","line-height":"1.65","color":"rgb(100, 116, 139)","margin-top":"0px","margin-right":"0px","margin-bottom":"40px","margin-left":"0px","max-width":"620px","animation-duration":"0.7s","animation-timing-function":"ease-out","animation-delay":"0.28s","animation-iteration-count":"1","animation-direction":"normal","animation-fill-mode":"both","animation-play-state":"running","animation-name":"aleksmir-hero-fade-in","animation-timeline":"auto","animation-range-start":"normal","animation-range-end":"normal"}},{"selectors":["aleksmir-home-hero__cta"],"style":{"display":"inline-block","padding-top":"14px","padding-right":"28px","padding-bottom":"14px","padding-left":"28px","font-size":"16px","font-weight":"600","color":"rgb(255, 255, 255)","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(37, 99, 235)","border-top-left-radius":"8px","border-top-right-radius":"8px","border-bottom-right-radius":"8px","border-bottom-left-radius":"8px","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","box-shadow":"rgba(37, 99, 235, 0.22) 0px 4px 16px, rgba(15, 23, 42, 0.06) 0px 1px 3px","transition-behavior":"normal, normal, normal","transition-duration":"0.15s, 0.15s, 0.15s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"background-color, transform, box-shadow","animation-duration":"0.7s","animation-timing-function":"ease-out","animation-delay":"0.36s","animation-iteration-count":"1","animation-direction":"normal","animation-fill-mode":"both","animation-play-state":"running","animation-name":"aleksmir-hero-fade-in","animation-timeline":"auto","animation-range-start":"normal","animation-range-end":"normal"}},{"selectors":["aleksmir-home-hero__cta"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(29, 78, 216)","transform":"translateY(-2px)","box-shadow":"rgba(37, 99, 235, 0.28) 0px 8px 24px, rgba(15, 23, 42, 0.08) 0px 2px 6px"},"state":"hover"},{"selectors":["aleksmir-home-hero__cta"],"style":{"transform":"translateY(0px)"},"state":"active"},{"selectors":["aleksmir-home-hero"],"style":{"padding-top":"100px","padding-right":"24px","padding-bottom":"80px","padding-left":"24px"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["aleksmir-home-hero__title"],"style":{"font-size":"52px"},"mediaText":"(max-width: 1024px)","atRuleType":"media"},{"selectors":["aleksmir-home-hero"],"style":{"padding-top":"72px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["aleksmir-home-hero__inner"],"style":{"padding-top":"0px","padding-right":"4px","padding-bottom":"0px","padding-left":"4px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["aleksmir-home-hero__title"],"style":{"font-size":"38px","letter-spacing":"-0.02em"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["aleksmir-home-hero__subtitle"],"style":{"font-size":"18px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["aleksmir-home-hero__lead"],"style":{"font-size":"16px","margin-bottom":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["aleksmir-home-hero__cta"],"style":{"padding-top":"13px","padding-right":"24px","padding-bottom":"13px","padding-left":"24px","font-size":"15px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":"0%","style":{"opacity":"0","transform":"translateY(12px)"},"mediaText":"aleksmir-home-about-fade-in","atRuleType":"keyframes"},{"selectors":[],"selectorsAdd":"100%","style":{"opacity":"1","transform":"translateY(0px)"},"mediaText":"aleksmir-home-about-fade-in","atRuleType":"keyframes"},{"selectors":["aleksmir-home-about"],"style":{"position":"relative","padding-top":"100px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(250, 251, 252)","overflow-x":"hidden"}},{"selectors":["aleksmir-home-about__inner"],"style":{"max-width":"760px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","animation-duration":"0.6s","animation-timing-function":"ease-out","animation-delay":"0s","animation-iteration-count":"1","animation-direction":"normal","animation-fill-mode":"none","animation-play-state":"running","animation-name":"aleksmir-home-about-fade-in","animation-timeline":"auto","animation-range-start":"normal","animation-range-end":"normal"}},{"selectors":["aleksmir-home-about__title"],"style":{"font-size":"40px","font-weight":"700","letter-spacing":"-0.02em","color":"rgb(15, 23, 42)","margin-top":"0px","margin-right":"0px","margin-bottom":"40px","margin-left":"0px","text-align":"center"}},{"selectors":["aleksmir-home-about__content"],"style":{"display":"flex","flex-direction":"column","row-gap":"24px","column-gap":"24px"}},{"selectors":["aleksmir-home-about__text"],"style":{"font-size":"18px","line-height":"1.6","color":"rgb(51, 65, 85)","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["aleksmir-home-about"],"style":{"padding-top":"64px","padding-right":"16px","padding-bottom":"64px","padding-left":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["aleksmir-home-about__title"],"style":{"font-size":"30px","margin-bottom":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["aleksmir-home-about__text"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":"0%","style":{"opacity":"0","transform":"translateY(12px)"},"mediaText":"projects-fade-in","atRuleType":"keyframes"},{"selectors":[],"selectorsAdd":"100%","style":{"opacity":"1","transform":"translateY(0px)"},"mediaText":"projects-fade-in","atRuleType":"keyframes"},{"selectors":["projects"],"style":{"position":"relative","padding-top":"100px","padding-right":"24px","padding-bottom":"100px","padding-left":"24px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(250, 251, 252)","overflow-x":"hidden"}},{"selectors":["projects__inner"],"style":{"max-width":"760px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","animation-duration":"0.6s","animation-timing-function":"ease-out","animation-delay":"0s","animation-iteration-count":"1","animation-direction":"normal","animation-fill-mode":"none","animation-play-state":"running","animation-name":"projects-fade-in","animation-timeline":"auto","animation-range-start":"normal","animation-range-end":"normal"}},{"selectors":["projects__title"],"style":{"font-size":"42px","font-weight":"700","letter-spacing":"-0.02em","color":"rgb(15, 23, 42)","margin-top":"0px","margin-right":"0px","margin-bottom":"48px","margin-left":"0px","text-align":"center"}},{"selectors":["projects__grid"],"style":{"display":"grid","grid-template-columns":"repeat(2, 1fr)","row-gap":"24px","column-gap":"24px"}},{"selectors":["projects__card"],"style":{"display":"block","padding-top":"36px","padding-right":"28px","padding-bottom":"36px","padding-left":"28px","border-top-left-radius":"16px","border-top-right-radius":"16px","border-bottom-right-radius":"16px","border-bottom-left-radius":"16px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgba(255, 255, 255, 0.7)","backdrop-filter":"blur(10px)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(255, 255, 255, 0.6)","border-right-color":"rgba(255, 255, 255, 0.6)","border-bottom-color":"rgba(255, 255, 255, 0.6)","border-left-color":"rgba(255, 255, 255, 0.6)","border-image-source":"none","border-image-slice":"100%","border-image-width":"1","border-image-outset":"0","border-image-repeat":"stretch","box-shadow":"rgba(15, 23, 42, 0.06) 0px 4px 16px, rgba(15, 23, 42, 0.04) 0px 1px 3px","transition-behavior":"normal, normal","transition-duration":"0.25s, 0.25s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"transform, box-shadow","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","color":"inherit"}},{"selectors":["projects__card"],"style":{"transform":"translateY(-2px)","box-shadow":"rgba(37, 99, 235, 0.12) 0px 12px 32px, rgba(15, 23, 42, 0.08) 0px 4px 12px"},"state":"hover"},{"selectors":["projects__icon"],"style":{"width":"56px","height":"56px","display":"flex","align-items":"center","justify-content":"center","border-top-left-radius":"14px","border-top-right-radius":"14px","border-bottom-right-radius":"14px","border-bottom-left-radius":"14px","background-image":"linear-gradient(135deg, rgb(219, 234, 254) 0%, rgb(239, 246, 255) 100%)","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","color":"rgb(37, 99, 235)","margin-bottom":"20px"}},{"selectors":[],"selectorsAdd":".projects__icon svg","style":{"max-width":"100%","height":"auto"}},{"selectors":["projects__card-title"],"style":{"font-size":"20px","font-weight":"600","color":"rgb(15, 23, 42)","margin-top":"0px","margin-right":"0px","margin-bottom":"8px","margin-left":"0px"}},{"selectors":["projects__card-text"],"style":{"font-size":"16px","line-height":"1.6","color":"rgb(100, 116, 139)","margin-top":"0px","margin-right":"0px","margin-bottom":"16px","margin-left":"0px"}},{"selectors":["projects__card-link"],"style":{"font-size":"15px","font-weight":"500","color":"rgb(37, 99, 235)","transition-behavior":"normal","transition-duration":"0.2s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"color"}},{"selectors":[],"selectorsAdd":".projects__card:hover .projects__card-link","style":{"color":"rgb(29, 78, 216)"}},{"selectors":["projects__actions"],"style":{"margin-top":"48px","text-align":"center"}},{"selectors":["projects__button"],"style":{"display":"inline-block","padding-top":"14px","padding-right":"32px","padding-bottom":"14px","padding-left":"32px","border-top-left-radius":"8px","border-top-right-radius":"8px","border-bottom-right-radius":"8px","border-bottom-left-radius":"8px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(37, 99, 235)","color":"rgb(255, 255, 255)","font-size":"16px","font-weight":"500","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","box-shadow":"rgba(37, 99, 235, 0.2) 0px 4px 12px","transition-behavior":"normal, normal, normal","transition-duration":"0.15s, 0.15s, 0.15s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"background, box-shadow, transform"}},{"selectors":["projects__button"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(29, 78, 216)","box-shadow":"rgba(37, 99, 235, 0.3) 0px 6px 16px","transform":"translateY(-1px)"},"state":"hover"},{"selectors":["projects"],"style":{"padding-top":"64px","padding-right":"16px","padding-bottom":"64px","padding-left":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["projects__title"],"style":{"font-size":"32px","margin-bottom":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["projects__grid"],"style":{"grid-template-columns":"1fr","row-gap":"16px","column-gap":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["projects__card"],"style":{"padding-top":"28px","padding-right":"22px","padding-bottom":"28px","padding-left":"22px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["projects__actions"],"style":{"margin-top":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["aleksmir-home-footer"],"style":{"padding-top":"40px","padding-right":"24px","padding-bottom":"40px","padding-left":"24px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(250, 251, 252)","border-top-width":"1px","border-top-style":"solid","border-top-color":"rgba(15, 23, 42, 0.06)","overflow-x":"hidden"}},{"selectors":["aleksmir-home-footer__inner"],"style":{"max-width":"760px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","display":"flex","align-items":"center","justify-content":"space-between","row-gap":"24px","column-gap":"24px"}},{"selectors":["aleksmir-home-footer__copy"],"style":{"font-size":"15px","line-height":"1.6","color":"rgb(100, 116, 139)","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["aleksmir-home-footer__nav"],"style":{"display":"flex","align-items":"center","row-gap":"24px","column-gap":"24px","flex-wrap":"wrap"}},{"selectors":["aleksmir-home-footer__link"],"style":{"font-size":"15px","line-height":"1.6","color":"rgb(100, 116, 139)","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","transition-behavior":"normal","transition-duration":"0.2s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"color"}},{"selectors":["aleksmir-home-footer__link"],"style":{"color":"rgb(37, 99, 235)"},"state":"hover"},{"selectors":["aleksmir-home-footer"],"style":{"padding-top":"32px","padding-right":"16px","padding-bottom":"32px","padding-left":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["aleksmir-home-footer__inner"],"style":{"flex-direction":"column","align-items":"flex-start","row-gap":"16px","column-gap":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["aleksmir-home-footer__nav"],"style":{"row-gap":"20px","column-gap":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["#icq91"],"style":{"color":"#284078"}},{"selectors":["#iem9f"],"style":{"color":"#264a9f"}},{"selectors":["#iqj3q"],"style":{"color":"#2c498f"}}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"tagName":"section","classes":["aleksmir-home-hero"],"attributes":{"id":"ii7n"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"classes":["aleksmir-home-hero__decor"],"attributes":{"viewBox":"0 0 1200 800","preserveAspectRatio":"xMidYMid slice","aria-hidden":"true"},"components":[{"tagName":"defs","type":"svg-in","resizable":{"ratioDefault":true},"components":[{"tagName":"radialGradient","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"id":"aleksmirHeroBlob1","cx":"50%","cy":"50%","r":"50%"},"components":[{"tagName":"stop","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"offset":"0%","stop-color":"#2563eb","stop-opacity":"0.18"}},{"tagName":"stop","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"offset":"100%","stop-color":"#2563eb","stop-opacity":"0"}}]},{"tagName":"radialGradient","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"id":"aleksmirHeroBlob2","cx":"50%","cy":"50%","r":"50%"},"components":[{"tagName":"stop","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"offset":"0%","stop-color":"#60a5fa","stop-opacity":"0.16"}},{"tagName":"stop","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"offset":"100%","stop-color":"#60a5fa","stop-opacity":"0"}}]}]},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"180","cy":"160","r":"320","fill":"url(#aleksmirHeroBlob1)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"1020","cy":"640","r":"380","fill":"url(#aleksmirHeroBlob2)"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"900","cy":"140","r":"180","fill":"none","stroke":"#2563eb","stroke-opacity":"0.08","stroke-width":"1.5"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"900","cy":"140","r":"260","fill":"none","stroke":"#2563eb","stroke-opacity":"0.05","stroke-width":"1.5"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"240","cy":"680","r":"200","fill":"none","stroke":"#2563eb","stroke-opacity":"0.06","stroke-width":"1.5"}}]},{"classes":["aleksmir-home-hero__inner"],"components":[{"tagName":"p","type":"text","classes":["aleksmir-home-hero__eyebrow"],"components":[{"type":"textnode","content":"Персональный сайт"}]},{"tagName":"h1","type":"text","classes":["aleksmir-home-hero__title"],"attributes":{"id":"icq91"},"components":[{"type":"textnode","content":"Смирнов Алексей Владимирович"}]},{"tagName":"p","type":"text","classes":["aleksmir-home-hero__subtitle"],"components":[{"type":"textnode","content":"Разрабатываю веб-сервисы и AI-инструменты"}]},{"tagName":"p","type":"text","classes":["aleksmir-home-hero__lead"],"components":[{"type":"textnode","content":"Меня зовут Алексей. Я делаю сервисы, которые упрощают повседневные задачи: от простых утилит до ассистентов на базе больших языковых моделей."}]}]}]},{"tagName":"section","classes":["aleksmir-home-about"],"attributes":{"id":"i7ut2"},"components":[{"classes":["aleksmir-home-about__inner"],"components":[{"tagName":"h2","type":"text","classes":["aleksmir-home-about__title"],"attributes":{"id":"iqj3q"},"components":[{"type":"textnode","content":"Обо мне"}]},{"classes":["aleksmir-home-about__content"],"components":[{"tagName":"p","type":"text","classes":["aleksmir-home-about__text"],"components":[{"type":"textnode","content":"Я веб-разработчик. Начинал с обычных сайтов, сейчас в основном работаю с Python, FastAPI и всем, что связано с большими языковыми моделями."}]},{"tagName":"p","type":"text","classes":["aleksmir-home-about__text"],"components":[{"type":"textnode","content":"Aleksmir.ru — мой личный сайт, здесь я собираю свои проекты. Большинство сервисов бесплатны и не требуют регистрации — кроме тех, где нужен аккаунт для истории."}]}]}]}]},{"tagName":"section","classes":["projects","fx-nuclei-electron-orbits"],"attributes":{"id":"ipvmu"},"components":[{"classes":["projects__inner"],"components":[{"tagName":"h2","type":"text","classes":["projects__title"],"attributes":{"id":"iem9f"},"components":[{"type":"textnode","content":"Мои проекты"}]},{"classes":["projects__grid"],"components":[{"type":"link","classes":["projects__card"],"attributes":{"href":"https://neurocad.ru","id":"ij8g4"},"components":[{"classes":["projects__icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","width":"40","height":"40","fill":"none","stroke":"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"}}]}]},{"tagName":"h3","type":"text","classes":["projects__card-title"],"attributes":{"id":"ic2mj"},"components":[{"type":"textnode","content":"Нейрокад"}]},{"tagName":"p","type":"text","classes":["projects__card-text"],"attributes":{"id":"iz4ye"},"components":[{"type":"textnode","content":"Разработка многостраничных сайтов-визиток без программирования "}]},{"tagName":"span","type":"text","classes":["projects__card-link"],"components":[{"type":"textnode","content":"Открыть →"}]}]},{"type":"link","classes":["projects__card"],"attributes":{"href":"https://mx.aleksmir.ru","id":"irl3l"},"components":[{"classes":["projects__icon"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","width":"40","height":"40","fill":"none","stroke":"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round","id":"il9kw"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"}},{"tagName":"polyline","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"points":"22,6 12,13 2,6"}}]}]},{"tagName":"h3","type":"text","classes":["projects__card-title"],"components":[{"type":"textnode","content":"Проверка Email"}]},{"tagName":"p","type":"text","classes":["projects__card-text"],"attributes":{"id":"i9rlj"},"components":[{"type":"textnode","content":"Сервис для проверки валидности email-адресов через MX-записи"}]},{"tagName":"span","type":"text","classes":["projects__card-link"],"components":[{"type":"textnode","content":"Открыть →"}]}]}]},{"classes":["projects__actions"],"attributes":{"id":"iewgy"},"components":[{"type":"link","classes":["btn"],"attributes":{"href":"/pages","data-block":"core-btn","id":"iindd"},"components":[{"type":"textnode","content":"Смотреть все проекты"}]}]}]}]},{"tagName":"footer","classes":["aleksmir-home-footer"],"attributes":{"id":"i3j8o"},"components":[{"classes":["aleksmir-home-footer__inner"],"components":[{"tagName":"p","type":"text","classes":["aleksmir-home-footer__copy"],"components":[{"type":"textnode","content":"© 2026 Алексей Смирнов"}]},{"tagName":"nav","classes":["aleksmir-home-footer__nav"],"components":[{"type":"link","classes":["aleksmir-home-footer__link"],"attributes":{"href":"/policy"},"components":[{"type":"textnode","content":"Политика"}]},{"type":"link","classes":["aleksmir-home-footer__link"],"attributes":{"href":"/rules"},"components":[{"type":"textnode","content":"Правила"}]},{"type":"link","classes":["aleksmir-home-footer__link"],"attributes":{"href":"https://vk.ru/alek_smir","id":"iki9w"},"components":[{"type":"textnode","content":"VK"}]},{"type":"link","classes":["aleksmir-home-footer__link"],"attributes":{"href":"https://max.ru/join/uMV8uesuBmfwihTcAel9QZK8DEbwuLG7mWVY2jFdDDU","id":"i9wn6"},"components":[{"type":"textnode","content":"Max"}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"e6pyzRv7Vs9fmBli"}],"id":"WNdQgn9R10Rl2UOZ"}],"symbols":[]}', 1, 0, '2026-10-07 07:41:29.741298', '2026-10-07 12:24:03.728406', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
+
+/**
+ * Content — theme variables + shared atoms + layout for CONTENT pages.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Uses ONLY --theme-* variables, defined at the top of this file.
+ * Completely independent from base/css/00_variables.css (admin UI):
+ * admin theme changes do NOT affect page content.
+ *
+ * Contents:
+ *   THEME VARIABLES
+ *     --theme-*                 all colors, fonts, radii, spacing
+ *
+ *   ATOMS
+ *     .h1, .h2, .h3             headings
+ *     .text, .text--muted, .text--center
+ *     .lead                     intro paragraph
+ *     .list, .list--check, .list--num
+ *     .btn, .btn--ghost         buttons
+ *     .card, .card__title, .card__text
+ *     .badge, .quote, .image, .icon, .divider
+ *
+ *   LAYOUT
+ *     .section                  vertical rhythm wrapper
+ *     .container                centered max-width wrapper
+ *     .grid, .grid--2/3/4/auto  base grids
+ *     .col                      grid cell
+ *
+ * .flex-shell* lives in blocks/layout.css — it is block-specific
+ * (only used by the flex-shell block).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   THEME VARIABLES — content
+   ============================================ */
+
+/*
+ * Completely independent from base/css/00_variables.css (admin UI).
+ * Admin theme changes do NOT affect these values.
+ *
+ * Scoped under .core-engine-lib-word-blocks — the same class sits
+ * on the canvas <body> in the editor and on the article wrapper
+ * on the public page.
+ */
+.core-engine-lib-word-blocks {
+
+    /* ===== COLORS ===== */
+
+    --theme-bg:             #ffffff;
+    --theme-bg-subtle:      #f8fafc;
+    --theme-bg-dark:        #0f172a;
+    --theme-bg-hover:       #f1f5f9;
+
+    --theme-text:           #1e293b;
+    --theme-text-muted:     #64748b;
+    --theme-text-invert:    #ffffff;
+
+    --theme-accent:         #246eaa;
+    --theme-accent-hover:   #1e5a8a;
+    --theme-accent-soft:    #e0edf7;
+
+    --theme-border:         #e2e8f0;
+    --theme-border-strong:  #cbd5e1;
+
+    --theme-success:        #16a34a;
+    --theme-warning:        #d97706;
+    --theme-danger:         #dc2626;
+
+    /* ===== SHADOWS ===== */
+
+    --theme-shadow-sm:  0 1px 3px rgba(15, 23, 42, 0.06);
+    --theme-shadow-md:  0 4px 12px rgba(15, 23, 42, 0.08);
+    --theme-shadow-lg:  0 12px 32px rgba(15, 23, 42, 0.12);
+
+    /* ===== FONTS ===== */
+
+    --theme-font-family:    ''Inter'', ''Golos Text'', sans-serif;
+    --theme-font-size-xs:   0.75rem;
+    --theme-font-size-sm:   0.875rem;
+    --theme-font-size-base: 1rem;
+    --theme-font-size-lg:   1.125rem;
+    --theme-font-size-xl:   1.25rem;
+    --theme-font-size-2xl:  1.5rem;
+    --theme-font-size-3xl:  2rem;
+    --theme-font-size-4xl:  2.5rem;
+
+    --theme-font-weight-regular:  400;
+    --theme-font-weight-medium:   500;
+    --theme-font-weight-semibold: 600;
+    --theme-font-weight-bold:     700;
+
+    --theme-line-height-tight:  1.25;
+    --theme-line-height-base:   1.6;
+    --theme-line-height-loose:  1.8;
+
+    /* ===== RADII ===== */
+
+    --theme-radius-sm:   0.25rem;
+    --theme-radius-md:   0.5rem;
+    --theme-radius-lg:   0.75rem;
+    --theme-radius-xl:   1rem;
+    --theme-radius-pill: 9999px;
+
+    /* ===== SPACING ===== */
+
+    --theme-space-1:   0.25rem;
+    --theme-space-2:   0.5rem;
+    --theme-space-3:   0.75rem;
+    --theme-space-4:   1rem;
+    --theme-space-5:   1.25rem;
+    --theme-space-6:   1.5rem;
+    --theme-space-8:   2rem;
+    --theme-space-10:  2.5rem;
+    --theme-space-12:  3rem;
+    --theme-space-16:  4rem;
+    --theme-space-20:  5rem;
+
+    --theme-space-section:  4rem;
+    --theme-space-gutter:   1rem;
+    --theme-space-grid:     1rem;
+
+    /* ===== LAYOUT ===== */
+
+    --theme-container-max:  75rem;
+}
+
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+
+.core-engine-lib-word-blocks .h1 {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-4xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.02em;
+}
+
+.core-engine-lib-word-blocks .h2 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-3xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.01em;
+}
+
+.core-engine-lib-word-blocks .h3 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-2xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   TEXT
+   ============================================ */
+
+.core-engine-lib-word-blocks .text {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .text--muted {
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .text--center {
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .text:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================
+   LEAD
+   ============================================ */
+
+.core-engine-lib-word-blocks .lead {
+    margin: 0 0 var(--theme-space-5);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   LISTS
+   ============================================ */
+
+.core-engine-lib-word-blocks .list {
+    margin: 0 0 var(--theme-space-4);
+    padding-left: var(--theme-space-6);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .list li {
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .list li:last-child {
+    margin-bottom: 0;
+}
+
+.core-engine-lib-word-blocks .list li::marker {
+    color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .list--check {
+    list-style: none;
+    padding-left: 0;
+}
+
+.core-engine-lib-word-blocks .list--check li {
+    position: relative;
+    padding-left: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .list--check li::before {
+    content: ''✓'';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-bold);
+}
+
+.core-engine-lib-word-blocks .list--num {
+    list-style: decimal;
+}
+
+.core-engine-lib-word-blocks .list--num li::marker {
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-semibold);
+}
+
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.core-engine-lib-word-blocks .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--theme-space-2);
+    padding: var(--theme-space-3) var(--theme-space-6);
+    border: 2px solid transparent;
+    border-radius: var(--theme-radius-md);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: 1.2;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--theme-accent);
+    color: var(--theme-text-invert);
+    border-color: var(--theme-accent);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.core-engine-lib-word-blocks .btn:hover {
+    background: var(--theme-accent-hover);
+    border-color: var(--theme-accent-hover);
+    color: var(--theme-text-invert);
+}
+
+.core-engine-lib-word-blocks .btn:active {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-word-blocks .btn--ghost {
+    background: transparent;
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .btn--ghost:hover {
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+
+/* ============================================
+   CARD
+   ============================================ */
+
+.core-engine-lib-word-blocks .card {
+    padding: var(--theme-space-6);
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    border-radius: var(--theme-radius-lg);
+    box-shadow: var(--theme-shadow-sm);
+}
+
+.core-engine-lib-word-blocks .card__title {
+    margin: 0 0 var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .card__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   BADGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .badge {
+    display: inline-block;
+    padding: var(--theme-space-1) var(--theme-space-3);
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+}
+
+
+/* ============================================
+   QUOTE
+   ============================================ */
+
+.core-engine-lib-word-blocks .quote {
+    margin: var(--theme-space-6) 0;
+    padding: var(--theme-space-4) var(--theme-space-5);
+    border-left: 4px solid var(--theme-accent);
+    background: var(--theme-bg-subtle);
+    border-radius: 0 var(--theme-radius-md) var(--theme-radius-md) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-style: italic;
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   IMAGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--theme-radius-md);
+    margin: 0;
+}
+
+
+/* ============================================
+   ICON
+   ============================================ */
+
+.core-engine-lib-word-blocks .icon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    color: var(--theme-accent);
+    flex-shrink: 0;
+}
+
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+
+.core-engine-lib-word-blocks .divider {
+    margin: var(--theme-space-8) 0;
+    border: none;
+    height: 1px;
+    background: var(--theme-border);
+}
+
+
+/* ============================================
+   SECTION — vertical rhythm wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .section {
+    padding-top: var(--theme-space-section);
+    padding-bottom: var(--theme-space-section);
+}
+
+
+/* ============================================
+   CONTAINER — centered max-width wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .container {
+    width: 100%;
+    max-width: var(--theme-container-max);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--theme-space-gutter);
+    padding-right: var(--theme-space-gutter);
+    box-sizing: border-box;
+}
+
+
+/* ============================================
+   GRID — base
+   ============================================ */
+
+.core-engine-lib-word-blocks .grid {
+    display: grid;
+    gap: var(--theme-space-grid);
+}
+
+.core-engine-lib-word-blocks .grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--auto {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+
+/* ============================================
+   COLUMN — grid cell
+   ============================================ */
+
+/*
+ * Minimal cell: only prevents overflow. Padding, background, border
+ * are set per block (e.g. .card, .col--tile were removed on purpose).
+ */
+.core-engine-lib-word-blocks .col {
+    min-width: 0;
+}
+
+
+/* ============================================
+   GRID — responsive fallback
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .grid--2,
+    .core-engine-lib-word-blocks .grid--3,
+    .core-engine-lib-word-blocks .grid--4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.core-engine-lib-word-blocks .fx-nuclei-electron-orbits { position: relative; overflow: hidden; background-image: radial-gradient(circle at 50% 50%, #94a3b8 0 7px, transparent 7px), radial-gradient(circle at 50% 50%, transparent 0 130px, rgba(148, 163, 184, 0.05) 130px 139px, transparent 139px), radial-gradient(circle at 50% 50%, transparent 0 260px, rgba(148, 163, 184, 0.05) 260px 269px, transparent 269px); background-size: 100% 100%, 300% 300%, 300% 300%; background-position: center center; background-repeat: no-repeat; } .core-engine-lib-word-blocks .fx-nuclei-electron-orbits::before { content: ""; position: absolute; left: calc(50% - 16px); top: calc(50% - 16px); width: 32px; height: 32px; border-radius: 50%; background: transparent; box-shadow: 130px 0 0 0 rgba(148, 163, 184, 0.05), -130px 0 0 0 rgba(148, 163, 184, 0.05), 0 130px 0 0 rgba(148, 163, 184, 0.05), 0 -130px 0 0 rgba(148, 163, 184, 0.05); animation: fx-nuclei-electron-orbits-spin 9s linear infinite; } .core-engine-lib-word-blocks .fx-nuclei-electron-orbits::after { content: ""; position: absolute; left: calc(50% - 13px); top: calc(50% - 13px); width: 26px; height: 26px; border-radius: 50%; background: transparent; box-shadow: 260px 0 0 0 rgba(148, 163, 184, 0.05), -260px 0 0 0 rgba(148, 163, 184, 0.05), 0 260px 0 0 rgba(148, 163, 184, 0.05), 0 -260px 0 0 rgba(148, 163, 184, 0.05); animation: fx-nuclei-electron-orbits-spin-rev 15s linear infinite; } @keyframes fx-nuclei-electron-orbits-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes fx-nuclei-electron-orbits-spin-rev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+
+* { box-sizing: border-box; } body {margin: 0;}.aleksmir-home-hero{position:relative;padding-top:120px;padding-right:24px;padding-bottom:100px;padding-left:24px;background-image:radial-gradient(1200px 600px at 15% 0%, rgb(234, 241, 254) 0%, rgba(234, 241, 254, 0) 60%), radial-gradient(900px 500px at 100% 100%, rgb(238, 244, 255) 0%, rgba(238, 244, 255, 0) 55%), initial;background-position-x:initial, initial, initial;background-position-y:initial, initial, initial;background-size:initial, initial, initial;background-repeat:initial, initial, initial;background-attachment:initial, initial, initial;background-origin:initial, initial, initial;background-clip:initial, initial, initial;background-color:rgb(250, 251, 252);overflow-y:hidden;overflow-x:hidden;}.aleksmir-home-hero__decor{position:absolute;top:0px;right:0px;bottom:0px;left:0px;width:100%;height:100%;max-width:100%;pointer-events:none;}.aleksmir-home-hero__inner{position:relative;max-width:760px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;padding-top:0px;padding-right:24px;padding-bottom:0px;padding-left:24px;animation-duration:0.7s;animation-timing-function:ease-out;animation-delay:0s;animation-iteration-count:1;animation-direction:normal;animation-fill-mode:both;animation-play-state:running;animation-name:aleksmir-hero-fade-in;animation-timeline:auto;animation-range-start:normal;animation-range-end:normal;}.aleksmir-home-hero__eyebrow{font-size:14px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgb(37, 99, 235);margin-top:0px;margin-right:0px;margin-bottom:20px;margin-left:0px;animation-duration:0.7s;animation-timing-function:ease-out;animation-delay:0.05s;animation-iteration-count:1;animation-direction:normal;animation-fill-mode:both;animation-play-state:running;animation-name:aleksmir-hero-fade-in;animation-timeline:auto;animation-range-start:normal;animation-range-end:normal;}.aleksmir-home-hero__title{font-size:64px;line-height:1.08;font-weight:800;letter-spacing:-0.025em;color:rgb(15, 23, 42);margin-top:0px;margin-right:0px;margin-bottom:20px;margin-left:0px;animation-duration:0.7s;animation-timing-function:ease-out;animation-delay:0.12s;animation-iteration-count:1;animation-direction:normal;animation-fill-mode:both;animation-play-state:running;animation-name:aleksmir-hero-fade-in;animation-timeline:auto;animation-range-start:normal;animation-range-end:normal;}.aleksmir-home-hero__subtitle{font-size:22px;line-height:1.4;font-weight:500;color:rgb(51, 65, 85);margin-top:0px;margin-right:0px;margin-bottom:24px;margin-left:0px;letter-spacing:-0.01em;animation-duration:0.7s;animation-timing-function:ease-out;animation-delay:0.2s;animation-iteration-count:1;animation-direction:normal;animation-fill-mode:both;animation-play-state:running;animation-name:aleksmir-hero-fade-in;animation-timeline:auto;animation-range-start:normal;animation-range-end:normal;}.aleksmir-home-hero__lead{font-size:18px;line-height:1.65;color:rgb(100, 116, 139);margin-top:0px;margin-right:0px;margin-bottom:40px;margin-left:0px;max-width:620px;animation-duration:0.7s;animation-timing-function:ease-out;animation-delay:0.28s;animation-iteration-count:1;animation-direction:normal;animation-fill-mode:both;animation-play-state:running;animation-name:aleksmir-hero-fade-in;animation-timeline:auto;animation-range-start:normal;animation-range-end:normal;}.aleksmir-home-about{position:relative;padding-top:100px;padding-right:24px;padding-bottom:100px;padding-left:24px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(250, 251, 252);overflow-x:hidden;}.aleksmir-home-about__inner{max-width:760px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;animation-duration:0.6s;animation-timing-function:ease-out;animation-delay:0s;animation-iteration-count:1;animation-direction:normal;animation-fill-mode:none;animation-play-state:running;animation-name:aleksmir-home-about-fade-in;animation-timeline:auto;animation-range-start:normal;animation-range-end:normal;}.aleksmir-home-about__title{font-size:40px;font-weight:700;letter-spacing:-0.02em;color:rgb(15, 23, 42);margin-top:0px;margin-right:0px;margin-bottom:40px;margin-left:0px;text-align:center;}.aleksmir-home-about__content{display:flex;flex-direction:column;row-gap:24px;column-gap:24px;}.aleksmir-home-about__text{font-size:18px;line-height:1.6;color:rgb(51, 65, 85);margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.projects{position:relative;padding-top:100px;padding-right:24px;padding-bottom:100px;padding-left:24px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(250, 251, 252);overflow-x:hidden;}.projects__inner{max-width:760px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;animation-duration:0.6s;animation-timing-function:ease-out;animation-delay:0s;animation-iteration-count:1;animation-direction:normal;animation-fill-mode:none;animation-play-state:running;animation-name:projects-fade-in;animation-timeline:auto;animation-range-start:normal;animation-range-end:normal;}.projects__title{font-size:42px;font-weight:700;letter-spacing:-0.02em;color:rgb(15, 23, 42);margin-top:0px;margin-right:0px;margin-bottom:48px;margin-left:0px;text-align:center;}.projects__grid{display:grid;grid-template-columns:repeat(2, 1fr);row-gap:24px;column-gap:24px;}.projects__card{display:block;padding-top:36px;padding-right:28px;padding-bottom:36px;padding-left:28px;border-top-left-radius:16px;border-top-right-radius:16px;border-bottom-right-radius:16px;border-bottom-left-radius:16px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgba(255, 255, 255, 0.7);backdrop-filter:blur(10px);border-top-width:1px;border-right-width:1px;border-bottom-width:1px;border-left-width:1px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(255, 255, 255, 0.6);border-right-color:rgba(255, 255, 255, 0.6);border-bottom-color:rgba(255, 255, 255, 0.6);border-left-color:rgba(255, 255, 255, 0.6);border-image-source:none;border-image-slice:100%;border-image-width:1;border-image-outset:0;border-image-repeat:stretch;box-shadow:rgba(15, 23, 42, 0.06) 0px 4px 16px, rgba(15, 23, 42, 0.04) 0px 1px 3px;transition-behavior:normal, normal;transition-duration:0.25s, 0.25s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:transform, box-shadow;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;color:inherit;}.projects__card:hover{transform:translateY(-2px);box-shadow:rgba(37, 99, 235, 0.12) 0px 12px 32px, rgba(15, 23, 42, 0.08) 0px 4px 12px;}.projects__icon{width:56px;height:56px;display:flex;align-items:center;justify-content:center;border-top-left-radius:14px;border-top-right-radius:14px;border-bottom-right-radius:14px;border-bottom-left-radius:14px;background-image:linear-gradient(135deg, rgb(219, 234, 254) 0%, rgb(239, 246, 255) 100%);background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;color:rgb(37, 99, 235);margin-bottom:20px;}.projects__icon svg{max-width:100%;height:auto;}.projects__card-title{font-size:20px;font-weight:600;color:rgb(15, 23, 42);margin-top:0px;margin-right:0px;margin-bottom:8px;margin-left:0px;}.projects__card-text{font-size:16px;line-height:1.6;color:rgb(100, 116, 139);margin-top:0px;margin-right:0px;margin-bottom:16px;margin-left:0px;}.projects__card-link{font-size:15px;font-weight:500;color:rgb(37, 99, 235);transition-behavior:normal;transition-duration:0.2s;transition-timing-function:ease;transition-delay:0s;transition-property:color;}.projects__card:hover .projects__card-link{color:rgb(29, 78, 216);}.projects__actions{margin-top:48px;text-align:center;}.aleksmir-home-footer{padding-top:40px;padding-right:24px;padding-bottom:40px;padding-left:24px;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgb(250, 251, 252);border-top-width:1px;border-top-style:solid;border-top-color:rgba(15, 23, 42, 0.06);overflow-x:hidden;}.aleksmir-home-footer__inner{max-width:760px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;display:flex;align-items:center;justify-content:space-between;row-gap:24px;column-gap:24px;}.aleksmir-home-footer__copy{font-size:15px;line-height:1.6;color:rgb(100, 116, 139);margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.aleksmir-home-footer__nav{display:flex;align-items:center;row-gap:24px;column-gap:24px;flex-wrap:wrap;}.aleksmir-home-footer__link{font-size:15px;line-height:1.6;color:rgb(100, 116, 139);text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;transition-behavior:normal;transition-duration:0.2s;transition-timing-function:ease;transition-delay:0s;transition-property:color;}.aleksmir-home-footer__link:hover{color:rgb(37, 99, 235);}#icq91{color:#284078;}#iem9f{color:#264a9f;}#iqj3q{color:#2c498f;}@keyframes aleksmir-hero-fade-in{0%{opacity:0;transform:translateY(12px);}100%{opacity:1;transform:translateY(0px);}}@keyframes aleksmir-home-about-fade-in{0%{opacity:0;transform:translateY(12px);}100%{opacity:1;transform:translateY(0px);}}@keyframes projects-fade-in{0%{opacity:0;transform:translateY(12px);}100%{opacity:1;transform:translateY(0px);}}@media (max-width: 1024px){.aleksmir-home-hero{padding-top:100px;padding-right:24px;padding-bottom:80px;padding-left:24px;}.aleksmir-home-hero__title{font-size:52px;}}@media (max-width: 768px){.aleksmir-home-hero{padding-top:72px;padding-right:20px;padding-bottom:64px;padding-left:20px;}.aleksmir-home-hero__inner{padding-top:0px;padding-right:4px;padding-bottom:0px;padding-left:4px;}.aleksmir-home-hero__title{font-size:38px;letter-spacing:-0.02em;}.aleksmir-home-hero__subtitle{font-size:18px;}.aleksmir-home-hero__lead{font-size:16px;margin-bottom:32px;}.aleksmir-home-about{padding-top:64px;padding-right:16px;padding-bottom:64px;padding-left:16px;}.aleksmir-home-about__title{font-size:30px;margin-bottom:32px;}.aleksmir-home-about__text{font-size:16px;}.projects{padding-top:64px;padding-right:16px;padding-bottom:64px;padding-left:16px;}.projects__title{font-size:32px;margin-bottom:32px;}.projects__grid{grid-template-columns:1fr;row-gap:16px;column-gap:16px;}.projects__card{padding-top:28px;padding-right:22px;padding-bottom:28px;padding-left:22px;}.projects__actions{margin-top:32px;}.aleksmir-home-footer{padding-top:32px;padding-right:16px;padding-bottom:32px;padding-left:16px;}.aleksmir-home-footer__inner{flex-direction:column;align-items:flex-start;row-gap:16px;column-gap:16px;}.aleksmir-home-footer__nav{row-gap:20px;column-gap:20px;}}', NULL);
 INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url") VALUES (31, 1, '2026-09-20 18:12:01.412009', 'Статья 2', '', '', '<style>* { box-sizing: border-box; } body {margin: 0;}*{box-sizing:border-box;}body{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks{padding-top:8px;padding-right:20px;padding-bottom:8px;padding-left:20px;}.core-engine-lib-word-blocks.compact{padding-top:2px;padding-bottom:2px;}.text{text-align:justify;text-indent:2em;line-height:1.6;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.lead{font-size:1.25em;}</style><body id="ixuw"><div class="core-engine-lib-word-blocks"><p class="text">Это первый абзац тестового текста. Он нужен для того, чтобы наполнить страницу содержимым и проверить, как работает вертикальная прокрутка. Прокрутка появляется тогда, когда высота содержимого превышает высоту окна браузера, поэтому чем больше текста, тем надёжнее результат проверки.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Второй абзац продолжает наполнение страницы. Здесь можно написать что угодно: описание проекта, заметки, черновик статьи или просто набор нейтральных фраз. Главное — чтобы текста было достаточно много и он занимал несколько экранов по высоте.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Третий абзац добавляет ещё немного строк. Если прокрутка работает правильно, в правой части окна появится полоса прокрутки, а колесо мыши и клавиши со стрелками будут плавно перемещать содержимое вверх и вниз без рывков и подёргиваний.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Четвёртый абзац. Проверьте также поведение страницы на мобильном устройстве: там прокрутка должна работать свайпом, а содержимое — не выезжать за пределы экрана и не создавать горизонтального смещения. Это важно для комфортного чтения.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Пятый абзац служит для того, чтобы общая высота страницы стала заметно больше высоты экрана. Обычно достаточно примерно тридцати строк текста, чтобы точно увидеть, что механизм прокрутки включился и работает корректно во всех направлениях.</p></div><div class="core-engine-lib-word-blocks compact"><p class="lead">Шестой, вводный абзац. Крупный текст привлекает внимание к разделу и хорошо заметен при быстрой прокрутке: так удобнее оценивать, насколько плавно движется страница и не пропускает ли она отдельные блоки.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Седьмой абзац. Обратите внимание на отступы между блоками: они не должны схлопываться или, наоборот, становиться слишком большими. Ровные интервалы делают длинный текст аккуратным и удобным для чтения.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Восьмой абзац. Если всё работает как надо, вы легко доберётесь до самого низа страницы и без труда вернётесь обратно наверх. Это и есть основная проверка: длинный текст, свободная прокрутка и отсутствие визуальных дефектов.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Девятый абзац. Здесь можно оставить любую нейтральную фразу: она не несёт смысловой нагрузки и нужна только для объёма. Такой текст удобно использовать как временное наполнение в процессе вёрстки и настройки стилей.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Десятый, последний абзац. Если вы дочитали до этих строк, значит прокрутка действительно работает. Теперь можно заменить этот текст своим содержимым и спокойно продолжать работу над страницей и её оформлением.</p></div></body>', '{"assets":[{"type":"image","src":"/media/default/logo_ec0d8ede.png","unitDim":"px","height":0,"width":0,"name":"logo_ec0d8ede.png"}],"styles":[{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["core-engine-lib-word-blocks"],"style":{"padding-top":"8px","padding-right":"20px","padding-bottom":"8px","padding-left":"20px"}},{"selectors":["core-engine-lib-word-blocks","compact"],"style":{"padding-top":"2px","padding-bottom":"2px"}},{"selectors":["text"],"style":{"text-align":"justify","text-indent":"2em","line-height":"1.6","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["lead"],"style":{"font-size":"1.25em"}}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"attributes":{"id":"ixuw"},"components":[{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Это первый абзац тестового текста. Он нужен для того, чтобы наполнить страницу содержимым и проверить, как работает вертикальная прокрутка. Прокрутка появляется тогда, когда высота содержимого превышает высоту окна браузера, поэтому чем больше текста, тем надёжнее результат проверки."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Второй абзац продолжает наполнение страницы. Здесь можно написать что угодно: описание проекта, заметки, черновик статьи или просто набор нейтральных фраз. Главное — чтобы текста было достаточно много и он занимал несколько экранов по высоте."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Третий абзац добавляет ещё немного строк. Если прокрутка работает правильно, в правой части окна появится полоса прокрутки, а колесо мыши и клавиши со стрелками будут плавно перемещать содержимое вверх и вниз без рывков и подёргиваний."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Четвёртый абзац. Проверьте также поведение страницы на мобильном устройстве: там прокрутка должна работать свайпом, а содержимое — не выезжать за пределы экрана и не создавать горизонтального смещения. Это важно для комфортного чтения."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Пятый абзац служит для того, чтобы общая высота страницы стала заметно больше высоты экрана. Обычно достаточно примерно тридцати строк текста, чтобы точно увидеть, что механизм прокрутки включился и работает корректно во всех направлениях."}]}]},{"classes":["core-engine-lib-word-blocks","compact"],"components":[{"tagName":"p","type":"text","classes":["lead"],"components":[{"type":"textnode","content":"Шестой, вводный абзац. Крупный текст привлекает внимание к разделу и хорошо заметен при быстрой прокрутке: так удобнее оценивать, насколько плавно движется страница и не пропускает ли она отдельные блоки."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Седьмой абзац. Обратите внимание на отступы между блоками: они не должны схлопываться или, наоборот, становиться слишком большими. Ровные интервалы делают длинный текст аккуратным и удобным для чтения."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Восьмой абзац. Если всё работает как надо, вы легко доберётесь до самого низа страницы и без труда вернётесь обратно наверх. Это и есть основная проверка: длинный текст, свободная прокрутка и отсутствие визуальных дефектов."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Девятый абзац. Здесь можно оставить любую нейтральную фразу: она не несёт смысловой нагрузки и нужна только для объёма. Такой текст удобно использовать как временное наполнение в процессе вёрстки и настройки стилей."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Десятый, последний абзац. Если вы дочитали до этих строк, значит прокрутка действительно работает. Теперь можно заменить этот текст своим содержимым и спокойно продолжать работу над страницей и её оформлением."}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"hStkaZPukY5moCkO"}],"type":"main","id":"vxzvMwBEe4CNnJvf"}],"symbols":[]}', 1, 1, '2026-09-20 18:12:01.412035', '2026-09-21 22:45:48.386163', NULL, 0, 1, NULL, NULL);
 INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url") VALUES (32, 1, '2026-09-22 15:29:46.229613', 'Статья 1', '', '', '<style>* { box-sizing: border-box; } body {margin: 0;}</style><body id="i0nl"><p></p><h2 class="h2">Заголовок H2</h2><p class="lead">Вводный текст. Расскажите коротко о главном.</p><section class="section gallery"><div class="container"><h2 class="h2 gallery__title">Галерея</h2><div class="grid grid--auto gallery__grid"><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/></div></div></section></body>', '{"assets":[{"type":"image","src":"/media/default/logo_ec0d8ede.png","unitDim":"px","height":0,"width":0,"name":"logo_ec0d8ede.png"}],"styles":[],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"attributes":{"id":"i0nl"},"components":[{"tagName":"p"},{"tagName":"h2","type":"text","classes":["h2"],"components":[{"type":"textnode","content":"Заголовок H2"}]},{"tagName":"p","type":"text","classes":["lead"],"components":[{"type":"textnode","content":"Вводный текст. Расскажите коротко о главном."}]},{"tagName":"section","classes":["section","gallery"],"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","gallery__title"],"components":[{"type":"textnode","content":"Галерея"}]},{"classes":["grid","grid--auto","gallery__grid"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"BrwAVxZBme2r2EgE"}],"id":"N2V6ShWYRDJfCivL"}],"symbols":[]}', 1, 1, '2026-09-22 15:29:46.229650', '2026-09-24 09:49:24.763605', NULL, 0, 5, NULL, NULL);
 

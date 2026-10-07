@@ -18,13 +18,12 @@ The agent has FOUR modes, each backed by its own prompt builder:
   3. REVIEW    — one call per generated section. QA pass that finds
                  and fixes common defects (images overflowing, empty
                  buttons, invisible text, missing @media, ...).
-                 Returns the same section, possibly corrected, plus
-                 a "fixed" list describing what changed.
+                 Crucially: the QA pass DOES NOT simplify the design.
+                 It fixes bugs and PRESERVES every visual effect.
 
-  4. EDIT      — one call that rewrites an existing page. Takes the
-                 current HTML + CSS as context and returns the whole
-                 updated page:
-                     {"html": "...", "css": "..."}
+  4. EDIT      — one call that rewrites an existing page. Kept as
+                 dead code (edit mode is disabled in the agent);
+                 still used as a template for future reference.
 
 Why plan-then-generate
 ----------------------
@@ -36,10 +35,34 @@ concerns fixes it:
   - each per-section call is focused and cannot drift;
   - the driver stops after the last item of the plan.
 
+Design direction
+----------------
+The default visual language is "modern 2026":
+  - light theme, soft grey-blue background (#f6f8fb range);
+  - a single saturated accent (deep blue #2563eb by default);
+  - soft gradients (linear / radial, low saturation);
+  - glassmorphism cards (translucent white + backdrop-filter blur);
+  - layered, subtle shadows;
+  - generous whitespace;
+  - one accent per block, never acid / never dark.
+
+SVG
+---
+Sections may use inline <svg> freely:
+  - icon per card in features / services / categories (24-48px,
+    stroke="currentColor", stroke-width="2", fill="none");
+  - one abstract decorative <svg> as hero background (blurred blobs,
+    soft waves, concentric circles — anything that reads as
+    "decoration", not as a picture);
+  - any other inline SVG where it improves the layout.
+
+No separate SVG agent is called — everything is generated in the
+same section response.
+
 Shared invariants (HTML/CSS split, no frameworks, etc.) are stored
 in module-level constants and composed into each prompt. This
 keeps the rules in ONE place and stops them drifting between the
-four modes.
+modes.
 
 No static imports beyond the standard library.
 """
@@ -52,7 +75,7 @@ from typing import List, Optional
 # ============================================
 
 #: Hard cap on sections in a single page. The planner is asked for
-#: 4–7; the driver clamps to this as a safety net.
+#: 4-7; the driver clamps to this as a safety net.
 MAX_SECTIONS = 7
 
 #: Lower bound — a plan with fewer items is almost certainly a
@@ -91,19 +114,91 @@ _NO_FRAMEWORKS_RULES = """\
 - Markdown-обёртка вокруг ответа (без ```json и ```).
 - Любой текст до или после JSON."""
 
+
+# ============================================
+# STYLE — visual direction
+# ============================================
+#
+# This is the "design brief" the model must follow. It defines the
+# default look so a generated page does not fall back to a flat,
+# corporate-default grey. Every rule here has a reason — do not
+# trim without thinking.
+
 _STYLE_RULES = """\
-СТИЛЬ:
-- Готовый сайт, а не черновик.
-- Палитра: 2–3 цвета + нейтральные.
-- Типографика: h1 ≈ 48–64px, h2 ≈ 32–40px, текст ≈ 16–18px.
-- Скругления, тени, аккуратные отступы — да.
-- Никаких «Lorem ipsum», «текст здесь», «заголовок».
-- Внешние шрифты через @import url('https://fonts.googleapis.com/...')
-  разрешены ТОЛЬКО в первой секции страницы.
+ВИЗУАЛЬНОЕ НАПРАВЛЕНИЕ — «современный 2026»:
+
+Тема — СВЕТЛАЯ. Фон страницы — мягкий светло-серо-голубой
+(#f6f8fb или близкий). Чисто-белый тоже можно, но не по умолчанию.
+Никаких тёмных тем, никаких чёрных фонов.
+
+ПАЛИТРА:
+- один акцентный цвет (по умолчанию глубокий синий #2563eb);
+- 2-3 поддерживающих оттенка (светлый синий, мягкий серый,
+  почти-белый);
+- НЕ использовать кислотные цвета, НЕ использовать чистый красный,
+  НЕ использовать несколько конкурирующих акцентов.
+
+ЭФФЕКТЫ (обязательны, но дозированно):
+- мягкие градиенты: linear-gradient или radial-gradient с НИЗКОЙ
+  насыщенностью (не «кислотный» переход, а лёгкий оттенок);
+- glassmorphism для карточек: полупрозрачный белый фон
+  (rgba(255,255,255,0.7)) + backdrop-filter: blur(10px) + тонкая
+  светлая граница (1px solid rgba(255,255,255,0.6));
+- аккуратные МНОГОСЛОЙНЫЕ тени:
+    box-shadow:
+      0 4px 16px rgba(15, 23, 42, 0.06),
+      0 1px 3px rgba(15, 23, 42, 0.04);
+- hover-состояния на всех кликабельных элементах (карточки,
+  кнопки, ссылки): плавный transition 0.2-0.3s, translateY(-2px),
+  усиление тени, лёгкое изменение цвета;
+- появление секций через @keyframes (opacity 0 -> 1, translateY
+  12px -> 0) с animation-delay по порядку, чтобы страница
+  «оживала» при загрузке.
+
+ГДЕ ЭФФЕКТЫ УМЕСТНЫ:
+- HERO   — фон-градиент, абстрактный SVG-фон, крупный H1,
+           кнопка с hover-эффектом;
+- КАРТОЧКИ — glassmorphism, тень, hover-подъём;
+- КНОПКИ — transition, лёгкое затемнение при hover;
+- H2 СЕКЦИЙ — может быть с небольшим декоративным подчёркиванием
+              или коротким акцентным штрихом.
+
+ГДЕ ЭФФЕКТОВ НЕ ДОЛЖНО БЫТЬ:
+- обычные абзацы текста — просто аккуратная типографика;
+- футер — спокойный, без градиентов и анимаций;
+- длинные списки — без hover и декоративных элементов на каждом
+  пункте.
+
+ЭМОДЗИ:
+- допустимы в H2 секций и в заголовках карточек (по одному,
+  максимум — не в каждом абзаце);
+- НЕ использовать эмодзи в футере, в H1 и в кнопках.
+
+SVG:
+- в карточках features / services / categories — по одной
+  инлайн-иконке SVG (stroke="currentColor", stroke-width="2",
+  fill="none", размер 32-48px);
+- в hero — один абстрактный декоративный SVG-фон (мягкие пятна,
+  волны, концентрические круги — то, что читается как украшение,
+  а не как картинка);
+- допустимы инлайн SVG в других секциях, если они улучшают
+  композицию.
+
+ТИПОГРАФИКА:
+- H1 ≈ 56-72px, font-weight 700-800, letter-spacing -0.02em;
+- H2 ≈ 36-44px, font-weight 700;
+- H3 ≈ 20-22px, font-weight 600;
+- основной текст ≈ 16-18px, line-height 1.6.
+
+РИТМ:
+- между секциями — 80-120px вертикального пространства;
+- внутри секции — 32-48px между смысловыми блоками;
+- контент центрируется, max-width 1100-1200px.
 
 АДАПТИВНОСТЬ:
-- @media для (max-width: 1024px) и (max-width: 768px).
-- На мобильном — одна колонка, крупные отступы."""
+- @media для (max-width: 1024px) и (max-width: 768px);
+- на мобильном — одна колонка, шрифты меньше на 20-25%,
+  отступы плотнее, но не «вжатые»."""
 
 
 # ============================================
@@ -208,9 +303,14 @@ def build_section_prompt(
         # First section: it sets the visual language for the whole
         # page. Be explicit about what that means.
         style_block = """\
-Ты открываешь страницу — задаёшь палитру, шрифт, скругления и
-общий ритм отступов. Последующие секции будут к ним подстраиваться.
-Определи всё это сейчас и держись выбора во всех следующих шагах."""
+Ты открываешь страницу — задаёшь палитру, шрифт, скругления,
+тени и общий ритм отступов. Последующие секции будут к ним
+подстраиваться. Определи всё это сейчас и держись выбора во всех
+следующих шагах.
+
+Если целевая секция — hero, она должна ЗАДАТЬ ТОН: мягкий
+градиентный фон, возможно абстрактный декоративный SVG на фоне,
+крупный заголовок, одна акцентная кнопка."""
     else:
         style_block = """\
 СОХРАНЯЙ ЕДИНЫЙ СТИЛЬ со уже сгенерированными секциями:
@@ -218,7 +318,11 @@ def build_section_prompt(
 - тот же шрифт,
 - те же скругления,
 - тот же ритм отступов.
-Новую палитру и новый шрифт НЕ вводи."""
+Новую палитру и новый шрифт НЕ вводи.
+
+Если предыдущие секции содержали glassmorphism-карточки, тени,
+hover-эффекты — продолжай эту линию. Не «упрощай» на второй
+секции: пользователь ждёт ту же визуальную плотность."""
 
     return f"""\
 Ты — веб-дизайнер и фронтенд-разработчик.
@@ -256,21 +360,26 @@ def build_section_prompt(
 - Не используй классы из нашего редактора (.section, .container,
   .card, .btn, .grid) — у тебя своя система.
 
-КАРТИНКИ:
-- Inline <svg>...</svg>, либо
-- <div class="{target_section}__placeholder"></div> с фоновым
-  градиентом в CSS.
-- Никаких внешних URL.
-
 {_STYLE_RULES}
+
+КАРТИНКИ И SVG:
+- Внешние URL запрещены.
+- Иконки в карточках — инлайн <svg> с stroke="currentColor",
+  stroke-width="2", fill="none", размер 32-48px. Подбирай иконки
+  по смыслу карточки (сердце для «заботы», молния для «скорости»,
+  щит для «защиты» и т.п.).
+- Абстрактный декоративный SVG — только в hero, как фон.
+- Не используй <img src="placeholder.svg"> — если нужна
+  «картинка», сделай её через CSS-градиент или SVG.
 
 {_NO_FRAMEWORKS_RULES}
 
-ПРИМЕР ОТВЕТА (секция features):
+ПРИМЕР ОТВЕТА (секция features, БОГАТАЯ вёрстка):
+
 {{
   "section_name": "features",
-  "html": "<section class=\\"features\\"><div class=\\"features__inner\\"><h2 class=\\"features__title\\">Почему нас выбирают</h2><div class=\\"features__grid\\"><div class=\\"features__card\\"><h3>Забота 24/7</h3><p>Мы рядом в любое время</p></div><div class=\\"features__card\\"><h3>Опытные врачи</h3><p>Стаж от 10 лет</p></div></div></div></section>",
-  "css": ".features {{ padding: 80px 24px; }} .features__inner {{ max-width: 1100px; margin: 0 auto; }} .features__title {{ font-size: 40px; margin: 0 0 40px; text-align: center; }} .features__grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }} .features__card {{ padding: 32px 24px; border-radius: 16px; background: #f7f7f9; }} @media (max-width: 768px) {{ .features {{ padding: 60px 16px; }} .features__title {{ font-size: 28px; }} }}"
+  "html": "<section class=\\"features\\"><div class=\\"features__inner\\"><h2 class=\\"features__title\\">Почему нас выбирают</h2><div class=\\"features__grid\\"><div class=\\"features__card\\"><div class=\\"features__icon\\"><svg viewBox=\\"0 0 24 24\\" width=\\"40\\" height=\\"40\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><path d=\\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\\"/></svg></div><h3 class=\\"features__card-title\\">Забота 24/7</h3><p class=\\"features__card-text\\">Мы рядом в любое время</p></div><div class=\\"features__card\\"><div class=\\"features__icon\\"><svg viewBox=\\"0 0 24 24\\" width=\\"40\\" height=\\"40\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><polygon points=\\"13 2 3 14 12 14 11 22 21 10 12 10 13 2\\"/></svg></div><h3 class=\\"features__card-title\\">Быстро</h3><p class=\\"features__card-text\\">Ответ за пару минут</p></div></div></div></section>",
+  "css": "@keyframes features-fade-in {{ from {{ opacity: 0; transform: translateY(12px); }} to {{ opacity: 1; transform: translateY(0); }} }} .features {{ position: relative; padding: 100px 24px; background: #f6f8fb; overflow-x: hidden; }} .features__inner {{ max-width: 1100px; margin: 0 auto; animation: features-fade-in 0.6s ease-out; }} .features__title {{ font-size: 42px; font-weight: 700; letter-spacing: -0.01em; color: #0f172a; margin: 0 0 48px; text-align: center; }} .features__grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }} .features__card {{ padding: 36px 28px; border-radius: 20px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04); transition: transform 0.25s ease, box-shadow 0.25s ease; }} .features__card:hover {{ transform: translateY(-4px); box-shadow: 0 12px 32px rgba(37, 99, 235, 0.12), 0 4px 12px rgba(15, 23, 42, 0.08); }} .features__icon {{ width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%); color: #2563eb; margin-bottom: 20px; }} .features__card-title {{ font-size: 20px; font-weight: 600; color: #0f172a; margin: 0 0 8px; }} .features__card-text {{ font-size: 16px; line-height: 1.6; color: #64748b; margin: 0; }} @media (max-width: 768px) {{ .features {{ padding: 64px 16px; }} .features__title {{ font-size: 30px; margin-bottom: 32px; }} .features__card {{ padding: 28px 22px; }} }}"
 }}
 
 Верни ОДИН JSON-объект. Начни с {{ и закончи }}."""
@@ -290,12 +399,11 @@ def build_review_prompt(target_section: str) -> str:
     """
     System prompt for the QA pass over ONE generated section.
 
-    The model gets a section (HTML + CSS) and must find and fix a
-    fixed list of common defects. It must NOT redesign, NOT add
-    blocks, NOT change the style. Only fix bugs.
-
-    If nothing is wrong, it returns the section unchanged with
-    "fixed": [].
+    The QA pass fixes ONLY real defects — it does NOT simplify the
+    design. Every visual effect (gradient, shadow, hover, glass,
+    animation) must be preserved. If the section is bare, the QA
+    pass is allowed to ADD subtle accents — but never to strip
+    existing ones.
 
     @param target_section  the section name (for the JSON echo)
     @returns the full system prompt as a string
@@ -303,50 +411,9 @@ def build_review_prompt(target_section: str) -> str:
     return f"""\
 Ты — QA-инженер для сгенерированной секции лендинга.
 
-Тебе дают ОДНУ секцию страницы (HTML + CSS) и просьбу найти и
-исправить типичные дефекты вёрстки.
-
-ЭТО НЕ РЕДИЗАЙН. ЭТО ТОЧЕЧНАЯ ПРАВКА БАГОВ.
-
-НЕ меняй дизайн, НЕ добавляй новые блоки, НЕ переписывай тексты,
-НЕ вводи новые классы, НЕ меняй палитру.
-
-ИЩИ И ИСПРАВЛЯЙ ТОЛЬКО ЭТИ ДЕФЕКТЫ:
-
-1. КАРТИНКИ ЗА ГРАНИЦАМИ.
-   - Если в HTML есть <img> или <svg>, а в CSS нет
-     `max-width: 100%;` для них — добавь правило.
-     Например: `.{target_section} img {{ max-width: 100%; height: auto; }}`
-   - Если у картинки прописан фиксированный width больше
-     контейнера — замени на `max-width: 100%;`.
-
-2. ПУСТЫЕ КНОПКИ И ССЫЛКИ.
-   - <button></button> без текста → подставь осмысленный русский
-     текст по смыслу кнопки.
-   - <a href="#"></a> без текста → либо добавь текст, либо удали.
-
-3. НЕВИДИМЫЙ ТЕКСТ.
-   - Если у текстового блока `color: #fff` (белый) или `#ffffff`,
-     а фон секции белый/светлый — поменяй color на тёмный
-     (например, #1a1a1a).
-   - Если текст и фон совпадают — исправь.
-
-4. ОТСУТСТВУЮЩИЕ @media.
-   - Если секция содержит grid/flex с несколькими колонками, но
-     нет `@media (max-width: 768px)` — добавь упрощение до 1
-     колонки для мобильных.
-
-5. ДУБЛИРУЮЩИЕСЯ @import.
-   - Оставь только ПЕРВЫЙ, остальные удали.
-
-6. ШИРИНА КОНТЕЙНЕРА.
-   - Если у внутреннего контейнера `width: <число>px` с большим
-     числом (960, 1100, 1200, 1440) — замени на
-     `max-width: <число>px; margin: 0 auto; padding: 0 24px;`
-
-7. OVERFLOW.
-   - Добавь `overflow-x: hidden;` на корневую секцию, чтобы
-     ничего не вылезало за экран.
+Тебе дают ОДНУ секцию страницы (HTML + CSS). Твоя задача —
+найти и исправить ТОЛЬКО типичные дефекты вёрстки, НЕ трогая
+дизайн.
 
 ФОРМАТ ОТВЕТА — СТРОГО ВАЛИДНЫЙ JSON:
 {{
@@ -357,17 +424,78 @@ def build_review_prompt(target_section: str) -> str:
   "notes": "кратко что исправил"
 }}
 
+ЖЕЛЕЗНОЕ ПРАВИЛО — СОХРАНЯЙ ВСЕ ЭФФЕКТЫ:
+
+Визуал этой секции — НЕ твоя задача. НЕ упрощай. НЕ убирай:
+  - градиенты (linear-gradient, radial-gradient, conic-gradient);
+  - тени (box-shadow, text-shadow, drop-shadow);
+  - эффекты прозрачности и размытия (backdrop-filter, opacity);
+  - hover-состояния, :focus, :active, transition;
+  - @keyframes и animation;
+  - декоративные ::before / ::after;
+  - инлайн SVG;
+  - большие отступы, ритм, типографику.
+
+Если что-то из перечисленного сломано (например, transition
+ссылается на несуществующее свойство) — ПОЧИНИ, но не удаляй.
+
+Если визуал кажется тебе «избыточным» — не трогай. Это решение
+дизайнера, а не твоё. Твоя работа — баги, не вкус.
+
+ИЩИ И ИСПРАВЛЯЙ ТОЛЬКО ЭТИ ДЕФЕКТЫ:
+
+1. ПЕРЕПОЛНЕНИЕ ПО ГОРИЗОНТАЛИ.
+   - На корневую секцию добавь `overflow-x: hidden;`, если её нет.
+   - Если у <img> или <svg> нет max-width: 100% — добавь.
+   - Если у контейнера жёсткая width с большим числом —
+     замени на max-width + margin: 0 auto; padding: 0 24px.
+
+2. ПУСТЫЕ КНОПКИ И ССЫЛКИ.
+   - <button></button> без текста → подставь осмысленный русский
+     текст по смыслу.
+   - <a href="#"></a> без текста → либо добавь текст, либо удали.
+
+3. НЕВИДИМЫЙ ТЕКСТ.
+   - Если у текстового блока `color: #fff` или `#ffffff`, а фон
+     секции светлый — поменяй color на тёмный (#0f172a).
+   - Если текст и фон совпадают — исправь.
+
+4. ОТСУТСТВУЮЩИЕ @media.
+   - Если есть grid/flex с несколькими колонками, но нет
+     @media (max-width: 768px) — добавь упрощение до 1 колонки.
+
+5. ДУБЛИРУЮЩИЕСЯ @import.
+   - Оставь только ПЕРВЫЙ, остальные удали.
+
+6. ШИРИНА КОНТЕЙНЕРА.
+   - Если у внутреннего контейнера `width: <число>px` с большим
+     числом (960, 1100, 1200, 1440) без max-width — замени на
+     `max-width: <число>px; margin: 0 auto; padding: 0 24px;`.
+
+7. СИНТАКСИЧЕСКИЕ ОШИБКИ В CSS.
+   - Незакрытые скобки, лишние символы, обрезанные правила —
+     почини.
+
+8. ОБЩИЙ ЗАПАХ «ПУСТОЙ СЕКЦИИ» (ТОЛЬКО ДОБАВЛЕНИЕ, НЕ УДАЛЕНИЕ).
+   - Если секция выглядит абсолютно «голой» — ни фона, ни тени,
+     ни одного hover-эффекта — МОЖЕШЬ добавить ОДИН мягкий
+     акцент: лёгкую тень на карточках, мягкий градиент на фоне
+     hero, transition на кнопках. Не больше. Не переделывай
+     структуру. Не меняй палитру.
+   - Если у секции уже есть эффекты — этот пункт НЕ применяй.
+
 ЕСЛИ ДЕФЕКТОВ НЕТ:
 Верни исходные html и css ДОСЛОВНО (символ в символ) и
 `"fixed": []`. НЕ ПЫТАЙСЯ улучшить то, что уже работает.
 
 ЧЕГО НЕ ДЕЛАТЬ:
-- Не добавляй новых секций или блоков внутри секции.
-- Не вводи новых CSS-классов без необходимости.
-- Не добавляй новых @import.
-- Не удаляй существующие @media.
-- Не оборачивай ответ в markdown (без ```json и ```).
-- Не добавляй пояснений до или после JSON.
+- Не переписывать тексты.
+- Не менять палитру.
+- Не вводить новые CSS-классы без необходимости.
+- Не удалять существующие @media, @keyframes, transition,
+  box-shadow, backdrop-filter, градиенты.
+- Не оборачивать ответ в markdown (без ```json и ```).
+- Не добавлять пояснений до или после JSON.
 
 Верни ОДИН JSON-объект. Начни с {{ и закончи }}.
 """
@@ -408,7 +536,8 @@ def build_review_user_message(
 
     parts.append(
         "Проверь секцию по списку дефектов из системного промпта. "
-        "Верни JSON."
+        "СОХРАНИ все эффекты (градиенты, тени, hover, анимации, "
+        "glassmorphism, SVG). Верни JSON."
     )
 
     return "\n".join(parts)
@@ -422,15 +551,9 @@ def build_edit_prompt() -> str:
     """
     System prompt for EDIT mode.
 
-    The model gets the current page HTML + CSS and a request that
-    describes what to change. It returns the whole updated page in
-    the same {"html": ..., "css": ...} shape as single-shot mode.
-
-    The prompt is emphatic about minimal intervention — deepseek-
-    flash likes to "improve" the whole page when asked to tweak a
-    single button.
-
-    @returns the full system prompt as a string
+    Kept as a reference / dead code — the create_page agent no
+    longer routes into edit. If edit mode returns, this prompt is
+    ready to use.
     """
     return f"""\
 Ты — редактор лендинга.
@@ -451,50 +574,16 @@ def build_edit_prompt() -> str:
 1. Сохрани ВСЁ, что не просили менять:
    - секции, не упомянутые в запросе — оставь как есть;
    - палитру, шрифты, отступы, скругления — не трогай;
-   - тексты, которые не просили менять — оставь дословно.
+   - тексты, которые не просили менять — оставь дословно;
+   - эффекты (градиенты, тени, hover, анимации) — сохрани.
 
-2. Меняй ТОЛЬКО то, что просит пользователь. Примеры:
-   - «поменяй цвет кнопки» → поменяй цвет кнопки, больше ничего;
-   - «убери секцию с отзывами» → удали её и связанный CSS;
-   - «добавь блок с ценами после features» → добавь новую секцию
-     после features, остальное не трогай;
-   - «сделай заголовок крупнее» → измени только размер заголовка.
+2. Меняй ТОЛЬКО то, что просит пользователь.
 
-3. НЕ перегенерируй страницу с нуля. Если текущий стиль кажется
-   тебе некрасивым — не трогай его, пока не попросят. Твоя задача
-   — правка, а не улучшение.
-
-4. Не добавляй новых секций, не удаляй существующих, не меняй
-   тексты, если это явно не указано в запросе.
-
-ФОРМАТ:
-- Один корневой контейнер <div class="core-engine-lib-word-blocks">
-  уже присутствует в HTML. Сохрани его.
-- Если в исходном CSS был @import шрифта — оставь его первой
-  строкой.
+3. НЕ перегенерируй страницу с нуля.
 
 {_SPLIT_RULES}
 
 {_NO_FRAMEWORKS_RULES}
-
-ПРИМЕРЫ:
-
-Запрос: «поменяй цвет кнопки в hero на зелёный»
-→ в CSS находишь .hero__btn и меняешь background. Остальное —
-  дословно как было.
-
-Запрос: «убери секцию Отзывы»
-→ в HTML удаляешь <section class="testimonials">…</section>,
-  в CSS — все правила .testimonials*. Остальное — как было.
-
-Запрос: «добавь после features блок с ценами»
-→ в HTML после секции features вставляешь
-  <section class="pricing">…</section>, в CSS добавляешь
-  правила .pricing*. Остальное — как было.
-
-Запрос: «сделай заголовок hero крупнее»
-→ в CSS увеличиваешь font-size у .hero__title. Остальное —
-  как было.
 
 Верни ОДИН JSON-объект. Начни с {{ и закончи }}."""
 
@@ -506,10 +595,6 @@ def build_edit_user_message(
 ) -> str:
     """
     User message for the edit call.
-
-    Embeds the current page (HTML + CSS) as reference blocks, then
-    the request. The CSS block is skipped entirely if the CSS is
-    empty, so the message is not littered with empty headers.
 
     @param user_request   raw text from the chat
     @param current_html   the page HTML currently on the canvas

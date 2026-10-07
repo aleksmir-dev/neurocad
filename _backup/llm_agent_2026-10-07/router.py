@@ -8,28 +8,8 @@ presence) + recent history. Output: {"agent": ..., "target": ...}.
 
 Key responsibilities
 --------------------
-1. Pick the right agent for a NEW request.
-
-   Currently enabled:
-     - create_page — create OR edit a page in one LLM call with
-                     free-form HTML+CSS (creative / nonstandard
-                     pages, and full-page edits).
-     - help        — questions about the NeuroCad editor itself.
-     - none        — the request is not about the editor.
-
-   Temporarily DISABLED (files still exist, but the router will
-   never route to them — they are not in AGENTS, and the router's
-   validation drops any name it does not know):
-     - create        — build a page from ready blocks.
-     - fill          — fill the selected element with text.
-     - effect        — visual effects / generated SVG for the
-                       selected element.
-     - edit          — edit the CSS of an existing effect.
-     - rename        — propose a new label/media for an effect.
-     - create_effect — build a draft of a new effect.
-
-   To re-enable one, add it back to AGENTS and mention it in
-   SYSTEM_PROMPT. The agent module itself does not need changes.
+1. Pick the right agent for a NEW request (create / create_page /
+   fill / effect / help / none).
 
 2. Handle RETRY messages ("попробуй ещё раз", "повтори", "заново",
    "ещё раз"). The router sees recent history and knows what the
@@ -49,9 +29,22 @@ Client sends `selection` in one of two shapes:
 
 `selector` wins; `block_id` is the fallback.
 
-The state block still reports the selection (some future agent may
-use it), but with fill / effect disabled it does not change routing
-by itself.
+Image requests
+--------------
+`effect` handles both visual effects (backgrounds, gradients,
+animations) AND image generation (draw / generate / replace an SVG).
+The router only routes BOTH to `effect`, never to `fill`. Rule 7 in
+SYSTEM_PROMPT enforces this.
+
+Page generation — two flavours
+------------------------------
+`create`       — build a page from OUR ready blocks
+                 (plan → fill → effects → svg).
+`create_page`  — build OR edit a page in one LLM call with free-form
+                 HTML+CSS. Pick it for creative / nonstandard pages,
+                 or when the user asks to change an existing page.
+
+Rule 8 in SYSTEM_PROMPT explains how to choose between the two.
 
 Logging: uses provider.log (app.state.log, passed via the provider).
 """
@@ -64,15 +57,11 @@ from typing import Any, Dict, List, Optional
 class CoreEngineLibWordLlmRouter:
     """Pick the right agent for a user request."""
 
-    #: Agents the router is allowed to choose.
-    #:
-    #: Only the enabled ones are listed here. The router validates
-    #: the model's answer against this dict; anything outside of it
-    #: is dropped and the request falls back to `help`. That is why
-    #: simply removing an entry here is enough to disable an agent —
-    #: no other file needs to change.
     AGENTS = {
+        "create":      "Собрать страницу ИЗ НАШИХ ГОТОВЫХ БЛОКОВ (пошагово: план → заполнение → эффекты → svg). Типовые лендинги",
         "create_page": "Создать ИЛИ отредактировать страницу свободным HTML+CSS. Креативные страницы и правки",
+        "fill":        "Заполнить ВЫДЕЛЕННЫЙ элемент текстом / alt'ами / ссылками (НЕ картинками)",
+        "effect":      "Визуальный эффект ИЛИ сгенерированная картинка/SVG для ВЫДЕЛЕННОГО элемента",
         "help":        "Вопрос про сам редактор NeuroCad",
         "none":        "Запрос не связан с редактором",
     }
@@ -105,8 +94,9 @@ class CoreEngineLibWordLlmRouter:
 
 ПРАВИЛА:
 1. Ответь ТОЛЬКО валидным JSON, без markdown и пояснений.
-2. Формат: {{"agent": "<имя>", "target": null}}
-3. Поле "target" всегда null — оно сохранено для совместимости формата.
+2. Формат: {{"agent": "<имя>", "target": "<selector | null>"}}
+3. Поле "target" заполняй ТОЛЬКО для агентов fill и effect.
+   Скопируй туда значение `selector` из состояния редактора дословно.
 4. Если запрос не связан с редактором (анекдоты, погода, политика) —
    верни "none".
 5. Если непонятно — верни "help".
@@ -114,26 +104,40 @@ class CoreEngineLibWordLlmRouter:
    «повтори», «заново», «переделай») — посмотри на предыдущий запрос
    пользователя в истории и верни ТОТ ЖЕ агент, который был бы выбран
    для него. Не отправляй такой запрос в help.
-7. Страница / лендинг / сайт — используй `create_page`. Он же —
-   правка существующей страницы: если страница уже есть и
-   пользователь просит её изменить («поменяй заголовок», «убери
-   секцию», «добавь блок с ценами»), тоже верни `create_page`.
-8. Всё, что не про редактор и не про страницу, — `none`.
+7. Картинки: если пользователь просит НАРИСОВАТЬ / СГЕНЕРИРОВАТЬ /
+   СДЕЛАТЬ картинку, SVG, иллюстрацию, «заменить плейсхолдер» —
+   верни agent="effect", даже если в запросе есть слово «заполни».
+8. Страница / лендинг / сайт — выбор между create и create_page:
+   - "create"      — только если пользователь явно просит «из блоков»,
+                     «по блокам», «собери из готовых»;
+   - "create_page" — во всех остальных случаях: «сгенерируй страницу»,
+                     «сделай лендинг», «создай сайт», креативные темы,
+                     нестандартный дизайн. Также если страница уже есть
+                     и пользователь просит её ИЗМЕНИТЬ целиком
+                     («поменяй заголовок», «убери секцию», «добавь блок
+                     с ценами»), но при этом НЕ выделен конкретный
+                     элемент для точечной правки.
+9. Правка выделенного элемента (fill / effect) имеет приоритет над
+   правкой страницы: если есть выделение и пользователь просит
+   изменить именно его — используй fill или effect.
 
 ПРИМЕРЫ:
 - "Сделай лендинг для салона" → {{"agent": "create_page", "target": null}}
-- "Собери страницу" → {{"agent": "create_page", "target": null}}
+- "Собери страницу из блоков" → {{"agent": "create", "target": null}}
 - "Сгенерируй крутую страницу о Боге" → {{"agent": "create_page", "target": null}}
 - "Сделай блог о путешествиях" → {{"agent": "create_page", "target": null}}
-- "Поменяй заголовок в hero" → {{"agent": "create_page", "target": null}}
+- "Поменяй заголовок в hero" (есть страница, нет выделения) → {{"agent": "create_page", "target": null}}
 - "Убери секцию с отзывами" → {{"agent": "create_page", "target": null}}
 - "Добавь блок с ценами после features" → {{"agent": "create_page", "target": null}}
+- "Заполни выделенный блок" → {{"agent": "fill", "target": "sel-abc12345"}}
+- "Сделай анимацию этому блоку" → {{"agent": "effect", "target": "sel-abc12345"}}
+- "Нарисуй картинку вместо плейсхолдера" → {{"agent": "effect", "target": "sel-abc12345"}}
 - "Как сохранить пресет?" → {{"agent": "help", "target": null}}
 - "Расскажи анекдот" → {{"agent": "none", "target": null}}
 
 ПРИМЕР RETRY:
 История:
-  user: Сделай лендинг для приюта кошек
+  user: Собери лендинг для приюта кошек
   assistant: ⚠️ Модель вернула некорректный ответ. Попробуйте ещё раз.
 Текущий запрос: "Попробуй ещё раз"
 Ответ: {{"agent": "create_page", "target": null}}
@@ -341,10 +345,6 @@ class CoreEngineLibWordLlmRouter:
             target = str(target).strip() or None
 
         # ---- validate agent name ----
-        # Anything that is not in AGENTS is dropped. This is what
-        # keeps the disabled agents (create / fill / effect / edit /
-        # rename / create_effect) from being selected even if the
-        # model somehow returns one of those names.
         if agent not in CoreEngineLibWordLlmRouter.AGENTS:
             CoreEngineLibWordLlmRouter._log(
                 provider, "warning",
@@ -352,6 +352,22 @@ class CoreEngineLibWordLlmRouter:
             )
             agent = "help"
             target = None
+
+        # ---- sanity: fill/effect REQUIRE a selection ----
+        # If the model routed to fill/effect but there is no
+        # selection, the dispatcher would bounce the request anyway
+        # ("выделите элемент"). Better to catch it here and route to
+        # a page-level agent instead.
+        if agent in ("fill", "effect"):
+            has_selection = bool((selection or {}).get("selector"))
+            if not has_selection:
+                CoreEngineLibWordLlmRouter._log(
+                    provider, "info",
+                    f"agent={agent} but no selection — "
+                    f"falling back to create_page",
+                )
+                agent = "create_page"
+                target = None
 
         result = {"agent": agent, "target": target}
         CoreEngineLibWordLlmRouter._log(

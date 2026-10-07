@@ -1,4 +1,4 @@
-# neurocad 1.0.16
+# neurocad 1.0.17
 
 Release date: 2026-10-07
 
@@ -8,23 +8,31 @@ Release date: 2026-10-07
 
 ### Added
 
-- **External link cards for the catalog.** Pages now have an optional `url` field (`pages.url`, `VARCHAR(2048)`, nullable). When set, the page is treated as a *link card*: both the admin catalog and the public catalog open that URL on click, in the current tab, instead of the internal `/page/<date>/<time>` target. The editor is still reachable — the page keeps its own admin URL, `url` only changes where a catalog card click goes.
+- **AI-generated Policy and Rules.** A new "✨ Сгенерировать" button in the legal modal (Profile → Domains → Документы сайта) calls `POST /domain/legal/generate`, which reads the user's home page (title, description, visible text) and runs the LLM to produce a fresh markdown document. Nothing is saved automatically — the generated text replaces the textarea contents, and the user reviews it and clicks "Сохранить" themselves.
 
-- **`url` field in the create/edit form** in the admin catalog (`Внешняя ссылка`). Leave blank to turn a link card back into a regular page.
+- **Two new prompt modes** — `policy` and `rules` — in `word/llm/prompts/generate_legal.py`. Each has its own system prompt, structure (headings, sections, order) and style rules.
 
-- **`url` badge on cards in the admin catalog** (`↗`) — a small visual marker that a card leads to an external site.
+- **A new agent** `CoreEngineLibWordLlmAgentGenerateLegal` (`word/llm/agent/generate_legal.py`). It is NOT registered in the router and is NOT called by the WebSocket dispatcher — same pattern as `generate_logo`: called directly from the HTTP endpoint.
 
-- **`url` surfaced in the API** — `CoreEngineLibPagesItemListItem`, `CoreEngineLibPagesPublicItemListItem`, `_page_to_dict` (word editor) and `pages/service.py` all carry the field, so every consumer (admin catalog, public catalog, editor toolbar) can decide where a card links.
+- **`LegalMixin.load_home_context()`** — a new method on the domain service that resolves the user's home page (explicit `users.home_page_id`, or first page by datetime ASC), strips its HTML and returns `owner_name` / `site_host` / `title` / `description` / visible text.
+
+- **`site_host` in the prompt context** — the user's public host (`users.domain` if set, otherwise `<login>.<APP_DOMAIN>`) is passed to the LLM so it does not invent a brand name like "Нейрокад".
 
 ### Changed
 
-- **`word/service.py → _page_to_dict`** — `public_url` now equals `page.url` when set; falls back to `_build_public_url()` otherwise. This makes the "Открыть публичную версию" button in the editor lead to the external URL for link cards.
+- **Date is now explicit.** The legal prompt receives today's date (`DD.MM.YYYY`) from the server and is told to use it verbatim, with an explicit ban on `01.01.2026` and other default placeholders.
 
-- **Trait `page-link` in the editor** — `list_for_user` returns the external `url` for link cards instead of the internal `/page/<date>/<time>` path, so links inserted into article content point at the right target.
+- **The prompts no longer allow inventing data categories.** The Policy prompt now only adds `email` / `name` / `phone` / `login` if they are clearly visible in the home page text (a form, a "Sign in" button, a mention of registration). If nothing is visible — only IP, cookies and browser data are listed.
 
-### Database
+- **Brand invention is forbidden.** Both prompts instruct the model to use only the `site_host` value from the context and to write "сайт" if it is empty. Hallucinated names like "Нейрокад" or "Сайт Ромашка" are explicitly banned.
 
-- **Migration `bd36e37c3294`** adds `pages.url` (`VARCHAR(2048)`, nullable). Auto-generated, applied with `./migrate.sh`.
+- **`build_user_message()`** takes a new `site_host` keyword argument and adds a "Адрес сайта" line to the context block.
+
+### Endpoints
+
+- **`POST /core/engine/lib/base/profile/domain/legal/generate`** — new admin endpoint. Takes `{ "which": "policy" | "rules" }`, runs the agent, charges tokens (and one generation on Pro) to the Balance, and returns `{ "which": ..., "text": ... }`. Nothing is written to the DB — saving goes through `POST /domain/legal`.
+
+  - Errors: `400` — no home page, `403` — tariff blocked or tokens exhausted, `500` — LLM error.
 
 ---
 
@@ -32,20 +40,28 @@ Release date: 2026-10-07
 
 ### Добавлено
 
-- **Карточки-ссылки на внешние сайты в каталоге.** У страниц появилось необязательное поле `url` (`pages.url`, `VARCHAR(2048)`, nullable). Если оно задано, страница считается *карточкой-ссылкой*: и админский, и публичный каталоги при клике открывают этот URL в текущей вкладке вместо внутренней страницы `/page/<date>/<time>`. Редактор остаётся доступен — страница сохраняет свой админский URL, `url` меняет только то, куда ведёт клик по карточке.
+- **Генерация Политики и Правил через ИИ.** В модалке документов (Профиль → Домены → Документы сайта) появилась кнопка «✨ Сгенерировать». Она вызывает `POST /domain/legal/generate`, который читает главную страницу пользователя (заголовок, описание, видимый текст) и запускает LLM для создания свежего markdown-документа. Ничего не сохраняется автоматически — сгенерированный текст подставляется в textarea, пользователь проверяет и жмёт «Сохранить».
 
-- **Поле `url` в форме создания/редактирования** статьи в админском каталоге («Внешняя ссылка»). Оставьте пустым — карточка снова станет обычной статьёй.
+- **Два новых режима промпта** — `policy` и `rules` — в `word/llm/prompts/generate_legal.py`. У каждого свой системный промпт, структура (заголовки, разделы, порядок) и стилевые правила.
 
-- **Бейдж `↗` на карточках в админском каталоге** — маленькая метка, что карточка ведёт на внешний сайт.
+- **Новый агент** `CoreEngineLibWordLlmAgentGenerateLegal` (`word/llm/agent/generate_legal.py`). Он НЕ зарегистрирован в роутере и НЕ вызывается WebSocket-диспетчером — тот же паттерн, что у `generate_logo`: вызывается напрямую из HTTP-эндпоинта.
 
-- **`url` в API** — `CoreEngineLibPagesItemListItem`, `CoreEngineLibPagesPublicItemListItem`, `_page_to_dict` (редактор) и `pages/service.py` — все отдают поле, чтобы каждый потребитель (админский каталог, публичный каталог, тулбар редактора) знал, куда ведёт карточка.
+- **`LegalMixin.load_home_context()`** — новый метод в сервисе. Резолвит главную страницу пользователя (`users.home_page_id`, либо первую по datetime ASC), чистит HTML и возвращает `owner_name` / `site_host` / `title` / `description` и видимый текст.
+
+- **`site_host` в контексте промпта** — публичный хост пользователя (`users.domain`, если задан, иначе `<login>.<APP_DOMAIN>`) передаётся в LLM, чтобы она не выдумывала бренд вроде «Нейрокад».
 
 ### Изменено
 
-- **`word/service.py → _page_to_dict`** — `public_url` теперь равен `page.url`, если он задан; иначе — `_build_public_url()`. Кнопка «Открыть публичную версию» в редакторе для карточек-ссылок ведёт на внешний URL.
+- **Дата теперь передаётся явно.** Промпт получает сегодняшнюю дату (`ДД.ММ.ГГГГ`) с сервера и должен использовать её дословно. Явно запрещено ставить `01.01.2026` и другие дефолтные заглушки.
 
-- **Trait `page-link` в редакторе** — `list_for_user` возвращает внешний `url` для карточек-ссылок вместо внутреннего `/page/<date>/<time>`, чтобы вставленные в контент ссылки вели куда надо.
+- **Промпты больше не разрешают выдумывать категории данных.** Промпт Политики добавляет `email` / `имя` / `телефон` / `логин` только если они явно видны в тексте главной (форма, кнопка «Войти», упоминание регистрации). Если ничего не видно — только IP, cookie и данные браузера.
 
-### База данных
+- **Выдумывание бренда запрещено.** Оба промпта требуют использовать только `site_host` из контекста и писать «сайт», если он пуст. Выдуманные названия вроде «Нейрокад» или «Сайт Ромашка» явно запрещены.
 
-- **Миграция `bd36e37c3294`** добавляет `pages.url` (`VARCHAR(2048)`, nullable). Автогенерация, применяется через `./migrate.sh`.
+- **`build_user_message()`** получил новый keyword-аргумент `site_host` и добавляет в контекст строку «Адрес сайта».
+
+### Эндпоинты
+
+- **`POST /core/engine/lib/base/profile/domain/legal/generate`** — новый админский эндпоинт. Принимает `{ "which": "policy" | "rules" }`, запускает агента, списывает токены (и одну генерацию на Pro) с баланса и возвращает `{ "which": ..., "text": ... }`. В БД ничего не пишется — сохранение идёт через `POST /domain/legal`.
+
+  - Ошибки: `400` — нет главной страницы, `403` — тариф блокирует или токены кончились, `500` — ошибка LLM.

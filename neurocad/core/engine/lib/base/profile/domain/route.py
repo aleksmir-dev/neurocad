@@ -16,6 +16,10 @@ Endpoints (mounted under /core/engine/lib/base/profile/domain):
                                 (which one is chosen by `which`)
     POST   /legal             — save users.policy or users.rules
                                 (which one is chosen by `which`)
+    POST   /legal/generate    — generate a fresh policy / rules text
+                                from the user's home page via the LLM
+                                (nothing is saved — the caller gets
+                                the text back and decides)
     GET    /sitemap           — sitemap.xml for the current user,
                                 generated on the fly, returned as
                                 text/plain for the in-admin modal
@@ -28,6 +32,7 @@ Full URLs:
     DELETE /core/engine/lib/base/profile/domain/home
     POST   /core/engine/lib/base/profile/domain/robots
     POST   /core/engine/lib/base/profile/domain/legal
+    POST   /core/engine/lib/base/profile/domain/legal/generate
     GET    /core/engine/lib/base/profile/domain/sitemap
 
 All endpoints require an authenticated user.
@@ -44,6 +49,7 @@ from .schema import (
     CoreEngineLibBaseProfileDomainHomeSetRequest,
     CoreEngineLibBaseProfileDomainSetRobotsRequest,
     CoreEngineLibBaseProfileDomainSetLegalRequest,
+    CoreEngineLibBaseProfileDomainGenerateLegalRequest,
 )
 from .service.facade import CoreEngineLibBaseProfileDomainService
 
@@ -343,6 +349,164 @@ async def set_legal(
     return JSONResponse({
         "success": True,
         "data": {"which": body.which, "text": saved},
+    })
+
+
+# ============================================
+# LEGAL — POLICY / RULES GENERATE
+# ============================================
+
+@router.post("/legal/generate")
+async def generate_legal(
+    body: CoreEngineLibBaseProfileDomainGenerateLegalRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Generate a policy or rules markdown body from the user's home
+    page, and return it to the frontend. NOTHING is saved here —
+    the user reviews the text in the modal and decides whether to
+    save it via POST /domain/legal.
+
+    Body:
+      { "which": "policy" | "rules" }
+
+    The flow:
+      1. balance guard (same as logo generation) — tariff + tokens;
+      2. load the user's home page (users.home_page_id, or the first
+         page by datetime ASC in the user's first nav) and extract
+         its visible text (HTML stripped, trimmed);
+      3. resolve the LLM provider (same factory as the WS flow);
+      4. run the generate_legal agent — policy or rules, based on
+         `which`;
+      5. charge tokens (+1 gen on pro) to Balance;
+      6. return { which, text }.
+
+    Errors:
+      400 — user has no pages (nothing to base the document on)
+      403 — tariff blocks LLM (free) or tokens exhausted
+      500 — LLM error, provider error, or unexpected exception
+    """
+    user = _require_user(current_user)
+    user_id = int(user["id"])
+    log = request.app.state.log
+
+    # ---- 0. Balance guard ----
+    from neurocad.core.engine.lib.balance.checked import BalanceChecked
+
+    bal, err = await BalanceChecked.logo_allowed(user_id, log=log)
+    if err:
+        detail_map = {
+            "llm_not_available": (
+                "Генерация недоступна на тарифе Free. "
+                "Перейдите на тариф Pro или LLM."
+            ),
+            "tokens_exhausted": (
+                "Закончились токены LLM на этот месяц. "
+                "Они восстановятся в расчётный день."
+            ),
+            "gen_exhausted": (
+                "Закончились генерации на этот месяц. "
+                "Они восстановятся в расчётный день."
+            ),
+            "no_balance": (
+                "Не удалось определить ваш тариф. "
+                "Обратитесь к администратору."
+            ),
+        }
+        raise HTTPException(
+            status_code=403,
+            detail=detail_map.get(err, "Лимит исчерпан."),
+        )
+
+    # ---- 1. Load the home page context ----
+    ctx = await CoreEngineLibBaseProfileDomainService.load_home_context(user_id)
+    if ctx is None:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Не удалось найти главную страницу. "
+                "Создайте хотя бы одну страницу и попробуйте снова."
+            ),
+        )
+
+    # ---- 2. Resolve the LLM provider ----
+    try:
+        from neurocad.utils.llm.factory import get_provider
+        provider = await get_provider(log=log)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get LLM provider: {e}",
+        )
+
+    # ---- 3. Run the agent ----
+    from neurocad.core.engine.lib.word.llm.agent.generate_legal import (
+        CoreEngineLibWordLlmAgentGenerateLegal,
+    )
+
+    agent = CoreEngineLibWordLlmAgentGenerateLegal()
+    try:
+        result = await agent.run(
+            provider=provider,
+            which=body.which,
+            owner_name=ctx["owner_name"],
+            home_title=ctx["title"],
+            home_desc=ctx["description"],
+            home_text=ctx["text"],
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Generation error: {e}",
+        )
+
+    text = result.get("text")
+    if not text:
+        raise HTTPException(
+            status_code=500,
+            detail=result.get("error") or "Не удалось сгенерировать текст.",
+        )
+
+    # ---- 4. Charge tokens (+1 gen on pro) ----
+    # Same accounting as the images router — kept local to this
+    # route so the domain router does not depend on that package.
+    try:
+        from datetime import datetime as _dt
+        from sqlalchemy import select as _select
+        from neurocad.core.models.balance import Balance as _Balance
+        from neurocad.utils.sqlite import get_db_sqlite as _get_db
+
+        usage = int(getattr(provider, "tokens_used", 0) or 0)
+        async for session in _get_db():
+            stmt = _select(_Balance).where(
+                _Balance.user_id == user_id,
+                _Balance.is_delete.is_(False),
+            )
+            b = (await session.execute(stmt)).scalar_one_or_none()
+            if b is not None:
+                if usage > 0:
+                    b.tokens = max(0, (b.tokens or 0) - usage)
+                if b.tarif == 1:
+                    b.gen = max(0, (b.gen or 0) - 1)
+                b.updated_at = _dt.now()
+                await session.commit()
+            break
+    except Exception as e:
+        try:
+            log.log_warning_sync(
+                target="legal-generate",
+                message=f"charge failed for user {user_id}: {e}",
+            )
+        except Exception:
+            pass
+
+    return JSONResponse({
+        "success": True,
+        "data": {
+            "which": body.which,
+            "text": text,
+        },
     })
 
 

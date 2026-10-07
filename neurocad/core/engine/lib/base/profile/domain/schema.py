@@ -70,6 +70,13 @@ Both fields follow the same rules as robots:
   - the public endpoint returns 404 only when the Host does not
     resolve to any user.
 
+Legal generation endpoint:
+
+  - POST /domain/legal/generate — runs the generate_legal LLM agent
+    against the user's home page and returns a fresh markdown body
+    WITHOUT saving it. The user reviews the text in the modal and
+    saves it via POST /domain/legal themselves.
+
 sitemap.xml is NOT part of this JSON payload and has NO schema here.
 It is generated on the fly (nothing is stored), and returned as
 text/plain by GET /domain/sitemap for the in-admin modal viewer, and
@@ -398,6 +405,53 @@ class CoreEngineLibBaseProfileDomainSetLegalData(BaseModel):
 class CoreEngineLibBaseProfileDomainSetLegalResponse(BaseModel):
     success: bool = True
     data: CoreEngineLibBaseProfileDomainSetLegalData
+
+
+# ============================================
+# LEGAL — POLICY / RULES GENERATE
+# ============================================
+
+class CoreEngineLibBaseProfileDomainGenerateLegalRequest(BaseModel):
+    """
+    POST /domain/legal/generate body.
+
+    `which` selects which document to generate:
+
+      - "policy" → Policy;
+      - "rules"  → Rules.
+
+    The agent reads the user's home page (users.home_page_id, or the
+    first page by datetime ASC in the user's first nav), extracts
+    its visible text (HTML stripped, trimmed to a reasonable size),
+    and asks the LLM for a document that matches the site.
+
+    Nothing is saved by this endpoint — the caller receives the
+    generated markdown in the response and is expected to show it to
+    the user. Saving goes through POST /domain/legal.
+    """
+
+    which: Literal["policy", "rules"] = Field(
+        ...,
+        description="Which document to generate: 'policy' or 'rules'",
+    )
+
+
+class CoreEngineLibBaseProfileDomainGenerateLegalData(BaseModel):
+    """
+    Result of POST /domain/legal/generate.
+
+    Echoed back so the frontend can wire the response to the right
+    textarea without re-reading its own state. The text itself is
+    NOT saved anywhere yet — the user decides whether to keep it.
+    """
+
+    which: Literal["policy", "rules"]
+    text: str
+
+
+class CoreEngineLibBaseProfileDomainGenerateLegalResponse(BaseModel):
+    success: bool = True
+    data: CoreEngineLibBaseProfileDomainGenerateLegalData
 
 
 # ============================================

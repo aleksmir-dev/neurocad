@@ -1,22 +1,24 @@
 # neurocad/core/engine/lib/word/llm/agent/create_page.py
 
 """
-Agent: create_page — creates a page from scratch.
+Agent: create_page — creates OR edits a page.
 
-The agent ALWAYS creates a new page. The previous page content (if
-any) is ignored — the generated page replaces the canvas entirely.
-Edit mode is temporarily disabled; `_run_edit` is kept as dead code
-for a future return.
+Two top-level modes, chosen by `current_html`:
 
-Pipeline:
-  Phase 1 — plan: one short LLM call returning section names.
-  Phase 2 — for each section:
-              a) generate (HTML + CSS),
-              b) QA pass — a second LLM call that finds and
-                 fixes common defects (image overflow, empty
-                 buttons, invisible text, missing @media, ...).
-             Only the QA-approved section is streamed to the
-             client. The user never sees a broken section.
+  CREATE (current_html empty)
+    Plan-then-generate-and-review:
+      Phase 1 — plan: one short LLM call returning section names.
+      Phase 2 — for each section:
+                  a) generate (HTML + CSS),
+                  b) QA pass — a second LLM call that finds and
+                     fixes common defects (image overflow, empty
+                     buttons, invisible text, missing @media, ...).
+                 Only the QA-approved section is streamed to the
+                 client. The user never sees a broken section.
+
+  EDIT (current_html non-empty)
+    Single LLM call. The current page HTML + CSS is embedded into
+    the user message; the model returns the WHOLE updated page.
 
 Logging / dumps
 ---------------
@@ -49,13 +51,13 @@ from ..dumper import CoreEngineLibWordLlmDumper
 
 
 class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
-    """Create a page from scratch."""
+    """Create OR edit a page."""
 
     name = "create_page"
 
-    STEP_MAX_TOKENS = 8192
+    STEP_MAX_TOKENS = 4096
     PLAN_MAX_TOKENS = 512
-    REVIEW_MAX_TOKENS = 8192
+    REVIEW_MAX_TOKENS = 4096
     EDIT_MAX_TOKENS = 32000
 
     #: Whether to run the QA pass after each generated section.
@@ -81,18 +83,28 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
         history: Optional[list] = None,
     ) -> Dict[str, Any]:
 
-        # create_page always creates from scratch. The previous
-        # content (if any) is ignored — the generated page replaces
-        # the canvas. Edit mode is temporarily disabled; _run_edit
-        # is kept as dead code for a future return.
+        has_current = bool(current_html and current_html.strip())
+        new_page_requested = self._is_new_page_request(user_message)
+
         log(
             provider, "info",
-            f"create_page start (create-only): page_id={page_id} "
-            f"run={run_id!r} "
-            f"current_html={len(current_html or '')} chars (ignored), "
+            f"create_page start: page_id={page_id} run={run_id!r} "
+            f"current_html={len(current_html or '')} chars, "
             f"history={len(history or [])} msgs, "
+            f"new_page_requested={new_page_requested}, "
             f"review_enabled={self.REVIEW_ENABLED}",
         )
+
+        if has_current and not new_page_requested:
+            return await self._run_edit(
+                provider=provider,
+                user_message=user_message,
+                page_id=page_id,
+                run_id=run_id,
+                emit=emit,
+                current_html=current_html,
+                history=history,
+            )
 
         return await self._run_create(
             provider=provider,
@@ -106,9 +118,6 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
     # ============================================
     # NEW-PAGE HINT
     # ============================================
-    #
-    # Kept for backward compatibility with the disabled edit mode.
-    # Currently unused — create_page always creates from scratch.
 
     @staticmethod
     def _is_new_page_request(text: str) -> bool:
@@ -126,12 +135,8 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
         return any(h in t for h in hints)
 
     # ============================================
-    # EDIT MODE — DISABLED
+    # EDIT MODE
     # ============================================
-    #
-    # Kept as dead code so it can be re-enabled later by restoring
-    # the create/edit branch in run(). Not called from anywhere
-    # right now.
 
     async def _run_edit(
         self,

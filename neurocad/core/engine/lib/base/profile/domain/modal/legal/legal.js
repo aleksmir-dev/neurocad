@@ -18,7 +18,7 @@
  *
  * Layout:
  *
- *   [ header: presets | title ]       ← two preset buttons
+ *   [ header: presets | title ]       ← three buttons
  *   [ hint: what this document is ]   ← changes per `which`
  *   [ textarea          | preview ]   ← split pane on wide screens
  *   [ error (if any)                  ]
@@ -32,6 +32,11 @@
  * backend, and the preview is a convenience, not a contract.
  *
  * Presets:
+ *   - "✨ Сгенерировать" — calls POST /domain/legal/generate, which
+ *     runs the generate_legal LLM agent against the user's home
+ *     page and returns a fresh markdown body. Nothing is saved —
+ *     the result replaces the textarea contents, and the user
+ *     reviews it and clicks "Сохранить" themselves.
  *   - "Вставить шаблон" — fills the textarea with a starter
  *     markdown document. The template depends on `which`:
  *     Policy gets a 152-ФЗ-shaped skeleton, Rules gets a
@@ -110,6 +115,7 @@ export class LegalModal {
         this._which = 'policy';
         this._isDefault = false;
         this._saving = false;
+        this._generating = false;
         this._boundKeyDown = null;
         this._onInput = null;
 
@@ -201,6 +207,7 @@ export class LegalModal {
         this._titleEl = null;
         this._hintEl = null;
         this._saving = false;
+        this._generating = false;
     }
 
     /**
@@ -296,6 +303,12 @@ export class LegalModal {
             <div class="legal-dialog" role="dialog" aria-modal="true" aria-labelledby="legal-title">
                 <div class="legal-header">
                     <div class="legal-presets">
+                        <button type="button"
+                                class="domain-btn"
+                                data-action="legal-generate"
+                                title="Сгенерировать текст по содержанию главной страницы">
+                            ✨ Сгенерировать
+                        </button>
                         <button type="button"
                                 class="domain-btn"
                                 data-action="legal-template">
@@ -673,6 +686,10 @@ export class LegalModal {
             if (!action) return;
 
             switch (action) {
+                case 'legal-generate':
+                    e.preventDefault();
+                    this._generate();
+                    break;
                 case 'legal-template':
                     e.preventDefault();
                     this._applyTemplate();
@@ -745,6 +762,71 @@ export class LegalModal {
         this._clearError();
         this._refreshPreview();
         this._textarea.focus();
+    }
+
+    /**
+     * Ask the backend to generate a policy / rules text based on the
+     * user's home page.
+     *
+     * Behaviour:
+     *   - shows a "Генерирую…" state on the button;
+     *   - calls POST /domain/legal/generate with { which };
+     *   - on success: replaces the textarea contents with the generated
+     *     markdown and refreshes the preview. NOT saved automatically —
+     *     the user reviews it and clicks "Сохранить" themselves;
+     *   - on failure: shows an inline error message with the server's
+     *     detail (or a generic fallback).
+     *
+     * The button is disabled while the request is in flight, so a
+     * double-click cannot fire two requests.
+     */
+    async _generate() {
+        if (this._generating) return;
+        if (!this._textarea) return;
+
+        const btn = this._overlay?.querySelector('[data-action="legal-generate"]');
+        const prevLabel = btn ? btn.textContent : '';
+
+        this._generating = true;
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Генерирую…';
+        }
+        this._clearError();
+
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            if (typeof fetchJson !== 'function') {
+                throw new Error('fetchJson недоступен');
+            }
+
+            const json = await fetchJson(
+                '/core/engine/lib/base/profile/domain/legal/generate',
+                {
+                    method: 'POST',
+                    body: { which: this._which },
+                }
+            );
+
+            const text = json?.data?.text;
+            if (!text || typeof text !== 'string') {
+                throw new Error('Пустой ответ от сервера');
+            }
+
+            this._textarea.value = text;
+            this._refreshPreview();
+            this._textarea.focus();
+        } catch (err) {
+            console.error('[LegalModal] generate error:', err);
+            const msg = (err && err.message) ? err.message : 'Не удалось сгенерировать текст';
+            this._showError(msg);
+        } finally {
+            this._generating = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = prevLabel;
+            }
+        }
     }
 
     _showError(message) {

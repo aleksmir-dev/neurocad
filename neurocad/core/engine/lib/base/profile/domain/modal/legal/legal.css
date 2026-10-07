@@ -80,10 +80,11 @@
 
 /* ===== Header ===== */
 /*
- * Top row of the dialog. Holds the two preset buttons on the left
- * ("Вставить шаблон", "Очистить"). The title itself lives below
- * the header — see .legal-title. No bottom border, so the title
- * reads as part of the same block as the presets.
+ * Top row of the dialog. Holds the three action buttons on the
+ * left ("✨ Сгенерировать", "Вставить шаблон", "Очистить"). The
+ * title itself lives below the header — see .legal-title. No
+ * bottom border, so the title reads as part of the same block as
+ * the buttons.
  */
 
 .legal-header {
@@ -102,7 +103,7 @@
 /*
  * Preset buttons row. They reuse .domain-btn from domain.css; here
  * we only reset the default margin-left (the row's gap handles the
- * spacing) so the two buttons sit flush-left with an 8px gap.
+ * spacing) so the buttons sit flush-left with an 8px gap.
  */
 
 .legal-presets {
@@ -114,6 +115,32 @@
 
 .legal-presets .domain-btn {
     margin-left: 0;
+}
+
+/*
+ * The "✨ Сгенерировать" button is the primary action of the modal
+ * — a user who does not want to hand-write a policy will click it
+ * first. Style it a bit brighter than the two preset buttons next
+ * to it, so the eye finds it immediately.
+ *
+ * Scoped by the data-action attribute — it is unique on the page,
+ * so this rule cannot leak anywhere else.
+ */
+
+.legal-presets [data-action="legal-generate"] {
+    color: #2563eb;
+    border-color: #bfdbfe;
+    background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+}
+
+.legal-presets [data-action="legal-generate"]:hover:not(:disabled) {
+    background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: #93c5fd;
+}
+
+.legal-presets [data-action="legal-generate"]:disabled {
+    opacity: 0.6;
+    cursor: wait;
 }
 
 /* ===== Title ===== */

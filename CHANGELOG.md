@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.17] - 2026-10-07
+- AI generation of Policy and Rules via a new "✨ Сгенерировать" button in the legal modal and a new `POST /domain/legal/generate` endpoint; the LLM reads the user's home page (title, description, visible text, site host) and returns a fresh markdown document without saving it. Adds `generate_legal` agent + prompt, `LegalMixin.load_home_context()`, explicit today's date in the prompt (no more "01.01.2026"), a ban on inventing brands and data categories, and token charge on the Balance.
+
 ## [1.0.16] - 2026-10-07
 - Pages have an optional external `url` (`pages.url`): when set, catalog cards — admin and public — open that URL in the current tab instead of the internal `/page/<date>/<time>` target; the editor is still reachable, `url` only changes where a card click goes. Adds the `url` field to the create/edit form, a `↗` badge on cards in the admin catalog, and surfaces `url` across all page APIs and the `page-link` trait.
 
@@ -86,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.17]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.16...v1.0.17
 [1.0.16]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.14...v1.0.16
 [1.0.14]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.13...v1.0.14
 [1.0.13]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.12...v1.0.13
