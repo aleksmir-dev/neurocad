@@ -10,15 +10,18 @@
  * Layout:
  *   body.core-engine-lib-pages-public-body
  *     └─ main.pages-catalog
+ *          ├─ nav.pages-catalog-crumbs      (hidden at root)
  *          ├─ header.pages-catalog-header
  *          └─ ul.pages-catalog-list
  *               └─ li.pages-catalog-item
  *                    └─ a.pages-catalog-card
- *                         ├─ span.pages-catalog-card-logo  (optional)
+ *                         ├─ span.pages-catalog-card-icon    (folders / up)
+ *                         ├─ span.pages-catalog-card-logo    (pages, optional)
  *                         └─ span.pages-catalog-card-body
  *                              ├─ span.pages-catalog-card-title
- *                              ├─ span.pages-catalog-card-desc (optional)
- *                              └─ time.pages-catalog-card-date (optional)
+ *                              ├─ span.pages-catalog-card-desc   (optional)
+ *                              ├─ span.pages-catalog-card-count  (folders)
+ *                              └─ time.pages-catalog-card-date   (pages)
  *
  * The card is an <a>, so everything inside is inline-block / flex
  * — no block-level children leaking outside the link.
@@ -29,10 +32,26 @@
  * under .pages-catalog-title to switch to another shade — e.g.
  * #7f1d1d (deep red) or #1e3a8a (deep blue) were also considered.
  *
- * Subtitle: the "N статей" line under the H1 is intentionally
+ * Subtitle: the "N записей" line under the H1 is intentionally
  * hidden (`display: none`) for now — it was judged to be noise
  * while the catalog is still small. The markup is still emitted
  * by pages.html, so flipping this rule brings it back.
+ *
+ * Folder mode:
+ *   A card with .pages-catalog-card--folder is a grouping node.
+ *   It uses the same neutral shell as a page card (white background,
+ *   light border), but carries a folder icon instead of a logo and
+ *   a child counter instead of a date. The modifier is applied by
+ *   pages.html based on item.card_type.
+ *
+ * Up card:
+ *   A card with .pages-catalog-card--up is the "go one level up"
+ *   navigation node, rendered as the FIRST item when the visitor
+ *   is inside a folder. It uses the same grid cell as any other
+ *   card, but in a neutral (not amber) palette — it is a control,
+ *   not content. Its icon is a typographic arrow (U+2934) mirrored
+ *   via `scaleX(-1)` so it points to the upper-left, matching the
+ *   "назад" direction convention in Russian UI.
  */
 
 /* ============================================ */
@@ -69,6 +88,49 @@ html {
 }
 
 /* ============================================ */
+/* BREADCRUMBS                                  */
+/* ============================================ */
+
+.pages-catalog-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 20px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #64748b;
+}
+
+.pages-catalog-crumb {
+    color: #475569;
+    text-decoration: none;
+    padding: 2px 0;
+    border-radius: 4px;
+    transition: color 0.15s ease;
+}
+
+.pages-catalog-crumb:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.pages-catalog-crumb--current {
+    color: #0f172a;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: default;
+}
+
+/* Separator "/" between crumbs — aria-hidden in markup, so
+   screen readers do not announce it. */
+.pages-catalog-crumb-sep {
+    color: #cbd5e1;
+    user-select: none;
+    padding: 0 2px;
+}
+
+/* ============================================ */
 /* HEADER                                       */
 /* ============================================ */
 
@@ -86,7 +148,7 @@ html {
 }
 
 /*
- * Hidden for now — the "N статей" line under the title was
+ * Hidden for now — the "N записей" line under the title was
  * determined to be noise while the catalog is still small.
  * The markup is still emitted by pages.html, so we only need
  * to flip this rule to bring it back.
@@ -162,7 +224,7 @@ html {
 }
 
 /* ============================================ */
-/* LOGO                                         */
+/* LOGO (pages)                                 */
 /* ============================================ */
 
 .pages-catalog-card-logo {
@@ -234,6 +296,145 @@ html {
 }
 
 /* ============================================ */
+/* FOLDER CARD                                  */
+/* ============================================ */
+
+/*
+ * A folder is a grouping node, not an article. It keeps the same
+ * neutral card shell as a page (white background, light border),
+ * but carries a folder icon instead of a logo, and a child counter
+ * instead of a date. No amber accent — folders and pages share the
+ * same visual language, differing only in content.
+ */
+
+.pages-catalog-card--folder {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+.pages-catalog-card--folder:hover {
+    border-color: #93c5fd;
+    box-shadow:
+        0 12px 28px rgba(59, 130, 246, 0.10),
+        0 4px 10px rgba(15, 23, 42, 0.06);
+}
+
+.pages-catalog-card--folder:focus-visible {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.pages-catalog-card--folder .pages-catalog-card-title {
+    color: #0f172a;
+}
+
+.pages-catalog-card--folder:hover .pages-catalog-card-title {
+    color: #1d4ed8;
+}
+
+.pages-catalog-card--folder .pages-catalog-card-desc {
+    color: #64748b;
+    opacity: 1;
+}
+
+/* Fixed emoji icon — 72×72 to match the page-logo box.
+   Neutral light-gray tile. */
+.pages-catalog-card-icon {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    font-size: 36px;
+    line-height: 1;
+    user-select: none;
+}
+
+/* Child counter chip — replaces the date row on a folder card. */
+.pages-catalog-card-count {
+    margin-top: auto;
+    padding-top: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    letter-spacing: 0.02em;
+}
+
+.pages-catalog-card-count--empty {
+    color: #94a3b8;
+    font-weight: 500;
+    font-style: italic;
+}
+
+/* ============================================ */
+/* UP CARD — "вернуться на уровень выше"        */
+/* ============================================ */
+
+/*
+ * The "go one level up" navigation card, rendered as the first
+ * item when the visitor is inside a folder. It uses the same grid
+ * cell as any other card, but in a neutral palette — it is a
+ * control, not content, so it must NOT look like a folder or a
+ * page. Dashed border and muted background read as "navigation".
+ *
+ * Hover keeps the neutral family (no blue, no amber) so the card
+ * never pretends to be a destination of its own. The icon is a
+ * typographic arrow U+2934 mirrored via scaleX(-1) so it points
+ * to the upper-left — matching the "назад" direction convention.
+ */
+
+.pages-catalog-card--up {
+    background: #f8fafc;
+    border-style: dashed;
+    border-color: #cbd5e1;
+}
+
+.pages-catalog-card--up:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    box-shadow:
+        0 8px 20px rgba(15, 23, 42, 0.06),
+        0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.pages-catalog-card--up:focus-visible {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.pages-catalog-card--up .pages-catalog-card-title {
+    color: #0f172a;
+}
+
+.pages-catalog-card--up:hover .pages-catalog-card-title {
+    color: #1d4ed8;
+}
+
+.pages-catalog-card--up .pages-catalog-card-desc {
+    color: #64748b;
+}
+
+/* Fixed glyph — same 72×72 box as folder icons and page logos. */
+.pages-catalog-card-icon--up {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 30px;
+    line-height: 1;
+    user-select: none;
+    transform: scaleX(-1);          /* ⤴ → смотрит влево-вверх */
+}
+
+/* ============================================ */
 /* EMPTY STATE                                  */
 /* ============================================ */
 
@@ -257,6 +458,11 @@ html {
         padding: 28px 16px 48px;
     }
 
+    .pages-catalog-crumbs {
+        margin-bottom: 16px;
+        font-size: 12px;
+    }
+
     .pages-catalog-title {
         font-size: 26px;
     }
@@ -271,10 +477,20 @@ html {
         border-radius: 12px;
     }
 
-    .pages-catalog-card-logo {
+    .pages-catalog-card-logo,
+    .pages-catalog-card-icon,
+    .pages-catalog-card-icon--up {
         width: 64px;
         height: 64px;
         border-radius: 10px;
+    }
+
+    .pages-catalog-card-icon {
+        font-size: 32px;
+    }
+
+    .pages-catalog-card-icon--up {
+        font-size: 26px;
     }
 }
 
@@ -299,9 +515,19 @@ html {
         font-size: 13px;
     }
 
-    .pages-catalog-card-logo {
+    .pages-catalog-card-logo,
+    .pages-catalog-card-icon,
+    .pages-catalog-card-icon--up {
         width: 56px;
         height: 56px;
+    }
+
+    .pages-catalog-card-icon {
+        font-size: 28px;
+    }
+
+    .pages-catalog-card-icon--up {
+        font-size: 22px;
     }
 }
 

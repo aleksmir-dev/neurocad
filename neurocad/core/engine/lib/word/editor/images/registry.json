@@ -1104,6 +1104,30 @@
       "source": "logo",
       "builtin": false,
       "order": 1400
+    },
+    {
+      "id": "img-7a0d6afb",
+      "alt": "Нейрокад",
+      "file": "files/img-7a0d6afb.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1410
+    },
+    {
+      "id": "img-90b9087e",
+      "alt": "Нейрокад",
+      "file": "files/img-90b9087e.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1420
+    },
+    {
+      "id": "img-4c653fc0",
+      "alt": "Нейрокад",
+      "file": "files/img-4c653fc0.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1430
     }
   ]
 }

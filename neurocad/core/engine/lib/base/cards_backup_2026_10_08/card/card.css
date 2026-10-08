@@ -107,55 +107,6 @@
 }
 
 /* ============================================ */
-/* FOLDER MODE — ".." pseudo-card                */
-/* ============================================ */
-/*
- * The ".." pseudo-card is prepended by render.js → buildItemsWithFolders()
- * when we are inside a folder. It is NOT a real item — id === 0, the
- * data attribute carries no real id — so it is not selectable, not
- * deletable, and its only action is "go one level up".
- *
- * Visually it reads as a control, not as content:
- *   - muted / soft background;
- *   - dashed border instead of solid;
- *   - an "up arrow" glyph on the left;
- *   - no hover lift — it slides left slightly instead, hinting
- *     at "go up".
- *
- * The class is added in render.js (see renderItem → cardOptions.customClass).
- */
-
-.core-engine-lib-base-cards-card.card-up {
-    background: #f1f5f9;
-    border-style: dashed;
-    border-color: #cbd5e1;
-    color: #64748b;
-    justify-content: center;
-    align-items: flex-start;
-    text-align: left;
-}
-
-.core-engine-lib-base-cards-card.card-up:hover {
-    /* Override the standard lift — a horizontal nudge reads better
-       for "go up" than a vertical one. */
-    transform: translateX(-2px);
-    background: #e2e8f0;
-    border-color: #94a3b8;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-}
-
-.core-engine-lib-base-cards-card.card-up:active {
-    transform: translateX(-2px) scale(0.97);
-}
-
-/* The ".." pseudo-card cannot be selected — hide the checkbox
-   marker if it ever appears (defensive). */
-.core-engine-lib-base-cards-card.card-up.selected::before {
-    content: none;
-    display: none;
-}
-
-/* ============================================ */
 /* СОДЕРЖИМОЕ КАРТОЧКИ                          */
 /* ============================================ */
 
@@ -366,10 +317,5 @@
 
     .core-engine-lib-base-cards-card .card-field {
         font-size: 10px;
-    }
-
-    /* ".." pseudo-card should not appear in printouts. */
-    .core-engine-lib-base-cards-card.card-up {
-        display: none;
     }
 }

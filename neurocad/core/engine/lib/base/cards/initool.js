@@ -1,38 +1,54 @@
 // app/core/engine/lib/base/cards/initool.js
 
 /**
- * Инициализация тулбара для BaseCards.
+ * Toolbar initialization for BaseCards.
  *
- * Читает флаги показа кнопок из props и создаёт BaseCardsToolbar.
- * Дефолт — fail-closed (`=== true`): без явного разрешения кнопка
- * не показывается. Это защищает от случайного отображения админ-кнопок
- * для гостя.
+ * Reads button-visibility flags from props and creates
+ * BaseCardsToolbar. Default is fail-closed (`=== true`): without an
+ * explicit permission the button is not rendered. This protects
+ * against admin buttons accidentally showing up for a guest.
  *
- * extraToolbarButtons — дополнительные кнопки-ссылки, которые
- * потребитель может передать через props. Каждая кнопка рендерится
- * в правой части тулбара, ПОСЛЕ стандартных кнопок (корзина и т.д.).
- * Это не админ-действия, а ссылки (например «Открыть публичный
- * каталог»), поэтому они живут в правой группе — рядом с поиском
- * и фильтром, а не рядом с «+».
+ * Folder mode
+ * -----------
+ * When `cards.folders === true`, an additional "Создать папку"
+ * button is registered in the toolbar — BEFORE the standard "+"
+ * (add) button. It opens the same create form as "+", but with
+ * `card_type = <folderValue>` pre-set, so the user can create a
+ * folder without having to switch the type in the form.
  *
- * Формат элемента extraToolbarButtons:
+ * The button is controlled by `props.showFolderButton`:
+ *   - true   → shown (only meaningful when `folders === true`);
+ *   - absent / false → hidden.
+ *
+ * The toolbar itself does not need to know about folders — the flag
+ * is resolved here, and the click is wired to `cards.openCreateForm()`
+ * with a pre-filled initialData. See below.
+ *
+ * extraToolbarButtons
+ * -------------------
+ * Optional array of link-buttons rendered in the right group of the
+ * toolbar, AFTER the standard buttons (trash, search, filter). Each
+ * entry is a plain object:
+ *
  *   {
- *       href:      '/pages',                  // обязательно
- *       label:     'Открыть каталог статей',  // подпись (title)
- *       target:    '_blank',                  // опционально
- *       rel:       'noopener noreferrer',     // опционально
- *       title:     'Открыть в новой вкладке', // опционально, если
- *                                             // не задан — берётся label
- *       icon:      'link',                    // имя без .svg;
- *                                             // путь соберётся как
+ *       href:      '/pages',                  // required
+ *       label:     'Открыть каталог статей',  // title text
+ *       target:    '_blank',                  // optional
+ *       rel:       'noopener noreferrer',     // optional
+ *       title:     'Открыть в новой вкладке', // optional (falls back to label)
+ *       icon:      'link',                    // name without .svg;
+ *                                             // path is assembled as
  *                                             // /static/.../images/link.svg
- *       className: '',                        // дополнительный класс
+ *       className: '',                        // extra class
  *   }
+ *
+ * User-facing strings (button labels, titles) are in Russian.
+ * Code comments, docstrings and identifiers are in English.
  */
 
 export function initToolbar(cards) {
     if (!cards._BaseCardsToolbar) {
-        console.error('[BaseCards] _BaseCardsToolbar не загружен');
+        console.error('[BaseCards] _BaseCardsToolbar is not loaded');
         return;
     }
 
@@ -47,6 +63,12 @@ export function initToolbar(cards) {
     const showStatusFilter  = cards.props.showStatusFilter === true
         && Object.keys(cards.statuses).length > 0;
 
+    // Folder mode: "Создать папку" button.
+    // Only makes sense together with `folders === true`. Fail-closed:
+    // requires an explicit `showFolderButton === true`.
+    const showFolderButton  = cards.folders === true
+        && cards.props.showFolderButton === true;
+
     // Extra buttons — fail-closed: only if explicitly an array.
     // Normalized here so toolbar.js does not have to validate.
     const extraToolbarButtons = Array.isArray(cards.props.extraToolbarButtons)
@@ -55,7 +77,7 @@ export function initToolbar(cards) {
           )
         : [];
 
-    console.log('[BaseCards] initToolbar() флаги:', {
+    console.log('[BaseCards] initToolbar() flags:', {
         showAddButton,
         showEditButton,
         showDeleteButton,
@@ -63,6 +85,7 @@ export function initToolbar(cards) {
         showTrashButton,
         showSearch,
         showStatusFilter,
+        showFolderButton,
         extraToolbarButtons: extraToolbarButtons.length,
     });
 
@@ -78,12 +101,37 @@ export function initToolbar(cards) {
         showDeleteButton,
         showRestoreButton,
         showTrashButton,
+        showFolderButton,
 
         // Extra buttons — rendered in the right group, after
         // the standard ones. See toolbar.js → _getTemplate().
         extraToolbarButtons,
 
         onAdd: () => cards.openCreateForm(),
+
+        // "Создать папку" — opens the create form with the folder
+        // type pre-filled. We temporarily wrap `cards.initialData`
+        // to inject `card_type` without mutating the original value.
+        onAddFolder: () => {
+            const original = cards.initialData;
+            cards.initialData = (self) => {
+                const base = typeof original === 'function'
+                    ? (original(self) || {})
+                    : (original && typeof original === 'object' ? original : {});
+                return {
+                    ...base,
+                    [cards.folderField]: cards.folderValue,
+                };
+            };
+            try {
+                cards.openCreateForm();
+            } finally {
+                // Restore the original initialData as soon as the
+                // form has been created — the wrapper is one-shot.
+                cards.initialData = original;
+            }
+        },
+
         onEdit: (id) => cards.openEditForm(id),
         onDelete: () => cards._handleDeleteSelected(),
         onRestore: () => cards._handleRestoreSelected(),

@@ -30,42 +30,6 @@
  *
  * The array is empty by default, so existing consumers that do not
  * pass it see no change.
- *
- * Folder mode
- * -----------
- * Opt-in via `folders: true`. When enabled, the list becomes a
- * hierarchical browser — the same behaviour that used to live in
- * nav.js (and is still there, disabled, until it is rewritten to
- * reuse this).
- *
- *   - `parentId` is the currently-open folder. `null` — root.
- *   - `folderField` — which item field carries the type.
- *     Default: 'card_type'.
- *   - `folderValue` — which value means "folder".
- *     Default: 'folder'.
- *   - `parentHistory` — a stack of previously-open parents, so
- *     `_goUp()` can walk back.
- *   - `onFolderOpen(id)` — optional. If provided, the consumer
- *     takes over folder navigation (BaseCards will not change
- *     its own parentId). If omitted, BaseCards navigates itself.
- *
- * What changes in the UI:
- *   - a ".." pseudo-card is prepended when parentId !== null;
- *   - folders are grouped before non-folders (render.js);
- *   - clicking a folder navigates into it (BaseCards._handleActivate);
- *   - clicking ".." (id === 0) navigates one level up;
- *   - created items get `parent_id: <current parentId>`.
- *
- * Consumer hooks (all optional):
- *   - `renderCard(item)`    — custom content for a regular card;
- *   - `renderUpCard()`      — custom content for the ".." pseudo-card.
- *
- * Non-folder mode (default) is completely unaffected: no "..",
- * no grouping, no parent-history, no behaviour change.
- *
- * User-facing strings (button labels, prompts, error messages)
- * are in Russian. Code comments, docstrings and identifiers are
- * in English.
  */
 export class BaseCards {
     constructor(container, props = {}) {
@@ -111,28 +75,7 @@ export class BaseCards {
         this.section = props.section || null;
         this.parentId = props.parentId || null;
 
-        // ---- Folder mode ----
-        // Opt-in. When true, the list is rendered as a hierarchy.
-        // See the class docstring for details.
-        this.folders = props.folders === true;
-        this.folderField = props.folderField || 'card_type';
-        this.folderValue = props.folderValue || 'folder';
-        // Callback for consumers that want to control navigation
-        // themselves (e.g. keep their own URL / breadcrumbs).
-        // When null, BaseCards navigates on its own.
-        this.onFolderOpen = typeof props.onFolderOpen === 'function'
-            ? props.onFolderOpen
-            : null;
-        // Stack of previously-open parents for _goUp().
-        this.parentHistory = [];
-
-        // Custom content renderers.
-        //   renderCard   — for regular items (pages, folders, …)
-        //   renderUpCard — for the ".." pseudo-card (folder mode only)
-        // Both receive the item (renderUpCard ignores it) and return
-        // an HTML string or an HTMLElement.
         this.renderCard = props.renderCard || null;
-        this.renderUpCard = props.renderUpCard || null;
         this.cardOptions = props.cardOptions || {};
 
         // Initial data for "Create" form.
@@ -331,37 +274,10 @@ export class BaseCards {
     }
 
     _handleActivate(id, e) {
-        // ---- Folder mode: ".." pseudo-card ----
-        // id === 0 is reserved for the "go up" pseudo-card. It is
-        // never a real item, so we intercept it BEFORE the selection
-        // module gets a chance to look up the item.
-        if (this.folders && id === 0) {
-            this._goUp();
-            return;
-        }
-
-        // ---- Folder mode: navigate into a folder ----
-        // If the item is a folder, either hand navigation over to the
-        // consumer (onFolderOpen) or navigate ourselves.
-        if (this.folders) {
-            const item = this.items.find(i => i.id === id);
-            if (item && item[this.folderField] === this.folderValue) {
-                if (this.onFolderOpen) {
-                    this.onFolderOpen(id, item);
-                } else {
-                    this._openFolder(id);
-                }
-                return;
-            }
-        }
-
         return this._selection.handleActivate(this, id, e);
     }
 
     _handleSelect(id, e) {
-        // ".." is not a real item — it cannot be selected.
-        if (this.folders && id === 0) return;
-
         return this._selection.handleSelect(this, id, e);
     }
 
@@ -402,13 +318,6 @@ export class BaseCards {
     }
 
     async _addItem(data) {
-        // ===== [DEBUG] =====
-        console.log('=== [BaseCards] _addItem ===');
-        console.log('[DEBUG] payload =', JSON.stringify(data));
-        console.log('[DEBUG] data.parent_id =', data?.parent_id, '| typeof =', typeof data?.parent_id);
-        console.log('[DEBUG] this.parentId =', this.parentId, '| typeof =', typeof this.parentId);
-        // ===== [/DEBUG] =====
-
         await this._api.addItem(this, data);
         if (this.onReload) await this.onReload();
     }
@@ -416,100 +325,6 @@ export class BaseCards {
     async _updateItem(id, data) {
         await this._api.updateItem(this, id, data);
         if (this.onReload) await this.onReload();
-    }
-
-    // ============================================
-    // FOLDER NAVIGATION
-    // ============================================
-
-    /**
-     * Navigate one level up.
-     *
-     * Pops the previous parent off the stack. If the stack is empty,
-     * goes to the root (parentId = null).
-     *
-     * Only meaningful when `folders === true`. In non-folder mode
-     * this is never called.
-     *
-     * After updating parentId, the list is reloaded via the
-     * consumer's onReload callback — BaseCards does not know how to
-     * fetch its own list.
-     */
-    _goUp() {
-        // ===== [DEBUG] =====
-        console.log('=== [BaseCards] _goUp ===');
-        console.log('[DEBUG] parentId ДО:', this.parentId);
-        console.log('[DEBUG] parentHistory ДО:', [...this.parentHistory]);
-        // ===== [/DEBUG] =====
-
-        if (this.parentHistory.length > 0) {
-            this.parentId = this.parentHistory.pop();
-        } else {
-            this.parentId = null;
-        }
-
-        // ===== [DEBUG] =====
-        console.log('[DEBUG] parentId ПОСЛЕ:', this.parentId);
-        console.log('[DEBUG] parentHistory ПОСЛЕ:', [...this.parentHistory]);
-        // ===== [/DEBUG] =====
-
-        if (this.onReload) {
-            this.onReload();
-        }
-    }
-
-    /**
-     * Navigate into a folder.
-     *
-     * Pushes the current parentId onto the history stack, sets the
-     * new parent, and asks the consumer to reload.
-     *
-     * Only meaningful when `folders === true`. In non-folder mode
-     * this is never called.
-     */
-    _openFolder(id) {
-        // ===== [DEBUG] =====
-        console.log('=== [BaseCards] _openFolder ===');
-        console.log('[DEBUG] входящий id:', id, '| typeof id:', typeof id);
-        console.log('[DEBUG] parentId ДО:', this.parentId);
-        console.log('[DEBUG] parentHistory ДО:', [...this.parentHistory]);
-        // ===== [/DEBUG] =====
-
-        this.parentHistory.push(this.parentId);
-        this.parentId = id;
-
-        // ===== [DEBUG] =====
-        console.log('[DEBUG] parentId ПОСЛЕ:', this.parentId);
-        console.log('[DEBUG] parentHistory ПОСЛЕ:', [...this.parentHistory]);
-        // ===== [/DEBUG] =====
-
-        if (this.onReload) {
-            this.onReload();
-        }
-    }
-
-    /**
-     * Set the current parent explicitly (no history push).
-     *
-     * Useful when the consumer wants to jump somewhere (e.g. from a
-     * breadcrumb click) without affecting the history stack.
-     */
-    setParentId(id) {
-        this.parentId = id;
-        if (this.onReload) {
-            this.onReload();
-        }
-    }
-
-    /**
-     * Reset the navigation history and return to the root.
-     */
-    resetParent() {
-        this.parentHistory = [];
-        this.parentId = null;
-        if (this.onReload) {
-            this.onReload();
-        }
     }
 
     // ============================================
@@ -525,44 +340,27 @@ export class BaseCards {
      *   3. Fallback — basic card defaults.
      *
      * Consumer can use this to prefill fields (e.g. default title "Статья N").
-     *
-     * In folder mode the fallback also carries `parent_id` so a new
-     * item is created inside the currently-open folder. Consumers
-     * that set their own `initialData` may override this — the value
-     * they provide wins (see the merge below).
      */
     openCreateForm() {
-        // ===== [DEBUG] =====
-        console.log('=== [BaseCards] openCreateForm ===');
-        console.log('[DEBUG] this.parentId =', this.parentId, '| typeof =', typeof this.parentId);
-        console.log('[DEBUG] this.folders =', this.folders);
-        // ===== [/DEBUG] =====
+        console.log('[BaseCards] openCreateForm()');
 
         let initialData = {
             parent_id: this.parentId,
+            card_type: 'folder',
         };
 
         try {
             if (typeof this.initialData === 'function') {
                 const extra = this.initialData(this) || {};
                 initialData = { ...initialData, ...extra };
-                console.log('[BaseCards] initialData (function):',
-                    JSON.stringify(initialData));
+                console.log('[BaseCards] initialData (function):', initialData);
             } else if (this.initialData && typeof this.initialData === 'object') {
                 initialData = { ...initialData, ...this.initialData };
-                console.log('[BaseCards] initialData (object):',
-                    JSON.stringify(initialData));
+                console.log('[BaseCards] initialData (object):', initialData);
             }
         } catch (e) {
             console.warn('[BaseCards] initialData provider failed:', e);
         }
-
-        // ===== [DEBUG] =====
-        console.log('[DEBUG] initialData перед передачей в форму =',
-            JSON.stringify(initialData));
-        console.log('[DEBUG] initialData.parent_id =', initialData?.parent_id,
-            '| typeof =', typeof initialData?.parent_id);
-        // ===== [/DEBUG] =====
 
         // Fallback — no BaseCardsEdit available
         if (!this._BaseCardsEdit) {
@@ -578,16 +376,7 @@ export class BaseCards {
             title: 'Создать',
             entityType: this.entityType,
             initialData,
-            onSubmit: async (data) => {
-                // ===== [DEBUG] =====
-                console.log('=== [BaseCards] onSubmit (create) ===');
-                console.log('[DEBUG] data из формы =', JSON.stringify(data));
-                console.log('[DEBUG] data.parent_id =', data?.parent_id,
-                    '| typeof =', typeof data?.parent_id);
-                console.log('[DEBUG] this.parentId в момент submit =', this.parentId);
-                // ===== [/DEBUG] =====
-                await this._addItem(data);
-            }
+            onSubmit: async (data) => { await this._addItem(data); }
         });
 
         edit.open();
@@ -631,11 +420,6 @@ export class BaseCards {
         if (props.onReload !== undefined) this.onReload = props.onReload;
         if (props.onRetry !== undefined) this.onRetry = props.onRetry;
         if (props.onItemClick !== undefined) this.onItemClick = props.onItemClick;
-
-        // Folder mode: parentId may be updated from outside too (e.g.
-        // when the consumer restores the UI from a URL). Update it
-        // without touching history — the consumer is in charge here.
-        if (props.parentId !== undefined) this.parentId = props.parentId;
 
         if (props.widgetTitle !== undefined) {
             this.widgetTitle = props.widgetTitle;

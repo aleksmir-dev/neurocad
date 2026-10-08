@@ -8,7 +8,8 @@ Uses base template + CSS from /static, content from DB.
 
 URL schema:
     GET /page/<date>/<time>   — single page
-    GET /pages                — catalog (list of pages)
+    GET /pages                — catalog (root or cookie folder)
+    GET /pages/<folder_id>    — catalog inside a specific folder
 
 Public URLs are HOST-based: the user is resolved from the request
 Host (subdomain <login>.<APP_DOMAIN> or a registered custom domain),
@@ -52,6 +53,40 @@ Catalog title:
     back to "Каталог статей". Nav.name is edited from the admin
     catalog via PUT /core/engine/lib/pages/nav-name.
 
+Folder mode
+-----------
+The public catalog (/pages) is hierarchical, just like the admin
+one. The current folder is resolved from one of three sources:
+
+  - the URL segment: /pages/<id>  (explicit, source of truth);
+  - the query flag `?root=1` — explicit "show the root and forget
+    the current folder";
+  - the cookie `nc_folder_path`: "12.45" — a dot-separated path
+    of folder ids from the root to the current folder (fallback
+    when the URL has no segment and no `?root=1`).
+
+Precedence:
+  1. `?root=1` — always wins, shows the root, clears the cookie.
+  2. `/pages/<id>` — explicit folder, shows that folder.
+  3. `/pages` alone — the cookie path is consulted.
+
+The `?root=1` flag exists because `/pages` alone is ambiguous: it
+means "the folder I was last in" (per the cookie). Without an
+explicit marker, a visitor who is deep in the tree has no way to
+ask for the root — clicking a "Все" crumb would land on the same
+folder they are already in. `?root=1` says "I really mean the
+root, forget the cookie".
+
+Cookie validation is done in the service (resolve_folder_path):
+a stale / hostile / cross-nav cookie is silently ignored and the
+visitor lands on the root, never on an error page.
+
+Breadcrumbs are built server-side (service.get_folder_chain) and
+passed to the template as `crumbs`. The template renders the last
+crumb as plain text (current folder), the rest as links. The root
+crumb carries `/pages?root=1` so it always resolves to the root,
+regardless of the current cookie state.
+
 Lazy tariff check:
     Before rendering (both single page and catalog), the owner's
     tariff is checked via BalanceChecked.page_renderable(user_id).
@@ -81,10 +116,10 @@ Namespace: CoreEngineLibPagesPublic*
 
 import re
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Request, HTTPException, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from bs4 import BeautifulSoup
 from sqlalchemy import select
 
@@ -92,6 +127,7 @@ from neurocad.utils.templates import templates
 from neurocad.utils.css import ensure_css_file
 from neurocad.utils.sqlite import get_db_sqlite
 from neurocad.core.models.nav import Nav
+from neurocad.core.models.base import Page
 from neurocad.core.engine.lib.balance.checked import BalanceChecked
 
 # Host → user resolution. Shared with utils/routes.py so that
@@ -104,7 +140,11 @@ from .service import (
     PAGES_CSS_DIR,
     PAGES_CSS_URL,
 )
-from .schema import CoreEngineLibPagesPublicItem
+from .schema import (
+    CoreEngineLibPagesPublicItem,
+    CoreEngineLibPagesPublicCrumb,
+    CARD_TYPE_FOLDER,
+)
 
 
 # Mounted by parent router (utils/routes.py) without extra prefix,
@@ -112,10 +152,89 @@ from .schema import CoreEngineLibPagesPublicItem
 router = APIRouter(prefix="/page", tags=["core/engine/lib/pages/public"])
 
 
-# Mounted without a prefix — the final URL is /pages. Kept as a
-# separate router because `router` above is /page-only and FastAPI
-# does not allow a router to have two different prefixes.
+# Mounted without a prefix — the final URLs are /pages and
+# /pages/<folder_id>. Kept as a separate router because `router`
+# above is /page-only and FastAPI does not allow a router to have
+# two different prefixes.
 router_pages = APIRouter(tags=["core/engine/lib/pages/public"])
+
+
+# ============================================
+# COOKIE — CURRENT FOLDER PATH
+# ============================================
+
+#: Cookie that carries the current folder path.
+#:
+#: Value: dot-separated folder ids, root → current, e.g. "12.45".
+#: Empty / missing → the root of the catalog.
+#:
+#: Not HttpOnly on purpose: the public JS reads it to mirror the
+#: value into localStorage (see pages-public.js). It carries no
+#: secret — just a folder path — so exposing it to JS is safe.
+_FOLDER_COOKIE = "nc_folder_path"
+
+#: One year. A folder path is stable UX state, not a session token.
+_FOLDER_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+
+#: Default page size for the public catalog. Kept as a module
+#: constant so a future paginated version has one place to change.
+PUBLIC_CATALOG_LIMIT = 100
+
+#: Fallback title when Nav.name is empty or the nav is missing.
+PUBLIC_CATALOG_DEFAULT_TITLE = "Каталог статей"
+
+
+def _parse_folder_cookie(raw: Optional[str]) -> List[int]:
+    """
+    Parse the cookie value into a list of folder ids.
+
+    "12.45"  → [12, 45]
+    "" / None → []
+    "12.abc" → []  (any bad segment invalidates the whole path —
+                     we do not try to salvage a prefix here; the
+                     service's resolve_folder_path does the
+                     authoritative validation anyway)
+    """
+    if not raw:
+        return []
+    result: List[int] = []
+    for part in raw.split("."):
+        part = part.strip()
+        if not part:
+            return []
+        try:
+            result.append(int(part))
+        except ValueError:
+            return []
+    return result
+
+
+def _serialize_folder_cookie(path_ids: List[int]) -> str:
+    """[12, 45] → '12.45'. [] → '' (cookie is cleared)."""
+    return ".".join(str(i) for i in path_ids)
+
+
+def _set_folder_cookie(response: HTMLResponse, path_ids: List[int]) -> None:
+    """
+    Write the current folder path into the response cookie.
+
+    Called on every /pages render — so the next bare /pages visit
+    opens the same folder. If `path_ids` is empty the cookie is
+    cleared (Max-Age=0) rather than left with a stale value.
+    """
+    value = _serialize_folder_cookie(path_ids)
+    if value:
+        response.set_cookie(
+            key=_FOLDER_COOKIE,
+            value=value,
+            max_age=_FOLDER_COOKIE_MAX_AGE,
+            path="/",
+            samesite="lax",
+        )
+    else:
+        # Empty path = root. Clear the cookie so a stale value
+        # does not resurrect an old folder on the next visit.
+        response.delete_cookie(key=_FOLDER_COOKIE, path="/")
 
 
 # ============================================
@@ -270,11 +389,11 @@ async def render_page_public(
 
 
 # ============================================
-# CATALOG (LIST OF PAGES)
+# CATALOG — /pages (root, cookie folder, or ?root=1)
 # ============================================
 
 @router_pages.get("/pages", response_class=HTMLResponse)
-async def render_pages_catalog(
+async def render_pages_catalog_root(
     request: Request,
     nav_id: Optional[int] = Query(
         None,
@@ -284,29 +403,43 @@ async def render_pages_catalog(
             "the nav from the request Host."
         ),
     ),
+    root: Optional[int] = Query(
+        None,
+        description=(
+            "Explicitly render the catalog root and clear the current "
+            "folder cookie. Used by the 'Все' breadcrumb so a visitor "
+            "deep in the folder tree has a reliable way back to the "
+            "top, regardless of the nc_folder_path cookie."
+        ),
+    ),
 ) -> HTMLResponse:
     """
-    Render the public catalog of a nav's pages.
+    Render the public catalog — root, the folder stored in the
+    `nc_folder_path` cookie, or an explicit root via `?root=1`.
 
     URL:
-        GET /pages
-        GET /pages?nav_id=5   (legacy — see below)
+        GET /pages                — root or cookie folder
+        GET /pages?root=1         — forced root (clears the cookie)
+        GET /pages?nav_id=5       — legacy (see below)
 
-    The catalog lists every active, non-deleted page of the nav,
-    newest first. No pagination yet — up to PUBLIC_CATALOG_LIMIT
-    items in one response. Same lazy tariff check as a single page:
-    if the owner's tariff blocks rendering, the guest sees the
-    "Страница недоступна" placeholder.
-
-    The page title (both <title> and the H1 in the template) comes
-    from Nav.name. If Nav.name is empty, falls back to
-    "Каталог статей".
+    Folder resolution:
+      - `?root=1` — highest precedence: show the root, ignore the
+        cookie, and clear it on the way out. This is what the
+        "Все" breadcrumb points at, so clicking it always lands on
+        the top of the catalog even when the cookie still names a
+        folder deep in the tree.
+      - No `?root=1`, no URL segment → the cookie is consulted.
+        A bad cookie (stale id, deleted folder, cross-nav id,
+        broken nesting) is silently ignored — the visitor sees the
+        root, never an error page.
+      - After resolution, the cookie is rewritten to match (so a
+        stale cookie is replaced, not just ignored).
 
     Nav resolution order:
       1. Explicit ?nav_id= — kept for backward compatibility with
-         links that were generated before the public URL scheme
-         moved to host-based resolution. The host check below will
-         reject a foreign nav_id.
+         links generated before the public URL scheme moved to
+         host-based resolution. The host check below will reject
+         a foreign nav_id.
       2. Otherwise — resolve from the request Host:
          - <login>.<APP_DOMAIN>  → that user's first nav;
          - <custom-domain>       → that user's first nav;
@@ -315,108 +448,277 @@ async def render_pages_catalog(
                                    host check rejects it.
 
     Host ownership: after the nav is resolved, the same
-    _enforce_host_owner check applies. Without it, the catalog of
-    any nav could be listed on any subdomain.
+    _enforce_host_owner check applies.
     """
-    # ---- 1. Explicit ?nav_id= wins (legacy) ----
-    if nav_id is None:
-        # ---- 2. Resolve by Host ----
-        host = request.headers.get("host")
-
-        if is_dev_host(host):
-            # Dev — no host scope. First nav in the DB is fine.
-            nav_id = await _resolve_first_nav_id()
-        else:
-            host_user_id = await user_id_from_host(host)
-            if host_user_id is None:
-                raise HTTPException(status_code=404, detail="No nav found")
-            nav_id = await _resolve_first_nav_id_for_user(host_user_id)
-
+    # ---- 1. Resolve nav_id (explicit or via Host) ----
+    nav_id = await _resolve_nav_id_for_catalog(request, nav_id)
     if nav_id is None:
         raise HTTPException(status_code=404, detail="No nav found")
 
-    # ---- 3. Host ownership check ----
-    # Done AFTER nav resolution: an explicit ?nav_id= is validated
-    # against the host; a host-derived nav_id is validated too, so
-    # an unknown host that fell back to "first nav in the DB" is
-    # still rejected (the owner of that nav is not the host).
+    # ---- 2. Host ownership check ----
     await _enforce_host_owner(request, nav_id)
 
-    return await _render_pages_catalog(request, nav_id)
+    # ---- 3. Resolve folder path ----
+    if root:
+        # Explicit "show the root". Ignore the cookie so a stale
+        # path does not pull the visitor back into a folder, and
+        # let _render_pages_catalog clear the cookie below.
+        path_ids: List[int] = []
+    else:
+        cookie_path = _parse_folder_cookie(
+            request.cookies.get(_FOLDER_COOKIE)
+        )
+        path_ids = await CoreEngineLibPagesPublicService.resolve_folder_path(
+            nav_id, cookie_path
+        )
+
+    return await _render_pages_catalog(request, nav_id, path_ids)
+
+
+# ============================================
+# CATALOG — /pages/<folder_id>
+# ============================================
+
+@router_pages.get("/pages/{folder_id}", response_class=HTMLResponse)
+async def render_pages_catalog_folder(
+    folder_id: int,
+    request: Request,
+) -> HTMLResponse:
+    """
+    Render the public catalog inside a specific folder.
+
+    URL:
+        GET /pages/<folder_id>
+        GET /pages/12
+
+    This is the explicit, SEO-friendly form: each folder has its
+    own URL, and the folder id is what the template uses for its
+    breadcrumb links. The URL is the source of truth when present —
+    the cookie is ignored here, and rewritten afterwards to match
+    the URL (so a bare /pages visit right after this one opens the
+    same folder).
+
+    If `folder_id` is not a valid folder of the current nav (wrong
+    id, deleted folder, folder from another nav, or the id of a
+    regular page) → 404. Unlike the cookie path, a bad URL segment
+    is not silently swallowed: it means a broken / stale link, and
+    the correct signal is "not found", not "redirect to root".
+    """
+    # ---- 1. Resolve nav_id from Host ----
+    nav_id = await _resolve_nav_id_for_catalog(request, None)
+    if nav_id is None:
+        raise HTTPException(status_code=404, detail="No nav found")
+
+    # ---- 2. Host ownership check ----
+    await _enforce_host_owner(request, nav_id)
+
+    # ---- 3. Validate the folder id ----
+    folder = await CoreEngineLibPagesPublicService.get_folder_by_id(
+        folder_id, nav_id
+    )
+    if folder is None:
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    # ---- 4. Build the folder path from the root ----
+    # The URL only carries the leaf folder id, not the full chain.
+    # resolve_folder_path with a single id returns [id] if id is a
+    # valid root-level folder, or [] otherwise. But our folders may
+    # be nested, so we need the full chain — walk parent_id up.
+    path_ids = await _build_folder_path(nav_id, folder.id)
+
+    return await _render_pages_catalog(request, nav_id, path_ids)
 
 
 # ============================================
 # CATALOG RENDER HELPER
 # ============================================
 
-#: Maximum number of items in the catalog. Kept as a module-level
-#: constant so a future paginated version has one place to change.
-PUBLIC_CATALOG_LIMIT = 100
-
-#: Fallback title when Nav.name is empty or the nav is missing.
-#: Kept as a constant so tests and (potentially) an admin UI can
-#: reference the same string.
-PUBLIC_CATALOG_DEFAULT_TITLE = "Каталог статей"
-
-
 async def _render_pages_catalog(
     request: Request,
     nav_id: int,
+    path_ids: List[int],
 ) -> HTMLResponse:
     """
-    Build and render the /pages catalog.
+    Build and render the /pages catalog for a given folder path.
 
     Steps:
       1. Same lazy tariff check as a single page: if the owner's
          tariff blocks rendering, return the placeholder.
-      2. Load up to PUBLIC_CATALOG_LIMIT active, non-deleted pages
+      2. Load the children of the current folder (folders + pages)
          via CoreEngineLibPagesPublicService.get_list().
-      3. Render public/pages.html with the list and the catalog
-         title taken from Nav.name.
+      3. Build breadcrumbs via get_folder_chain().
+      4. Render public/pages.html with the list, the crumbs and
+         the catalog title taken from Nav.name.
+      5. Rewrite the cookie to match `path_ids` — so the next bare
+         /pages visit opens the same folder. When `path_ids` is
+         empty (root, including the explicit `?root=1` case), the
+         cookie is cleared.
 
-    Each item already carries a ready `url`
-    (/page/<YYYYMMDD>/<HHMMSS>) — see _page_to_list_item in the
-    service. The template just prints it.
+    Each item already carries a ready `url`:
+      - folder → /pages/<id>;
+      - page   → /page/<YYYYMMDD>/<HHMMSS> or an external URL.
+    The template just prints it.
     """
     # ==== LAZY TARIFF CHECK ====
-    # Same rule as a single page: the catalog is only shown if the
-    # owner's tariff allows rendering pages at all. Otherwise the
-    # guest sees the placeholder instead of a list of titles.
     user_id = await _resolve_nav_owner(nav_id)
     if user_id is not None:
         allowed = await BalanceChecked.page_renderable(
             user_id, log=getattr(request.app.state, "log", None)
         )
         if not allowed:
-            return _render_unavailable(request)
+            response = _render_unavailable(request)
+            _set_folder_cookie(response, [])
+            return response
+
+    # ==== ITEMS ====
+    # Current folder = last id in path_ids (None = root).
+    current_folder_id: Optional[int] = path_ids[-1] if path_ids else None
 
     items = await CoreEngineLibPagesPublicService.get_list(
         nav_id,
+        parent_id=current_folder_id,
         limit=PUBLIC_CATALOG_LIMIT,
     )
 
+    # ==== BREADCRUMBS ====
+    crumbs: List[CoreEngineLibPagesPublicCrumb] = (
+        await CoreEngineLibPagesPublicService.get_folder_chain(
+            nav_id, path_ids
+        )
+    )
+
+    # ==== TITLE ====
     # Заголовок каталога — Nav.name. Редактируется из админки
     # через PUT /core/engine/lib/pages/nav-name. Если name пуст
-    # или nav отсутствует — общий фолбэк, чтобы каталог никогда
-    # не открывался без заголовка.
+    # или nav отсутствует — общий фолбэк.
     nav_name = await _resolve_nav_name(nav_id)
     title = (nav_name or "").strip() or PUBLIC_CATALOG_DEFAULT_TITLE
 
-    return templates.TemplateResponse(
+    # Если мы в папке — добавляем её имя в <title> для SEO/UX.
+    if current_folder_id is not None and len(crumbs) > 1:
+        folder_title = crumbs[-1].title
+        if folder_title:
+            title = f"{folder_title} — {title}"
+
+    response = templates.TemplateResponse(
         request=request,
         name="core/engine/lib/pages/public/pages.html",
         context={
             "title": title,
             "description": "",
             "items": items,
+            "crumbs": crumbs,
+            "current_folder_id": current_folder_id,
             "nav_id": nav_id,
             "total": len(items),
         },
     )
+    _set_folder_cookie(response, path_ids)
+    return response
 
 
 # ============================================
-# RENDER HELPER (SINGLE PAGE)
+# NAV RESOLUTION HELPERS
+# ============================================
+
+async def _resolve_nav_id_for_catalog(
+    request: Request,
+    explicit_nav_id: Optional[int],
+) -> Optional[int]:
+    """
+    Resolve the nav id for /pages.
+
+    Order:
+      1. Explicit ?nav_id= — legacy, validated later by the host
+         check.
+      2. Otherwise — from the Host:
+         - dev host        → first nav in the DB;
+         - user host       → that user's first nav;
+         - unknown host    → first nav in the DB (the host check
+                             will reject it right after).
+    """
+    if explicit_nav_id is not None:
+        return explicit_nav_id
+
+    host = request.headers.get("host")
+
+    if is_dev_host(host):
+        return await _resolve_first_nav_id()
+
+    host_user_id = await user_id_from_host(host)
+    if host_user_id is not None:
+        return await _resolve_first_nav_id_for_user(host_user_id)
+
+    # Unknown host — fall back to the first nav in the DB. The
+    # caller's _enforce_host_owner will reject it (the host does
+    # not resolve to that nav's owner). Returning None here would
+    # turn an unknown host into a 404 with a different message;
+    # "No nav found" and "Page not found" are both 404, but the
+    # latter is what a probe should see.
+    return await _resolve_first_nav_id()
+
+
+async def _build_folder_path(
+    nav_id: int,
+    leaf_folder_id: int,
+) -> List[int]:
+    """
+    Walk the parent_id chain from a leaf folder up to the root,
+    then reverse it → [root, ..., leaf].
+
+    Used by /pages/<folder_id>: the URL only has the leaf id, but
+    breadcrumbs and the cookie need the full chain.
+
+    Stops at a missing parent, a cycle, or a folder whose nav_id
+    does not match `nav_id` (defensive — should not happen if the
+    leaf was validated by get_folder_by_id).
+
+    If the chain is broken above the leaf, returns the longest
+    valid suffix ending at the leaf (i.e. what could be walked).
+    In the worst case (leaf's parent is missing) returns [leaf].
+    """
+    chain: List[int] = []
+    current: Optional[int] = leaf_folder_id
+    seen: set = set()
+
+    while current is not None and current not in seen:
+        seen.add(current)
+        row = await _load_folder_row(nav_id, current)
+        if row is None:
+            break
+        chain.append(current)
+        current = row[1]  # parent_id
+
+    chain.reverse()
+    return chain
+
+
+async def _load_folder_row(
+    nav_id: int,
+    folder_id: int,
+):
+    """
+    Load (id, parent_id) for a folder, or None.
+
+    Only returns rows that are folders of the given nav and are
+    not deleted / not disabled. Kept small and separate so
+    _build_folder_path stays readable.
+    """
+    async for session in get_db_sqlite():
+        stmt = select(Page.id, Page.parent_id).where(
+            Page.id == folder_id,
+            Page.nav_id == nav_id,
+            Page.is_delete == 0,
+            Page.is_active == 1,
+            Page.card_type == CARD_TYPE_FOLDER,
+        )
+        result = await session.execute(stmt)
+        return result.one_or_none()
+    return None
+
+
+# ============================================
+# RENDER HELPER (SINGLE PAGE) — unchanged
 # ============================================
 
 async def _render_public_page(
@@ -439,8 +741,6 @@ async def _render_public_page(
     template as page_css_url.
     """
     # ==== LAZY TARIFF CHECK ====
-    # Find the owner of this nav (user_id) — needed to check the
-    # owner's tariff and pages count.
     user_id = await _resolve_nav_owner(page.nav_id)
     if user_id is not None:
         allowed = await BalanceChecked.page_renderable(
@@ -465,7 +765,6 @@ async def _render_public_page(
     final_content = await _resolve_content(page)
 
     # Page CSS — write derivative file (if needed) and get URL with ?v=<hash>.
-    # Returns None if page.css is empty (legacy pages without CSS at all).
     page_css_url = ensure_css_file(
         page.id,
         page.css,
@@ -489,16 +788,12 @@ async def _render_public_page(
 
 
 # ============================================
-# UNAVAILABLE PLACEHOLDER
+# UNAVAILABLE PLACEHOLDER — unchanged
 # ============================================
 
 def _render_unavailable(request: Request) -> HTMLResponse:
     """
     Render the "Страница недоступна" placeholder (HTTP 200).
-
-    Shown when the page owner is on the free tariff and has more
-    pages than limit_pages (e.g. dropped from pro back to free).
-    Used by both the single-page route and the /pages catalog.
     """
     html = """<!DOCTYPE html>
 <html lang="ru">
@@ -564,7 +859,7 @@ def _render_unavailable(request: Request) -> HTMLResponse:
 
 
 # ============================================
-# TEMPLATE APPLICATION
+# TEMPLATE APPLICATION — unchanged
 # ============================================
 
 async def _resolve_content(page: CoreEngineLibPagesPublicItem) -> str:
@@ -579,24 +874,19 @@ async def _resolve_content(page: CoreEngineLibPagesPublicItem) -> str:
     Otherwise — return page.content as-is.
 
     In all cases, a stray <body>...</body> wrapper (produced by
-    GrapesJS export in some paths) is stripped before returning —
-    see _strip_body_wrapper for the rationale.
+    GrapesJS export in some paths) is stripped before returning.
     """
     page_content = page.content or "<p>Пустая страница</p>"
 
-    # No template — return page content as-is (after body cleanup)
     if not page.template_id:
         return _strip_body_wrapper(page_content)
 
-    # Load template page — same nav as the page itself, so a template
-    # cannot cross nav boundaries.
     template = await CoreEngineLibPagesPublicService.get_by_id(
         page.template_id, nav_id=page.nav_id
     )
     if not template or not template.content:
         return _strip_body_wrapper(page_content)
 
-    # Apply template — replace [data-slot="content"] with page content
     combined = _apply_template(template.content, page_content)
     return _strip_body_wrapper(combined)
 
@@ -604,18 +894,13 @@ async def _resolve_content(page: CoreEngineLibPagesPublicItem) -> str:
 def _apply_template(template_html: str, content_html: str) -> str:
     """
     Insert content_html into the [data-slot="content"] of template_html.
-
-    Uses BeautifulSoup — clean, no regex, no fragile string search.
-    Preserves the slot element itself (only its inner HTML is replaced).
     """
     soup = BeautifulSoup(template_html, "html.parser")
     slot = soup.find(attrs={"data-slot": "content"})
 
     if not slot:
-        # No slot — return template as-is (page content skipped)
         return template_html
 
-    # Replace inner HTML of the slot, keep the slot element itself.
     slot.clear()
     slot.append(BeautifulSoup(content_html, "html.parser"))
 
@@ -623,21 +908,12 @@ def _apply_template(template_html: str, content_html: str) -> str:
 
 
 # ============================================
-# NAV OWNER / NAV RESOLUTION
+# NAV OWNER / NAV RESOLUTION — unchanged
 # ============================================
 
 async def _resolve_nav_owner(nav_id: int) -> Optional[int]:
     """
     Return the user_id of the nav's owner, or None.
-
-    Used by:
-      - _enforce_host_owner() — to check nav ownership against Host;
-      - _render_pages_catalog() / _render_public_page() — for the
-        lazy tariff check.
-
-    Does not raise on missing nav — the caller treats None as
-    "cannot check, let the request through" for the tariff path,
-    but as "not owned" for the host-check path.
     """
     async for session in get_db_sqlite():
         stmt = select(Nav.user_id).where(
@@ -652,13 +928,6 @@ async def _resolve_nav_owner(nav_id: int) -> Optional[int]:
 async def _resolve_nav_name(nav_id: int) -> Optional[str]:
     """
     Return Nav.name for the given nav, or None.
-
-    Used as the title of the /pages catalog (both <title> and the
-    H1 in the template). Never raises on missing nav — the caller
-    falls back to PUBLIC_CATALOG_DEFAULT_TITLE.
-
-    Same nav-resolution guards as _resolve_nav_owner: only
-    non-deleted navs are considered.
     """
     async for session in get_db_sqlite():
         stmt = select(Nav.name).where(
@@ -674,12 +943,6 @@ async def _resolve_first_nav_id_for_user(user_id: int) -> Optional[int]:
     """
     Return the first non-deleted nav id of the given user
     (ORDER BY id ASC), or None.
-
-    Used by /pages when the request Host belongs to a user — the
-    catalog then shows THAT user's articles, not the oldest nav
-    in the DB. The DB-wide fallback (_resolve_first_nav_id) stays
-    for hosts that do not belong to any user (dev host, unknown
-    host) where "the first nav" is the most reasonable default.
     """
     async for session in get_db_sqlite():
         stmt = (
@@ -696,10 +959,6 @@ async def _resolve_first_nav_id_for_user(user_id: int) -> Optional[int]:
 async def _resolve_first_nav_id() -> Optional[int]:
     """
     Return the first non-deleted nav id (ORDER BY id ASC), or None.
-
-    Used only as a fallback for hosts that do not resolve to a
-    user (dev host, unknown host). For user hosts the catalog
-    uses _resolve_first_nav_id_for_user() instead.
     """
     async for session in get_db_sqlite():
         stmt = (

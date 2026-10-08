@@ -197,6 +197,281 @@
 }
 
 /* ============================================
+   FOLDER MODE — folder cards
+   ============================================ */
+/*
+ * A folder is rendered by pages.js → _renderArticleCard when
+ * item.card_type === 'folder'. It looks different from a page:
+ *
+ *   - a big folder icon on the left;
+ *   - the folder name and (optional) description on the right;
+ *   - a small counter chip in the top-right corner, showing how
+ *     many items the folder contains (only if the backend sends
+ *     `children_count`).
+ *
+ * No logo, no date, no badges — folders are not pages.
+ *
+ * The visual language stays close to `.pages-card` (same radius,
+ * same shadow family, same soft background) so folders and pages
+ * do not look like two different apps.
+ *
+ * Content is aligned to the TOP of the card (align-items: flex-start),
+ * matching the page card's top-down flow.
+ */
+
+.pages-folder {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+
+    padding: 20px;
+    box-sizing: border-box;
+
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 4px 16px rgba(15, 23, 42, 0.04),
+        0 1px 3px rgba(15, 23, 42, 0.06);
+
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+
+    overflow: hidden;
+    cursor: pointer;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.core-engine-lib-base-cards-card.pages-card-wrapper:hover .pages-folder {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 12px 32px rgba(59, 130, 246, 0.12),
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* Folder icon — big emoji, not a picture. */
+.pages-folder-icon {
+    flex-shrink: 0;
+    font-size: 40px;
+    line-height: 1;
+    user-select: none;
+}
+
+/* Folder body — name + description. */
+.pages-folder-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pages-folder-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pages-folder-desc {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #64748b;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Counter chip — top-right corner. */
+.pages-folder-count {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    box-sizing: border-box;
+
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.08);
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* ============================================
+   UP CARD — "вернуться на уровень выше"
+   ============================================ */
+/*
+ * The ".." pseudo-card. Rendered by pages.js → _renderUpCard
+ * when BaseCards renders an item with is_up === true. Same visual
+ * shell as .pages-folder and .pages-card, so the navigation node
+ * does not look like a foreign element in the grid.
+ *
+ * The icon is the typographic arrow U+2934 (⤴), mirrored
+ * horizontally via transform: scaleX(-1) so it points to the
+ * upper-left — the conventional "back" direction in Russian UI.
+ * It is not an emoji: it inherits color and weight, so it stays
+ * thin and neutral, with no colored plate behind it.
+ */
+
+.pages-up {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    padding: 20px;
+    box-sizing: border-box;
+
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 4px 16px rgba(15, 23, 42, 0.04),
+        0 1px 3px rgba(15, 23, 42, 0.06);
+
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+
+    overflow: hidden;
+    cursor: pointer;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.core-engine-lib-base-cards-card.pages-card-wrapper:hover .pages-up {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 12px 32px rgba(59, 130, 246, 0.12),
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.pages-up-icon {
+    flex-shrink: 0;
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1;
+    color: #94a3b8;
+    user-select: none;
+    transform: scaleX(-1);                /* ⤴ → смотрит влево-вверх */
+    transition: color 0.3s ease;
+}
+
+.core-engine-lib-base-cards-card.pages-card-wrapper:hover .pages-up-icon {
+    color: #3b82f6;
+}
+
+.pages-up-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pages-up-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.pages-up-desc {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #64748b;
+}
+
+/* ============================================
+   HIDDEN FORM FIELDS
+   ============================================ */
+/*
+ * Fields that must not be shown in the create/edit form.
+ * The set of hidden fields depends on WHAT is being created
+ * (a page or a folder), which is why there are two groups:
+ *
+ * 1. Always hidden — technical fields, irrelevant to the user
+ *    regardless of the entity type:
+ *
+ *      - card_type    — chosen by the toolbar button, not by
+ *                       the user ("+" → page, "Создать папку"
+ *                       → folder);
+ *      - parent_id    — current folder id, injected via
+ *                       initialData (BaseCards.openCreateForm).
+ *
+ * 2. Hidden in the FOLDER form only — page-only properties that
+ *    have no meaning on a folder:
+ *
+ *      - url          — external link (folders cannot be links);
+ *      - is_template  — base-template flag (folders are not
+ *                       templates);
+ *      - template_id  — "Наследовать от" (folders do not
+ *                       inherit layout from a template).
+ *
+ * On a PAGE form these three are visible — they are normal page
+ * properties. The `edit-body--page` / `edit-body--folder` marker
+ * is set by edit.js → _renderForm, based on `values.card_type`.
+ *
+ * Why `.edit-group:has(...)`, not `field.className`
+ * -------------------------------------------------
+ * BaseCardsEdit always renders the wrapper as `.edit-group` and
+ * never reads `field.className`, so a className-based hook would
+ * be dead on arrival. What IS stable is the `data-field` attribute
+ * that edit.js puts on every input. We match the wrapper via
+ * `.edit-group:has([data-field="..."])`.
+ *
+ * Specificity of `.edit-group:has([data-field="x"])` is (0,2,0) —
+ * the same as edit.css's `.core-engine-lib-base-cards-edit
+ * .edit-group`. Since pages.css is loaded AFTER edit.css, the
+ * cascade resolves in our favour. No !important needed.
+ */
+
+/* Always hidden — technical fields, both forms */
+.edit-group:has([data-field="card_type"]),
+.edit-group:has([data-field="parent_id"]) {
+    display: none;
+}
+
+/* Folder form only — page-only properties */
+.edit-body--folder .edit-group:has([data-field="url"]),
+.edit-body--folder .edit-group:has([data-field="is_template"]),
+.edit-body--folder .edit-group:has([data-field="template_id"]) {
+    display: none;
+}
+
+/* ============================================
    АДАПТИВ
    ============================================ */
 
@@ -223,6 +498,42 @@
 
     .pages-card-date {
         font-size: 15px;
+    }
+
+    /* Folder mode */
+    .pages-folder {
+        padding: 18px;
+        gap: 14px;
+    }
+
+    .pages-folder-icon {
+        font-size: 36px;
+    }
+
+    .pages-folder-title {
+        font-size: 17px;
+    }
+
+    .pages-folder-desc {
+        font-size: 13px;
+    }
+
+    /* Up card */
+    .pages-up {
+        padding: 18px;
+        gap: 14px;
+    }
+
+    .pages-up-icon {
+        font-size: 20px;
+    }
+
+    .pages-up-title {
+        font-size: 17px;
+    }
+
+    .pages-up-desc {
+        font-size: 13px;
     }
 }
 
@@ -252,6 +563,54 @@
     .pages-card-date {
         font-size: 16px;
     }
+
+    /* Folder mode */
+    .pages-folder {
+        padding: 16px;
+        gap: 12px;
+        border-radius: 14px;
+    }
+
+    .pages-folder-icon {
+        font-size: 32px;
+    }
+
+    .pages-folder-title {
+        font-size: 16px;
+    }
+
+    .pages-folder-desc {
+        font-size: 13px;
+        -webkit-line-clamp: 2;
+    }
+
+    .pages-folder-count {
+        top: 10px;
+        right: 10px;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        font-size: 11px;
+    }
+
+    /* Up card */
+    .pages-up {
+        padding: 16px;
+        gap: 12px;
+        border-radius: 14px;
+    }
+
+    .pages-up-icon {
+        font-size: 18px;
+    }
+
+    .pages-up-title {
+        font-size: 16px;
+    }
+
+    .pages-up-desc {
+        font-size: 13px;
+    }
 }
 
 /* ============================================
@@ -261,7 +620,9 @@
 @media (prefers-reduced-motion: reduce) {
     .pages-card,
     .pages-card-logo img,
-    .pages-card-glow {
+    .pages-card-glow,
+    .pages-folder,
+    .pages-up {
         transition: none;
     }
 }

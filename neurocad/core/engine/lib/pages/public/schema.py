@@ -10,12 +10,42 @@ Scoping:
   Pages are scoped to a nav instance (nav_id), not to a module.
   A nav is the object that owns pages; the module is just its class.
 
+Folder mode
+-----------
+The public catalog (/pages) is hierarchical, just like the admin
+one. A row is either a regular page ("page") or a folder
+("folder"):
+
+  - a folder is rendered as a link to /pages/<id>;
+  - a page is rendered as a link to its public URL (either
+    /page/<YYYYMMDD>/<HHMMSS> for an internal page, or an external
+    URL for a link card).
+
+The template does not need to distinguish "internal" from
+"external" — every item carries a ready-to-use `url`; the template
+just renders <a href="{url}">.
+
+Breadcrumbs are built on the server (see route.py) and passed to
+the template as a separate list, not as part of the item payload.
+
 Namespace: CoreEngineLibPagesPublic*
 """
 
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime as dt
 from pydantic import BaseModel, Field
+
+
+# ============================================
+# CONSTANTS
+# ============================================
+
+#: Allowed values for `card_type`. Mirrors the admin schema —
+#: values must stay in sync with app/core/engine/lib/pages/schema.py.
+CARD_TYPE_PAGE = "page"
+CARD_TYPE_FOLDER = "folder"
+
+CardType = Literal["page", "folder"]
 
 
 # ============================================
@@ -30,12 +60,29 @@ class CoreEngineLibPagesPublicItemBase(BaseModel):
 
     datetime: Optional[dt] = Field(
         None,
-        description="Page datetime",
+        description=(
+            "Page datetime. NULL for folders — they have no "
+            "publication date."
+        ),
     )
     title: str = Field(..., description="Page title")
     description: Optional[str] = Field(
         None,
         description="Short description (meta description)",
+    )
+
+    # ===== Folder mode =====
+    # "page"   — a regular article;
+    # "folder" — a grouping node (no content, no datetime).
+    card_type: CardType = Field(
+        CARD_TYPE_PAGE,
+        description="Item type: 'page' or 'folder'",
+    )
+
+    # Parent folder id, or None for a root-level item.
+    parent_id: Optional[int] = Field(
+        None,
+        description="Parent folder id, or None for root",
     )
 
 
@@ -80,14 +127,24 @@ class CoreEngineLibPagesPublicItem(CoreEngineLibPagesPublicItemBase):
 
 class CoreEngineLibPagesPublicItemListItem(CoreEngineLibPagesPublicItemBase):
     """
-    Public page for list view — without the heavy content field.
+    Public item for list view — without the heavy content field.
+
+    Covers both pages and folders. The template distinguishes them
+    by `card_type`:
+
+      - card_type == "folder" → render as a folder card, link to
+        `/pages/<id>` (the `url` field already holds that path);
+      - card_type == "page"   → render as a page card, link to
+        whatever `url` holds.
 
     Carries a ready-to-use `url` so the /pages catalog template
     does not have to assemble anything. The service is the single
     source of truth for what that URL means
     (see CoreEngineLibPagesPublicService._resolve_card_url).
 
-    `url` can be either:
+    `url` for a folder is always an internal path: /pages/<id>.
+
+    `url` for a page can be either:
 
       - an internal path: /page/<YYYYMMDD>/<HHMMSS> — the regular
         case, when the page has no external `url` set;
@@ -102,19 +159,62 @@ class CoreEngineLibPagesPublicItemListItem(CoreEngineLibPagesPublicItemBase):
 
     logo: Optional[str] = Field(
         None,
-        description="Logo / thumbnail URL",
+        description="Logo / thumbnail URL (pages only)",
     )
     url: str = Field(
         ...,
         description=(
-            "Target of the catalog card. Internal path "
-            "(/page/<YYYYMMDD>/<HHMMSS>) for regular pages, or an "
-            "external URL for link cards (pages.url)."
+            "Target of the catalog card. For a folder — /pages/<id>. "
+            "For a page — /page/<YYYYMMDD>/<HHMMSS> for regular "
+            "pages, or an external URL for link cards (pages.url)."
         ),
+    )
+
+    # How many live children this folder has. Only meaningful when
+    # card_type == "folder"; the service fills it in for folders
+    # and leaves it None for pages. The template uses it for the
+    # small counter chip on a folder card.
+    children_count: Optional[int] = Field(
+        None,
+        description="Number of live children (folders only)",
     )
 
     class Config:
         from_attributes = True
+
+
+# ============================================
+# BREADCRUMBS
+# ============================================
+
+class CoreEngineLibPagesPublicCrumb(BaseModel):
+    """
+    One breadcrumb entry — used to render the trail above the
+    catalog:
+
+        Все  /  Оборудование  /  Ноутбуки
+
+    The first entry is always the root ("Все", href="/pages").
+    Each following entry corresponds to one level of the current
+    folder path. The last entry is the current folder — the
+    template renders it as plain text, not a link.
+
+    Built on the server (see route.py) from the cookie path and
+    the folder chain in the DB. Not part of the item payload.
+    """
+
+    id: Optional[int] = Field(
+        None,
+        description="Folder id, or None for the root entry",
+    )
+    title: str = Field(
+        ...,
+        description="Display title (folder name, or 'Все' for the root)",
+    )
+    url: str = Field(
+        ...,
+        description="Link target — '/pages' for the root, '/pages/<id>' otherwise",
+    )
 
 
 # ============================================
@@ -129,8 +229,15 @@ class CoreEngineLibPagesPublicListResponse(BaseModel):
     (default 100) in one go. `total` mirrors `len(items)`; it is
     kept as a separate field so a future pagination layer can
     change it without breaking the shape.
+
+    `crumbs` — breadcrumbs from the root to the current folder
+    (inclusive). Empty list when the current folder is the root.
     """
 
     items: list[CoreEngineLibPagesPublicItemListItem]
     total: int = 0
     nav_id: int
+    crumbs: list[CoreEngineLibPagesPublicCrumb] = Field(
+        default_factory=list,
+        description="Breadcrumbs from root to the current folder",
+    )

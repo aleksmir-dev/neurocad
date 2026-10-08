@@ -10,24 +10,6 @@
  * Error handling:
  *   - 401 Unauthorized  → redirect to login page (with ?next=)
  *   - other errors      → show modal message with the server's text
- *
- * Folder mode
- * -----------
- * When `cards.folders === true` the grid contains a ".." pseudo-card
- * with `id === 0`. Real items always have `id >= 1`, so 0 is a safe
- * sentinel. Selection functions must not treat ".." as a real item:
- *
- *   - handleSelect()  → refuses to select id === 0;
- *   - selectAll()     → skips id === 0.
- *
- * Everything else (delete, restore, updateUI, syncToolbar) works
- * with the selected ids as-is. Whether deleting a folder also
- * deletes (or detaches) its children is a backend decision — the
- * UI just calls DELETE /item/{id} like it does for any other card.
- *
- * User-facing strings (button labels, confirmation texts, error
- * messages) are in Russian. Code comments, docstrings and
- * identifiers are in English.
  */
 
 /**
@@ -132,21 +114,9 @@ function _handleOperationError(err) {
 /**
  * Activate a card (left click / tap).
  * Delegates to onItemClick.
- *
- * NOTE: in folder mode, cards.js intercepts id === 0 ("..") and
- * folder ids BEFORE calling this — handleActivate() only ever sees
- * regular items. The guard below is defensive: if some future
- * caller bypasses cards._handleActivate, the pseudo-card still
- * does nothing.
  */
 export function handleActivate(cards, id, e) {
     console.log('[BaseCards] _handleActivate() for id:', id);
-
-    if (cards.folders && id === 0) {
-        // Defensive — cards.js should have intercepted this.
-        return;
-    }
-
     if (cards.onItemClick) {
         cards.onItemClick(id, e);
     }
@@ -155,16 +125,9 @@ export function handleActivate(cards, id, e) {
 /**
  * Select a card (right click / long press).
  * Single selection only.
- *
- * Folder mode: the ".." pseudo-card (id === 0) is not selectable.
  */
 export function handleSelect(cards, id, e) {
     console.log('[BaseCards] _handleSelect() for id:', id);
-
-    // ".." is not a real item — it cannot be selected.
-    if (cards.folders && id === 0) {
-        return;
-    }
 
     const card = cards.itemInstances.get(id);
     if (!card) {
@@ -219,25 +182,11 @@ export function syncToolbar(cards) {
     }
 }
 
-/**
- * Select all visible items.
- *
- * Folder mode: the ".." pseudo-card (id === 0) is skipped. Real
- * items — including folders — are selected, so the user can, for
- * example, move them all to trash in one action.
- *
- * Uses `cards._render.getItemsToShow(cards)` — the "raw" filtered
- * list without folder grouping. That list never contains the
- * pseudo-card, so the skip below is defensive only.
- */
 export function selectAll(cards) {
     const itemsToShow = getItemsToShowSafe(cards);
     cards.selectedIds.clear();
 
     itemsToShow.forEach(item => {
-        // Defensive: skip the ".." pseudo-card if it ever appears.
-        if (cards.folders && item && item.id === 0) return;
-
         cards.selectedIds.add(item.id);
         const card = cards.itemInstances.get(item.id);
         if (card) card.setSelected(true);
@@ -252,11 +201,6 @@ export function selectAll(cards) {
  *
  * On 401 — redirect to login.
  * On other errors — show modal message.
- *
- * In folder mode, a selected folder is deleted through the same
- * endpoint as a regular card (DELETE /item/{id}). What happens to
- * the folder's children is a backend decision — it is not handled
- * here.
  */
 export async function handleDeleteSelected(cards) {
     if (cards.selectedIds.size === 0) return;
@@ -314,9 +258,6 @@ export async function handleRestoreSelected(cards) {
 
 /**
  * Update counters and toolbar state.
- *
- * The counter uses the "raw" filtered list (getItemsToShow), so
- * the ".." pseudo-card is not counted — as it should be.
  */
 export function updateUI(cards) {
     const total = getItemsToShowSafe(cards).length;

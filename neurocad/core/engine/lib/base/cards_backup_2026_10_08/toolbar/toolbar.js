@@ -1,46 +1,32 @@
-// app/core/engine/lib/base/cards/toolbar/toolbar.js
+// app/core/engine/lib/base/cards/toolbar.js
 
 /**
- * Toolbar for Cards.
- * Manages buttons, filtering and state.
+ * Панель инструментов для Cards
+ * Управляет кнопками, фильтрацией и состоянием
  *
  * extraToolbarButtons
  * -------------------
- * Optional link-buttons passed by the consumer through props. Each
- * is a plain object { href, label?, title?, icon?, target?, rel?,
- * className? }. Rendered in the LEFT group, AFTER the standard
- * buttons (add / edit / delete / restore) and BEFORE the selection
- * counter — visually next to "+", the pencil and the bin, not next
- * to search and the status filter.
+ * Дополнительные кнопки-ссылки, которые потребитель может передать
+ * через props. Каждая — объект { href, label?, title?, icon?,
+ * target?, rel?, className? }. Рендерятся в ЛЕВОЙ группе, ПОСЛЕ
+ * стандартных кнопок (add / edit / delete / restore) и ДО счётчика
+ * выделенных — то есть визуально рядом с «+», «карандашом» и
+ * «корзиной», а не в правой группе рядом с поиском и фильтром.
  *
- * Normalized in initool.js (and defensively in cards.js), but there
- * is a local guard here in case BaseCardsToolbar is used standalone.
- *
- * Folder mode
- * -----------
- * When the consumer enables `folders: true` on BaseCards and also
- * passes `showFolderButton: true`, an additional "Создать папку"
- * button is rendered BEFORE the standard "+" (add) button. Its
- * click handler is `props.onAddFolder`. If the handler is missing,
- * the button is not rendered (fail-closed).
- *
- * Layout of the LEFT group:
- *   folder (opt) → add → edit → delete → restore → extras → counter
- *
- * User-facing strings (button labels, placeholder, counter, trash
- * titles) are in Russian. Code comments, docstrings and identifiers
- * are in English.
+ * Нормализуются в initool.js (и защитно — в cards.js), но здесь
+ * есть собственный guard на случай standalone-использования
+ * BaseCardsToolbar без BaseCards.
  */
 export class BaseCardsToolbar {
     constructor(container, props = {}) {
         this.container = container;
         this.props = props;
 
-        // Cache-buster for icons.
+        // Версия для сброса кэша
         this.version = window.coreEngine?.static_version || Date.now();
         this.iconPath = '/static/core/engine/lib/base/images';
 
-        // Settings
+        // Настройки
         this.entityType = props.entityType || 'items';
         this.statusField = props.statusField || 'status';
         this.statuses = props.statuses || {};
@@ -52,13 +38,6 @@ export class BaseCardsToolbar {
         this.showRestoreButton = props.showRestoreButton !== false;
         this.showTrashButton = props.showTrashButton !== false;
 
-        // Folder mode: "Создать папку".
-        // Fail-closed — requires an explicit `showFolderButton === true`
-        // AND a handler `onAddFolder`. Otherwise the button is not
-        // rendered at all.
-        this.showFolderButton = props.showFolderButton === true
-            && typeof props.onAddFolder === 'function';
-
         // Extra buttons — links rendered in the LEFT group, after
         // the standard buttons and before the selection counter.
         // Normalized in initool.js / cards.js, but guard here too
@@ -69,19 +48,18 @@ export class BaseCardsToolbar {
               )
             : [];
 
-        // State
+        // Состояние
         this.isDeletedMode = false;
         this.selectedCount = 0;
         this.currentFilter = '';
         this.currentStatusFilter = 'all';
         this.isLoading = false;
 
-        // First selected id (for the "Edit" button).
+        // ID первого выделенного (для кнопки "Редактировать")
         this._firstSelectedId = null;
 
         // Callbacks
         this.onAdd = props.onAdd || null;
-        this.onAddFolder = props.onAddFolder || null;
         this.onEdit = props.onEdit || null;
         this.onDelete = props.onDelete || null;
         this.onRestore = props.onRestore || null;
@@ -90,24 +68,24 @@ export class BaseCardsToolbar {
         this.onStatusFilter = props.onStatusFilter || null;
         this.onSelectAll = props.onSelectAll || null;
 
-        // Global handler refs (for destroy).
+        // Ссылки на глобальные обработчики (для destroy)
         this._onKeyDown = null;
 
-        // Build DOM.
+        // Создаём DOM
         this._createDOM();
         this._bindEvents();
         this._updateUI();
     }
 
     /**
-     * Path to an icon.
+     * Получить путь к иконке
      */
     _icon(name) {
         return `${this.iconPath}/${name}.svg?v=${this.version}`;
     }
 
     /**
-     * Build the toolbar DOM.
+     * Создать DOM структуру
      */
     _createDOM() {
         const existing = this.container.querySelector('.core-engine-lib-base-cards-toolbar');
@@ -126,17 +104,17 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Toolbar template.
+     * Получить шаблон тулбара
      *
-     * Order of buttons in the LEFT group:
-     *   folder → add → edit → delete → restore → extras → counter
+     * Порядок кнопок в левой группе:
+     *   add → edit → delete → restore → extras → selected-counter
      *
-     * Order in the RIGHT group:
+     * Порядок в правой группе:
      *   status-filter → search → trash
      *
-     * extrasHtml sits in the LEFT group because link-buttons
-     * ("Заголовок", "Открыть каталог") are catalog actions, not
-     * filters. See the class JSDoc.
+     * extrasHtml стоит в ЛЕВОЙ группе, потому что кнопки-ссылки
+     * («Заголовок», «Открыть каталог») — это действия над каталогом,
+     * а не фильтры. См. JSDoc класса.
      */
     _getTemplate() {
         const statusOptions = this._getStatusOptions();
@@ -144,18 +122,11 @@ export class BaseCardsToolbar {
 
         return `
             <div class="cards-toolbar-left">
-
                 ${this.showAddButton ? `
                     <button type="button" class="cards-toolbar-btn cards-toolbar-btn-add" title="Добавить ${this.entityType}">
                         <img class="icon" src="${this._icon('add')}" alt="Добавить" width="20" height="20">
                     </button>
                 ` : ''}
-
-                ${this.showFolderButton ? `
-                    <button type="button" class="cards-toolbar-btn cards-toolbar-btn-folder" title="Создать папку">
-                        <img class="icon" src="${this._icon('folder')}" alt="Создать папку" width="20" height="20">
-                    </button>
-                ` : ''}                
 
                 ${this.showEditButton ? `
                     <button type="button" class="cards-toolbar-btn cards-toolbar-btn-edit" title="Редактировать" disabled>
@@ -204,18 +175,18 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Build HTML for extraToolbarButtons.
+     * Построить HTML для extraToolbarButtons.
      *
-     * Each button is an <a>, not a <button>, because it is a
-     * navigation link or an action that opens a modal, not a
-     * built-in toolbar button. The styling matches .cards-toolbar-btn,
-     * with the .cards-toolbar-btn-link modifier for <a>-specific
-     * tweaks (text-decoration: none etc.). The icon is an
-     * <img class="icon">, same 20×20 size as the other buttons.
+     * Каждая кнопка — <a>, а не <button>, потому что это навигация
+     * или действие, открывающее модалку, а не встроенная кнопка
+     * тулбара. Стили те же, что у .cards-toolbar-btn, плюс
+     * модификатор .cards-toolbar-btn-link для <a>-специфичных правок
+     * (text-decoration: none и т.п.). Иконка — <img class="icon">,
+     * тот же размер 20×20, что у остальных кнопок.
      *
-     * The button class is passed through `className` and used by the
-     * consumer for delegated click interception (for example,
-     * js-open-title-modal opens the "Заголовок" modal).
+     * Класс кнопки передаётся в `className` и используется
+     * потребителем для делегированного перехвата клика (например,
+     * js-open-title-modal — открыть модалку «Заголовок»).
      */
     _getExtraButtonsHtml() {
         if (!this.extraToolbarButtons.length) return '';
@@ -245,7 +216,7 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Status filter options.
+     * Получить опции статусов
      */
     _getStatusOptions() {
         const options = [];
@@ -262,10 +233,9 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Cache DOM elements.
+     * Кешировать элементы
      */
     _cacheElements() {
-        this.folderBtn = this.toolbar.querySelector('.cards-toolbar-btn-folder');
         this.addBtn = this.toolbar.querySelector('.cards-toolbar-btn-add');
         this.editBtn = this.toolbar.querySelector('.cards-toolbar-btn-edit');
         this.deleteBtn = this.toolbar.querySelector('.cards-toolbar-btn-delete');
@@ -277,24 +247,17 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Bind events.
+     * Привязать события
      */
     _bindEvents() {
-        // Create folder — must be BEFORE add, and is independent of it.
-        if (this.folderBtn) {
-            this.folderBtn.addEventListener('click', () => {
-                if (this.onAddFolder) this.onAddFolder();
-            });
-        }
-
-        // Add
+        // Добавление
         if (this.addBtn) {
             this.addBtn.addEventListener('click', () => {
                 if (this.onAdd) this.onAdd();
             });
         }
 
-        // Edit
+        // Редактирование
         if (this.editBtn) {
             this.editBtn.addEventListener('click', () => {
                 if (this.onEdit && this.selectedCount > 0) {
@@ -303,21 +266,21 @@ export class BaseCardsToolbar {
             });
         }
 
-        // Delete
+        // Удаление
         if (this.deleteBtn) {
             this.deleteBtn.addEventListener('click', () => {
                 if (this.onDelete) this.onDelete();
             });
         }
 
-        // Restore
+        // Восстановление
         if (this.restoreBtn) {
             this.restoreBtn.addEventListener('click', () => {
                 if (this.onRestore) this.onRestore();
             });
         }
 
-        // Trash toggle
+        // Корзина
         if (this.trashBtn) {
             this.trashBtn.addEventListener('click', () => {
                 this.isDeletedMode = !this.isDeletedMode;
@@ -329,7 +292,7 @@ export class BaseCardsToolbar {
             });
         }
 
-        // Search (debounced)
+        // Поиск (с debounce)
         if (this.searchInput) {
             let timeout;
             this.searchInput.addEventListener('input', (e) => {
@@ -343,7 +306,7 @@ export class BaseCardsToolbar {
             });
         }
 
-        // Status filter
+        // Фильтр по статусу
         if (this.statusFilter) {
             this.statusFilter.addEventListener('change', (e) => {
                 this.currentStatusFilter = e.target.value;
@@ -353,10 +316,9 @@ export class BaseCardsToolbar {
             });
         }
 
-        // Keyboard shortcuts — keep the ref so destroy() can remove it.
+        // Горячие клавиши — сохраняем ссылку, чтобы снять в destroy()
         this._onKeyDown = (e) => {
-            // Ctrl+A — select all, but only when the focus is NOT in
-            // an editable field.
+            // Ctrl+A — выделить всё, но только если фокус НЕ в поле ввода
             if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
                 const tag = e.target?.tagName;
                 const isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target?.isContentEditable;
@@ -372,14 +334,14 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Get the first selected id.
+     * Получить ID первого выделенного элемента
      */
     getFirstSelectedId() {
         return this._firstSelectedId || null;
     }
 
     /**
-     * Set the first selected id (for the "Edit" button).
+     * Установить ID первого выделенного (для кнопки "Редактировать")
      */
     setFirstSelectedId(id) {
         this._firstSelectedId = id;
@@ -387,26 +349,26 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Update button state.
+     * Обновить состояние кнопок
      */
     _updateUI() {
         const selected = this.selectedCount;
 
-        // Edit — only when exactly one item is selected.
+        // Кнопка редактирования — активна только при ровно одном выделенном
         if (this.editBtn) {
             const disabled = selected !== 1 || this.isDeletedMode || !this._firstSelectedId;
             this.editBtn.disabled = disabled;
             this.editBtn.style.opacity = disabled ? '0.4' : '1';
         }
 
-        // Delete — one or more items selected.
+        // Кнопка удаления — активна при одном и более выделенных
         if (this.deleteBtn) {
             const disabled = selected === 0 || this.isDeletedMode;
             this.deleteBtn.disabled = disabled;
             this.deleteBtn.style.opacity = disabled ? '0.4' : '1';
         }
 
-        // Restore — only in trash mode.
+        // Кнопка восстановления — только в режиме корзины
         if (this.restoreBtn) {
             const disabled = selected === 0 || !this.isDeletedMode;
             this.restoreBtn.disabled = disabled;
@@ -414,7 +376,7 @@ export class BaseCardsToolbar {
             this.restoreBtn.style.display = this.isDeletedMode ? 'inline-flex' : 'none';
         }
 
-        // Selected counter.
+        // Счётчик выделенных
         if (this.selectedCounter) {
             if (selected > 0) {
                 this.selectedCounter.textContent = `Выбрано: ${selected}`;
@@ -425,7 +387,7 @@ export class BaseCardsToolbar {
             }
         }
 
-        // Trash icon.
+        // Иконка корзины
         if (this.trashBtn) {
             const iconImg = this.trashBtn.querySelector('img.icon');
             if (iconImg) {
@@ -438,11 +400,11 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Set the selected count.
+     * Установить количество выделенных
      */
     setSelectedCount(count) {
         this.selectedCount = count;
-        // Reset firstSelectedId when the selection is cleared.
+        // Если выделение сброшено — обнуляем и firstSelectedId
         if (count === 0) {
             this._firstSelectedId = null;
         }
@@ -450,20 +412,17 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Set loading mode.
+     * Установить режим загрузки
      */
     setLoading(loading) {
         this.isLoading = loading;
         if (this.addBtn) {
             this.addBtn.disabled = loading;
         }
-        if (this.folderBtn) {
-            this.folderBtn.disabled = loading;
-        }
     }
 
     /**
-     * Reset filters.
+     * Сбросить фильтры
      */
     resetFilters() {
         if (this.searchInput) {
@@ -483,7 +442,7 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Set trash mode.
+     * Установить состояние корзины
      */
     setTrashMode(enabled) {
         this.isDeletedMode = enabled;
@@ -494,7 +453,7 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Get state.
+     * Получить состояние
      */
     getState() {
         return {
@@ -506,7 +465,7 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Destroy.
+     * Уничтожить
      */
     destroy() {
         if (this._onKeyDown) {

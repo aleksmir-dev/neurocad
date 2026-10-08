@@ -289,8 +289,45 @@ async def get_pages_list(
     is_active: Optional[int] = Query(None, description="Filter: 1 — active, 0 — inactive"),
     is_template: Optional[int] = Query(None, description="Filter: 1 — templates only, 0 — regular only"),
 ) -> JSONResponse:
-    """Get a paginated list of articles. Public endpoint."""
+    """
+    Get a paginated list of articles / folders. Public endpoint.
+
+    Folder mode
+    -----------
+    The list is hierarchical. The `parent_id` query parameter
+    controls the scope:
+
+      - `parent_id` is ABSENT from the URL → the whole flat list
+        (backward compatible; old callers see the same behaviour).
+      - `parent_id` is PRESENT and empty (`?parent_id=`) → the root
+        level only (parent_id IS NULL).
+      - `parent_id` is PRESENT with a value → children of that
+        folder.
+
+    FastAPI cannot distinguish "parameter absent" from "parameter
+    present but empty" when the type is `Optional[int]` — both come
+    through as `None`. So we inspect `request.query_params`
+    directly to tell the two apart.
+
+    Response shape is unchanged: { success, data: [...], total,
+    page, limit }. Each item now carries `card_type`, `parent_id`,
+    `sort_order` and (for folders) `children_count`.
+    """
     resolved_nav_id = await _resolve_nav_id(request, nav_id)
+
+    # "Was parent_id present in the query string at all?"
+    parent_id_provided = "parent_id" in request.query_params
+    parent_id: Optional[int] = None
+    if parent_id_provided:
+        raw = request.query_params.get("parent_id")
+        if raw not in (None, ""):
+            try:
+                parent_id = int(raw)
+            except (TypeError, ValueError):
+                raise HTTPException(
+                    status_code=400,
+                    detail="parent_id must be an integer or empty",
+                )
 
     result = await CoreEngineLibPagesService.get_list(
         nav_id=resolved_nav_id,
@@ -298,6 +335,8 @@ async def get_pages_list(
         limit=limit,
         is_active=is_active,
         is_template=is_template,
+        parent_id=parent_id,
+        parent_id_provided=parent_id_provided,
     )
 
     return JSONResponse({
@@ -330,10 +369,13 @@ async def get_my_pages_list(
     Список страниц текущего пользователя — для выбора ссылки
     в редакторе (trait page-link).
 
-    Возвращает только активные, неудалённые, не-шаблонные страницы
-    всех nav текущего юзера. Каждая с готовым ПУБЛИЧНЫМ URL вида
-    /page/<YYYYMMDD>/<HHMMSS> (без nav_id — публичные URL
-    host-based, см. pages/public/route.py).
+    Возвращает только активные, неудалённые, не-шаблонные СТРАНИЦЫ
+    (card_type = 'page'). Папки в этот список не попадают —
+    ссылаться на папку из контента бессмысленно.
+
+    Каждая с готовым ПУБЛИЧНЫМ URL вида /page/<YYYYMMDD>/<HHMMSS>
+    (без nav_id — публичные URL host-based, см.
+    pages/public/route.py).
 
     Any authenticated user.
     """
@@ -358,7 +400,12 @@ async def get_page_item(
     request: Request,
     nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
 ) -> JSONResponse:
-    """Get one article by ID. Public endpoint."""
+    """
+    Get one article by ID. Public endpoint.
+
+    Folders are NOT returned — the service filters by
+    card_type='page', so the editor never opens on a folder.
+    """
     resolved_nav_id = await _resolve_nav_id(request, nav_id)
 
     item = await CoreEngineLibPagesService.get_item(item_id, nav_id=resolved_nav_id)
@@ -391,7 +438,7 @@ async def get_page_by_datetime(
     date = "20260914" (YYYYMMDD)
     time = "153910"   (HHMMSS)
 
-    Public endpoint.
+    Public endpoint. Only card_type='page' is returned.
     """
     resolved_nav_id = await _resolve_nav_id(request, nav_id)
 
@@ -420,10 +467,12 @@ async def create_page_item(
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """
-    Create a new article. Any authenticated user.
+    Create a new article or folder. Any authenticated user.
 
     Before creating — checks the page limit via BalanceChecked
-    (lazy, based on the owner's tariff).
+    (lazy, based on the owner's tariff). Folders are NOT counted
+    against the page limit — the service skips the balance check
+    when `card_type == 'folder'`.
 
     On limit exceeded → 403 with a STRUCTURED detail payload:
 
@@ -438,25 +487,28 @@ async def create_page_item(
             }
           }
         }
-
-    The universal frontend form (BaseCardsEdit) renders `message`
-    and, if `action` is present, a link-button under it. That form
-    has no knowledge of tariffs — the whole business message is
-    built here, where tariffs are understood.
     """
     # get_current_user raises 401 for guests — no extra permission check needed.
     user_id = current_user.get("id")
     resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
 
+    # Determine the type of the item being created. Only regular
+    # pages count against the balance; folders are free.
+    from .schema import CARD_TYPE_FOLDER
+    card_type = getattr(data, "card_type", "page") or "page"
+    is_folder = (card_type == CARD_TYPE_FOLDER)
+
     # Pre-check: is the user allowed to create a new page?
-    bal, err, current_pages = await BalanceChecked.page_allowed(
-        user_id, log=request.app.state.log
-    )
-    if err:
-        raise HTTPException(
-            status_code=403,
-            detail=_page_error_payload(err, bal, current_pages),
+    # Folders do not consume the page limit.
+    if not is_folder:
+        bal, err, current_pages = await BalanceChecked.page_allowed(
+            user_id, log=request.app.state.log
         )
+        if err:
+            raise HTTPException(
+                status_code=403,
+                detail=_page_error_payload(err, bal, current_pages),
+            )
 
     item = await CoreEngineLibPagesService.create_item(data, nav_id=resolved_nav_id)
 
@@ -481,7 +533,13 @@ async def update_page_item(
     nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Update an article. Any authenticated user."""
+    """
+    Update an article or folder. Any authenticated user.
+
+    `card_type` cannot be changed here — see schema.py. Moving an
+    item to another folder is done by sending `parent_id` (a value
+    or null for root).
+    """
     resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
 
     item = await CoreEngineLibPagesService.update_item(
@@ -508,7 +566,14 @@ async def delete_page_item(
     nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Soft-delete an article. Any authenticated user."""
+    """
+    Soft-delete an article or folder. Any authenticated user.
+
+    Deleting a folder is NOT cascading: its immediate children are
+    detached and moved one level up (their parent_id becomes the
+    deleted folder's parent_id). See service.py → delete_item for
+    the full rationale.
+    """
     resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
 
     result = await CoreEngineLibPagesService.delete_item(
@@ -535,7 +600,12 @@ async def restore_page_item(
     nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
-    """Restore a soft-deleted article. Any authenticated user."""
+    """
+    Restore a soft-deleted article or folder. Any authenticated user.
+
+    Restoring a folder does NOT re-attach its former children —
+    they were moved one level up at delete time and stay there.
+    """
     resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
 
     result = await CoreEngineLibPagesService.restore_item(

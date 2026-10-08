@@ -113,10 +113,7 @@ export class BaseCardsCard {
         this.element.dataset.id = this.item.id;
 
         if (this.customClass) {
-            String(this.customClass)
-                .split(/\s+/)
-                .filter(Boolean)
-                .forEach(cls => this.element.classList.add(cls));
+            this.element.classList.add(this.customClass);
         }
 
         if (!this.renderContent) {
@@ -322,10 +319,7 @@ export class BaseCardsCard {
 
             this.element.className = 'core-engine-lib-base-cards-card';
             if (this.customClass) {
-                String(this.customClass)
-                    .split(/\s+/)
-                    .filter(Boolean)
-                    .forEach(cls => this.element.classList.add(cls));
+                this.element.classList.add(this.customClass);
             }
 
             if (!this.renderContent) {

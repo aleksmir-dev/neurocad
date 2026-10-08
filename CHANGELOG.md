@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.18] - 2026-10-08
+- Folders in the article catalog: pages can be grouped into folders, both in the admin panel and on the public site. Admins create a folder with a new "Создать папку" toolbar button; clicking a folder opens it, a "Вернуться" card is prepended to go up a level, and articles created inside a folder are saved with the correct `parent_id`. The public catalog gives each folder an SEO-friendly URL (`/pages/<id>`), builds breadcrumbs server-side, and shows a "Вернуться" card on any nesting depth.
+- New `?root=1` flag on `/pages` — explicit "show the root and forget the current folder", used by the "Все" breadcrumb to resolve the ambiguity of the bare `/pages` URL (which otherwise means "the folder I was last in", per the `nc_folder_path` cookie).
+- New `renderUpCard` hook on `BaseCards` — consumers can now supply custom content for the ".." pseudo-card, the same way as `renderCard` for regular items; used by Pages to render a localised "Вернуться" card with an arrow icon.
+- `parent_id` is now declared in the Pages create/edit `fields[]` so `BaseCardsEdit.getData()` includes it in the payload; previously the value was silently lost between the form and the API request, and articles were created at the root instead of inside the open folder. Hidden via CSS.
+- `BaseCardsEdit` now tags `.edit-body` with `edit-body--folder` / `edit-body--page`, derived from `card_type`; consumer stylesheets can scope rules by entity type without knowing field names.
+- Folder cards (admin and public) now use the neutral card palette — white background, light border, blue hover — instead of the amber accent. Folders are distinguished by icon and child counter, not by colour. `.pages-folder` content is top-aligned (`align-items: flex-start`).
+- `pages.css` hidden-field rules are scoped by entity type: `url`, `is_template`, `template_id` are hidden only in the folder form; on the page form they stay visible. `card_type` and `parent_id` remain hidden in both.
+- Fixed `InvalidCharacterError` in `BaseCardsCard` when `customClass` contained a space (`classList.add('a b')` is invalid) — the class string is now split on whitespace, and the ".." pseudo-card renders correctly. Same fix in `updateItem()`.
+- Fixed the open folder appearing inside itself: `Pages._loadFromServer()` built the list URL without `parent_id`, so the backend returned the whole flat list. The URL now carries `parent_id` (a real id inside a folder, an empty `parent_id=` at the root).
+- Removed the duplicate `↑` glyph on the ".." card — the `card-up::before` rule in `card.css` is gone, so only the consumer's own icon remains.
+
 ## [1.0.17] - 2026-10-07
 - AI generation of Policy and Rules via a new "✨ Сгенерировать" button in the legal modal and a new `POST /domain/legal/generate` endpoint; the LLM reads the user's home page (title, description, visible text, site host) and returns a fresh markdown document without saving it. Adds `generate_legal` agent + prompt, `LegalMixin.load_home_context()`, explicit today's date in the prompt (no more "01.01.2026"), a ban on inventing brands and data categories, and token charge on the Balance.
 
@@ -89,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.18]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.17...v1.0.18
 [1.0.17]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.16...v1.0.17
 [1.0.16]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.14...v1.0.16
 [1.0.14]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.13...v1.0.14

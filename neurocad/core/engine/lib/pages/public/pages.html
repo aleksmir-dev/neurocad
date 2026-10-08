@@ -26,6 +26,11 @@
        handlers fire. See cookie.js for the localStorage key and
        the reset instructions. #}
     <script src="{{ 'core/engine/lib/pages/public/cookie.js'|static }}" defer></script>
+
+    {# Public catalog JS — mirrors the current folder path from
+       the `nc_folder_path` cookie into localStorage. Tiny and
+       dependency-free; safe to load on every catalog page. #}
+    <script src="{{ 'core/engine/lib/pages/public/pages-public.js'|static }}" defer></script>
 </head>
 <body class="core-engine-lib-pages-public-body">
 
@@ -33,35 +38,128 @@
       Catalog layout:
 
         .pages-catalog                  — page container
+          .pages-catalog-crumbs         — breadcrumbs (hidden at root)
           .pages-catalog-header         — title + counter
           .pages-catalog-list           — grid of cards
-            .pages-catalog-card         — one card (an <a>)
-              .pages-catalog-card-logo  — optional image
-              .pages-catalog-card-body  — title / description / date
+            .pages-catalog-item         — <li>
+              .pages-catalog-card       — one card (an <a>)
+                .pages-catalog-card-icon  — folder emoji, or "up" arrow
+                .pages-catalog-card-logo  — optional image (pages only)
+                .pages-catalog-card-body  — title / description / date
+                  .pages-catalog-card-count — children count (folders only)
+                .pages-catalog-card-title
+                .pages-catalog-card-desc
+                .pages-catalog-card-count / .pages-catalog-card-date
 
       Each item already carries a ready URL — either an internal
-      path (/page/<YYYYMMDD>/<HHMMSS>) for a regular page, or an
-      external URL for a link card (pages.url). The template just
-      prints it. See _resolve_card_url in the service.
+      path (/page/<YYYYMMDD>/<HHMMSS>) for a regular page, an
+      external URL for a link card (pages.url), or /pages/<id>
+      for a folder. The template just prints it. See
+      _resolve_card_url in the service.
+
+      Cards are styled differently via the `pages-catalog-card--folder`
+      modifier on folders. The template does not need to know how
+      to build the folder URL — the item's `url` field already
+      holds it.
+
+      The "up" card (inside a folder) points at the PARENT folder,
+      not at the root. Its href is `crumbs[-2].url`:
+        - 1st level   → crumbs[-2] is the root  → /pages?root=1
+        - 2nd level   → crumbs[-2] is the parent → /pages/<parent_id>
+        - 3rd+ level  → same, one level up
+      This works for arbitrary nesting depth without extra logic.
     #}
     <main class="pages-catalog">
 
+        {# ============================================
+           BREADCRUMBS
+           ============================================
+           Rendered only when we are inside a folder.
+           At the root `crumbs` is empty (or holds a single
+           "Все" entry we can skip), so we hide the whole
+           block to avoid an empty bar above the title.
+
+           The last crumb is the current folder — rendered as
+           plain text, not a link. All previous crumbs are
+           links. #}
+        {% if crumbs and crumbs|length > 1 %}
+        <nav class="pages-catalog-crumbs" aria-label="Хлебные крошки">
+            {% for crumb in crumbs %}
+                {% if not loop.last %}
+                    <a class="pages-catalog-crumb"
+                       href="{{ crumb.url }}">{{ crumb.title }}</a>
+                    <span class="pages-catalog-crumb-sep" aria-hidden="true">/</span>
+                {% else %}
+                    <span class="pages-catalog-crumb pages-catalog-crumb--current"
+                          aria-current="page">{{ crumb.title }}</span>
+                {% endif %}
+            {% endfor %}
+        </nav>
+        {% endif %}
+
+        {# ============================================
+           HEADER
+           ============================================
+           Title = Nav.name (or a per-folder title override
+           for the current folder — the route already built it).
+           Subtitle = item count with Russian pluralization.
+
+           The count is per current folder, not per whole nav.
+           Wording adapts: folders + pages are both "items",
+           so we say "N шт." at root when the folder contains
+           a mix — see below. #}
         <header class="pages-catalog-header">
             <h1 class="pages-catalog-title">{{ title }}</h1>
             {% if total %}
             <p class="pages-catalog-subtitle">
                 {{ total }}
-                {% if total == 1 %}статья{% elif total < 5 %}статьи{% else %}статей{% endif %}
+                {% if total == 1 %}запись
+                {% elif total < 5 %}записи
+                {% else %}записей{% endif %}
             </p>
             {% endif %}
         </header>
 
+        {# ============================================
+           ITEMS
+           ============================================
+           Folders first, then pages — the ordering comes
+           from the service (get_list). The template only
+           branches on card_type to pick the right modifier
+           class and to show / hide the children counter.
+
+           The "up" card is rendered first when we are inside
+           a folder. It points at the PARENT folder — the
+           second-to-last crumb (crumbs[-2]). At the root
+           there are no crumbs to walk up to, so the card is
+           not rendered at all. #}
         {% if items %}
         <ul class="pages-catalog-list">
+
+            {% if current_folder_id %}
+            <li class="pages-catalog-item">
+                <a class="pages-catalog-card pages-catalog-card--up"
+                   href="{{ crumbs[-2].url }}">
+                    <span class="pages-catalog-card-icon pages-catalog-card-icon--up"
+                          aria-hidden="true">⤴</span>
+                    <span class="pages-catalog-card-body">
+                        <span class="pages-catalog-card-title">Вернуться</span>
+                        <span class="pages-catalog-card-desc">На уровень выше</span>
+                    </span>
+                </a>
+            </li>
+            {% endif %}
+
             {% for item in items %}
             <li class="pages-catalog-item">
-                <a class="pages-catalog-card" href="{{ item.url }}">
-                    {% if item.logo %}
+                <a class="pages-catalog-card
+                          {% if item.card_type == 'folder' %}pages-catalog-card--folder{% endif %}"
+                   href="{{ item.url }}">
+
+                    {% if item.card_type == 'folder' %}
+                    {# Folders get a fixed icon — no logo field. #}
+                    <span class="pages-catalog-card-icon" aria-hidden="true">📁</span>
+                    {% elif item.logo %}
                     <span class="pages-catalog-card-logo">
                         <img src="{{ item.logo }}"
                              alt="{{ item.title }}"
@@ -80,7 +178,20 @@
                         </span>
                         {% endif %}
 
-                        {% if item.datetime %}
+                        {% if item.card_type == 'folder' %}
+                            {% if item.children_count %}
+                            <span class="pages-catalog-card-count">
+                                {{ item.children_count }}
+                                {% if item.children_count == 1 %}запись
+                                {% elif item.children_count < 5 %}записи
+                                {% else %}записей{% endif %}
+                            </span>
+                            {% else %}
+                            <span class="pages-catalog-card-count pages-catalog-card-count--empty">
+                                пусто
+                            </span>
+                            {% endif %}
+                        {% elif item.datetime %}
                         <time class="pages-catalog-card-date"
                               datetime="{{ item.datetime.isoformat() }}">
                             {{ item.datetime.strftime('%d.%m.%Y') }}
@@ -92,7 +203,29 @@
             {% endfor %}
         </ul>
         {% else %}
-        <p class="pages-catalog-empty">Пока нет статей.</p>
+        {# Even in an empty folder, offer a way back up. #}
+        {% if current_folder_id %}
+        <ul class="pages-catalog-list">
+            <li class="pages-catalog-item">
+                <a class="pages-catalog-card pages-catalog-card--up"
+                   href="{{ crumbs[-2].url }}">
+                    <span class="pages-catalog-card-icon pages-catalog-card-icon--up"
+                          aria-hidden="true">⤴</span>
+                    <span class="pages-catalog-card-body">
+                        <span class="pages-catalog-card-title">Вернуться</span>
+                        <span class="pages-catalog-card-desc">На уровень выше</span>
+                    </span>
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+        <p class="pages-catalog-empty">
+            {% if current_folder_id %}
+                В этой папке пока ничего нет.
+            {% else %}
+                Пока нет статей.
+            {% endif %}
+        </p>
         {% endif %}
 
     </main>

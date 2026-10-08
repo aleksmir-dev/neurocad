@@ -20,26 +20,6 @@
  *
  * Other field types keep the standard label-above-input layout.
  *
- * Entity-type marker on the form
- * ------------------------------
- * On render, the .edit-body element is tagged with one of:
- *
- *     edit-body--folder    — when values.card_type === 'folder'
- *     edit-body--page      — otherwise
- *
- * The values come from `initialData` (BaseCards.initialData or
- * the caller's override). This lets consumer stylesheets scope
- * rules to "folder form only" or "page form only" without having
- * to know field names. Example (pages.css):
- *
- *     .edit-body--folder .edit-group:has([data-field="url"]) {
- *         display: none;
- *     }
- *
- * The tag is purely additive: when there is no `card_type` field
- * (a non-pages consumer), the class defaults to `--page` and no
- * existing rules change.
- *
  * Media sources
  * -------------
  * A media field may declare which picker sources to show:
@@ -228,29 +208,6 @@ export class BaseCardsEdit {
 
         // Save form reference
         this.form = form;
-
-        // Tag .edit-body with the entity type so consumer
-        // stylesheets can scope rules to "folder form only"
-        // or "page form only" without having to know field names.
-        //
-        // The value comes from `this.values.card_type`, which was
-        // pre-filled from `initialData` (see BaseCards.initialData
-        // and initool.js → onAddFolder). It is set once at render
-        // time — the card type cannot be changed from within the
-        // form (the field is hidden), so there is no need to
-        // re-evaluate it on every change.
-        //
-        // Non-pages consumers (no `card_type` field) default to
-        // `--page`, and no existing rules change.
-        const cardType = this.values?.card_type;
-        this.editBody.classList.toggle(
-            'edit-body--folder',
-            cardType === 'folder'
-        );
-        this.editBody.classList.toggle(
-            'edit-body--page',
-            cardType !== 'folder'
-        );
     }
 
     /**

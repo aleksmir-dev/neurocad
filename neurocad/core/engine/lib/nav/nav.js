@@ -1,6 +1,25 @@
 // app/core/engine/lib/nav/nav.js
 
 /**
+ * ...
+ *
+ * LEGACY / NOT IN USE
+ * -------------------
+ * Nav is currently disabled in the project. It still implements
+ * its own folder navigation (parentId + parentHistory +
+ * _prepareCardsData + _openFolder) instead of using the folder
+ * mode that now lives in BaseCards (see `folders: true`).
+ *
+ * When Nav is brought back online, rewrite it to pass
+ * `folders: true, folderValue: 'folder'` to BaseCards and delete
+ * the local _prepareCardsData / _goUp / _openFolder / parentHistory
+ * — everything they do is already handled inside BaseCards.
+ *
+ * The local folder logic is a duplicate of BaseCards.folders and
+ * must not be copied anywhere else.
+ */
+
+/**
  * Nav — navigation component (file explorer).
  * Loads data and passes it to BaseCards.
  *

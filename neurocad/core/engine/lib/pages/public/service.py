@@ -18,6 +18,29 @@ Scoping:
   Both return the same CoreEngineLibPagesPublicItem shape, so the
   render path stays single.
 
+Folder mode
+-----------
+The public catalog (/pages) is hierarchical, just like the admin
+one. Two new concepts:
+
+  - `get_list(nav_id, parent_id)` — items that live in one folder
+    (folders + pages), with `children_count` filled for folders.
+  - `get_folder_chain(nav_id, path_ids)` — a validated path from
+    the root to the current folder, used to render breadcrumbs.
+
+A cookie `nc_folder_path` (set by the route) carries the path as
+a dot-separated string of folder ids, e.g. "12.45". The route
+parses it, validates it via `resolve_folder_path`, and falls back
+to the root if anything is off (invalid id, deleted folder,
+folder from another nav, broken nesting).
+
+The root breadcrumb carries `/pages?root=1` — not the bare
+`/pages`. The bare `/pages` is ambiguous: it means "the folder I
+was last in" (per the cookie), so a visitor deep in the tree has
+no reliable way to reach the actual root. `?root=1` is an
+explicit "show the root and forget the cookie" flag, handled in
+route.py.
+
 CSS handling:
   - Page.css is the source of truth for the page's content CSS.
     It is assembled at save time by word/css_builder.py:
@@ -33,23 +56,14 @@ CSS handling:
     below. The utility ensure_css_file() takes both as parameters
     and stays module-agnostic.
 
-Catalog:
-  get_list() returns the active, non-deleted pages of a nav, sorted
-  by datetime DESC. Used by the public /pages route to render a
-  full catalog page without the admin UI. Each item carries a
-  ready-to-use `url`:
-    - pages.url, if the page is a link card (external target);
-    - /page/<YYYYMMDD>/<HHMMSS>, otherwise.
-  The template does not have to assemble anything.
-
 Namespace: CoreEngineLibPagesPublicService
 """
 
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional, Sequence
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from .....models.base import Page
 from .....models.nav import Nav
@@ -58,6 +72,9 @@ from ......utils.css import split_style_from_html
 from .schema import (
     CoreEngineLibPagesPublicItem,
     CoreEngineLibPagesPublicItemListItem,
+    CoreEngineLibPagesPublicCrumb,
+    CARD_TYPE_PAGE,
+    CARD_TYPE_FOLDER,
 )
 
 
@@ -86,22 +103,18 @@ PAGES_CSS_URL = _MODULE_STATIC_URL + "/pages"
 # URL HELPERS (module-level)
 # ============================================
 
-def _public_url(page_dt: Optional[datetime]) -> str:
+def _page_url(page_dt: Optional[datetime]) -> str:
     """
-    Build the public URL of a page:
+    Public URL of a single page:
 
         /page/<YYYYMMDD>/<HHMMSS>
 
     NO nav_id — the public URL is host-based: the request Host
     resolves to a user, and the page is looked up within that
-    user's navs. See public/route.py.
+    user's navs. See route.py.
 
-    Used by the catalog list items so the template does not have
-    to assemble the URL itself. Changing the format is a one-line
-    change here and in the route.
-
-    If `page_dt` is missing (should not happen: page.datetime is
-    NOT NULL in the DB), falls back to /pages instead of 500.
+    If `page_dt` is missing (should not happen for pages: it is
+    always set), falls back to /pages instead of 500.
     """
     if page_dt is None:
         return "/pages"
@@ -112,22 +125,56 @@ def _public_url(page_dt: Optional[datetime]) -> str:
     )
 
 
+def _folder_url(folder_id: int) -> str:
+    """
+    Public URL of a folder inside the catalog:
+
+        /pages/<id>
+
+    See route.py — the /pages route accepts an optional numeric
+    segment after the prefix. Trailing slash is normalized to
+    the no-slash form by a 301 redirect on the route side.
+    """
+    return f"/pages/{folder_id}"
+
+
+def _root_url() -> str:
+    """
+    Public URL of the catalog ROOT.
+
+    Not the bare `/pages`: that URL is ambiguous — its meaning
+    depends on the `nc_folder_path` cookie ("the folder I was
+    last in"). A visitor deep in the tree cannot ask for the root
+    by clicking a link to `/pages`, because the cookie would pull
+    them right back into the same folder.
+
+    `?root=1` is an explicit "show the root" flag. The route
+    handles it before consulting the cookie, and clears the
+    cookie on the way out — so the next bare `/pages` visit
+    also opens the root, as the visitor now expects.
+    """
+    return "/pages?root=1"
+
+
 def _resolve_card_url(page: Page) -> str:
     """
     URL a catalog card should point at.
 
     Priority:
-      1. page.url, if set and not blank — the page is a link card
-         pointing at an external site. Returned as-is (already
-         absolute or site-relative, depends on what the user typed).
-      2. /page/<YYYYMMDD>/<HHMMSS> — the internal page URL.
+      1. For a folder — always /pages/<id>. The external `url`
+         field is ignored (folders cannot be link cards).
+      2. For a page — page.url, if set and not blank. The page is
+         a link card pointing at an external site. Returned as-is.
+      3. Otherwise — /page/<YYYYMMDD>/<HHMMSS>.
 
     Whitespace-only values are ignored so a cleared url field
     behaves exactly like NULL.
     """
+    if page.card_type == CARD_TYPE_FOLDER:
+        return _folder_url(page.id)
     if isinstance(page.url, str) and page.url.strip():
         return page.url.strip()
-    return _public_url(page.datetime)
+    return _page_url(page.datetime)
 
 
 class CoreEngineLibPagesPublicService:
@@ -140,51 +187,273 @@ class CoreEngineLibPagesPublicService:
     @staticmethod
     async def get_list(
         nav_id: int,
+        parent_id: Optional[int] = None,
         limit: int = 100,
     ) -> List[CoreEngineLibPagesPublicItemListItem]:
         """
-        List active, non-deleted pages of a nav — for the public
-        /pages catalog.
+        List active, non-deleted items of a nav that live in
+        `parent_id` — for the public /pages catalog.
 
-        Order: datetime DESC, id DESC (newest first; id DESC breaks
-        ties when two pages share the same datetime second — which
-        can happen, since the editor lets the user pick the time).
+        `parent_id` semantics:
+          - None → the root level (parent_id IS NULL);
+          - <id> → the children of that folder.
+
+        Order: folders first, then pages. Inside each group:
+          - folders: sort_order ASC, then title ASC;
+          - pages:   sort_order ASC, then datetime DESC, id DESC.
+        (Same ordering as the admin catalog — one consistent
+        visual language between the admin and the public site.)
+
+        `children_count` is filled for folders — one extra
+        grouped query for all folders on the page.
+
+        Each item's `url` is resolved via _resolve_card_url:
+          - folder → /pages/<id>;
+          - page with external `url` → that URL;
+          - page without → /page/<date>/<time>.
 
         No pagination yet: up to `limit` items in one response.
-        Default 100 is generous enough for a personal catalog;
-        swap to a paginated query if this ever becomes a hot path.
-
-        Only active, non-deleted pages are returned — same filter
-        as get_by_datetime / get_by_id. That keeps the catalog
-        consistent with what a visitor can actually open.
-
-        Each item's `url` is resolved via _resolve_card_url: for
-        link cards it is the page's external url, for regular
-        pages it is /page/<date>/<time>.
+        Default 100 is generous enough for a personal catalog.
         """
         items: List[CoreEngineLibPagesPublicItemListItem] = []
 
         async for session in get_db_sqlite():
+            base_stmt = select(Page).where(
+                Page.nav_id == nav_id,
+                Page.is_delete == 0,
+                Page.is_active == 1,
+            )
+
+            if parent_id is None:
+                base_stmt = base_stmt.where(Page.parent_id.is_(None))
+            else:
+                base_stmt = base_stmt.where(Page.parent_id == parent_id)
+
             stmt = (
-                select(Page)
-                .where(
-                    Page.nav_id == nav_id,
-                    Page.is_delete == 0,
-                    Page.is_active == 1,
+                base_stmt
+                .order_by(
+                    # Folders first (True sorts after False → DESC)
+                    (Page.card_type == CARD_TYPE_FOLDER).desc(),
+                    Page.sort_order.asc(),
+                    Page.datetime.desc(),
+                    Page.id.desc(),
                 )
-                .order_by(Page.datetime.desc(), Page.id.desc())
                 .limit(limit)
             )
             rows = (await session.execute(stmt)).scalars().all()
 
+            # children_count for folders on this page — one query.
+            folder_ids = [
+                p.id for p in rows if p.card_type == CARD_TYPE_FOLDER
+            ]
+            children_map: Dict[int, int] = {}
+            if folder_ids:
+                cnt_stmt = (
+                    select(Page.parent_id, func.count(Page.id))
+                    .where(
+                        Page.parent_id.in_(folder_ids),
+                        Page.is_delete == 0,
+                        Page.is_active == 1,
+                    )
+                    .group_by(Page.parent_id)
+                )
+                cnt_rows = (await session.execute(cnt_stmt)).all()
+                children_map = {
+                    pid: cnt for pid, cnt in cnt_rows if pid is not None
+                }
+
             for page in rows:
                 items.append(
-                    CoreEngineLibPagesPublicService._page_to_list_item(page)
+                    CoreEngineLibPagesPublicService._page_to_list_item(
+                        page,
+                        children_count=(
+                            children_map.get(page.id, 0)
+                            if page.card_type == CARD_TYPE_FOLDER
+                            else None
+                        ),
+                    )
                 )
 
             break
 
         return items
+
+    # ========================================
+    # FOLDER PATH — VALIDATION
+    # ========================================
+
+    @staticmethod
+    async def resolve_folder_path(
+        nav_id: int,
+        path_ids: Sequence[int],
+    ) -> List[int]:
+        """
+        Validate a candidate folder path against the DB.
+
+        `path_ids` — a list of folder ids, from the root to the
+        current folder (as parsed from the cookie or from a URL
+        segment). The list may be empty (root) or contain ids that
+        are stale / from another nav / not actually a folder /
+        not nested correctly.
+
+        Validation rules — each id must:
+
+          1. exist as a Page with is_delete == 0;
+          2. be a folder (card_type == "folder");
+          3. belong to the given nav_id;
+          4. be a descendant of the previous id in the list
+             (parent_id == previous id), with the first id
+             having parent_id IS NULL.
+
+        Returns the longest VALID prefix of `path_ids`:
+          - if all ids are valid → the whole list;
+          - if id[0] is bad → an empty list (root);
+          - if id[0..k] are valid and id[k+1] is bad → the first
+            k+1 ids.
+
+        Never raises. A broken cookie (or a hostile client) simply
+        falls back to the root — the visitor sees the top of the
+        catalog, not an error page.
+        """
+        if not path_ids:
+            return []
+
+        valid: List[int] = []
+        expected_parent: Optional[int] = None
+
+        async for session in get_db_sqlite():
+            for candidate in path_ids:
+                stmt = select(Page).where(
+                    Page.id == candidate,
+                    Page.nav_id == nav_id,
+                    Page.is_delete == 0,
+                    Page.card_type == CARD_TYPE_FOLDER,
+                )
+                page = (await session.execute(stmt)).scalar_one_or_none()
+                if page is None:
+                    break
+
+                # Root check for the first element; parent check for
+                # the rest. Both compare against the previous step.
+                actual_parent = page.parent_id
+                if actual_parent != expected_parent:
+                    break
+
+                valid.append(candidate)
+                expected_parent = candidate
+
+            break
+
+        return valid
+
+    # ========================================
+    # FOLDER PATH — BREADCRUMBS
+    # ========================================
+
+    @staticmethod
+    async def get_folder_chain(
+        nav_id: int,
+        path_ids: Sequence[int],
+    ) -> List[CoreEngineLibPagesPublicCrumb]:
+        """
+        Build breadcrumbs for a (already validated) folder path.
+
+        `path_ids` — a list of folder ids from the root to the
+        current folder. Must be the result of resolve_folder_path
+        (already checked against the DB). This method does NOT
+        re-validate — it just loads the titles and builds crumbs.
+
+        Returns a list of crumbs, ALWAYS starting with the root:
+
+            [ {id: None, title: "Все", url: "/pages?root=1"},
+              {id: 12,  title: "Оборудование", url: "/pages/12"},
+              {id: 45,  title: "Ноутбуки",     url: "/pages/45"} ]
+
+        The root crumb's URL is `/pages?root=1`, not the bare
+        `/pages`. See _root_url() for the rationale — the bare
+        URL is ambiguous when the cookie names a folder.
+
+        The caller (route) may render the last crumb as plain text
+        instead of a link — it is the current folder.
+
+        If `path_ids` is empty, returns a single-crumb list with
+        only the root — so the template can render
+        "Все" unconditionally when breadcrumbs are used.
+
+        If a folder id from `path_ids` is missing in the DB (raced
+        with a delete, for example), it is silently skipped. The
+        caller already validated the path — this is defense
+        against a very unlikely race, not the primary guard.
+        """
+        crumbs: List[CoreEngineLibPagesPublicCrumb] = [
+            CoreEngineLibPagesPublicCrumb(
+                id=None,
+                title="Все",
+                url=_root_url(),
+            )
+        ]
+
+        if not path_ids:
+            return crumbs
+
+        async for session in get_db_sqlite():
+            stmt = select(Page).where(
+                Page.id.in_(list(path_ids)),
+                Page.nav_id == nav_id,
+                Page.is_delete == 0,
+                Page.card_type == CARD_TYPE_FOLDER,
+            )
+            rows = (await session.execute(stmt)).scalars().all()
+            by_id = {p.id: p for p in rows}
+
+            for fid in path_ids:
+                folder = by_id.get(fid)
+                if folder is None:
+                    continue
+                crumbs.append(
+                    CoreEngineLibPagesPublicCrumb(
+                        id=folder.id,
+                        title=folder.title or f"Папка {folder.id}",
+                        url=_folder_url(folder.id),
+                    )
+                )
+
+            break
+
+        return crumbs
+
+    # ========================================
+    # FOLDER — LOAD ONE
+    # ========================================
+
+    @staticmethod
+    async def get_folder_by_id(
+        folder_id: int,
+        nav_id: int,
+    ) -> Optional[Page]:
+        """
+        Load a single folder by id.
+
+        Used by the route to check that a URL segment like
+        /pages/<id> really points at a folder of the current nav,
+        before deciding what to render.
+
+        Returns the ORM object (Page) or None. The route uses
+        `folder.id` / `folder.title` only — this is not a public
+        payload; it does not go through the schema.
+        """
+        async for session in get_db_sqlite():
+            stmt = select(Page).where(
+                Page.id == folder_id,
+                Page.nav_id == nav_id,
+                Page.is_delete == 0,
+                Page.is_active == 1,
+                Page.card_type == CARD_TYPE_FOLDER,
+            )
+            page = (await session.execute(stmt)).scalar_one_or_none()
+            return page
+
+        return None
 
     # ========================================
     # MAIN PAGE
@@ -197,8 +466,9 @@ class CoreEngineLibPagesPublicService:
         """
         Get the main page of a nav instance.
 
-        Currently: the first active page (ORDER BY id ASC).
-        Later: configurable via is_main flag.
+        Only card_type='page' is eligible — folders are never the
+        "main page" of a site. Currently: the first active page
+        (ORDER BY id ASC). Later: configurable via is_main flag.
         """
         async for session in get_db_sqlite():
             stmt = (
@@ -207,6 +477,7 @@ class CoreEngineLibPagesPublicService:
                     Page.nav_id == nav_id,
                     Page.is_delete == 0,
                     Page.is_active == 1,
+                    Page.card_type == CARD_TYPE_PAGE,
                 )
                 .order_by(Page.id.asc())
                 .limit(1)
@@ -245,7 +516,7 @@ class CoreEngineLibPagesPublicService:
         datetime in DB has microseconds (15:39:10.666406),
         so we search in range [dt_start, dt_start + 1 sec).
 
-        Only returns active, non-deleted pages.
+        Only returns active, non-deleted pages (card_type='page').
         """
         try:
             dt_start = datetime.strptime(f"{date}{time}", "%Y%m%d%H%M%S")
@@ -261,6 +532,7 @@ class CoreEngineLibPagesPublicService:
                 Page.datetime < dt_end,
                 Page.is_delete == 0,
                 Page.is_active == 1,
+                Page.card_type == CARD_TYPE_PAGE,
             )
             result = await session.execute(stmt)
             page = result.scalar_one_or_none()
@@ -289,13 +561,12 @@ class CoreEngineLibPagesPublicService:
         is searched across every nav that user owns. There is no
         nav_id in the URL.
 
-        Only active, non-deleted pages are returned.
+        Only active, non-deleted pages (card_type='page') are
+        returned.
 
         If two navs of the same user contain a page with the same
         <date>/<time> (rare but possible — datetime is user-picked),
-        the one with the lowest nav_id wins. This is a deterministic
-        tie-breaker, and in practice it never happens within a
-        single user's content.
+        the one with the lowest nav_id wins. Deterministic.
         """
         try:
             dt_start = datetime.strptime(f"{date}{time}", "%Y%m%d%H%M%S")
@@ -315,6 +586,7 @@ class CoreEngineLibPagesPublicService:
                     Page.datetime < dt_end,
                     Page.is_delete == 0,
                     Page.is_active == 1,
+                    Page.card_type == CARD_TYPE_PAGE,
                 )
                 .order_by(Nav.id.asc(), Page.id.asc())
                 .limit(1)
@@ -341,19 +613,10 @@ class CoreEngineLibPagesPublicService:
         Find a page by date/time across ALL navs in the DB.
 
         DEV ONLY. Used by the public route when the request comes
-        from a dev host (localhost, 127.0.0.1, [::1]) — during
-        local development there is no APP_DOMAIN and no per-user
-        host resolution, so the page is looked up globally.
+        from a dev host (localhost, 127.0.0.1, [::1]).
 
-        On prod this method is never reached: every real request
-        has a Host that either resolves to a user (then
-        get_by_datetime_for_user is used) or does not (then the
-        route returns 404 without a DB call).
-
-        Only active, non-deleted pages are returned.
-
-        If two pages in different navs share the same <date>/<time>,
-        the one with the lowest nav_id wins — deterministic.
+        Only active, non-deleted pages (card_type='page') are
+        returned.
         """
         try:
             dt_start = datetime.strptime(f"{date}{time}", "%Y%m%d%H%M%S")
@@ -372,6 +635,7 @@ class CoreEngineLibPagesPublicService:
                     Page.datetime < dt_end,
                     Page.is_delete == 0,
                     Page.is_active == 1,
+                    Page.card_type == CARD_TYPE_PAGE,
                 )
                 .order_by(Nav.id.asc(), Page.id.asc())
                 .limit(1)
@@ -397,8 +661,9 @@ class CoreEngineLibPagesPublicService:
         """
         Find page by ID within a nav instance.
 
-        Used to load the base template page when rendering a child page.
-        Only returns active, non-deleted pages.
+        Used to load the base template page when rendering a child
+        page. Only returns active, non-deleted pages
+        (card_type='page').
         """
         async for session in get_db_sqlite():
             stmt = select(Page).where(
@@ -406,6 +671,7 @@ class CoreEngineLibPagesPublicService:
                 Page.nav_id == nav_id,
                 Page.is_delete == 0,
                 Page.is_active == 1,
+                Page.card_type == CARD_TYPE_PAGE,
             )
             result = await session.execute(stmt)
             page = result.scalar_one_or_none()
@@ -435,6 +701,10 @@ class CoreEngineLibPagesPublicService:
         NOTE: extraction is read-only — nothing is written back to
         the DB here. The page.css field is only persisted when the
         page is saved from the editor.
+
+        This method is only called for card_type='page' — all
+        callers filter by it. Folders have no content and never
+        reach this path.
         """
         content = page.content
         css = page.css
@@ -452,11 +722,14 @@ class CoreEngineLibPagesPublicService:
             content=content,
             css=css,
             template_id=page.template_id,
+            card_type=page.card_type or CARD_TYPE_PAGE,
+            parent_id=page.parent_id,
         )
 
     @staticmethod
     def _page_to_list_item(
         page: Page,
+        children_count: Optional[int] = None,
     ) -> CoreEngineLibPagesPublicItemListItem:
         """
         Convert Page ORM object to the list-item schema used by the
@@ -468,10 +741,13 @@ class CoreEngineLibPagesPublicService:
         separate makes it obvious at a glance which fields each
         consumer depends on.
 
-        `url` is resolved via _resolve_card_url: for link cards
-        (page.url set) it is the external URL, for regular pages it
-        is /page/<date>/<time>. The template does not need to know
-        which case it is — it just renders <a href="{url}">.
+        `url` is resolved via _resolve_card_url:
+          - for a folder → /pages/<id>;
+          - for a page with external `url` → that URL;
+          - for a regular page → /page/<date>/<time>.
+
+        `children_count` is passed only for folders; None for
+        pages. See get_list().
         """
         return CoreEngineLibPagesPublicItemListItem(
             id=page.id,
@@ -481,4 +757,7 @@ class CoreEngineLibPagesPublicService:
             description=page.description,
             logo=page.logo,
             url=_resolve_card_url(page),
+            card_type=page.card_type or CARD_TYPE_PAGE,
+            parent_id=page.parent_id,
+            children_count=children_count,
         )
