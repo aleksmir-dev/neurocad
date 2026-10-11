@@ -6,6 +6,7 @@ from .pages.route import router as pages_router
 from .word.route import router as word_router
 from .base.route import router as base_router
 from .balance.route import router as balance_router
+from .creatives.route import router as creatives_router
 
 router = APIRouter(prefix="/lib", tags=["core/engine/lib"])
 
@@ -14,3 +15,4 @@ router.include_router(pages_router)
 router.include_router(word_router)
 router.include_router(base_router)
 router.include_router(balance_router)
+router.include_router(creatives_router)

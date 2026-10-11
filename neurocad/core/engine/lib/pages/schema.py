@@ -73,6 +73,21 @@ class CoreEngineLibPagesItemBase(BaseModel):
     is_template: int = Field(0, description="Base template: 1 — yes, 0 — no")
     template_id: Optional[int] = Field(None, description="Base template ID (inheritance)")
 
+    # ===== Creative attachment =====
+    # Optional. When set, saving the page creates (or keeps) an
+    # active placement row in the `placements` table, linking this
+    # page to the chosen creative. Clearing the value, or setting
+    # `is_active = 0`, closes the active placement (sets date_end).
+    #
+    # `creative_id` is NOT stored on the page itself — the placement
+    # is the single source of truth. The value here is only used on
+    # save (create/update) and echoed back in list/response payloads
+    # so the edit form can pre-select the current creative.
+    creative_id: Optional[int] = Field(
+        None,
+        description="Attached creative id, or None for no creative",
+    )
+
 
 # ============================================
 # CREATE
@@ -121,6 +136,16 @@ class CoreEngineLibPagesItemUpdate(BaseModel):
     is_template: Optional[int] = None
     template_id: Optional[int] = None
 
+    # ===== Creative attachment =====
+    # Set to a non-zero id to attach (or switch to) a creative; set
+    # to null (or 0) to detach and close the active placement. Omit
+    # the field to leave the current attachment untouched.
+    #
+    # NOTE: the service must use `exclude_unset=True` when reading
+    # this field so that "creative_id omitted" and "creative_id =
+    # None" are distinguishable. Only an explicit null detaches.
+    creative_id: Optional[int] = None
+
 
 # ============================================
 # LIST ITEM (without content/content_json)
@@ -157,6 +182,13 @@ class CoreEngineLibPagesItemListItem(BaseModel):
     # Template system
     is_template: int = 0
     template_id: Optional[int] = None
+
+    # ===== Creative attachment =====
+    # Current active creative attached to this page, or None.
+    # The service fills this in from the `placements` table — it is
+    # NOT a column on the page. Used by the edit form to pre-select
+    # the current creative in the "Креатив" dropdown.
+    creative_id: Optional[int] = None
 
     class Config:
         from_attributes = True

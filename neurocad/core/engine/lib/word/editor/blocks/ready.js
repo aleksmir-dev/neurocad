@@ -17,6 +17,8 @@
  *   - CTA            — dark call-to-action: heading + text + button
  *   - Contacts       — contact info: address, phone, email
  *   - Footer         — bottom section: brand + legal links
+ *   - Article catalog — grid of page cards (links)
+ *   - Creative       — advertising insert (text + link + legal line)
  *
  * NOTE: blocks are NOT wrapped in .core-engine-lib-word-blocks anymore.
  * That class is the single scope wrapper for the whole page:
@@ -446,6 +448,110 @@ export class ReadyBlocks {
                                 </div>
                             </a>
                         </div>
+                    </div>
+                </section>
+            `,
+        });
+
+        // ===== CREATIVE =====
+
+        /*
+         * Creative — advertising insert.
+         *
+         * Структура блока:
+         *
+         *   <section class="section creative-block" data-block="core-creative">
+         *     <div class="container creative-block__inner" data-creative-block>
+         *       <p class="creative-block__text">…описание рекламы…</p>
+         *       <a class="creative-block__link" href="…" target="_blank"
+         *          rel="noopener noreferrer nofollow sponsored">
+         *         <span class="creative-block__btn-text">…CTA…</span>
+         *         <span class="creative-block__arrow">→</span>
+         *       </a>
+         *       <p class="creative-block__legal">
+         *         Реклама. <span class="creative-block__brand">…бренд…</span>
+         *         ИНН <span class="creative-block__inn">…ИНН…</span>
+         *         erid: <span class="creative-block__erid">…ERID…</span>
+         *       </p>
+         *     </div>
+         *   </section>
+         *
+         * ПОЧЕМУ ИМЕННО ТАК
+         * -----------------
+         * 1. Маркер data-creative-block стоит на ВЛОЖЕННОМ <div>,
+         *    а не на корне <section>. Это сделано специально —
+         *    чтобы работала автоподстановка. Точка входа —
+         *    canvas:drop в editor/creative.js, там делается
+         *    model.find('[data-creative-block]').
+         *
+         *    GrapesJS: model.find(selector) ищет только среди
+         *    ДОЧЕРНИХ компонентов, сам model в результат не
+         *    попадает. Если бы маркер стоял на корне <section>,
+         *    find() вернул бы пусто, и автоподстановка не
+         *    сработала бы. У подвала (core-footer) маркер
+         *    data-footer-brand тоже стоит на вложенном <div> —
+         *    работает по той же причине.
+         *
+         * 2. Юридические реквизиты (brand, inn, erid) — три
+         *    отдельные span-а. Автоподстановка находит их по
+         *    классу и заменяет только содержимое.
+         *
+         * 3. rel="noopener noreferrer nofollow sponsored" —
+         *    sponsored обязателен для поисковых систем по
+         *    требованиям маркировки рекламы. nofollow — не
+         *    передавать вес. noopener noreferrer — стандарт
+         *    для target="_blank".
+         *
+         * 4. target="_blank" — реклама открывается в новой
+         *    вкладке, чтобы не уводить пользователя со
+         *    страницы.
+         *
+         * 5. data-block="core-creative" — как у всех блоков.
+         *    Используется бэком для подбора CSS и аналитикой.
+         *
+         * АВТОПОДСТАНОВКА ДАННЫХ ИЗ КРЕАТИВА
+         * ----------------------------------
+         * При drop блока в canvas открывается модалка со списком
+         * креативов (см. editor/creative.js). После выбора:
+         *   - .creative-block__text       ← creative.text
+         *   - .creative-block__btn-text   ← creative.button_text
+         *   - .creative-block__link[href] ← creative.target_url
+         *   - .creative-block__brand      ← creative.brand
+         *   - .creative-block__inn        ← creative.inn
+         *   - .creative-block__erid       ← creative.erid
+         *
+         * Пустые поля креатива — соответствующий span скрывается
+         * (display: none). Юридическая строка автоматически
+         * становится короче. Закон о рекламе соблюдён: что есть —
+         * показано, чего нет — не показано.
+         *
+         * ПРИМЕЧАНИЕ ПРО СТИЛИ
+         * --------------------
+         * Стили блока живут в ready.css → .creative-block*.
+         * Блок умышленно скромный: без фона, без рамки, без
+         * акцентных кнопок. Реклама в статье не должна
+         * выпячиваться. Если нужен более заметный дизайн —
+         * правится только ready.css, HTML не меняется.
+         */
+        this.bm.add('core-creative', {
+            label: 'Креатив (реклама)',
+            category: this.category,
+            media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="6" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="2"/><line x1="6" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="2"/><circle cx="19" cy="6" r="1.5" fill="currentColor"/></svg>',
+            content: `
+                <section class="section creative-block" data-block="core-creative">
+                    <div class="container creative-block__inner" data-creative-block>
+                        <p class="creative-block__text">
+                            Ищете хостинг для размещения вашего проекта в сети Интернет?
+                        </p>
+                        <a href="#" class="creative-block__link" target="_blank" rel="noopener noreferrer nofollow sponsored">
+                            <span class="creative-block__btn-text">Посмотрите здесь</span>
+                            <span class="creative-block__arrow" aria-hidden="true">→</span>
+                        </a>
+                        <p class="creative-block__legal">
+                            Реклама. <span class="creative-block__brand">ООО «Рекламодатель»</span>
+                            ИНН <span class="creative-block__inn">0000000000</span>
+                            erid: <span class="creative-block__erid">—</span>
+                        </p>
                     </div>
                 </section>
             `,

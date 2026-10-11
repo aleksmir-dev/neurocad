@@ -40594,7 +40594,10 @@ INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo",
           За десять лет работы я провела более 400 съёмок — от портретов и семейных
           историй до репортажей и лукбуков для небольших брендов. Работаю в Москве
           и с удовольствием выезжаю на съёмки в другие города.
-        </p><ul class="about-anna__facts"><li class="about-anna__fact"><span class="about-anna__fact-value">400+</span><span class="about-anna__fact-label">съёмок</span></li><li class="about-anna__fact"><span class="about-anna__fact-value">10 лет</span><span class="about-anna__fact-label">опыта</span></li><li class="about-anna__fact"><span class="about-anna__fact-value">Москва</span><span class="about-anna__fact-label">и выезды</span></li></ul><div class="about-anna__contact"><span class="about-anna__contact-label">Instagram</span><a href="https://instagram.com/anna_photo" target="_blank" rel="noopener noreferrer" class="about-anna__contact-value">@anna_photo</a></div></div></div></div></section><section class="services-section"><div class="services-container"><div class="services-header"><span class="services-label">Услуги</span><h2 class="services-title">Съёмка, которая говорит за вас</h2><p class="services-subtitle">Каждый кадр — это история. Я помогаю рассказать вашу так, чтобы её хотелось пересматривать.</p></div><div class="services-grid"><article class="services-card"><div aria-hidden="true" class="services-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><h3 class="services-card-title">Портретная съёмка</h3><p class="services-card-text">Индивидуальные и парные портреты в студии или на локации. Помогу раскрыться перед камерой — даже если вы никогда не позировали.</p><span class="services-card-meta">от 8 000 ₽ · 1,5 часа</span></article><article class="services-card"><div aria-hidden="true" class="services-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"></path></svg></div><h3 class="services-card-title">Love story</h3><p class="services-card-text">Съёмка для пар и влюблённых. Естественные эмоции, мягкий свет и атмосфера, в которой хочется быть собой.</p><span class="services-card-meta">от 12 000 ₽ · 2 часа</span></article><article class="services-card"><div aria-hidden="true" class="services-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"></rect><circle cx="12" cy="13" r="3.5"></circle><path d="M8 7l1.5-3h5L16 7"></path></svg></div><h3 class="services-card-title">Свадебная съёмка</h3><p class="services-card-text">Полный день или отдельные моменты — от сборов до первого танца. Живые кадры без постановки и лишнего позирования.</p><span class="services-card-meta">от 45 000 ₽ · весь день</span></article><article class="services-card"><div aria-hidden="true" class="services-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3z"></path><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M3 12h18"></path></svg></div><h3 class="services-card-title">Контент для брендов</h3><p class="services-card-text">Съёмка для соцсетей, каталогов и лендингов. Помогу выстроить визуальный стиль, который работает на узнаваемость.</p><span class="services-card-meta">от 15 000 ₽ · по задаче</span></article></div><div class="services-footer"><p class="services-footer-text">Не нашли подходящий формат? Напишите — обсудим вашу идею и подберём решение.</p><a href="https://instagram.com/anna_photo" target="_blank" rel="noopener noreferrer" class="services-footer-link">@anna_photo</a></div></div></section><section class="contacts-section"><div class="contacts-container"><div class="contacts-header"><span class="contacts-label">Контакты</span><h2 class="contacts-title">Давайте работать вместе</h2><p class="contacts-subtitle">Открыта для съёмок в Москве и области. Портреты, лайфстайл, семейные истории.</p></div><div class="contacts-grid"><div class="contacts-card"><div aria-hidden="true" class="contacts-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z"></path><circle cx="12" cy="10" r="2.6"></circle></svg></div><h3 class="contacts-card-title">Локация</h3><p class="contacts-card-text">Москва<br/>выезд по области — по договорённости</p></div><div class="contacts-card"><div aria-hidden="true" class="contacts-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><path d="M3.5 7l8.5 6 8.5-6"></path></svg></div><h3 class="contacts-card-title">Почта</h3><p class="contacts-card-text">anna.photo@mail.ru<br/>отвечаю в течение дня</p></div><div class="contacts-card"><div aria-hidden="true" class="contacts-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"></circle></svg></div><h3 class="contacts-card-title">Instagram</h3><p class="contacts-card-text">@anna_photo<br/>свежие работы и закулисье</p></div></div><div class="contacts-cta" id="igkbpj"><p class="contacts-cta-text">Расскажите о своей идее — обсудим детали и подберём дату.</p><a href="https://instagram.com/anna_photo" target="_blank" rel="noopener noreferrer" class="contacts-button" id="i2byzd">Написать в MAX</a></div></div></section></body>', '{"assets":[],"styles":[{"selectors":["hero-anna"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(245, 246, 247)","color":"rgb(43, 47, 51)","padding-top":"96px","padding-right":"24px","padding-bottom":"96px","padding-left":"24px","font-family":"-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"}},{"selectors":["hero-anna__inner"],"style":{"max-width":"1080px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","display":"grid","grid-template-columns":"1.1fr 0.9fr","row-gap":"64px","column-gap":"64px","align-items":"center"}},{"selectors":["hero-anna__content"],"style":{"max-width":"520px"}},{"selectors":["hero-anna__eyebrow"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"20px","margin-left":"0px","font-size":"13px","letter-spacing":"0.18em","text-transform":"uppercase","color":"rgb(138, 144, 150)"}},{"selectors":["hero-anna__title"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"20px","margin-left":"0px","font-size":"72px","line-height":"1.02","font-weight":"600","letter-spacing":"-0.02em","color":"rgb(35, 39, 43)"}},{"selectors":["hero-anna__subtitle"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"36px","margin-left":"0px","font-size":"18px","line-height":"1.6","color":"rgb(92, 99, 105)"}},{"selectors":["hero-anna__actions"],"style":{"display":"flex","flex-wrap":"wrap","row-gap":"12px","column-gap":"12px","margin-bottom":"32px"}},{"selectors":["hero-anna__btn"],"style":{"display":"inline-block","padding-top":"14px","padding-right":"26px","padding-bottom":"14px","padding-left":"26px","border-top-left-radius":"999px","border-top-right-radius":"999px","border-bottom-right-radius":"999px","border-bottom-left-radius":"999px","font-size":"15px","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","transition-behavior":"normal, normal, normal","transition-duration":"0.2s, 0.2s, 0.2s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"background-color, color, border-color"}},{"selectors":["hero-anna__btn--primary"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(43, 47, 51)","color":"rgb(245, 246, 247)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgb(43, 47, 51)","border-right-color":"rgb(43, 47, 51)","border-bottom-color":"rgb(43, 47, 51)","border-left-color":"rgb(43, 47, 51)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial"}},{"selectors":["hero-anna__btn--primary"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(58, 63, 68)","border-top-color":"rgb(58, 63, 68)","border-right-color":"rgb(58, 63, 68)","border-bottom-color":"rgb(58, 63, 68)","border-left-color":"rgb(58, 63, 68)"},"state":"hover"},{"selectors":["hero-anna__btn--ghost"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"transparent","color":"rgb(43, 47, 51)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgb(200, 204, 208)","border-right-color":"rgb(200, 204, 208)","border-bottom-color":"rgb(200, 204, 208)","border-left-color":"rgb(200, 204, 208)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial"}},{"selectors":["hero-anna__btn--ghost"],"style":{"border-top-color":"rgb(138, 144, 150)","border-right-color":"rgb(138, 144, 150)","border-bottom-color":"rgb(138, 144, 150)","border-left-color":"rgb(138, 144, 150)"},"state":"hover"},{"selectors":["hero-anna__social"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","display":"flex","align-items":"center","row-gap":"10px","column-gap":"10px","font-size":"15px","color":"rgb(92, 99, 105)"}},{"selectors":["hero-anna__social-icon"],"style":{"display":"inline-flex","align-items":"center","justify-content":"center","width":"28px","height":"28px","border-top-left-radius":"50%","border-top-right-radius":"50%","border-bottom-right-radius":"50%","border-bottom-left-radius":"50%","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(226, 229, 232)","color":"rgb(92, 99, 105)","font-size":"14px"}},{"selectors":["hero-anna__social-link"],"style":{"color":"rgb(43, 47, 51)","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","border-bottom-width":"1px","border-bottom-style":"solid","border-bottom-color":"rgb(200, 204, 208)","padding-bottom":"1px"}},{"selectors":["hero-anna__social-link"],"style":{"border-top-color":"rgb(43, 47, 51)","border-right-color":"rgb(43, 47, 51)","border-bottom-color":"rgb(43, 47, 51)","border-left-color":"rgb(43, 47, 51)"},"state":"hover"},{"selectors":["hero-anna__visual"],"style":{"display":"flex","justify-content":"center"}},{"selectors":["hero-anna__svg"],"style":{"width":"100%","max-width":"320px","height":"auto","display":"block"}},{"selectors":["hero-anna"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-anna__inner"],"style":{"grid-template-columns":"1fr","row-gap":"40px","column-gap":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-anna__title"],"style":{"font-size":"52px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-anna__subtitle"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-anna__visual"],"style":{"order":"-1"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-anna__svg"],"style":{"max-width":"240px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna"],"style":{"background-color":"rgb(244, 244, 244)","padding-top":"96px","padding-right":"24px","padding-bottom":"96px","padding-left":"24px","font-family":"\"Helvetica Neue\", Arial, sans-serif","color":"rgb(43, 43, 43)"}},{"selectors":["about-anna__container"],"style":{"max-width":"1080px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["about-anna__grid"],"style":{"display":"grid","grid-template-columns":"320px 1fr","row-gap":"64px","column-gap":"64px","align-items":"center"}},{"selectors":["about-anna__visual"],"style":{"position":"relative","display":"flex","justify-content":"center"}},{"selectors":["about-anna__portrait"],"style":{"width":"100%","max-width":"320px","border-top-left-radius":"4px","border-top-right-radius":"4px","border-bottom-right-radius":"4px","border-bottom-left-radius":"4px","overflow-x":"hidden","overflow-y":"hidden","background-color":"rgb(232, 232, 232)"}},{"selectors":[],"selectorsAdd":".about-anna__portrait svg","style":{"display":"block","width":"100%","height":"auto"}},{"selectors":["about-anna__badge"],"style":{"position":"absolute","bottom":"16px","left":"50%","transform":"translateX(-50%)","background-color":"rgb(255, 255, 255)","color":"rgb(107, 107, 107)","font-size":"12px","letter-spacing":"0.08em","text-transform":"uppercase","padding-top":"8px","padding-right":"16px","padding-bottom":"8px","padding-left":"16px","border-top-left-radius":"2px","border-top-right-radius":"2px","border-bottom-right-radius":"2px","border-bottom-left-radius":"2px","white-space-collapse":"collapse","text-wrap":"nowrap","z-index":"1"}},{"selectors":["about-anna__content"],"style":{"max-width":"560px"}},{"selectors":["about-anna__eyebrow"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"12px","margin-left":"0px","font-size":"12px","letter-spacing":"0.18em","text-transform":"uppercase","color":"rgb(154, 154, 154)"}},{"selectors":["about-anna__title"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"24px","margin-left":"0px","font-size":"34px","line-height":"1.25","font-weight":"400","letter-spacing":"-0.01em","color":"rgb(31, 31, 31)"}},{"selectors":["about-anna__lead"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"16px","margin-left":"0px","font-size":"17px","line-height":"1.65","color":"rgb(61, 61, 61)"}},{"selectors":["about-anna__text"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"40px","margin-left":"0px","font-size":"15px","line-height":"1.7","color":"rgb(107, 107, 107)"}},{"selectors":["about-anna__facts"],"style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","margin-top":"0px","margin-right":"0px","margin-bottom":"40px","margin-left":"0px","padding-top":"0px","padding-right":"0px","padding-bottom":"0px","padding-left":"0px","display":"flex","row-gap":"40px","column-gap":"40px","flex-wrap":"wrap"}},{"selectors":["about-anna__fact"],"style":{"display":"flex","flex-direction":"column","row-gap":"4px","column-gap":"4px"}},{"selectors":["about-anna__fact-value"],"style":{"font-size":"22px","font-weight":"400","color":"rgb(31, 31, 31)"}},{"selectors":["about-anna__fact-label"],"style":{"font-size":"12px","letter-spacing":"0.1em","text-transform":"uppercase","color":"rgb(154, 154, 154)"}},{"selectors":["about-anna__contact"],"style":{"display":"inline-flex","align-items":"baseline","row-gap":"12px","column-gap":"12px","padding-top":"24px","border-top-width":"1px","border-top-style":"solid","border-top-color":"rgb(220, 220, 220)"}},{"selectors":["about-anna__contact-label"],"style":{"font-size":"12px","letter-spacing":"0.1em","text-transform":"uppercase","color":"rgb(154, 154, 154)"}},{"selectors":["about-anna__contact-value"],"style":{"font-size":"16px","color":"rgb(31, 31, 31)","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial"}},{"selectors":["about-anna__contact-value"],"style":{"text-decoration-line":"underline","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial"},"state":"hover"},{"selectors":["about-anna"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__grid"],"style":{"grid-template-columns":"1fr","row-gap":"40px","column-gap":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__visual"],"style":{"justify-content":"flex-start"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__portrait"],"style":{"max-width":"240px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__title"],"style":{"font-size":"26px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__facts"],"style":{"row-gap":"28px","column-gap":"28px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__contact"],"style":{"flex-direction":"column","row-gap":"6px","column-gap":"6px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-section"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(244, 245, 246)","padding-top":"96px","padding-right":"24px","padding-bottom":"96px","padding-left":"24px","font-family":"-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif","color":"rgb(43, 47, 51)"}},{"selectors":["services-container"],"style":{"max-width":"1120px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["services-header"],"style":{"max-width":"640px","margin-top":"0px","margin-right":"auto","margin-bottom":"64px","margin-left":"auto","text-align":"center"}},{"selectors":["services-label"],"style":{"display":"inline-block","font-size":"12px","letter-spacing":"0.18em","text-transform":"uppercase","color":"rgb(138, 144, 150)","margin-bottom":"16px"}},{"selectors":["services-title"],"style":{"font-size":"36px","line-height":"1.2","font-weight":"500","margin-top":"0px","margin-right":"0px","margin-bottom":"16px","margin-left":"0px","color":"rgb(31, 35, 38)"}},{"selectors":["services-subtitle"],"style":{"font-size":"16px","line-height":"1.6","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["services-grid"],"style":{"display":"grid","grid-template-columns":"repeat(2, 1fr)","row-gap":"24px","column-gap":"24px"}},{"selectors":["services-card"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgb(230, 232, 234)","border-right-color":"rgb(230, 232, 234)","border-bottom-color":"rgb(230, 232, 234)","border-left-color":"rgb(230, 232, 234)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","border-top-left-radius":"12px","border-top-right-radius":"12px","border-bottom-right-radius":"12px","border-bottom-left-radius":"12px","padding-top":"32px","padding-right":"28px","padding-bottom":"32px","padding-left":"28px","display":"flex","flex-direction":"column","transition-behavior":"normal, normal","transition-duration":"0.2s, 0.2s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"border-color, transform"}},{"selectors":["services-card"],"style":{"border-top-color":"rgb(201, 206, 211)","border-right-color":"rgb(201, 206, 211)","border-bottom-color":"rgb(201, 206, 211)","border-left-color":"rgb(201, 206, 211)","transform":"translateY(-2px)"},"state":"hover"},{"selectors":["services-icon"],"style":{"width":"40px","height":"40px","color":"rgb(107, 113, 120)","margin-bottom":"20px"}},{"selectors":[],"selectorsAdd":".services-icon svg","style":{"width":"100%","height":"100%","display":"block"}},{"selectors":["services-card-title"],"style":{"font-size":"20px","font-weight":"500","margin-top":"0px","margin-right":"0px","margin-bottom":"12px","margin-left":"0px","color":"rgb(31, 35, 38)"}},{"selectors":["services-card-text"],"style":{"font-size":"15px","line-height":"1.6","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"20px","margin-left":"0px","flex-grow":"1"}},{"selectors":["services-card-meta"],"style":{"font-size":"13px","letter-spacing":"0.04em","color":"rgb(138, 144, 150)","padding-top":"16px","border-top-width":"1px","border-top-style":"solid","border-top-color":"rgb(238, 240, 241)"}},{"selectors":["services-footer"],"style":{"margin-top":"56px","text-align":"center"}},{"selectors":["services-footer-text"],"style":{"font-size":"15px","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"12px","margin-left":"0px"}},{"selectors":["services-footer-link"],"style":{"display":"inline-block","font-size":"15px","color":"rgb(31, 35, 38)","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","border-bottom-width":"1px","border-bottom-style":"solid","border-bottom-color":"rgb(201, 206, 211)","padding-bottom":"2px","transition-behavior":"normal, normal","transition-duration":"0.2s, 0.2s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"border-color, color"}},{"selectors":["services-footer-link"],"style":{"color":"rgb(0, 0, 0)","border-top-color":"rgb(31, 35, 38)","border-right-color":"rgb(31, 35, 38)","border-bottom-color":"rgb(31, 35, 38)","border-left-color":"rgb(31, 35, 38)"},"state":"hover"},{"selectors":["services-section"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-header"],"style":{"margin-bottom":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-title"],"style":{"font-size":"26px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-subtitle"],"style":{"font-size":"15px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-grid"],"style":{"grid-template-columns":"1fr","row-gap":"16px","column-gap":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-card"],"style":{"padding-top":"24px","padding-right":"20px","padding-bottom":"24px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-footer"],"style":{"margin-top":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-section"],"style":{"padding-top":"48px","padding-right":"16px","padding-bottom":"48px","padding-left":"16px"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":["services-title"],"style":{"font-size":"22px"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":["services-card"],"style":{"padding-top":"20px","padding-right":"16px","padding-bottom":"20px","padding-left":"16px"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":["contacts-section"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(244, 245, 246)","color":"rgb(43, 47, 51)","padding-top":"96px","padding-right":"24px","padding-bottom":"96px","padding-left":"24px","font-family":"Inter, \"Helvetica Neue\", Arial, sans-serif"}},{"selectors":["contacts-container"],"style":{"max-width":"1080px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["contacts-header"],"style":{"text-align":"center","max-width":"620px","margin-top":"0px","margin-right":"auto","margin-bottom":"56px","margin-left":"auto"}},{"selectors":["contacts-label"],"style":{"display":"inline-block","font-size":"12px","letter-spacing":"0.18em","text-transform":"uppercase","color":"rgb(138, 144, 153)","margin-bottom":"16px"}},{"selectors":["contacts-title"],"style":{"font-size":"34px","line-height":"1.2","font-weight":"500","margin-top":"0px","margin-right":"0px","margin-bottom":"16px","margin-left":"0px","color":"rgb(34, 38, 42)"}},{"selectors":["contacts-subtitle"],"style":{"font-size":"16px","line-height":"1.6","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["contacts-grid"],"style":{"display":"grid","grid-template-columns":"repeat(3, 1fr)","row-gap":"20px","column-gap":"20px","margin-bottom":"56px"}},{"selectors":["contacts-card"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgb(230, 232, 234)","border-right-color":"rgb(230, 232, 234)","border-bottom-color":"rgb(230, 232, 234)","border-left-color":"rgb(230, 232, 234)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","border-top-left-radius":"14px","border-top-right-radius":"14px","border-bottom-right-radius":"14px","border-bottom-left-radius":"14px","padding-top":"32px","padding-right":"26px","padding-bottom":"32px","padding-left":"26px","text-align":"left","transition-behavior":"normal, normal","transition-duration":"0.25s, 0.25s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"border-color, transform"}},{"selectors":["contacts-card"],"style":{"border-top-color":"rgb(207, 211, 215)","border-right-color":"rgb(207, 211, 215)","border-bottom-color":"rgb(207, 211, 215)","border-left-color":"rgb(207, 211, 215)","transform":"translateY(-3px)"},"state":"hover"},{"selectors":["contacts-icon"],"style":{"width":"44px","height":"44px","border-top-left-radius":"50%","border-top-right-radius":"50%","border-bottom-right-radius":"50%","border-bottom-left-radius":"50%","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(240, 241, 242)","color":"rgb(90, 96, 104)","display":"flex","align-items":"center","justify-content":"center","margin-bottom":"20px"}},{"selectors":["contacts-card-title"],"style":{"font-size":"17px","font-weight":"500","margin-top":"0px","margin-right":"0px","margin-bottom":"10px","margin-left":"0px","color":"rgb(34, 38, 42)"}},{"selectors":["contacts-card-text"],"style":{"font-size":"15px","line-height":"1.6","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["contacts-cta"],"style":{"text-align":"center","border-top-width":"1px","border-top-style":"solid","border-top-color":"rgb(226, 228, 230)","padding-top":"48px"}},{"selectors":["contacts-cta-text"],"style":{"font-size":"16px","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"24px","margin-left":"0px"}},{"selectors":["contacts-button"],"style":{"display":"inline-block","padding-top":"14px","padding-right":"34px","padding-bottom":"14px","padding-left":"34px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(43, 47, 51)","color":"rgb(255, 255, 255)","font-size":"15px","letter-spacing":"0.02em","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","border-top-left-radius":"999px","border-top-right-radius":"999px","border-bottom-right-radius":"999px","border-bottom-left-radius":"999px","transition-behavior":"normal","transition-duration":"0.25s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"background"}},{"selectors":["contacts-button"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(67, 72, 77)"},"state":"hover"},{"selectors":["contacts-section"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-header"],"style":{"margin-bottom":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-title"],"style":{"font-size":"26px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-grid"],"style":{"grid-template-columns":"1fr","row-gap":"16px","column-gap":"16px","margin-bottom":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-card"],"style":{"padding-top":"26px","padding-right":"22px","padding-bottom":"26px","padding-left":"22px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-cta"],"style":{"padding-top":"36px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-button"],"style":{"display":"block","width":"100%","box-sizing":"border-box"},"mediaText":"(max-width: 768px)","atRuleType":"media"}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"tagName":"section","classes":["hero-anna"],"components":[{"classes":["hero-anna__inner"],"components":[{"classes":["hero-anna__content"],"components":[{"tagName":"p","type":"text","classes":["hero-anna__eyebrow"],"components":[{"type":"textnode","content":"Фотограф · Москва"}]},{"tagName":"h1","type":"text","classes":["hero-anna__title"],"components":[{"type":"textnode","content":"Анна"}]},{"tagName":"p","type":"text","classes":["hero-anna__subtitle"],"components":[{"type":"textnode","content":"Портретная и репортажная съёмка. Естественный свет, спокойные кадры, внимание к деталям."}]},{"classes":["hero-anna__actions"],"components":[{"type":"link","classes":["hero-anna__btn","hero-anna__btn--primary"],"attributes":{"href":"#contacts"},"components":[{"type":"textnode","content":"Обсудить съёмку"}]},{"type":"link","classes":["hero-anna__btn","hero-anna__btn--ghost"],"attributes":{"href":"#portfolio"},"components":[{"type":"textnode","content":"Смотреть работы"}]}]},{"tagName":"p","classes":["hero-anna__social"],"components":[{"tagName":"span","type":"text","classes":["hero-anna__social-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"textnode","content":"◎"}]},{"type":"link","classes":["hero-anna__social-link"],"attributes":{"href":"https://instagram.com/anna_photo","target":"_blank","rel":"noopener"},"components":[{"type":"textnode","content":"@anna_photo"}]}]}]},{"classes":["hero-anna__visual"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"classes":["hero-anna__svg"],"attributes":{"viewBox":"0 0 320 400","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Абстрактная иллюстрация фотокадра"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"0","y":"0","width":"320","height":"400","rx":"12","fill":"#eef0f2"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"24","y":"24","width":"272","height":"352","rx":"8","fill":"#e2e5e8"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"160","cy":"170","r":"62","fill":"#cfd4d8"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"70","y":"270","width":"180","height":"10","rx":"5","fill":"#cfd4d8"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"100","y":"296","width":"120","height":"10","rx":"5","fill":"#d8dcdf"}}]}]}]}]},{"tagName":"section","classes":["about-anna"],"components":[{"classes":["about-anna__container"],"components":[{"classes":["about-anna__grid"],"components":[{"classes":["about-anna__visual"],"components":[{"classes":["about-anna__portrait"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 200 200","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Портрет Анны"},"components":[{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"100","cy":"100","r":"100","fill":"#e8e8e8"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"100","cy":"78","r":"34","fill":"#c9c9c9"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M40 180c0-33 27-60 60-60s60 27 60 60z","fill":"#c9c9c9"}}]}]},{"tagName":"span","type":"text","classes":["about-anna__badge"],"components":[{"type":"textnode","content":"с 2014 года"}]}]},{"classes":["about-anna__content"],"components":[{"tagName":"p","type":"text","classes":["about-anna__eyebrow"],"components":[{"type":"textnode","content":"Обо мне"}]},{"tagName":"h2","type":"text","classes":["about-anna__title"],"components":[{"type":"textnode","content":"Анна — фотограф из Москвы"}]},{"tagName":"p","type":"text","classes":["about-anna__lead"],"components":[{"type":"textnode","content":"\n          Снимаю людей такими, какие они есть: без лишнего пафоса и постановки.\n          Мне важно поймать живой взгляд и настоящую эмоцию в кадре.\n        "}]},{"tagName":"p","type":"text","classes":["about-anna__text"],"components":[{"type":"textnode","content":"\n          За десять лет работы я провела более 400 съёмок — от портретов и семейных\n          историй до репортажей и лукбуков для небольших брендов. Работаю в Москве\n          и с удовольствием выезжаю на съёмки в другие города.\n        "}]},{"tagName":"ul","classes":["about-anna__facts"],"components":[{"tagName":"li","classes":["about-anna__fact"],"components":[{"tagName":"span","type":"text","classes":["about-anna__fact-value"],"components":[{"type":"textnode","content":"400+"}]},{"tagName":"span","type":"text","classes":["about-anna__fact-label"],"components":[{"type":"textnode","content":"съёмок"}]}]},{"tagName":"li","classes":["about-anna__fact"],"components":[{"tagName":"span","type":"text","classes":["about-anna__fact-value"],"components":[{"type":"textnode","content":"10 лет"}]},{"tagName":"span","type":"text","classes":["about-anna__fact-label"],"components":[{"type":"textnode","content":"опыта"}]}]},{"tagName":"li","classes":["about-anna__fact"],"components":[{"tagName":"span","type":"text","classes":["about-anna__fact-value"],"components":[{"type":"textnode","content":"Москва"}]},{"tagName":"span","type":"text","classes":["about-anna__fact-label"],"components":[{"type":"textnode","content":"и выезды"}]}]}]},{"classes":["about-anna__contact"],"components":[{"tagName":"span","type":"text","classes":["about-anna__contact-label"],"components":[{"type":"textnode","content":"Instagram"}]},{"type":"link","classes":["about-anna__contact-value"],"attributes":{"href":"https://instagram.com/anna_photo","target":"_blank","rel":"noopener noreferrer"},"components":[{"type":"textnode","content":"@anna_photo"}]}]}]}]}]}]},{"tagName":"section","classes":["services-section"],"components":[{"classes":["services-container"],"components":[{"classes":["services-header"],"components":[{"tagName":"span","type":"text","classes":["services-label"],"components":[{"type":"textnode","content":"Услуги"}]},{"tagName":"h2","type":"text","classes":["services-title"],"components":[{"type":"textnode","content":"Съёмка, которая говорит за вас"}]},{"tagName":"p","type":"text","classes":["services-subtitle"],"components":[{"type":"textnode","content":"Каждый кадр — это история. Я помогаю рассказать вашу так, чтобы её хотелось пересматривать."}]}]},{"classes":["services-grid"],"components":[{"tagName":"article","classes":["services-card"],"components":[{"classes":["services-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"12","cy":"7","r":"4"}}]}]},{"tagName":"h3","type":"text","classes":["services-card-title"],"components":[{"type":"textnode","content":"Портретная съёмка"}]},{"tagName":"p","type":"text","classes":["services-card-text"],"components":[{"type":"textnode","content":"Индивидуальные и парные портреты в студии или на локации. Помогу раскрыться перед камерой — даже если вы никогда не позировали."}]},{"tagName":"span","type":"text","classes":["services-card-meta"],"components":[{"type":"textnode","content":"от 8 000 ₽ · 1,5 часа"}]}]},{"tagName":"article","classes":["services-card"],"components":[{"classes":["services-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"}}]}]},{"tagName":"h3","type":"text","classes":["services-card-title"],"components":[{"type":"textnode","content":"Love story"}]},{"tagName":"p","type":"text","classes":["services-card-text"],"components":[{"type":"textnode","content":"Съёмка для пар и влюблённых. Естественные эмоции, мягкий свет и атмосфера, в которой хочется быть собой."}]},{"tagName":"span","type":"text","classes":["services-card-meta"],"components":[{"type":"textnode","content":"от 12 000 ₽ · 2 часа"}]}]},{"tagName":"article","classes":["services-card"],"components":[{"classes":["services-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"3","y":"7","width":"18","height":"13","rx":"2"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"12","cy":"13","r":"3.5"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M8 7l1.5-3h5L16 7"}}]}]},{"tagName":"h3","type":"text","classes":["services-card-title"],"components":[{"type":"textnode","content":"Свадебная съёмка"}]},{"tagName":"p","type":"text","classes":["services-card-text"],"components":[{"type":"textnode","content":"Полный день или отдельные моменты — от сборов до первого танца. Живые кадры без постановки и лишнего позирования."}]},{"tagName":"span","type":"text","classes":["services-card-meta"],"components":[{"type":"textnode","content":"от 45 000 ₽ · весь день"}]}]},{"tagName":"article","classes":["services-card"],"components":[{"classes":["services-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M3 7h18v13H3z"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M3 12h18"}}]}]},{"tagName":"h3","type":"text","classes":["services-card-title"],"components":[{"type":"textnode","content":"Контент для брендов"}]},{"tagName":"p","type":"text","classes":["services-card-text"],"components":[{"type":"textnode","content":"Съёмка для соцсетей, каталогов и лендингов. Помогу выстроить визуальный стиль, который работает на узнаваемость."}]},{"tagName":"span","type":"text","classes":["services-card-meta"],"components":[{"type":"textnode","content":"от 15 000 ₽ · по задаче"}]}]}]},{"classes":["services-footer"],"components":[{"tagName":"p","type":"text","classes":["services-footer-text"],"components":[{"type":"textnode","content":"Не нашли подходящий формат? Напишите — обсудим вашу идею и подберём решение."}]},{"type":"link","classes":["services-footer-link"],"attributes":{"href":"https://instagram.com/anna_photo","target":"_blank","rel":"noopener noreferrer"},"components":[{"type":"textnode","content":"@anna_photo"}]}]}]}]},{"tagName":"section","classes":["contacts-section"],"components":[{"classes":["contacts-container"],"components":[{"classes":["contacts-header"],"components":[{"tagName":"span","type":"text","classes":["contacts-label"],"components":[{"type":"textnode","content":"Контакты"}]},{"tagName":"h2","type":"text","classes":["contacts-title"],"components":[{"type":"textnode","content":"Давайте работать вместе"}]},{"tagName":"p","type":"text","classes":["contacts-subtitle"],"components":[{"type":"textnode","content":"Открыта для съёмок в Москве и области. Портреты, лайфстайл, семейные истории."}]}]},{"classes":["contacts-grid"],"components":[{"classes":["contacts-card"],"components":[{"classes":["contacts-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","width":"22","height":"22","fill":"none","stroke":"currentColor","stroke-width":"1.6","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"12","cy":"10","r":"2.6"}}]}]},{"tagName":"h3","type":"text","classes":["contacts-card-title"],"components":[{"type":"textnode","content":"Локация"}]},{"tagName":"p","type":"text","classes":["contacts-card-text"],"components":[{"type":"textnode","content":"Москва"},{"tagName":"br","void":true},{"type":"textnode","content":"выезд по области — по договорённости"}]}]},{"classes":["contacts-card"],"components":[{"classes":["contacts-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","width":"22","height":"22","fill":"none","stroke":"currentColor","stroke-width":"1.6","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"3","y":"5","width":"18","height":"14","rx":"2.5"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M3.5 7l8.5 6 8.5-6"}}]}]},{"tagName":"h3","type":"text","classes":["contacts-card-title"],"components":[{"type":"textnode","content":"Почта"}]},{"tagName":"p","type":"text","classes":["contacts-card-text"],"components":[{"type":"textnode","content":"anna.photo@mail.ru"},{"tagName":"br","void":true},{"type":"textnode","content":"отвечаю в течение дня"}]}]},{"classes":["contacts-card"],"components":[{"classes":["contacts-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","width":"22","height":"22","fill":"none","stroke":"currentColor","stroke-width":"1.6","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"3","y":"3","width":"18","height":"18","rx":"5"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"12","cy":"12","r":"4"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"17.2","cy":"6.8","r":"1","fill":"currentColor","stroke":"none"}}]}]},{"tagName":"h3","type":"text","classes":["contacts-card-title"],"components":[{"type":"textnode","content":"Instagram"}]},{"tagName":"p","type":"text","classes":["contacts-card-text"],"components":[{"type":"textnode","content":"@anna_photo"},{"tagName":"br","void":true},{"type":"textnode","content":"свежие работы и закулисье"}]}]}]},{"classes":["contacts-cta"],"attributes":{"id":"igkbpj"},"components":[{"tagName":"p","type":"text","classes":["contacts-cta-text"],"components":[{"type":"textnode","content":"Расскажите о своей идее — обсудим детали и подберём дату."}]},{"type":"link","classes":["contacts-button"],"attributes":{"href":"https://instagram.com/anna_photo","target":"_blank","rel":"noopener noreferrer","id":"i2byzd"},"components":[{"type":"textnode","content":"Написать в MAX"}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"1Dxo7sub5m0N4fAN"}],"id":"yjpuGHJXb1lQNt8O"}],"symbols":[]}', 1, 0, '2026-10-11 06:44:49.637846', '2026-10-11 07:03:18.516893', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
+        </p><ul class="about-anna__facts"><li class="about-anna__fact"><span class="about-anna__fact-value">400+</span><span class="about-anna__fact-label">съёмок</span></li><li class="about-anna__fact"><span class="about-anna__fact-value">10 лет</span><span class="about-anna__fact-label">опыта</span></li><li class="about-anna__fact"><span class="about-anna__fact-value">Москва</span><span class="about-anna__fact-label">и выезды</span></li></ul><div class="about-anna__contact"><span class="about-anna__contact-label">Instagram</span><a href="https://instagram.com/anna_photo" target="_blank" rel="noopener noreferrer" class="about-anna__contact-value">@anna_photo</a></div></div></div></div></section><section class="services-section"><div class="services-container"><div class="services-header"><span class="services-label">Услуги</span><h2 class="services-title">Съёмка, которая говорит за вас</h2><p class="services-subtitle">Каждый кадр — это история. Я помогаю рассказать вашу так, чтобы её хотелось пересматривать.</p></div><div class="services-grid"><article class="services-card"><div aria-hidden="true" class="services-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><h3 class="services-card-title">Портретная съёмка</h3><p class="services-card-text">Индивидуальные и парные портреты в студии или на локации. Помогу раскрыться перед камерой — даже если вы никогда не позировали.</p><span class="services-card-meta">от 8 000 ₽ · 1,5 часа</span></article><article class="services-card"><div aria-hidden="true" class="services-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"></path></svg></div><h3 class="services-card-title">Love story</h3><p class="services-card-text">Съёмка для пар и влюблённых. Естественные эмоции, мягкий свет и атмосфера, в которой хочется быть собой.</p><span class="services-card-meta">от 12 000 ₽ · 2 часа</span></article><article class="services-card"><div aria-hidden="true" class="services-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"></rect><circle cx="12" cy="13" r="3.5"></circle><path d="M8 7l1.5-3h5L16 7"></path></svg></div><h3 class="services-card-title">Свадебная съёмка</h3><p class="services-card-text">Полный день или отдельные моменты — от сборов до первого танца. Живые кадры без постановки и лишнего позирования.</p><span class="services-card-meta">от 45 000 ₽ · весь день</span></article><article class="services-card"><div aria-hidden="true" class="services-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3z"></path><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M3 12h18"></path></svg></div><h3 class="services-card-title">Контент для брендов</h3><p class="services-card-text">Съёмка для соцсетей, каталогов и лендингов. Помогу выстроить визуальный стиль, который работает на узнаваемость.</p><span class="services-card-meta">от 15 000 ₽ · по задаче</span></article></div><div class="services-footer"><p class="services-footer-text">Не нашли подходящий формат? Напишите — обсудим вашу идею и подберём решение.</p><a href="https://instagram.com/anna_photo" target="_blank" rel="noopener noreferrer" class="services-footer-link">@anna_photo</a></div></div></section><section class="contacts-section"><div class="contacts-container"><div class="contacts-header"><span class="contacts-label">Контакты</span><h2 class="contacts-title">Давайте работать вместе</h2><p class="contacts-subtitle">Открыта для съёмок в Москве и области. Портреты, лайфстайл, семейные истории.</p></div><div class="contacts-grid"><div class="contacts-card"><div aria-hidden="true" class="contacts-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z"></path><circle cx="12" cy="10" r="2.6"></circle></svg></div><h3 class="contacts-card-title">Локация</h3><p class="contacts-card-text">Москва<br/>выезд по области — по договорённости</p></div><div class="contacts-card"><div aria-hidden="true" class="contacts-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><path d="M3.5 7l8.5 6 8.5-6"></path></svg></div><h3 class="contacts-card-title">Почта</h3><p class="contacts-card-text">anna.photo@mail.ru<br/>отвечаю в течение дня</p></div><div class="contacts-card"><div aria-hidden="true" class="contacts-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"></circle></svg></div><h3 class="contacts-card-title">Instagram</h3><p class="contacts-card-text">@anna_photo<br/>свежие работы и закулисье</p></div></div><div id="igkbpj" class="contacts-cta"><p class="contacts-cta-text">Расскажите о своей идее — обсудим детали и подберём дату.</p><a href="https://instagram.com/anna_photo" target="_blank" rel="noopener noreferrer" id="i2byzd" class="contacts-button">Написать в MAX</a></div></div><section data-block="core-creative" class="section creative-block"><div data-creative-block="" class="container creative-block__inner"><p class="creative-block__text" id="iimh88">Ищете хостинг для размещения вашего проекта в сети Интернет</p><a href="https://beget.com/p1023067" target="_blank" rel="noopener noreferrer nofollow sponsored" class="creative-block__link"><span class="creative-block__btn-text" id="iwgjkn">Посмотрите здесь</span><span aria-hidden="true" class="creative-block__arrow">→</span></a><p class="creative-block__legal">
+                            Реклама. <span class="creative-block__brand" id="i9g1yk">ООО «Бегет»</span>
+                            ИНН <span class="creative-block__inn" id="iuj8p8">7801451618</span>
+                            erid: <span class="creative-block__erid" id="icnqyn">2VtzqxQSRkE</span></p></div></section></section></body>', '{"assets":[],"styles":[{"selectors":["hero-anna"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(245, 246, 247)","color":"rgb(43, 47, 51)","padding-top":"96px","padding-right":"24px","padding-bottom":"96px","padding-left":"24px","font-family":"-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"}},{"selectors":["hero-anna__inner"],"style":{"max-width":"1080px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","display":"grid","grid-template-columns":"1.1fr 0.9fr","row-gap":"64px","column-gap":"64px","align-items":"center"}},{"selectors":["hero-anna__content"],"style":{"max-width":"520px"}},{"selectors":["hero-anna__eyebrow"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"20px","margin-left":"0px","font-size":"13px","letter-spacing":"0.18em","text-transform":"uppercase","color":"rgb(138, 144, 150)"}},{"selectors":["hero-anna__title"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"20px","margin-left":"0px","font-size":"72px","line-height":"1.02","font-weight":"600","letter-spacing":"-0.02em","color":"rgb(35, 39, 43)"}},{"selectors":["hero-anna__subtitle"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"36px","margin-left":"0px","font-size":"18px","line-height":"1.6","color":"rgb(92, 99, 105)"}},{"selectors":["hero-anna__actions"],"style":{"display":"flex","flex-wrap":"wrap","row-gap":"12px","column-gap":"12px","margin-bottom":"32px"}},{"selectors":["hero-anna__btn"],"style":{"display":"inline-block","padding-top":"14px","padding-right":"26px","padding-bottom":"14px","padding-left":"26px","border-top-left-radius":"999px","border-top-right-radius":"999px","border-bottom-right-radius":"999px","border-bottom-left-radius":"999px","font-size":"15px","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","transition-behavior":"normal, normal, normal","transition-duration":"0.2s, 0.2s, 0.2s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"background-color, color, border-color"}},{"selectors":["hero-anna__btn--primary"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(43, 47, 51)","color":"rgb(245, 246, 247)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgb(43, 47, 51)","border-right-color":"rgb(43, 47, 51)","border-bottom-color":"rgb(43, 47, 51)","border-left-color":"rgb(43, 47, 51)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial"}},{"selectors":["hero-anna__btn--primary"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(58, 63, 68)","border-top-color":"rgb(58, 63, 68)","border-right-color":"rgb(58, 63, 68)","border-bottom-color":"rgb(58, 63, 68)","border-left-color":"rgb(58, 63, 68)"},"state":"hover"},{"selectors":["hero-anna__btn--ghost"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"transparent","color":"rgb(43, 47, 51)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgb(200, 204, 208)","border-right-color":"rgb(200, 204, 208)","border-bottom-color":"rgb(200, 204, 208)","border-left-color":"rgb(200, 204, 208)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial"}},{"selectors":["hero-anna__btn--ghost"],"style":{"border-top-color":"rgb(138, 144, 150)","border-right-color":"rgb(138, 144, 150)","border-bottom-color":"rgb(138, 144, 150)","border-left-color":"rgb(138, 144, 150)"},"state":"hover"},{"selectors":["hero-anna__social"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","display":"flex","align-items":"center","row-gap":"10px","column-gap":"10px","font-size":"15px","color":"rgb(92, 99, 105)"}},{"selectors":["hero-anna__social-icon"],"style":{"display":"inline-flex","align-items":"center","justify-content":"center","width":"28px","height":"28px","border-top-left-radius":"50%","border-top-right-radius":"50%","border-bottom-right-radius":"50%","border-bottom-left-radius":"50%","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(226, 229, 232)","color":"rgb(92, 99, 105)","font-size":"14px"}},{"selectors":["hero-anna__social-link"],"style":{"color":"rgb(43, 47, 51)","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","border-bottom-width":"1px","border-bottom-style":"solid","border-bottom-color":"rgb(200, 204, 208)","padding-bottom":"1px"}},{"selectors":["hero-anna__social-link"],"style":{"border-top-color":"rgb(43, 47, 51)","border-right-color":"rgb(43, 47, 51)","border-bottom-color":"rgb(43, 47, 51)","border-left-color":"rgb(43, 47, 51)"},"state":"hover"},{"selectors":["hero-anna__visual"],"style":{"display":"flex","justify-content":"center"}},{"selectors":["hero-anna__svg"],"style":{"width":"100%","max-width":"320px","height":"auto","display":"block"}},{"selectors":["hero-anna"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-anna__inner"],"style":{"grid-template-columns":"1fr","row-gap":"40px","column-gap":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-anna__title"],"style":{"font-size":"52px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-anna__subtitle"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-anna__visual"],"style":{"order":"-1"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["hero-anna__svg"],"style":{"max-width":"240px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna"],"style":{"background-color":"rgb(244, 244, 244)","padding-top":"96px","padding-right":"24px","padding-bottom":"96px","padding-left":"24px","font-family":"\"Helvetica Neue\", Arial, sans-serif","color":"rgb(43, 43, 43)"}},{"selectors":["about-anna__container"],"style":{"max-width":"1080px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["about-anna__grid"],"style":{"display":"grid","grid-template-columns":"320px 1fr","row-gap":"64px","column-gap":"64px","align-items":"center"}},{"selectors":["about-anna__visual"],"style":{"position":"relative","display":"flex","justify-content":"center"}},{"selectors":["about-anna__portrait"],"style":{"width":"100%","max-width":"320px","border-top-left-radius":"4px","border-top-right-radius":"4px","border-bottom-right-radius":"4px","border-bottom-left-radius":"4px","overflow-x":"hidden","overflow-y":"hidden","background-color":"rgb(232, 232, 232)"}},{"selectors":[],"selectorsAdd":".about-anna__portrait svg","style":{"display":"block","width":"100%","height":"auto"}},{"selectors":["about-anna__badge"],"style":{"position":"absolute","bottom":"16px","left":"50%","transform":"translateX(-50%)","background-color":"rgb(255, 255, 255)","color":"rgb(107, 107, 107)","font-size":"12px","letter-spacing":"0.08em","text-transform":"uppercase","padding-top":"8px","padding-right":"16px","padding-bottom":"8px","padding-left":"16px","border-top-left-radius":"2px","border-top-right-radius":"2px","border-bottom-right-radius":"2px","border-bottom-left-radius":"2px","white-space-collapse":"collapse","text-wrap":"nowrap","z-index":"1"}},{"selectors":["about-anna__content"],"style":{"max-width":"560px"}},{"selectors":["about-anna__eyebrow"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"12px","margin-left":"0px","font-size":"12px","letter-spacing":"0.18em","text-transform":"uppercase","color":"rgb(154, 154, 154)"}},{"selectors":["about-anna__title"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"24px","margin-left":"0px","font-size":"34px","line-height":"1.25","font-weight":"400","letter-spacing":"-0.01em","color":"rgb(31, 31, 31)"}},{"selectors":["about-anna__lead"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"16px","margin-left":"0px","font-size":"17px","line-height":"1.65","color":"rgb(61, 61, 61)"}},{"selectors":["about-anna__text"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"40px","margin-left":"0px","font-size":"15px","line-height":"1.7","color":"rgb(107, 107, 107)"}},{"selectors":["about-anna__facts"],"style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","margin-top":"0px","margin-right":"0px","margin-bottom":"40px","margin-left":"0px","padding-top":"0px","padding-right":"0px","padding-bottom":"0px","padding-left":"0px","display":"flex","row-gap":"40px","column-gap":"40px","flex-wrap":"wrap"}},{"selectors":["about-anna__fact"],"style":{"display":"flex","flex-direction":"column","row-gap":"4px","column-gap":"4px"}},{"selectors":["about-anna__fact-value"],"style":{"font-size":"22px","font-weight":"400","color":"rgb(31, 31, 31)"}},{"selectors":["about-anna__fact-label"],"style":{"font-size":"12px","letter-spacing":"0.1em","text-transform":"uppercase","color":"rgb(154, 154, 154)"}},{"selectors":["about-anna__contact"],"style":{"display":"inline-flex","align-items":"baseline","row-gap":"12px","column-gap":"12px","padding-top":"24px","border-top-width":"1px","border-top-style":"solid","border-top-color":"rgb(220, 220, 220)"}},{"selectors":["about-anna__contact-label"],"style":{"font-size":"12px","letter-spacing":"0.1em","text-transform":"uppercase","color":"rgb(154, 154, 154)"}},{"selectors":["about-anna__contact-value"],"style":{"font-size":"16px","color":"rgb(31, 31, 31)","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial"}},{"selectors":["about-anna__contact-value"],"style":{"text-decoration-line":"underline","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial"},"state":"hover"},{"selectors":["about-anna"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__grid"],"style":{"grid-template-columns":"1fr","row-gap":"40px","column-gap":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__visual"],"style":{"justify-content":"flex-start"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__portrait"],"style":{"max-width":"240px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__title"],"style":{"font-size":"26px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__facts"],"style":{"row-gap":"28px","column-gap":"28px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["about-anna__contact"],"style":{"flex-direction":"column","row-gap":"6px","column-gap":"6px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-section"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(244, 245, 246)","padding-top":"96px","padding-right":"24px","padding-bottom":"96px","padding-left":"24px","font-family":"-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif","color":"rgb(43, 47, 51)"}},{"selectors":["services-container"],"style":{"max-width":"1120px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["services-header"],"style":{"max-width":"640px","margin-top":"0px","margin-right":"auto","margin-bottom":"64px","margin-left":"auto","text-align":"center"}},{"selectors":["services-label"],"style":{"display":"inline-block","font-size":"12px","letter-spacing":"0.18em","text-transform":"uppercase","color":"rgb(138, 144, 150)","margin-bottom":"16px"}},{"selectors":["services-title"],"style":{"font-size":"36px","line-height":"1.2","font-weight":"500","margin-top":"0px","margin-right":"0px","margin-bottom":"16px","margin-left":"0px","color":"rgb(31, 35, 38)"}},{"selectors":["services-subtitle"],"style":{"font-size":"16px","line-height":"1.6","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["services-grid"],"style":{"display":"grid","grid-template-columns":"repeat(2, 1fr)","row-gap":"24px","column-gap":"24px"}},{"selectors":["services-card"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgb(230, 232, 234)","border-right-color":"rgb(230, 232, 234)","border-bottom-color":"rgb(230, 232, 234)","border-left-color":"rgb(230, 232, 234)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","border-top-left-radius":"12px","border-top-right-radius":"12px","border-bottom-right-radius":"12px","border-bottom-left-radius":"12px","padding-top":"32px","padding-right":"28px","padding-bottom":"32px","padding-left":"28px","display":"flex","flex-direction":"column","transition-behavior":"normal, normal","transition-duration":"0.2s, 0.2s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"border-color, transform"}},{"selectors":["services-card"],"style":{"border-top-color":"rgb(201, 206, 211)","border-right-color":"rgb(201, 206, 211)","border-bottom-color":"rgb(201, 206, 211)","border-left-color":"rgb(201, 206, 211)","transform":"translateY(-2px)"},"state":"hover"},{"selectors":["services-icon"],"style":{"width":"40px","height":"40px","color":"rgb(107, 113, 120)","margin-bottom":"20px"}},{"selectors":[],"selectorsAdd":".services-icon svg","style":{"width":"100%","height":"100%","display":"block"}},{"selectors":["services-card-title"],"style":{"font-size":"20px","font-weight":"500","margin-top":"0px","margin-right":"0px","margin-bottom":"12px","margin-left":"0px","color":"rgb(31, 35, 38)"}},{"selectors":["services-card-text"],"style":{"font-size":"15px","line-height":"1.6","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"20px","margin-left":"0px","flex-grow":"1"}},{"selectors":["services-card-meta"],"style":{"font-size":"13px","letter-spacing":"0.04em","color":"rgb(138, 144, 150)","padding-top":"16px","border-top-width":"1px","border-top-style":"solid","border-top-color":"rgb(238, 240, 241)"}},{"selectors":["services-footer"],"style":{"margin-top":"56px","text-align":"center"}},{"selectors":["services-footer-text"],"style":{"font-size":"15px","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"12px","margin-left":"0px"}},{"selectors":["services-footer-link"],"style":{"display":"inline-block","font-size":"15px","color":"rgb(31, 35, 38)","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","border-bottom-width":"1px","border-bottom-style":"solid","border-bottom-color":"rgb(201, 206, 211)","padding-bottom":"2px","transition-behavior":"normal, normal","transition-duration":"0.2s, 0.2s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"border-color, color"}},{"selectors":["services-footer-link"],"style":{"color":"rgb(0, 0, 0)","border-top-color":"rgb(31, 35, 38)","border-right-color":"rgb(31, 35, 38)","border-bottom-color":"rgb(31, 35, 38)","border-left-color":"rgb(31, 35, 38)"},"state":"hover"},{"selectors":["services-section"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-header"],"style":{"margin-bottom":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-title"],"style":{"font-size":"26px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-subtitle"],"style":{"font-size":"15px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-grid"],"style":{"grid-template-columns":"1fr","row-gap":"16px","column-gap":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-card"],"style":{"padding-top":"24px","padding-right":"20px","padding-bottom":"24px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-footer"],"style":{"margin-top":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["services-section"],"style":{"padding-top":"48px","padding-right":"16px","padding-bottom":"48px","padding-left":"16px"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":["services-title"],"style":{"font-size":"22px"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":["services-card"],"style":{"padding-top":"20px","padding-right":"16px","padding-bottom":"20px","padding-left":"16px"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":["contacts-section"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(244, 245, 246)","color":"rgb(43, 47, 51)","padding-top":"96px","padding-right":"24px","padding-bottom":"96px","padding-left":"24px","font-family":"Inter, \"Helvetica Neue\", Arial, sans-serif"}},{"selectors":["contacts-container"],"style":{"max-width":"1080px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["contacts-header"],"style":{"text-align":"center","max-width":"620px","margin-top":"0px","margin-right":"auto","margin-bottom":"56px","margin-left":"auto"}},{"selectors":["contacts-label"],"style":{"display":"inline-block","font-size":"12px","letter-spacing":"0.18em","text-transform":"uppercase","color":"rgb(138, 144, 153)","margin-bottom":"16px"}},{"selectors":["contacts-title"],"style":{"font-size":"34px","line-height":"1.2","font-weight":"500","margin-top":"0px","margin-right":"0px","margin-bottom":"16px","margin-left":"0px","color":"rgb(34, 38, 42)"}},{"selectors":["contacts-subtitle"],"style":{"font-size":"16px","line-height":"1.6","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["contacts-grid"],"style":{"display":"grid","grid-template-columns":"repeat(3, 1fr)","row-gap":"20px","column-gap":"20px","margin-bottom":"56px"}},{"selectors":["contacts-card"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(255, 255, 255)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgb(230, 232, 234)","border-right-color":"rgb(230, 232, 234)","border-bottom-color":"rgb(230, 232, 234)","border-left-color":"rgb(230, 232, 234)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","border-top-left-radius":"14px","border-top-right-radius":"14px","border-bottom-right-radius":"14px","border-bottom-left-radius":"14px","padding-top":"32px","padding-right":"26px","padding-bottom":"32px","padding-left":"26px","text-align":"left","transition-behavior":"normal, normal","transition-duration":"0.25s, 0.25s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"border-color, transform"}},{"selectors":["contacts-card"],"style":{"border-top-color":"rgb(207, 211, 215)","border-right-color":"rgb(207, 211, 215)","border-bottom-color":"rgb(207, 211, 215)","border-left-color":"rgb(207, 211, 215)","transform":"translateY(-3px)"},"state":"hover"},{"selectors":["contacts-icon"],"style":{"width":"44px","height":"44px","border-top-left-radius":"50%","border-top-right-radius":"50%","border-bottom-right-radius":"50%","border-bottom-left-radius":"50%","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(240, 241, 242)","color":"rgb(90, 96, 104)","display":"flex","align-items":"center","justify-content":"center","margin-bottom":"20px"}},{"selectors":["contacts-card-title"],"style":{"font-size":"17px","font-weight":"500","margin-top":"0px","margin-right":"0px","margin-bottom":"10px","margin-left":"0px","color":"rgb(34, 38, 42)"}},{"selectors":["contacts-card-text"],"style":{"font-size":"15px","line-height":"1.6","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["contacts-cta"],"style":{"text-align":"center","border-top-width":"1px","border-top-style":"solid","border-top-color":"rgb(226, 228, 230)","padding-top":"48px"}},{"selectors":["contacts-cta-text"],"style":{"font-size":"16px","color":"rgb(107, 113, 120)","margin-top":"0px","margin-right":"0px","margin-bottom":"24px","margin-left":"0px"}},{"selectors":["contacts-button"],"style":{"display":"inline-block","padding-top":"14px","padding-right":"34px","padding-bottom":"14px","padding-left":"34px","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(43, 47, 51)","color":"rgb(255, 255, 255)","font-size":"15px","letter-spacing":"0.02em","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","border-top-left-radius":"999px","border-top-right-radius":"999px","border-bottom-right-radius":"999px","border-bottom-left-radius":"999px","transition-behavior":"normal","transition-duration":"0.25s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"background"}},{"selectors":["contacts-button"],"style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgb(67, 72, 77)"},"state":"hover"},{"selectors":["contacts-section"],"style":{"padding-top":"64px","padding-right":"20px","padding-bottom":"64px","padding-left":"20px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-header"],"style":{"margin-bottom":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-title"],"style":{"font-size":"26px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-grid"],"style":{"grid-template-columns":"1fr","row-gap":"16px","column-gap":"16px","margin-bottom":"40px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-card"],"style":{"padding-top":"26px","padding-right":"22px","padding-bottom":"26px","padding-left":"22px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-cta"],"style":{"padding-top":"36px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["contacts-button"],"style":{"display":"block","width":"100%","box-sizing":"border-box"},"mediaText":"(max-width: 768px)","atRuleType":"media"}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"tagName":"section","classes":["hero-anna"],"components":[{"classes":["hero-anna__inner"],"components":[{"classes":["hero-anna__content"],"components":[{"tagName":"p","type":"text","classes":["hero-anna__eyebrow"],"components":[{"type":"textnode","content":"Фотограф · Москва"}]},{"tagName":"h1","type":"text","classes":["hero-anna__title"],"components":[{"type":"textnode","content":"Анна"}]},{"tagName":"p","type":"text","classes":["hero-anna__subtitle"],"components":[{"type":"textnode","content":"Портретная и репортажная съёмка. Естественный свет, спокойные кадры, внимание к деталям."}]},{"classes":["hero-anna__actions"],"components":[{"type":"link","classes":["hero-anna__btn","hero-anna__btn--primary"],"attributes":{"href":"#contacts"},"components":[{"type":"textnode","content":"Обсудить съёмку"}]},{"type":"link","classes":["hero-anna__btn","hero-anna__btn--ghost"],"attributes":{"href":"#portfolio"},"components":[{"type":"textnode","content":"Смотреть работы"}]}]},{"tagName":"p","classes":["hero-anna__social"],"components":[{"tagName":"span","type":"text","classes":["hero-anna__social-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"textnode","content":"◎"}]},{"type":"link","classes":["hero-anna__social-link"],"attributes":{"href":"https://instagram.com/anna_photo","target":"_blank","rel":"noopener"},"components":[{"type":"textnode","content":"@anna_photo"}]}]}]},{"classes":["hero-anna__visual"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"classes":["hero-anna__svg"],"attributes":{"viewBox":"0 0 320 400","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Абстрактная иллюстрация фотокадра"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"0","y":"0","width":"320","height":"400","rx":"12","fill":"#eef0f2"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"24","y":"24","width":"272","height":"352","rx":"8","fill":"#e2e5e8"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"160","cy":"170","r":"62","fill":"#cfd4d8"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"70","y":"270","width":"180","height":"10","rx":"5","fill":"#cfd4d8"}},{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"100","y":"296","width":"120","height":"10","rx":"5","fill":"#d8dcdf"}}]}]}]}]},{"tagName":"section","classes":["about-anna"],"components":[{"classes":["about-anna__container"],"components":[{"classes":["about-anna__grid"],"components":[{"classes":["about-anna__visual"],"components":[{"classes":["about-anna__portrait"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 200 200","xmlns":"http://www.w3.org/2000/svg","role":"img","aria-label":"Портрет Анны"},"components":[{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"100","cy":"100","r":"100","fill":"#e8e8e8"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"100","cy":"78","r":"34","fill":"#c9c9c9"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M40 180c0-33 27-60 60-60s60 27 60 60z","fill":"#c9c9c9"}}]}]},{"tagName":"span","type":"text","classes":["about-anna__badge"],"components":[{"type":"textnode","content":"с 2014 года"}]}]},{"classes":["about-anna__content"],"components":[{"tagName":"p","type":"text","classes":["about-anna__eyebrow"],"components":[{"type":"textnode","content":"Обо мне"}]},{"tagName":"h2","type":"text","classes":["about-anna__title"],"components":[{"type":"textnode","content":"Анна — фотограф из Москвы"}]},{"tagName":"p","type":"text","classes":["about-anna__lead"],"components":[{"type":"textnode","content":"\n          Снимаю людей такими, какие они есть: без лишнего пафоса и постановки.\n          Мне важно поймать живой взгляд и настоящую эмоцию в кадре.\n        "}]},{"tagName":"p","type":"text","classes":["about-anna__text"],"components":[{"type":"textnode","content":"\n          За десять лет работы я провела более 400 съёмок — от портретов и семейных\n          историй до репортажей и лукбуков для небольших брендов. Работаю в Москве\n          и с удовольствием выезжаю на съёмки в другие города.\n        "}]},{"tagName":"ul","classes":["about-anna__facts"],"components":[{"tagName":"li","classes":["about-anna__fact"],"components":[{"tagName":"span","type":"text","classes":["about-anna__fact-value"],"components":[{"type":"textnode","content":"400+"}]},{"tagName":"span","type":"text","classes":["about-anna__fact-label"],"components":[{"type":"textnode","content":"съёмок"}]}]},{"tagName":"li","classes":["about-anna__fact"],"components":[{"tagName":"span","type":"text","classes":["about-anna__fact-value"],"components":[{"type":"textnode","content":"10 лет"}]},{"tagName":"span","type":"text","classes":["about-anna__fact-label"],"components":[{"type":"textnode","content":"опыта"}]}]},{"tagName":"li","classes":["about-anna__fact"],"components":[{"tagName":"span","type":"text","classes":["about-anna__fact-value"],"components":[{"type":"textnode","content":"Москва"}]},{"tagName":"span","type":"text","classes":["about-anna__fact-label"],"components":[{"type":"textnode","content":"и выезды"}]}]}]},{"classes":["about-anna__contact"],"components":[{"tagName":"span","type":"text","classes":["about-anna__contact-label"],"components":[{"type":"textnode","content":"Instagram"}]},{"type":"link","classes":["about-anna__contact-value"],"attributes":{"href":"https://instagram.com/anna_photo","target":"_blank","rel":"noopener noreferrer"},"components":[{"type":"textnode","content":"@anna_photo"}]}]}]}]}]}]},{"tagName":"section","classes":["services-section"],"components":[{"classes":["services-container"],"components":[{"classes":["services-header"],"components":[{"tagName":"span","type":"text","classes":["services-label"],"components":[{"type":"textnode","content":"Услуги"}]},{"tagName":"h2","type":"text","classes":["services-title"],"components":[{"type":"textnode","content":"Съёмка, которая говорит за вас"}]},{"tagName":"p","type":"text","classes":["services-subtitle"],"components":[{"type":"textnode","content":"Каждый кадр — это история. Я помогаю рассказать вашу так, чтобы её хотелось пересматривать."}]}]},{"classes":["services-grid"],"components":[{"tagName":"article","classes":["services-card"],"components":[{"classes":["services-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"12","cy":"7","r":"4"}}]}]},{"tagName":"h3","type":"text","classes":["services-card-title"],"components":[{"type":"textnode","content":"Портретная съёмка"}]},{"tagName":"p","type":"text","classes":["services-card-text"],"components":[{"type":"textnode","content":"Индивидуальные и парные портреты в студии или на локации. Помогу раскрыться перед камерой — даже если вы никогда не позировали."}]},{"tagName":"span","type":"text","classes":["services-card-meta"],"components":[{"type":"textnode","content":"от 8 000 ₽ · 1,5 часа"}]}]},{"tagName":"article","classes":["services-card"],"components":[{"classes":["services-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"}}]}]},{"tagName":"h3","type":"text","classes":["services-card-title"],"components":[{"type":"textnode","content":"Love story"}]},{"tagName":"p","type":"text","classes":["services-card-text"],"components":[{"type":"textnode","content":"Съёмка для пар и влюблённых. Естественные эмоции, мягкий свет и атмосфера, в которой хочется быть собой."}]},{"tagName":"span","type":"text","classes":["services-card-meta"],"components":[{"type":"textnode","content":"от 12 000 ₽ · 2 часа"}]}]},{"tagName":"article","classes":["services-card"],"components":[{"classes":["services-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"3","y":"7","width":"18","height":"13","rx":"2"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"12","cy":"13","r":"3.5"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M8 7l1.5-3h5L16 7"}}]}]},{"tagName":"h3","type":"text","classes":["services-card-title"],"components":[{"type":"textnode","content":"Свадебная съёмка"}]},{"tagName":"p","type":"text","classes":["services-card-text"],"components":[{"type":"textnode","content":"Полный день или отдельные моменты — от сборов до первого танца. Живые кадры без постановки и лишнего позирования."}]},{"tagName":"span","type":"text","classes":["services-card-meta"],"components":[{"type":"textnode","content":"от 45 000 ₽ · весь день"}]}]},{"tagName":"article","classes":["services-card"],"components":[{"classes":["services-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","fill":"none","stroke":"currentColor","stroke-width":"1.5","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M3 7h18v13H3z"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M3 12h18"}}]}]},{"tagName":"h3","type":"text","classes":["services-card-title"],"components":[{"type":"textnode","content":"Контент для брендов"}]},{"tagName":"p","type":"text","classes":["services-card-text"],"components":[{"type":"textnode","content":"Съёмка для соцсетей, каталогов и лендингов. Помогу выстроить визуальный стиль, который работает на узнаваемость."}]},{"tagName":"span","type":"text","classes":["services-card-meta"],"components":[{"type":"textnode","content":"от 15 000 ₽ · по задаче"}]}]}]},{"classes":["services-footer"],"components":[{"tagName":"p","type":"text","classes":["services-footer-text"],"components":[{"type":"textnode","content":"Не нашли подходящий формат? Напишите — обсудим вашу идею и подберём решение."}]},{"type":"link","classes":["services-footer-link"],"attributes":{"href":"https://instagram.com/anna_photo","target":"_blank","rel":"noopener noreferrer"},"components":[{"type":"textnode","content":"@anna_photo"}]}]}]}]},{"tagName":"section","classes":["contacts-section"],"components":[{"classes":["contacts-container"],"components":[{"classes":["contacts-header"],"components":[{"tagName":"span","type":"text","classes":["contacts-label"],"components":[{"type":"textnode","content":"Контакты"}]},{"tagName":"h2","type":"text","classes":["contacts-title"],"components":[{"type":"textnode","content":"Давайте работать вместе"}]},{"tagName":"p","type":"text","classes":["contacts-subtitle"],"components":[{"type":"textnode","content":"Открыта для съёмок в Москве и области. Портреты, лайфстайл, семейные истории."}]}]},{"classes":["contacts-grid"],"components":[{"classes":["contacts-card"],"components":[{"classes":["contacts-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","width":"22","height":"22","fill":"none","stroke":"currentColor","stroke-width":"1.6","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"12","cy":"10","r":"2.6"}}]}]},{"tagName":"h3","type":"text","classes":["contacts-card-title"],"components":[{"type":"textnode","content":"Локация"}]},{"tagName":"p","type":"text","classes":["contacts-card-text"],"components":[{"type":"textnode","content":"Москва"},{"tagName":"br","void":true},{"type":"textnode","content":"выезд по области — по договорённости"}]}]},{"classes":["contacts-card"],"components":[{"classes":["contacts-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","width":"22","height":"22","fill":"none","stroke":"currentColor","stroke-width":"1.6","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"3","y":"5","width":"18","height":"14","rx":"2.5"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M3.5 7l8.5 6 8.5-6"}}]}]},{"tagName":"h3","type":"text","classes":["contacts-card-title"],"components":[{"type":"textnode","content":"Почта"}]},{"tagName":"p","type":"text","classes":["contacts-card-text"],"components":[{"type":"textnode","content":"anna.photo@mail.ru"},{"tagName":"br","void":true},{"type":"textnode","content":"отвечаю в течение дня"}]}]},{"classes":["contacts-card"],"components":[{"classes":["contacts-icon"],"attributes":{"aria-hidden":"true"},"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","width":"22","height":"22","fill":"none","stroke":"currentColor","stroke-width":"1.6","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"rect","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"x":"3","y":"3","width":"18","height":"18","rx":"5"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"12","cy":"12","r":"4"}},{"tagName":"circle","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"cx":"17.2","cy":"6.8","r":"1","fill":"currentColor","stroke":"none"}}]}]},{"tagName":"h3","type":"text","classes":["contacts-card-title"],"components":[{"type":"textnode","content":"Instagram"}]},{"tagName":"p","type":"text","classes":["contacts-card-text"],"components":[{"type":"textnode","content":"@anna_photo"},{"tagName":"br","void":true},{"type":"textnode","content":"свежие работы и закулисье"}]}]}]},{"classes":["contacts-cta"],"attributes":{"id":"igkbpj"},"components":[{"tagName":"p","type":"text","classes":["contacts-cta-text"],"components":[{"type":"textnode","content":"Расскажите о своей идее — обсудим детали и подберём дату."}]},{"type":"link","classes":["contacts-button"],"attributes":{"href":"https://instagram.com/anna_photo","target":"_blank","rel":"noopener noreferrer","id":"i2byzd"},"components":[{"type":"textnode","content":"Написать в MAX"}]}]}]},{"tagName":"section","classes":["section","creative-block"],"attributes":{"data-block":"core-creative"},"components":[{"classes":["container","creative-block__inner"],"attributes":{"data-creative-block":""},"components":[{"tagName":"p","type":"text","content":"Ищете хостинг для размещения вашего проекта в сети Интернет","classes":["creative-block__text"],"attributes":{"id":"iimh88"}},{"type":"link","classes":["creative-block__link"],"attributes":{"href":"https://beget.com/p1023067","target":"_blank","rel":"noopener noreferrer nofollow sponsored"},"components":[{"tagName":"span","type":"text","content":"Посмотрите здесь","classes":["creative-block__btn-text"],"attributes":{"id":"iwgjkn"}},{"tagName":"span","type":"text","classes":["creative-block__arrow"],"attributes":{"aria-hidden":"true"},"components":[{"type":"textnode","content":"→"}]}]},{"tagName":"p","type":"text","classes":["creative-block__legal"],"components":[{"type":"textnode","content":"\n                            Реклама. "},{"tagName":"span","type":"text","content":"ООО «Бегет»","classes":["creative-block__brand"],"attributes":{"id":"i9g1yk"}},{"type":"textnode","content":"\n                            ИНН "},{"tagName":"span","type":"text","content":"7801451618","classes":["creative-block__inn"],"attributes":{"id":"iuj8p8"}},{"type":"textnode","content":"\n                            erid: "},{"tagName":"span","type":"text","content":"2VtzqxQSRkE","classes":["creative-block__erid"],"attributes":{"id":"icnqyn"}}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"1Dxo7sub5m0N4fAN"}],"id":"yjpuGHJXb1lQNt8O"}],"symbols":[]}', 1, 0, '2026-10-11 06:44:49.637846', '2026-10-11 15:38:15.943971', NULL, 0, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
 
 /**
  * Content — theme variables + shared atoms + layout for CONTENT pages.
@@ -41084,6 +41087,737 @@ INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo",
     .core-engine-lib-word-blocks .grid--3,
     .core-engine-lib-word-blocks .grid--4 {
         grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* app/core/engine/lib/word/editor/blocks/ready.css */
+
+/**
+ * Ready — styles for the "Секции" (sections) blocks.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Covers section-specific classes from blocks/ready.js:
+ *   - .hero, .hero__inner, .hero__title, .hero__lead, .hero__btn
+ *   - .features, .features__title, .features__grid, .features__item
+ *   - .steps, .steps__title, .steps__grid, .steps__item, .steps__num
+ *   - .text-image, .text-image__grid, .text-image__text, .text-image__media
+ *   - .image-text, .image-text__grid, .image-text__text, .image-text__media
+ *   - .gallery, .gallery__title, .gallery__grid, .gallery__item
+ *   - .faq, .faq__title, .faq__list, .faq__item, .faq__question, .faq__answer
+ *   - .cta, .cta__inner, .cta__title, .cta__text, .cta__btn
+ *   - .contacts, .contacts__title, .contacts__grid, .contacts__item,
+ *     .contacts__label, .contacts__value
+ *   - .footer, .footer__inner, .footer__brand, .footer__nav, .footer__link
+ *   - .article-catalog, .article-catalog__heading, .article-catalog__card,
+ *     .article-catalog__glow, .article-catalog__logo, .article-catalog__body,
+ *     .article-catalog__title, .article-catalog__desc, .article-catalog__date
+ *   - .creative-block, .creative-block__inner, .creative-block__text,
+ *     .creative-block__link, .creative-block__btn-text,
+ *     .creative-block__arrow, .creative-block__legal,
+ *     .creative-block__brand, .creative-block__inn, .creative-block__erid
+ *
+ * Shared atom classes (.h1, .h2, .text, .lead, .btn, .card, .image)
+ * and layout classes (.section, .container, .grid) live in
+ * editor/css/content.css — they are loaded globally.
+ *
+ * Uses ONLY --theme-* variables (see theme.css).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   HERO — .hero
+   ============================================ */
+
+.core-engine-lib-word-blocks .hero__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .hero__title {
+    margin: 0;
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .hero__lead {
+    margin: 0;
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .hero__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   FEATURES — .features
+   ============================================ */
+
+.core-engine-lib-word-blocks .features__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .features__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .features__item {
+    /* uses .card from content.css */
+    height: 100%;
+}
+
+
+/* ============================================
+   STEPS — .steps
+   ============================================ */
+
+.core-engine-lib-word-blocks .steps__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .steps__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .steps__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-bold);
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__item-title {
+    margin: 0;
+}
+
+
+/* ============================================
+   TEXT + IMAGE — .text-image
+   ============================================ */
+
+.core-engine-lib-word-blocks .text-image__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .text-image__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .text-image__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .text-image__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   IMAGE + TEXT — .image-text
+   ============================================ */
+
+.core-engine-lib-word-blocks .image-text__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .image-text__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .image-text__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .image-text__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   GALLERY — .gallery
+   ============================================ */
+
+.core-engine-lib-word-blocks .gallery__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .gallery__grid {
+    /* uses .grid.grid--auto from content.css */
+}
+
+.core-engine-lib-word-blocks .gallery__item {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+
+/* ============================================
+   FAQ — .faq
+   ============================================ */
+
+.core-engine-lib-word-blocks .faq__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-6);
+    max-width: 48rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.core-engine-lib-word-blocks .faq__item {
+    padding-bottom: var(--theme-space-5);
+    border-bottom: 1px solid var(--theme-border);
+}
+
+.core-engine-lib-word-blocks .faq__item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.core-engine-lib-word-blocks .faq__question {
+    margin: 0 0 var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .faq__answer {
+    margin: 0;
+}
+
+
+/* ============================================
+   CTA — .cta
+   ============================================ */
+
+.core-engine-lib-word-blocks .cta {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+}
+
+.core-engine-lib-word-blocks .cta__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .cta__title {
+    margin: 0;
+    color: var(--theme-text, #1e293b);
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .cta__text {
+    margin: 0;
+    color: var(--theme-text-muted, #64748b);
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .cta__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   CONTACTS — .contacts
+   ============================================ */
+
+.core-engine-lib-word-blocks .contacts__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .contacts__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .contacts__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-1);
+}
+
+.core-engine-lib-word-blocks .contacts__label {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .contacts__value {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   FOOTER — .footer
+   ============================================ */
+
+.core-engine-lib-word-blocks .footer {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+    padding-top: var(--theme-space-6);
+    padding-bottom: var(--theme-space-6);
+    border-top: 1px solid var(--theme-border, #e2e8f0);
+}
+
+.core-engine-lib-word-blocks .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .footer__brand {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.core-engine-lib-word-blocks .footer__nav {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--theme-space-5);
+    flex-shrink: 0;
+}
+
+.core-engine-lib-word-blocks .footer__link {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+    text-decoration: none;
+    border-bottom: none;
+    white-space: nowrap;
+    transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .footer__link:hover {
+    opacity: 1;
+    color: var(--theme-accent, #3b82f6);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* Narrow screens: brand on top, links below, both centered. */
+
+@media (max-width: 560px) {
+    .core-engine-lib-word-blocks .footer__inner {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: var(--theme-space-3);
+    }
+
+    .core-engine-lib-word-blocks .footer__brand {
+        white-space: normal;
+        text-align: center;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .core-engine-lib-word-blocks .footer__nav {
+        justify-content: center;
+    }
+}
+
+
+/* ============================================
+   ARTICLE CATALOG — .article-catalog
+   ============================================ */
+
+.core-engine-lib-word-blocks .article-catalog__heading {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .article-catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--theme-space-5);
+    align-content: start;
+}
+
+/* --- Ссылка-карточка --- */
+
+.core-engine-lib-word-blocks .article-catalog__card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 104px 1fr;   /* логотип | текст */
+    gap: var(--theme-space-4);
+    align-items: start;
+    padding: var(--theme-space-5);
+    border-radius: var(--theme-radius-lg);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 4px 16px rgba(15, 23, 42, 0.04),
+        0 1px 3px rgba(15, 23, 42, 0.06);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 12px 32px rgba(59, 130, 246, 0.12),
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:active {
+    transform: translateY(-2px) scale(0.99);
+}
+
+/* --- Свечение (при наведении) --- */
+
+.core-engine-lib-word-blocks .article-catalog__glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    background: radial-gradient(
+        600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(59, 130, 246, 0.15),
+        rgba(139, 92, 246, 0.08) 40%,
+        transparent 60%
+    );
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__glow {
+    opacity: 1;
+}
+
+/* --- Логотип — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__logo {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    border-radius: var(--theme-radius-lg);
+    overflow: hidden;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+    z-index: 1;
+}
+
+.core-engine-lib-word-blocks .article-catalog__logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__logo img {
+    transform: scale(1.05);
+}
+
+/* --- Тело — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__body {
+    position: relative;
+    z-index: 1;
+    min-width: 0;   /* важно: обрезка текста внутри grid работает */
+}
+
+.core-engine-lib-word-blocks .article-catalog__title {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: 1.25;
+    color: var(--theme-text, #0f172a);
+    letter-spacing: -0.01em;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__title {
+    color: var(--theme-accent, #3b82f6);
+}
+
+.core-engine-lib-word-blocks .article-catalog__desc {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    line-height: 1.5;
+    color: var(--theme-text-muted, #64748b);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__date {
+    display: block;
+    margin-top: var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text-muted, #94a3b8);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Адаптив --- */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .article-catalog {
+        grid-template-columns: 1fr;
+        gap: var(--theme-space-4);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-4);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 100px 1fr;
+        gap: var(--theme-space-3);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 100px;
+        height: 100px;
+        border-radius: var(--theme-radius-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-3);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 88px 1fr;
+        gap: var(--theme-space-2);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 88px;
+        height: 88px;
+        border-radius: var(--theme-radius-md);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__title {
+        font-size: var(--theme-font-size-lg);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__desc {
+        font-size: var(--theme-font-size-base);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__date {
+        font-size: var(--theme-font-size-sm);
+    }
+}
+
+/* --- prefers-reduced-motion --- */
+
+@media (prefers-reduced-motion: reduce) {
+    .core-engine-lib-word-blocks .article-catalog__card,
+    .core-engine-lib-word-blocks .article-catalog__logo img,
+    .core-engine-lib-word-blocks .article-catalog__glow {
+        transition: none;
+    }
+}
+
+
+/* ============================================
+   CREATIVE BLOCK — .creative-block
+   ============================================ */
+/*
+ * Рекламная вставка. Умышленно скромная: без фона, без рамки,
+ * без акцентных кнопок. Реклама в статье не должна выпячиваться
+ * и ломать чтение. Всё, что нужно для идентификации — тонкая
+ * левая граница + серый юридический текст.
+ *
+ * По закону о рекламе маркируется:
+ *   - словом «Реклама»;
+ *   - наименованием рекламодателя (brand);
+ *   - ИНН рекламодателя (inn);
+ *   - ERID (erid).
+ *
+ * Ссылка помечена rel="... sponsored" — это обязательно для
+ * поисковых систем. Стилистически ведёт себя как обычная ссылка
+ * в тексте: тонкая, подчёркнутая, не «кнопка».
+ *
+ * Layout:
+ *   .creative-block__inner — flex-колонка, левое выравнивание.
+ *   Текст / ссылка / юр.строка идут друг под другом с gap.
+ *
+ * Если понадобится другой дизайн (плашка с фоном, карточка,
+ * акцентная кнопка) — правится только этот блок, HTML не
+ * меняется.
+ */
+
+.core-engine-lib-word-blocks .creative-block__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--theme-space-3);
+
+    /* Левая акцентная линия — единственный визуальный маркер,
+       что это реклама, а не часть статьи. */
+    border-left: 3px solid var(--theme-border, #e2e8f0);
+    padding-left: var(--theme-space-4);
+
+    /* Ограничиваем ширину, чтобы длинный рекламный текст не
+       растягивался на всю ширину статьи. */
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .creative-block__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    line-height: 1.5;
+    color: var(--theme-text, #0f172a);
+}
+
+/* Ссылка — тонкая, подчёркнутая, того же размера, что и текст
+   вокруг. Это не «кнопка» — это встроенная ссылка. */
+.core-engine-lib-word-blocks .creative-block__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--theme-space-2);
+
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+
+    color: var(--theme-accent, #3b82f6);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+
+    transition:
+        color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .creative-block__link:hover {
+    color: var(--theme-accent-hover, #2563eb);
+    border-bottom-color: currentColor;
+}
+
+/* Стрелка → чуть крупнее текста и чуть отодвигается на hover.
+   Это единственный «игровой» элемент блока — мягкий сигнал
+   интерактивности. */
+.core-engine-lib-word-blocks .creative-block__arrow {
+    font-size: 1.15em;
+    line-height: 1;
+    transition: transform 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .creative-block__link:hover .creative-block__arrow {
+    transform: translateX(3px);
+}
+
+/* Юридическая строка — мелкая, серая, не отвлекает, но всегда
+   на месте. Без неё блок нельзя публиковать (маркировка
+   рекламы). */
+.core-engine-lib-word-blocks .creative-block__legal {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xs, 0.75rem);
+    line-height: 1.4;
+    color: var(--theme-text-muted, #64748b);
+    opacity: 0.85;
+}
+
+/* ============================================
+   CREATIVE BLOCK — АДАПТИВ
+   ============================================ */
+
+@media (max-width: 480px) {
+    .core-engine-lib-word-blocks .creative-block__inner {
+        padding-left: var(--theme-space-3);
+        gap: var(--theme-space-2);
+    }
+
+    .core-engine-lib-word-blocks .creative-block__text,
+    .core-engine-lib-word-blocks .creative-block__link {
+        font-size: var(--theme-font-size-base);
+    }
+
+    .core-engine-lib-word-blocks .creative-block__legal {
+        font-size: 0.6875rem;   /* 11px */
+    }
+}
+
+/* ============================================
+   CREATIVE BLOCK — prefers-reduced-motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .core-engine-lib-word-blocks .creative-block__link,
+    .core-engine-lib-word-blocks .creative-block__arrow {
+        transition: none;
     }
 }
 

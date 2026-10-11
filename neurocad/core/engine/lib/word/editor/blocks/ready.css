@@ -21,6 +21,10 @@
  *   - .article-catalog, .article-catalog__heading, .article-catalog__card,
  *     .article-catalog__glow, .article-catalog__logo, .article-catalog__body,
  *     .article-catalog__title, .article-catalog__desc, .article-catalog__date
+ *   - .creative-block, .creative-block__inner, .creative-block__text,
+ *     .creative-block__link, .creative-block__btn-text,
+ *     .creative-block__arrow, .creative-block__legal,
+ *     .creative-block__brand, .creative-block__inn, .creative-block__erid
  *
  * Shared atom classes (.h1, .h2, .text, .lead, .btn, .card, .image)
  * and layout classes (.section, .container, .grid) live in
@@ -585,6 +589,142 @@
     .core-engine-lib-word-blocks .article-catalog__card,
     .core-engine-lib-word-blocks .article-catalog__logo img,
     .core-engine-lib-word-blocks .article-catalog__glow {
+        transition: none;
+    }
+}
+
+
+/* ============================================
+   CREATIVE BLOCK — .creative-block
+   ============================================ */
+/*
+ * Рекламная вставка. Умышленно скромная: без фона, без рамки,
+ * без акцентных кнопок. Реклама в статье не должна выпячиваться
+ * и ломать чтение. Всё, что нужно для идентификации — тонкая
+ * левая граница + серый юридический текст.
+ *
+ * По закону о рекламе маркируется:
+ *   - словом «Реклама»;
+ *   - наименованием рекламодателя (brand);
+ *   - ИНН рекламодателя (inn);
+ *   - ERID (erid).
+ *
+ * Ссылка помечена rel="... sponsored" — это обязательно для
+ * поисковых систем. Стилистически ведёт себя как обычная ссылка
+ * в тексте: тонкая, подчёркнутая, не «кнопка».
+ *
+ * Layout:
+ *   .creative-block__inner — flex-колонка, левое выравнивание.
+ *   Текст / ссылка / юр.строка идут друг под другом с gap.
+ *
+ * Если понадобится другой дизайн (плашка с фоном, карточка,
+ * акцентная кнопка) — правится только этот блок, HTML не
+ * меняется.
+ */
+
+.core-engine-lib-word-blocks .creative-block__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--theme-space-3);
+
+    /* Левая акцентная линия — единственный визуальный маркер,
+       что это реклама, а не часть статьи. */
+    border-left: 3px solid var(--theme-border, #e2e8f0);
+    padding-left: var(--theme-space-4);
+
+    /* Ограничиваем ширину, чтобы длинный рекламный текст не
+       растягивался на всю ширину статьи. */
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .creative-block__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    line-height: 1.5;
+    color: var(--theme-text, #0f172a);
+}
+
+/* Ссылка — тонкая, подчёркнутая, того же размера, что и текст
+   вокруг. Это не «кнопка» — это встроенная ссылка. */
+.core-engine-lib-word-blocks .creative-block__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--theme-space-2);
+
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+
+    color: var(--theme-accent, #3b82f6);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+
+    transition:
+        color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .creative-block__link:hover {
+    color: var(--theme-accent-hover, #2563eb);
+    border-bottom-color: currentColor;
+}
+
+/* Стрелка → чуть крупнее текста и чуть отодвигается на hover.
+   Это единственный «игровой» элемент блока — мягкий сигнал
+   интерактивности. */
+.core-engine-lib-word-blocks .creative-block__arrow {
+    font-size: 1.15em;
+    line-height: 1;
+    transition: transform 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .creative-block__link:hover .creative-block__arrow {
+    transform: translateX(3px);
+}
+
+/* Юридическая строка — мелкая, серая, не отвлекает, но всегда
+   на месте. Без неё блок нельзя публиковать (маркировка
+   рекламы). */
+.core-engine-lib-word-blocks .creative-block__legal {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xs, 0.75rem);
+    line-height: 1.4;
+    color: var(--theme-text-muted, #64748b);
+    opacity: 0.85;
+}
+
+/* ============================================
+   CREATIVE BLOCK — АДАПТИВ
+   ============================================ */
+
+@media (max-width: 480px) {
+    .core-engine-lib-word-blocks .creative-block__inner {
+        padding-left: var(--theme-space-3);
+        gap: var(--theme-space-2);
+    }
+
+    .core-engine-lib-word-blocks .creative-block__text,
+    .core-engine-lib-word-blocks .creative-block__link {
+        font-size: var(--theme-font-size-base);
+    }
+
+    .core-engine-lib-word-blocks .creative-block__legal {
+        font-size: 0.6875rem;   /* 11px */
+    }
+}
+
+/* ============================================
+   CREATIVE BLOCK — prefers-reduced-motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .core-engine-lib-word-blocks .creative-block__link,
+    .core-engine-lib-word-blocks .creative-block__arrow {
         transition: none;
     }
 }

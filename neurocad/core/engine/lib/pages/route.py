@@ -325,7 +325,9 @@ async def get_pages_list(
 
     Response shape is unchanged: { success, data: [...], total,
     page, limit }. Each item now carries `card_type`, `parent_id`,
-    `sort_order` and (for folders) `children_count`.
+    `sort_order`, `children_count` (for folders) and `creative_id`
+    (for pages — the currently attached creative, read from the
+    active placement row).
     """
     resolved_nav_id = await _resolve_nav_id(request, nav_id)
 
@@ -420,6 +422,9 @@ async def get_page_item(
 
     Folders are NOT returned — the service filters by
     card_type='page', so the editor never opens on a folder.
+
+    `creative_id` is present in the response if the page has an
+    active creative attached (read from the placements table).
     """
     resolved_nav_id = await _resolve_nav_id(request, nav_id)
 
@@ -488,6 +493,14 @@ async def create_page_item(
     (lazy, based on the owner's tariff). Folders are NOT counted
     against the page limit — the service skips the balance check
     when `card_type == 'folder'`.
+
+    Creative attachment
+    -------------------
+    If the payload carries `creative_id` (a non-zero int) and the
+    item being created is a page (not a folder), the service
+    creates an active placement row in the same transaction. The
+    page is then linked to that creative. Folders ignore
+    `creative_id`.
 
     On limit exceeded → 403 with a STRUCTURED detail payload:
 
@@ -562,7 +575,11 @@ async def duplicate_page_item(
 
     Does NOT copy:
       - PageHist (history) — new page starts with empty history;
-      - PageChat (LLM chat) — new page starts with empty chat.
+      - PageChat (LLM chat) — new page starts with empty chat;
+      - Placements (creative attachment) — the copy starts with
+        no creative. Attaching a copy to the same creative as
+        the original would create a second placement for the
+        same creative, which is never what the user wants.
 
     Title of the copy: "<original> (копия)". The user can rename
     it later through the normal edit form.
@@ -619,6 +636,23 @@ async def update_page_item(
         nav). The client shows "элемент не найден".
       - 400 — the item exists, but the requested move is invalid.
         The client shows the message as-is.
+
+    Creative attachment
+    -------------------
+    `creative_id` in the payload controls the placement:
+
+      - field omitted      → the current attachment is left
+        untouched;
+      - field = null / 0   → the active placement is closed
+        (detach);
+      - field = <int>      → the page is attached to that
+        creative. If a different creative was attached, the old
+        placement is closed and a new one is opened. If the same
+        creative was already attached, nothing changes.
+
+    Additionally, if `is_active = 0` is sent (the page is being
+    unpublished), the active placement is closed regardless of
+    `creative_id`.
     """
     resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
 
@@ -665,6 +699,11 @@ async def delete_page_item(
     detached and moved one level up (their parent_id becomes the
     deleted folder's parent_id). See service.py → delete_item for
     the full rationale.
+
+    Creative placements: deleting a page closes its active
+    placement (date_end = now, is_active = 0). History is
+    preserved — the rows stay in the table, they are just no
+    longer active.
     """
     resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
 
@@ -697,6 +736,12 @@ async def restore_page_item(
 
     Restoring a folder does NOT re-attach its former children —
     they were moved one level up at delete time and stay there.
+
+    Creative placements are NOT re-opened on restore. If the page
+    had a creative before delete, that placement was closed at
+    delete time. Re-opening it would resurrect stale ad dates. The
+    user can re-attach a creative by editing the page — that
+    creates a fresh placement.
     """
     resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
 

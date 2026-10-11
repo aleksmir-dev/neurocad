@@ -20,6 +20,7 @@
  *   - "Профиль" (user)    — <a href="<module>?page=profile">
  *   - "Логин" (guest)     — <a href="<module>?auth=login">
  *   - "Баланс" (superadm) — <a href="<module>/balance">
+ *   - "Настройки"         — <a href="<module>?page=setup"> (all authed)
  *   - items from `items`  — <a href="item.href">
  *
  * The browser handles them natively. If JS fails to load, or an
@@ -29,7 +30,6 @@
  * Items that perform an ACTION (no URL) are rendered as <a href="#">
  * with `data-action="..."` and handled by the delegated listener:
  *
- *   - "Настройки" — opens setup page in area-center (superadmin)
  *   - "Выход" / "Вход" — auth.logout() / auth.showLogin()
  *
  * These deliberately keep href="#" so they remain focusable and
@@ -47,8 +47,8 @@
  *             Strictly authentication. Does NOT carry `profile`.
  *
  *   `page`  — which APP page to open, i.e. which page from
- *             base/pages/: profile / setup. User-facing page inside
- *             the shell.
+ *             base/pages/: profile / setup / creatives. User-facing
+ *             page inside the shell.
  *
  *   `section` — a sub-page inside `page`:
  *                 page=profile → section=balance / domain / ...
@@ -63,6 +63,12 @@
  *   <module>?page=setup                    → setup landing
  *
  * <module> here is window.coreEngine.baseUrl — e.g. /core/engine/admin.
+ *
+ * Access
+ * ------
+ * "Настройки" is visible to every authenticated user (it hosts
+ * per-user sections like Creatives). "Баланс" stays superadmin-only.
+ * Guests see neither.
  */
 export class Menu {
     constructor(options = {}) {
@@ -73,14 +79,6 @@ export class Menu {
 
         // Whether the delegated listener has been attached to the
         // DOCUMENT. Attached once, on first bindEvents().
-        //
-        // NOTE: the listener is on `document`, not on the menu
-        // container. The container is re-created every time
-        // Base.render() rewrites document.body.innerHTML — a
-        // container-bound listener would die with the old node.
-        // A document-bound listener survives any number of
-        // re-renders: it looks up the current container at click
-        // time via `closest('[data-js="menu"]')`.
         this._bound = false;
     }
 
@@ -94,19 +92,26 @@ export class Menu {
     }
 
     /**
-     * Whether current user can see superadmin-only items
-     * ("Настройки" and "Баланс").
+     * Whether the user is authenticated.
+     *
+     * Used for "Настройки" — shown to every authenticated user
+     * (they host per-user sections like Creatives).
      */
-    _canSeeSetup() {
+    _isAuthed() {
+        return !!(this.user && this.user.login);
+    }
+
+    /**
+     * Whether current user can see superadmin-only items
+     * ("Баланс").
+     */
+    _canSeeBalance() {
         return this.user?.is_superadmin === true;
     }
 
     /**
      * Base URL of the current module, e.g. /core/engine/admin.
      * Everything else in this file builds URLs from it.
-     *
-     * Fallback to /core/engine/default if baseUrl is somehow missing
-     * (defensive).
      */
     _moduleBaseUrl() {
         return window.coreEngine?.baseUrl
@@ -117,16 +122,6 @@ export class Menu {
 
     /**
      * Build a URL to an AUTH form on the CURRENT module.
-     *
-     * Auth forms are not standalone URLs in this project — they are
-     * opened as `?auth=<form>` on the current module, and
-     * Base._initAuth() picks the right form on load.
-     *
-     * Only login / register / restore / password. `profile` is NOT
-     * an auth form — use _pageUrl('profile') for that.
-     *
-     * @param {string} form — 'login' | 'register' | 'restore' | 'password'
-     * @returns {string}
      */
     _authUrl(form) {
         const base = this._moduleBaseUrl();
@@ -135,19 +130,6 @@ export class Menu {
 
     /**
      * Build a URL to an APP page on the CURRENT module.
-     *
-     * App pages are not standalone URLs in this project — they are
-     * opened as `?page=<name>` on the current module, and
-     * Base._initAuth() picks the right page on load. An optional
-     * `section` narrows it down to a sub-page:
-     *
-     *   _pageUrl('profile')                     → ?page=profile
-     *   _pageUrl('profile', 'balance')          → ?page=profile&section=balance
-     *   _pageUrl('setup')                       → ?page=setup
-     *
-     * @param {string} page — 'profile' | 'setup'
-     * @param {string} [section] — 'balance' | 'domain' | 'llm' | ...
-     * @returns {string}
      */
     _pageUrl(page, section = null) {
         const base = this._moduleBaseUrl();
@@ -163,22 +145,18 @@ export class Menu {
         const setupEl = document.querySelector('.core-engine-lib-base-menu-setup');
         const balanceEl = document.querySelector('.core-engine-lib-base-menu-balance');
 
-        // Show / hide superadmin-only items.
-        const show = this._canSeeSetup();
+        // "Настройки" — for every authenticated user.
         if (setupEl) {
-            setupEl.style.display = show ? '' : 'none';
+            setupEl.style.display = this._isAuthed() ? '' : 'none';
         }
+
+        // "Баланс" — superadmin-only.
         if (balanceEl) {
-            balanceEl.style.display = show ? '' : 'none';
+            balanceEl.style.display = this._canSeeBalance() ? '' : 'none';
         }
 
         if (!guestEl || !loginEl) return;
 
-        // Profile link text + href depend on whether the user is
-        // logged in. When logged in — the name, and href to the
-        // profile page. When not — "Гость" and href to the login
-        // page. The <a> element itself stays the same; we only
-        // update text and href.
         if (this.user && this.user.login) {
             const displayName = this.user.name || this.user.login || 'Пользователь';
             guestEl.textContent = displayName;
@@ -207,9 +185,6 @@ export class Menu {
         const loginText = isLoggedIn ? 'Выход' : 'Вход';
         const loginAction = isLoggedIn ? 'logout' : 'auth';
 
-        // Profile: real link. When logged in — opens the profile
-        // page via ?page=profile on the current module. When not
-        // logged in — opens the login form via ?auth=login.
         const profileHref = isLoggedIn
             ? this._pageUrl('profile')
             : this._authUrl('login');
@@ -220,29 +195,24 @@ export class Menu {
             return `<a href="${item.href || '#'}" class="core-engine-lib-base-menu-item">${item.text}</a>`;
         }).join('');
 
-        // Superadmin-only items: "Настройки" and "Баланс".
-        // Hidden via inline style so updateUI() can toggle them
-        // without re-rendering the whole menu.
-        const superadminStyle = this._canSeeSetup() ? '' : 'display:none;';
-
-        // "Баланс" — real link to the admin balance page (the
-        // superadmin's own tabular view of everyone's balances).
-        // This is a standalone route on the backend, not ?page=.
+        // "Баланс" — superadmin-only. Hidden via inline style so
+        // updateUI() can toggle it without re-rendering.
+        const balanceStyle = this._canSeeBalance() ? '' : 'display:none;';
         const balanceHtml = `
             <a class="core-engine-lib-base-menu-item core-engine-lib-base-menu-balance"
                href="${moduleBaseUrl}/balance"
-               style="${superadminStyle}">Баланс</a>
+               style="${balanceStyle}">Баланс</a>
         `;
 
-        // "Настройки" — action, not a navigation: opens the setup
-        // page in area-center via base.showSetup(). href="#" keeps
-        // the element focusable; the delegated listener intercepts
-        // the click.
+        // "Настройки" — for every authenticated user. A real <a href>
+        // to ?page=setup on the current module — no JS interceptor,
+        // so F5, bookmarks and the browser Back button all work.
+        // Hidden for guests via inline style.
+        const setupStyle = this._isAuthed() ? '' : 'display:none;';
         const setupHtml = `
             <a class="core-engine-lib-base-menu-item core-engine-lib-base-menu-setup"
-               href="#"
-               data-action="setup"
-               style="${superadminStyle}">Настройки</a>
+               href="${moduleBaseUrl}?page=setup"
+               style="${setupStyle}">Настройки</a>
         `;
 
         return `
@@ -290,35 +260,24 @@ export class Menu {
      * `e.target.closest('[data-js="menu"]')` and only handles clicks
      * inside it. Everything else is ignored.
      *
-     * Navigation items (<a href> without data-action) are NOT
-     * intercepted — the browser follows them natively.
+     * Only `data-action` items are intercepted. Real <a href> links
+     * ("Настройки", "Баланс", "Профиль", "Главная", auth form links)
+     * are followed by the browser natively — no JS interceptor.
      */
     bindEvents() {
         if (this._bound) return;
         this._bound = true;
 
         document.addEventListener('click', (e) => {
-            // Only react to clicks inside a menu container.
             const menu = e.target.closest('[data-js="menu"]');
             if (!menu) return;
 
-            // Only react to [data-action] items inside that menu.
             const item = e.target.closest('[data-action]');
             if (!item || !menu.contains(item)) return;
 
             const action = item.getAttribute('data-action');
 
             switch (action) {
-                case 'setup':
-                    e.preventDefault();
-                    if (!this._canSeeSetup()) return;
-                    if (window.coreEngine?.base?.showSetup) {
-                        window.coreEngine.base.showSetup('main');
-                    } else {
-                        console.warn('[Menu] coreEngine.base.showSetup not available');
-                    }
-                    break;
-
                 case 'auth':
                     e.preventDefault();
                     if (this.auth && typeof this.auth.showLogin === 'function') {
@@ -334,8 +293,6 @@ export class Menu {
                     break;
 
                 default:
-                    // Unknown action — do nothing, let the browser
-                    // handle the link if there is one.
                     break;
             }
 

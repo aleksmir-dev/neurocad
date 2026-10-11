@@ -1,0 +1,10 @@
+{
+  "_file": "admin/creatives.json",
+  "component": "page",
+  "extend": "base",
+  "title": "Креативы",
+  "content": "{{ creatives }}",
+  "components": [
+    { "component": "creatives" }
+  ]
+}

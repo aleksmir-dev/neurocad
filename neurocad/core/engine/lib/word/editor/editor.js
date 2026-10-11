@@ -11,7 +11,10 @@
  *   assets.js     -> image picker (BaseAssets) + traits binding
  *   blocks/       -> registers block library
  *   brand.js      -> substitutes the real public host into
- *                    [data-footer-brand] on component:add
+ *                    [data-footer-brand] on canvas:drop
+ *   creative.js   -> opens the creative picker when the core-creative
+ *                    block is dropped, and fills its fields from the
+ *                    chosen creative (canvas:drop, same as brand.js)
  *   autosave.js   -> interval-based, dirty-flag driven auto-save
  *   session.js    -> save / cancel / close / clear flow
  *   resizer.js    -> handles for dragging borders between areas
@@ -126,6 +129,7 @@ export class Editor {
         this._importer = null;      // io/import.js module
         this._exporter = null;      // io/export.js module
         this._bindFooterBrand = null;
+        this._bindCreative = null;
         this._AutosaveClass = null;
         this._SessionClass = null;
 
@@ -200,6 +204,7 @@ export class Editor {
                 { AssetsManager },
                 { BlocksRegistry },
                 { bindFooterBrand },
+                { bindCreative },
                 { Autosave },
                 { Session },
                 { Resizer },
@@ -219,6 +224,7 @@ export class Editor {
                 import(`./assets.js?v=${version}`),
                 import(`./blocks/index.js?v=${version}`),
                 import(`./brand.js?v=${version}`),
+                import(`./creative.js?v=${version}`),
                 import(`./autosave.js?v=${version}`),
                 import(`./session.js?v=${version}`),
                 import(`./resizer.js?v=${version}`),
@@ -236,6 +242,7 @@ export class Editor {
             this._createModal = createModal;
             this._modals = modalsModule;
             this._bindFooterBrand = bindFooterBrand;
+            this._bindCreative = bindCreative;
             this._AutosaveClass = Autosave;
             this._SessionClass = Session;
 
@@ -275,12 +282,23 @@ export class Editor {
                 this._blocks = new BlocksRegistry(this.editor);
                 await this._blocks.register();
 
-                // 5.1. Footer brand — subscribe to component:add and
+                // 5.1. Footer brand — subscribe to canvas:drop and
                 //      substitute the real public host into any
                 //      [data-footer-brand] element that appears in
                 //      the canvas (see brand.js).
                 if (typeof this._bindFooterBrand === 'function') {
                     this._bindFooterBrand(this);
+                }
+
+                // 5.2. Creative block — subscribe to canvas:drop and
+                //      open the creative picker when the core-creative
+                //      block is dropped. On pick, fills the block's
+                //      fields from the chosen creative (text,
+                //      button_text, target_url, brand, inn, erid).
+                //      Same lifecycle as brand.js: only on drop,
+                //      never on project load.
+                if (typeof this._bindCreative === 'function') {
+                    this._bindCreative(this);
                 }
 
                 // 6. Image picker — bind the "Choose from library"
@@ -655,6 +673,7 @@ export class Editor {
         this._modals = null;
         this._history = null;
         this._bindFooterBrand = null;
+        this._bindCreative = null;
 
         this._initialized = false;
         this._initPromise = null;

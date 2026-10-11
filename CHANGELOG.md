@@ -5,17 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.20] - 2026-10-11
+- Creative model extended with `text`, `button_text`, `brand`, `inn`; admin modal now has eight fields, placements tab is read-only. New `core-creative` block in the library ("Секции") renders an advertising insert with legal markers (Реклама / advertiser / INN / ERID) and auto-fills on drop from the creative already attached to the page. Fixes `BaseModalForm._createDOM()` reusing a stale container — old listeners fired alongside the new one and emptied the fields the user just filled.
+
 ## [1.0.19] - 2026-10-11
-- Article catalog is managed by the "Администратор" agent — always asks a clarifying question before picking an agent.
-- "Копировать" button in the toolbar — works on any selection.
-- "Переместить" button in the toolbar — works on exactly one item, prevents folder cycles.
-- New `BaseModalList` — generic single-choice list picker.
-- New "Публиковать" checkbox in the edit form; templates hidden from the public catalog.
-- Page render extracted from `pages.js` into `lib/pages/card.js`.
-- `create_page` runs its own dialog before generating — one question at a time, per genre, stops on "вперёд"; prompt reworked to ask about colours, effects, block count.
-- Fallback in `_parse_dialog_response`: a bare-text question from the model is still treated as a question.
-- `Run.brief` stores dialog state between turns; `agent/base.py` extended with `brief`, agent result may include `question`.
-- Dump files in `log/llm-prompts/` now start with a header repeating the file name, `run_id` and time.
+- Article catalog managed by the "Администратор" agent (always asks a clarifying question first). New "Копировать" / "Переместить" toolbar buttons, new `BaseModalList` picker, new "Публиковать" checkbox (templates hidden from the public catalog). Page render extracted to `card.js`. `create_page` runs its own dialog before generating — one question at a time, per genre, stops on "вперёд"; reworked prompt asks about colours, effects and block count, plus a fallback in `_parse_dialog_response` so a bare-text question is still recognised.
 
 ## [1.0.18] - 2026-10-08
 - Folders in the article catalog: pages can be grouped into folders, admin and public; unlimited nesting; SEO-friendly URL `/pages/<id>`; breadcrumbs; "Вернуться" card.
@@ -27,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `pages.css` hidden-field rules scoped by entity type.
 - Fixed `InvalidCharacterError` in `BaseCardsCard` when `customClass` contained a space.
 - Fixed the open folder appearing inside itself — `Pages._loadFromServer()` now carries `parent_id`.
-- Removed the duplicate `↑` glyph on the ".." card.
+- Removed the duplicate `↩` glyph on the ".." card.
 
 ## [1.0.17] - 2026-10-07
 - AI generation of Policy and Rules via a new "✨ Сгенерировать" button in the legal modal and a new `POST /domain/legal/generate` endpoint; the LLM reads the user's home page (title, description, visible text, site host) and returns a fresh markdown document without saving it. Adds `generate_legal` agent + prompt, `LegalMixin.load_home_context()`, explicit today's date in the prompt (no more "01.01.2026"), a ban on inventing brands and data categories, and token charge on the Balance.
@@ -113,6 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.20]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.19...v1.0.20
 [1.0.19]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.18...v1.0.19
 [1.0.18]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.17...v1.0.18
 [1.0.17]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.16...v1.0.17

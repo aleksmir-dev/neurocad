@@ -19,3 +19,6 @@ from .page_chat import PageChat
 from .run import Run
 from .balance import Balance
 from .domain import Domain
+from .creative import Creative
+from .placement import Placement
+from .placement_stat import PlacementStat

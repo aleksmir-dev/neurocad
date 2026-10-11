@@ -438,9 +438,12 @@
  *      - is_template  — base-template flag (folders are not
  *                       templates);
  *      - template_id  — "Наследовать от" (folders do not
- *                       inherit layout from a template).
+ *                       inherit layout from a template);
+ *      - creative_id  — attached creative (folders cannot carry
+ *                       a creative; placements are only created
+ *                       for pages).
  *
- * On a PAGE form these three are visible — they are normal page
+ * On a PAGE form these four are visible — they are normal page
  * properties. The `edit-body--page` / `edit-body--folder` marker
  * is set by edit.js → _renderForm, based on `values.card_type`.
  *
@@ -467,7 +470,8 @@
 /* Folder form only — page-only properties */
 .edit-body--folder .edit-group:has([data-field="url"]),
 .edit-body--folder .edit-group:has([data-field="is_template"]),
-.edit-body--folder .edit-group:has([data-field="template_id"]) {
+.edit-body--folder .edit-group:has([data-field="template_id"]),
+.edit-body--folder .edit-group:has([data-field="creative_id"]) {
     display: none;
 }
 

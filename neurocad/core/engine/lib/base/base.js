@@ -11,7 +11,7 @@
  *
  * Delegated concerns (loaded dynamically in _loadModules):
  *   - areas.js        → BaseAreas         (renderInArea / teardownAreas / side areas)
- *   - pages.js        → BasePages         (showProfile / showSetup / showAuthPage)
+ *   - pages.js        → BasePages         (showProfile / showSetup / showCreatives / showAuthPage)
  *   - chat.js         → BaseChatController (chat panel lifecycle)
  *
  * Public API kept stable for external callers (auth.js, menu.js, …):
@@ -19,6 +19,7 @@
  *   base.teardownAreas()
  *   base.showProfile(section)
  *   base.showSetup(section)
+ *   base.showCreatives()
  *   base.openChat() / base.closeChat()
  *
  * Runtime params:
@@ -28,7 +29,7 @@
  *     - `auth`    — which AUTH form to open (login / register /
  *                   restore / password). Strictly authentication.
  *
- *     - `page`    — which APP page to open (profile / setup).
+ *     - `page`    — which APP page to open (profile / setup / creatives).
  *
  *     - `section` — a sub-page inside `page`:
  *                     page=profile → section=balance / domain / ...
@@ -42,6 +43,7 @@
  *     ?page=profile&section=balance          → profile → balance
  *     ?page=setup                            → setup landing
  *     ?page=setup&section=llm                → setup → llm
+ *     ?page=creatives                        → creatives page
  *
  *   `<body data-auth-form>` / `<body data-page>` /
  *   `<body data-section>` are kept as fallbacks for server-rendered
@@ -89,7 +91,7 @@ export class Base {
             || document.body.dataset.authForm
             || null;
 
-        // `page` — which APP page to open (profile / setup).
+        // `page` — which APP page to open (profile / setup / creatives).
         this.page = this.params.page
             || document.body.dataset.page
             || null;
@@ -120,7 +122,7 @@ export class Base {
         this.redirectUrl = null;
         this.childComponents = [];
 
-        // Active "page" instance rendered into area-center (profile, setup, ...).
+        // Active "page" instance rendered into area-center (profile, setup, creatives, ...).
         // Not the same as childComponents — those come from the config.
         this.areaInstance = null;
 
@@ -373,9 +375,9 @@ export class Base {
 
         // ===== 2. App page requested =====
         // Comes from ?page=<name> (via props.params.page) or from
-        // <body data-page>. profile / setup. If the user is not
-        // authenticated, the login form is shown instead; once the
-        // user logs in, the reload (see auth:changed) re-runs the
+        // <body data-page>. profile / setup / creatives. If the user
+        // is not authenticated, the login form is shown instead; once
+        // the user logs in, the reload (see auth:changed) re-runs the
         // whole init with the session in place.
         if (this.page) {
             if (!isAuthenticated) {
@@ -413,12 +415,13 @@ export class Base {
     }
 
     /**
-     * Open an app page (profile / setup) with an optional section.
+     * Open an app page (profile / setup / creatives) with an optional
+     * section.
      *
      * Centralises the page → BasePages mapping so both _initAuth()
      * and the auth:changed handler stay in sync.
      *
-     * @param {string} page — 'profile' | 'setup'
+     * @param {string} page — 'profile' | 'setup' | 'creatives'
      * @param {string|null} section — sub-page inside `page`
      */
     _openPage(page, section = null) {
@@ -430,6 +433,10 @@ export class Base {
         }
         if (page === 'setup') {
             this.showSetup(section || 'main');
+            return;
+        }
+        if (page === 'creatives') {
+            this.showCreatives();
             return;
         }
         console.warn('[Base] Unknown page:', page);
@@ -494,7 +501,7 @@ export class Base {
     }
 
     /**
-     * Open a setup page (superadmin only). Delegates to BasePages.
+     * Open a setup page. Delegates to BasePages.
      */
     showSetup(section = 'main') {
         if (!this.pages) {
@@ -502,6 +509,22 @@ export class Base {
             return null;
         }
         return this.pages.showSetup(section);
+    }
+
+    /**
+     * Open the Creatives page. Delegates to BasePages.
+     *
+     * Available to every authenticated user (the page hosts per-user
+     * creatives and placements). Guests are stopped by the guard in
+     * BasePages.showCreatives(); the URL rule (?page=creatives needs
+     * an authenticated user) is checked here too, in _initAuth().
+     */
+    showCreatives() {
+        if (!this.pages) {
+            console.warn('[Base] showCreatives called before init');
+            return null;
+        }
+        return this.pages.showCreatives();
     }
 
     /**

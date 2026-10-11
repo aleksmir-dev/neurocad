@@ -25,8 +25,9 @@
  *   ./hint.js    — EmptyArticlesHint, CardActionsHint
  *
  * Pages itself keeps only:
- *   - state (navId, page list, templates, public URL),
- *   - loading from server (_loadFromServer, _loadTemplates),
+ *   - state (navId, page list, templates, creatives, public URL),
+ *   - loading from server (_loadFromServer, _loadTemplates,
+ *     _loadCreatives),
  *   - navigation (_openArticle),
  *   - wiring sub-modules into BaseCards callbacks.
  *
@@ -94,6 +95,22 @@
  *   - template_id: this page inherits layout from that template;
  *     its own `content` is inserted into [data-slot="content"].
  *
+ * Creative attachment
+ * -------------------
+ * A page may be linked to a creative. In the form, this is the
+ * "Креатив" select (optional, above "Публиковать"). The chosen
+ * creative id is sent as `creative_id` in the payload.
+ *
+ * On the backend, saving the page creates (or keeps) an active
+ * placement row in the `placements` table, linking this page to
+ * the chosen creative. Clearing the select (or setting
+ * `is_active = 0`) closes the active placement (sets date_end).
+ *
+ * The field itself is NOT stored on the page — the placement is
+ * the single source of truth. The list/response payloads carry
+ * `creative_id` (read from the active placement) so the edit form
+ * can pre-select the current creative.
+ *
  * Publication
  * -----------
  * `is_active` is surfaced in the edit form as a "Публиковать"
@@ -133,6 +150,13 @@ export class Pages {
 
         // Cached list of templates (is_template=1), for the dropdown.
         this._templates = [];
+
+        // Cached list of creatives, for the "Креатив" dropdown.
+        // Only loaded when the user can edit pages. A creative is
+        // offered as-is; the select shows "(неактивен)" next to
+        // archived ones so the user understands why they are still
+        // listed.
+        this._creatives = [];
 
         // Caption helpers — filled from window.coreEngine.base in _init().
         this._setCaption = null;
@@ -273,6 +297,11 @@ export class Pages {
                 await this._loadTemplates();
             }
 
+            // Load creatives list (for "Креатив" dropdown).
+            if (canEdit) {
+                await this._loadCreatives();
+            }
+
             // Public catalog URL — must be loaded BEFORE BaseCards is
             // constructed so extraToolbarButtons already carries the
             // final href.
@@ -375,6 +404,32 @@ export class Pages {
                         type: 'text',
                     },
 
+                    // ===== Creative attachment =====
+                    // Optional. When set, saving the page creates (or
+                    // keeps) an active placement row on the backend;
+                    // clearing it (or unchecking "Публиковать" below)
+                    // closes the active placement.
+                    //
+                    // The select is populated from this._creatives,
+                    // which is loaded in _init() / _reload() from
+                    // /core/engine/lib/creatives/list. Inactive
+                    // creatives are shown with a "(неактивен)"
+                    // suffix so the user understands why a creative
+                    // they archived is still selectable.
+                    {
+                        key: 'creative_id',
+                        label: 'Креатив',
+                        type: 'select',
+                        valueType: 'number',
+                        options: () => this._creatives.map(c => ({
+                            value: c.id,
+                            label: c.is_active
+                                ? c.name
+                                : `${c.name} (неактивен)`,
+                        })),
+                        placeholder: '— Без креатива —',
+                    },
+
                     // ===== Publication =====
                     // Last field, by design: "Публиковать" is the
                     // final decision the user makes before saving.
@@ -395,6 +450,7 @@ export class Pages {
                         card_type: 'page',
                         is_template: 0,
                         template_id: null,
+                        creative_id: null,
                         is_active: 1,
                     };
                 },
@@ -606,6 +662,39 @@ export class Pages {
         }
     }
 
+    /**
+     * Load the list of creatives for the "Креатив" dropdown.
+     *
+     * Loaded from /core/engine/lib/creatives/list — the same
+     * endpoint the Creatives admin page uses. Both active and
+     * inactive creatives are returned. The select shows
+     * "(неактивен)" next to archived ones, so the user can keep an
+     * archived creative attached to a page without being confused
+     * by its presence in the list.
+     *
+     * Called from _init() and _reload() — the latter so that a
+     * creative created in another tab shows up on the next reload.
+     */
+    async _loadCreatives() {
+        console.log('[Pages] _loadCreatives()');
+
+        try {
+            const fetchJson = window.coreEngine?.fetchJson;
+            const result = await fetchJson('/core/engine/lib/creatives/list');
+
+            if (result.success) {
+                this._creatives = result.data || [];
+                console.log('[Pages] Loaded creatives:', this._creatives.length);
+            } else {
+                console.warn('[Pages] Creatives response without success:', result);
+                this._creatives = [];
+            }
+        } catch (error) {
+            console.error('[Pages] Creatives load error:', error);
+            this._creatives = [];
+        }
+    }
+
     // ============================================
     // NAVIGATION
     // ============================================
@@ -696,6 +785,10 @@ export class Pages {
      * Called by BaseCards via onReload after folder navigation
      * (_openFolder / _goUp) and by other actions (create / delete /
      * copy / move).
+     *
+     * Also reloads the templates and creatives lists — a template
+     * or creative created in another tab should show up in the
+     * dropdowns on the next reload, without a full page refresh.
      */
     async _reload() {
         console.log('[Pages] _reload()');
@@ -708,6 +801,7 @@ export class Pages {
 
         if (this._utils.canEdit()) {
             await this._loadTemplates();
+            await this._loadCreatives();
         }
 
         if (this.cardsInstance) {

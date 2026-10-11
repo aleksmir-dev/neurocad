@@ -23,6 +23,10 @@ export async function createModal(type, props = {}) {
             const { BaseModalInput } = await import('./input.js');
             return new BaseModalInput(props);
         }
+        case 'form': {
+            const { BaseModalForm } = await import('./form.js');
+            return new BaseModalForm(props);
+        }
         case 'textarea': {
             const { BaseModalTextarea } = await import('./textarea.js');
             return new BaseModalTextarea(props);

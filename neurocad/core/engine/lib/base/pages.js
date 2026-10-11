@@ -3,11 +3,12 @@
 /**
  * BasePages — page controllers for area-center.
  *
- * Owns the three "page-level" entry points that replace area-center
+ * Owns the four "page-level" entry points that replace area-center
  * with a full-page component:
  *
  *   - showProfile(section)  — user profile (main / balance / domain)
- *   - showSetup(section)    — superadmin setup (main / llm)
+ *   - showSetup(section)    — setup landing + sub-pages (main / llm / creatives)
+ *   - showCreatives()       — creatives page (top-level, ?page=creatives)
  *   - showAuthPage()        — auth fallback page (login/register/...)
  *
  * Each show* method:
@@ -101,29 +102,30 @@ export class BasePages {
         });
     }
 
-    // ============================================
-    // SETUP (superadmin only)
-    // ============================================
-
     /**
-     * Open a setup page in area-center.
+     * Open a setup page (any authenticated user).
      *
-     * Available to superadmin only. The guard is checked here; server-side
-     * permissions are enforced on the API endpoints.
+     * Available to every authenticated user — the setup section
+     * hosts per-user tools like "Настройки LLM" and "Креативы".
+     * Server-side permissions are still enforced on the API
+     * endpoints themselves.
      *
-     * Two sections, two separate components:
-     *   - 'main' → setup/setup.js   (BaseSetup)     — setup landing page
-     *   - 'llm'  → setup/llm/llm.js (BaseSetupLlm)  — LLM settings page
+     * Three sections, three separate components:
+     *   - 'main'      → setup/setup.js            (BaseSetup)     — setup landing page
+     *   - 'llm'       → setup/llm/llm.js          (BaseSetupLlm)  — LLM settings page
+     *   - 'creatives' → ../creatives/creatives.js (Creatives)     — creatives and placements
      *
-     * @param {string} section — 'main' (default) or 'llm'
+     * @param {string} section — 'main' (default), 'llm' or 'creatives'
      */
     async showSetup(section = 'main') {
         console.log('[BasePages] showSetup()', section);
 
+        // Any authenticated user may open setup. Guests cannot — the
+        // menu hides the item for them, and this is the server-side
+        // mirror of that rule (server enforces it on the API anyway).
         const user = this.base.auth?.getUser?.();
-        const isSuperadmin = user?.is_superadmin === true;
-        if (!isSuperadmin) {
-            console.warn('[BasePages] showSetup: access denied (not superadmin)');
+        if (!user) {
+            console.warn('[BasePages] showSetup: access denied (not authenticated)');
             return;
         }
 
@@ -140,6 +142,9 @@ export class BasePages {
             if (section === 'llm') {
                 const mod = await import(`./setup/llm/llm.js?v=${version}`);
                 ComponentClass = mod.BaseSetupLlm;
+            } else if (section === 'creatives') {
+                const mod = await import(`../creatives/creatives.js?v=${version}`);
+                ComponentClass = mod.Creatives;
             } else {
                 const mod = await import(`./setup/setup.js?v=${version}`);
                 ComponentClass = mod.BaseSetup;
@@ -160,6 +165,64 @@ export class BasePages {
             setCaption: this.base._setCaption,
             restoreCaption: this.base._restoreCaption,
             onNavigate: (nextSection) => this.showSetup(nextSection),
+        });
+    }
+
+    // ============================================
+    // CREATIVES
+    // ============================================
+
+    /**
+     * Open the Creatives page in area-center.
+     *
+     * Available to every authenticated user — the page hosts
+     * per-user creatives and placements. Guests are stopped here;
+     * the server enforces the same rule on the API endpoints.
+     *
+     * Unlike showProfile/showSetup there are no sub-sections:
+     * Creatives is a single page with its own internal tabs
+     * (Креативы / Размещения / Отчёт). The URL that leads here
+     * is ?page=creatives on the current module.
+     *
+     * No `onNavigate` is passed — tabs are handled inside the
+     * component, not via BasePages.
+     */
+    async showCreatives() {
+        console.log('[BasePages] showCreatives()');
+
+        const user = this.base.auth?.getUser?.();
+        if (!user) {
+            console.warn('[BasePages] showCreatives: access denied (not authenticated)');
+            return;
+        }
+
+        const proceed = await this.base.teardownAreas();
+        if (!proceed) {
+            console.log('[BasePages] showCreatives cancelled by user');
+            return;
+        }
+
+        const version = window.coreEngine?.static_version || Date.now();
+
+        let ComponentClass = null;
+        try {
+            const mod = await import(`../creatives/creatives.js?v=${version}`);
+            ComponentClass = mod.Creatives;
+        } catch (err) {
+            console.error('[BasePages] showCreatives import error:', err);
+            return;
+        }
+
+        if (!ComponentClass) {
+            console.error('[BasePages] showCreatives: Creatives class not found');
+            return;
+        }
+
+        await this.base.renderInArea(ComponentClass, {
+            section: 'creatives',
+            user,
+            setCaption: this.base._setCaption,
+            restoreCaption: this.base._restoreCaption,
         });
     }
 
