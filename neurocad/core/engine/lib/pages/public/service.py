@@ -41,6 +41,18 @@ no reliable way to reach the actual root. `?root=1` is an
 explicit "show the root and forget the cookie" flag, handled in
 route.py.
 
+Templates
+---------
+A template (is_template=1) is a service page — a layout shell for
+other pages, not a catalog entry. It is deliberately HIDDEN from
+the public catalog (`get_list` filters is_template == 0). It is
+NOT hidden from its own public URL: `/page/<date>/<time>` on the
+template still works, so the owner can preview the shell in
+isolation. Child pages that inherit from the template keep
+working the same way as before — see get_by_id / get_template_css,
+which are filtered by is_active (a template with is_active=0
+renders children without it — this is a deliberate feature).
+
 CSS handling:
   - Page.css is the source of truth for the page's content CSS.
     It is assembled at save time by word/css_builder.py:
@@ -55,6 +67,11 @@ CSS handling:
     namespace (PAGES_CSS_DIR / PAGES_CSS_URL) — see the constants
     below. The utility ensure_css_file() takes both as parameters
     and stays module-agnostic.
+  - Template CSS: if a page inherits from a base template
+    (page.template_id is set), the template's CSS is ALSO loaded
+    and served as its own static file (<template_id>.css). The
+    public route injects it BEFORE the page's own CSS, so page
+    styles can override the shared layout. See get_template_css().
 
 Namespace: CoreEngineLibPagesPublicService
 """
@@ -198,6 +215,14 @@ class CoreEngineLibPagesPublicService:
           - None → the root level (parent_id IS NULL);
           - <id> → the children of that folder.
 
+        Templates (is_template=1) are EXCLUDED from the catalog.
+        A template is a layout shell for other pages, not a
+        catalog entry — the owner previews it via its own
+        /page/<date>/<time> URL, but a visitor browsing /pages
+        should never see it. If templates were listed, a folder
+        could also show a stale children_count (the counter is
+        computed with the same filter — see below).
+
         Order: folders first, then pages. Inside each group:
           - folders: sort_order ASC, then title ASC;
           - pages:   sort_order ASC, then datetime DESC, id DESC.
@@ -222,6 +247,8 @@ class CoreEngineLibPagesPublicService:
                 Page.nav_id == nav_id,
                 Page.is_delete == 0,
                 Page.is_active == 1,
+                # Templates are service pages — never listed.
+                Page.is_template == 0,
             )
 
             if parent_id is None:
@@ -243,6 +270,9 @@ class CoreEngineLibPagesPublicService:
             rows = (await session.execute(stmt)).scalars().all()
 
             # children_count for folders on this page — one query.
+            # The same is_template filter is applied so the counter
+            # matches what the visitor actually sees in the folder
+            # (a hidden template must not inflate the number).
             folder_ids = [
                 p.id for p in rows if p.card_type == CARD_TYPE_FOLDER
             ]
@@ -254,6 +284,7 @@ class CoreEngineLibPagesPublicService:
                         Page.parent_id.in_(folder_ids),
                         Page.is_delete == 0,
                         Page.is_active == 1,
+                        Page.is_template == 0,
                     )
                     .group_by(Page.parent_id)
                 )
@@ -664,6 +695,12 @@ class CoreEngineLibPagesPublicService:
         Used to load the base template page when rendering a child
         page. Only returns active, non-deleted pages
         (card_type='page').
+
+        The is_active filter here is INTENTIONAL and unchanged:
+        if the owner has unpublished the template (is_active=0),
+        child pages render WITHOUT it. This is a deliberate
+        feature — "turn the shell off, children fall back to
+        plain content".
         """
         async for session in get_db_sqlite():
             stmt = select(Page).where(
@@ -680,6 +717,54 @@ class CoreEngineLibPagesPublicService:
 
             return CoreEngineLibPagesPublicService._page_to_public(page)
 
+        return None
+
+    # ========================================
+    # TEMPLATE CSS
+    # ========================================
+
+    @staticmethod
+    async def get_template_css(
+        template_id: int,
+        nav_id: int,
+    ) -> Optional[str]:
+        """
+        Load the CSS of a base template page.
+
+        Returns the template's `css` field, or None if:
+          - the template does not exist;
+          - it belongs to a different nav;
+          - it is deleted / inactive;
+          - it has no CSS.
+
+        Used by the public route to inject the template's CSS
+        BEFORE the page's own CSS, so the page styles can override
+        the shared layout at equal specificity.
+
+        The is_active filter here is INTENTIONAL and unchanged —
+        same rule as get_by_id: unpublished template → its CSS is
+        not injected. The child page falls back to its own CSS
+        only, so "turn the shell off" also turns off the shell's
+        styles, consistently.
+
+        Deliberately does NOT go through `get_by_id` / `_page_to_public`:
+          - we only need `css`, not content / datetime / logo;
+          - the template may have a different `card_type` than
+            CARD_TYPE_PAGE, and get_by_id filters on that;
+          - template CSS may be NULL while content is set — we
+            return None in that case, and the caller simply skips
+            the <link> for the template.
+        """
+        async for session in get_db_sqlite():
+            stmt = select(Page.css).where(
+                Page.id == template_id,
+                Page.nav_id == nav_id,
+                Page.is_delete == 0,
+                Page.is_active == 1,
+            )
+            result = await session.execute(stmt)
+            css = result.scalar_one_or_none()
+            return css
         return None
 
     # ========================================

@@ -43,6 +43,10 @@ export async function createModal(type, props = {}) {
             const { BaseModalImage } = await import('./image.js');
             return new BaseModalImage(props);
         }
+        case 'list': {
+            const { BaseModalList } = await import('./list.js');
+            return new BaseModalList(props);
+        }
         default:
             console.warn(`[Modal] Unknown type: ${type}`);
             return null;

@@ -18,6 +18,9 @@ Layout:
 `agent` is the agent name: router, help, create, fill, effect, none.
 A running counter `NN` keeps the files ordered.
 
+Every dumped file starts with a header that repeats the file name,
+run_id and creation time — so a copied file carries its own identity.
+
 meta.txt also records the provider and model that handled the run,
 so a dumped run is self-describing (useful when switching providers
 from the admin UI).
@@ -60,13 +63,34 @@ class CoreEngineLibWordLlmDumper:
         return idx
 
     @staticmethod
+    def _header(filename: str, run_id: Any) -> str:
+        """
+        Build a header for a dumped file.
+
+        The header repeats the file name (so a copied file carries
+        its identity), the run_id, and the creation time. Written
+        at the very top of every dump.
+        """
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        line = "# " + "=" * 60
+        return (
+            f"{line}\n"
+            f"# file   : {filename}\n"
+            f"# run_id : {run_id}\n"
+            f"# created: {now}\n"
+            f"{line}\n\n"
+        )
+
+    @staticmethod
     def _write(run_id: Any, filename: str, content: str) -> None:
         if run_id is None:
             return
         try:
             d = CoreEngineLibWordLlmDumper._ensure_run_dir(run_id)
             path = d / filename
+            header = CoreEngineLibWordLlmDumper._header(filename, run_id)
             with open(path, "w", encoding="utf-8") as f:
+                f.write(header)
                 f.write(content or "")
         except Exception as e:
             print(

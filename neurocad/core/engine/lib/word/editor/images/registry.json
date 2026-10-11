@@ -1128,6 +1128,126 @@
       "source": "logo",
       "builtin": false,
       "order": 1430
+    },
+    {
+      "id": "img-24e0d1a1",
+      "alt": "Кофейня",
+      "file": "files/img-24e0d1a1.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1440
+    },
+    {
+      "id": "img-8eb9094a",
+      "alt": "Кофейня",
+      "file": "files/img-8eb9094a.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1450
+    },
+    {
+      "id": "img-ad7e0d4a",
+      "alt": "Кофейня",
+      "file": "files/img-ad7e0d4a.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1460
+    },
+    {
+      "id": "img-0eea857b",
+      "alt": "Агент \"Администратор\"",
+      "file": "files/img-0eea857b.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1470
+    },
+    {
+      "id": "img-173aee2c",
+      "alt": "Агент \"Вежливый отказ\"",
+      "file": "files/img-173aee2c.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1480
+    },
+    {
+      "id": "img-c75fa4b8",
+      "alt": "Агенты NeuroCad",
+      "file": "files/img-c75fa4b8.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1490
+    },
+    {
+      "id": "img-ebb46cad",
+      "alt": "Базовый шаблон",
+      "file": "files/img-ebb46cad.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1500
+    },
+    {
+      "id": "img-db829e1e",
+      "alt": "Агенты NeuroCad",
+      "file": "files/img-db829e1e.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1510
+    },
+    {
+      "id": "img-7950ba04",
+      "alt": "Статья 1",
+      "file": "files/img-7950ba04.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1520
+    },
+    {
+      "id": "img-b9364005",
+      "alt": "Статья 1",
+      "file": "files/img-b9364005.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1530
+    },
+    {
+      "id": "img-a0a61b8f",
+      "alt": "Статья 1",
+      "file": "files/img-a0a61b8f.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1540
+    },
+    {
+      "id": "img-2c7f08ab",
+      "alt": "Статья 1",
+      "file": "files/img-2c7f08ab.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1550
+    },
+    {
+      "id": "img-935f80ae",
+      "alt": "Личный опыт фотографа",
+      "file": "files/img-935f80ae.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1560
+    },
+    {
+      "id": "img-5f03a74f",
+      "alt": "Путь к стройности",
+      "file": "files/img-5f03a74f.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1570
+    },
+    {
+      "id": "img-5be9b621",
+      "alt": "Выставка современной фотографии",
+      "file": "files/img-5be9b621.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1580
     }
   ]
 }

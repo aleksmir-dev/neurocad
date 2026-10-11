@@ -207,7 +207,7 @@ class Settings(BaseSettings):
     GIGACHAT_SCOPE: str = "GIGACHAT_API_PERS"
 
     # Model name.
-    GIGACHAT_MODEL: str = "GigaChat-2-Lite"
+    GIGACHAT_MODEL: str = "GigaChat-2"
 
     # Max output tokens.
     GIGACHAT_MAX_OUTPUT_TOKENS: int = 8192

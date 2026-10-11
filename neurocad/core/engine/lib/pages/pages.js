@@ -9,12 +9,37 @@
  * HTTP goes through window.coreEngine.fetchJson
  * (loaded once by CoreEngine.loadApi()).
  *
- * NAV_ID:
- *   Requests may carry ?nav_id=<props.nav_id>. This scopes the
- *   catalog to a specific nav instance. When omitted, the backend
- *   resolves the nav from the authenticated user's session
- *   (first nav by id ASC). So nav_id is optional here — pass it
- *   only when a specific nav must be targeted.
+ * Structure
+ * ---------
+ * This file is an ORCHESTRATOR. The heavy lifting is split into
+ * sibling modules, loaded dynamically with ?v=<version>:
+ *
+ *   ./utils.js   — apiUrl, canEdit, isSuperadmin, formatDate,
+ *                  formatTime, nextArticleNumber,
+ *                  patchPayloadNormalization, confirm, message
+ *   ./card.js    — renderArticleCard, renderUpCard (pure HTML)
+ *   ./copy.js    — copySelected (works on the current selection)
+ *   ./move.js    — moveSelected (works on exactly one item)
+ *   ./logo.js    — makeLogoGeneratorButton (media field button)
+ *   ./title.js   — PagesTitle (header caption + "Заголовок" modal)
+ *   ./hint.js    — EmptyArticlesHint, CardActionsHint
+ *
+ * Pages itself keeps only:
+ *   - state (navId, page list, templates, public URL),
+ *   - loading from server (_loadFromServer, _loadTemplates),
+ *   - navigation (_openArticle),
+ *   - wiring sub-modules into BaseCards callbacks.
+ *
+ * No static imports — every dependency is resolved lazily at call
+ * time. This matches the rest of the project.
+ *
+ * NAV_ID
+ * ------
+ * Requests may carry ?nav_id=<props.nav_id>. This scopes the
+ * catalog to a specific nav instance. When omitted, the backend
+ * resolves the nav from the authenticated user's session (first
+ * nav by id ASC). So nav_id is optional here — pass it only when a
+ * specific nav must be targeted.
  *
  * FOLDER MODE
  * -----------
@@ -31,61 +56,62 @@
  *     pages. Pages.js only has to:
  *       * enable the mode (folders + folderField + folderValue);
  *       * declare `card_type` and `parent_id` in the form fields;
- *       * render folders / pages / ".." differently:
- *           - pages  → _renderArticleCard
- *           - folders → _renderArticleCard
- *           - ".."   → _renderUpCard
+ *       * provide the render callbacks (see card.js):
+ *           - pages   → renderArticleCard
+ *           - folders → renderArticleCard
+ *           - ".."    → renderUpCard
  *
  * The button "Создать папку" (showFolderButton) lives in the toolbar
- * and is wired by BaseCards through `onAddFolder`. Clicking it opens
- * the same create form as "+", but with `card_type = 'folder'`
- * pre-filled (see initool.js).
+ * and is wired by BaseCards through `onAddFolder`.
  *
- * Permissions:
+ * COPY
+ * ----
+ * Opt-in via `showCopyButton`. Works on the current selection.
+ * Forwarded to copy.js → copySelected(pages, ids).
+ *
+ * MOVE
+ * ----
+ * Opt-in via `showMoveButton`. Works on EXACTLY ONE selected item
+ * (same rule as Edit). Forwarded to move.js → moveSelected(pages, id).
+ *
+ * Permissions
+ * -----------
  *   - Guests: read-only catalog view (no toolbar).
- *   - Authenticated users (including superadmin): full toolbar —
- *     add, edit, delete, restore, create folder.
+ *   - Authenticated users: full toolbar — add, edit, delete, copy,
+ *     move, restore, create folder.
  *
- * External link cards:
- *   A page may carry an external `url` (pages.url). When set, the
- *   card is a "link card": clicking it navigates to that URL in
- *   the CURRENT tab, instead of opening the internal editor.
+ * External link cards
+ * -------------------
+ * A page may carry an external `url`. When set, the card is a
+ * "link card": clicking it navigates to that URL in the CURRENT
+ * tab, instead of opening the internal editor. This does NOT apply
+ * to folders — BaseCards intercepts folder clicks before they
+ * reach Pages (see cards.js → _handleActivate).
  *
- *   This does NOT apply to folders — BaseCards intercepts folder
- *   clicks before they reach Pages (see cards.js → _handleActivate).
+ * Template system
+ * ---------------
+ *   - is_template: page can be used as a base template by others.
+ *   - template_id: this page inherits layout from that template;
+ *     its own `content` is inserted into [data-slot="content"].
  *
- * Template system:
- *   - is_template: page can be used as a base template by other pages.
- *   - template_id: this page inherits layout from that template page;
- *     its own `content` is inserted into [data-slot="content"] slot.
+ * Publication
+ * -----------
+ * `is_active` is surfaced in the edit form as a "Публиковать"
+ * checkbox (last field, on by default). When cleared, the page is
+ * saved with is_active = 0. Whether that hides the page from the
+ * public catalog depends on the public route/service — see
+ * pages/public/.
  *
- * Logo generation:
- *   The "logo" media field declares an `extraButtons` entry — the
- *   "Генерировать" button. Its onClick lives in logo.js and is loaded
- *   dynamically, like every other module here.
+ * Onboarding hints
+ * ----------------
+ * Two independent hints (see ./hint.js), stored per-browser in
+ * localStorage: EmptyArticlesHint and CardActionsHint.
  *
- * Extra toolbar buttons:
- *   In the toolbar's left group, after the standard buttons, two
- *   link-buttons are rendered:
- *
- *     - «Заголовок» (title.svg) — opens a modal to edit Nav.name.
- *     - «Открыть каталог статей» (link.svg) — opens the public
- *       catalog in a new tab (absolute URL from profile/domain).
- *
- *   Both are passed to BaseCards via `extraToolbarButtons`.
- *
- * Onboarding hints:
- *   Two independent hints (see ./hint.js), stored per-browser in
- *   localStorage: EmptyArticlesHint and CardActionsHint.
- *
- * Grid layout:
- *   Grid is defined in cards.css; we deliberately do NOT pass
- *   `listView.gridColumns` (an inline template would break the
- *   minmax() stretch).
- *
- * Caption: on _init() we ask PagesTitle to load Nav.name and set it
- * as the header/tab title. On destroy(), PagesTitle restores the
- * previous caption.
+ * Caption
+ * -------
+ * On _init() we ask PagesTitle to load Nav.name and set it as the
+ * header/tab title. On destroy(), PagesTitle restores the previous
+ * caption.
  *
  * User-facing strings are in Russian. Code comments, docstrings
  * and identifiers are in English.
@@ -130,6 +156,12 @@ export class Pages {
         // Absolute URL of the public catalog for the CURRENT user.
         this._publicPagesUrl = '/pages';
 
+        // Sub-modules (loaded in _init).
+        this._utils = null;   // utils.js
+        this._card  = null;   // card.js
+        this._copy  = null;   // copy.js
+        this._move  = null;   // move.js
+
         this._loadCSS();
 
         this._initPromise = this._init();
@@ -143,34 +175,13 @@ export class Pages {
     }
 
     /**
-     * Build a URL to the pages API with nav_id attached (if known).
+     * Thin wrapper around utils.apiUrl(pages, endpoint, extraQuery).
      *
-     * BaseCards appends endpoint paths to `apiBase` as-is, so we
-     * keep `apiBase` clean and put nav_id directly into each
-     * endpoint string. When navId is null, the backend resolves
-     * the nav from the session — no query parameter needed.
-     *
-     * `parent_id` is NOT added here — Pages loads its list itself
-     * (see _loadFromServer) and adds parent_id explicitly from
-     * `this.cardsInstance.parentId`. BaseCards' own api.js handles
-     * parent_id for ITS requests (create / update / delete / list
-     * when the consumer goes through BaseCards' api module), but
-     * Pages bypasses that for the initial list load.
-     *
-     * Also used by PagesTitle (passed in as `getApiUrl`) so the
-     * nav-name endpoints get the exact same ?nav_id= handling.
+     * Kept on Pages so existing call sites inside this file — and
+     * PagesTitle's getApiUrl — keep working without changes.
      */
     _apiUrl(endpoint, extraQuery = '') {
-        const sep = endpoint.includes('?') ? '&' : '?';
-        const navPart = this.navId != null
-            ? `nav_id=${encodeURIComponent(this.navId)}`
-            : '';
-        const extra = extraQuery ? `&${extraQuery}` : '';
-
-        if (!navPart && !extra) return endpoint;
-        if (!navPart) return `${endpoint}${sep}${extra}`;
-        if (!extra) return `${endpoint}${sep}${navPart}`;
-        return `${endpoint}${sep}${navPart}${extra}`;
+        return this._utils.apiUrl(this, endpoint, extraQuery);
     }
 
     /**
@@ -204,18 +215,39 @@ export class Pages {
             this._restoreCaption = base?._restoreCaption || null;
 
             const version = window.coreEngine?.static_version || Date.now();
-            const { BaseCards } = await import(`../base/cards/cards.js?v=${version}`);
 
-            // Logo generator button — used by the "logo" media field.
-            const { makeLogoGeneratorButton } = await import(
-                `./logo.js?v=${version}`
-            );
+            // ---- Load all sub-modules in parallel ----
+            const [
+                { BaseCards },
+                { makeLogoGeneratorButton },
+                { PagesTitle },
+                { EmptyArticlesHint, CardActionsHint },
+                utilsMod,
+                cardMod,
+                copyMod,
+                moveMod,
+            ] = await Promise.all([
+                import(`../base/cards/cards.js?v=${version}`),
+                import(`./logo.js?v=${version}`),
+                import(`./title.js?v=${version}`),
+                import(`./hint.js?v=${version}`),
+                import(`./utils.js?v=${version}`),
+                import(`./card.js?v=${version}`),
+                import(`./copy.js?v=${version}`),
+                import(`./move.js?v=${version}`),
+            ]);
 
-            // Title helper — owns Nav.name loading, the "Заголовок" modal.
-            const { PagesTitle } = await import(`./title.js?v=${version}`);
+            this._utils = utilsMod;
+            this._card  = cardMod;
+            this._copy  = copyMod;
+            this._move  = moveMod;
+
+            // Title helper — owns Nav.name loading, the "Заголовок"
+            // modal and saving.
             this._title = new PagesTitle({
                 navId: this.navId,
-                getApiUrl: (endpoint, extraQuery) => this._apiUrl(endpoint, extraQuery),
+                getApiUrl: (endpoint, extraQuery) =>
+                    this._apiUrl(endpoint, extraQuery),
             });
             this._title.setCaptionHelpers({
                 setCaption: this._setCaption,
@@ -223,15 +255,12 @@ export class Pages {
             });
 
             // Onboarding hints.
-            const { EmptyArticlesHint, CardActionsHint } = await import(
-                `./hint.js?v=${version}`
-            );
             this._EmptyArticlesHint = EmptyArticlesHint;
             this._CardActionsHint = CardActionsHint;
             this._emptyHint = new EmptyArticlesHint();
             this._cardHint = new CardActionsHint();
 
-            const canEdit = this._canEdit();
+            const canEdit = this._utils.canEdit();
 
             // If items are not passed in props — load from server.
             if (!this.props.items || this.props.items.length === 0) {
@@ -258,27 +287,11 @@ export class Pages {
                 error: this.props.error || null,
 
                 // ===== FOLDER MODE =====
-                // Enables the hierarchical browser in BaseCards:
-                // ".." pseudo-card, folder grouping, navigation.
-                // Field name and value are configurable; here we use
-                // the same convention as the rest of the project
-                // (`card_type = 'folder' | 'page'`).
                 folders: true,
                 folderField: 'card_type',
                 folderValue: 'folder',
 
-                // API
-                //
-                // nav_id is put directly into each endpoint, not into
-                // apiBase, because BaseCards appends endpoints to
-                // apiBase and we don't want to guess how it handles
-                // query strings. When navId is null, the backend
-                // resolves the nav from the session.
-                //
-                // `parent_id` for BaseCards' own requests (create /
-                // update / delete) is added by api.js → buildUrl().
-                // Pages' initial list load adds it explicitly in
-                // _loadFromServer (see the docstring there).
+                // ===== API =====
                 apiBase: '/core/engine/lib/pages',
                 apiEndpoints: {
                     list:    this._apiUrl('/list'),
@@ -301,14 +314,8 @@ export class Pages {
                     },
                     {
                         key: 'card_type',
-                        // Not user-editable in the create form for a
-                        // regular page: the type is decided by which
-                        // button was clicked ("+" — page, "Создать
-                        // папку" — folder). We hide the field in the
-                        // form to avoid confusing the user, but keep
-                        // it declared so its value is submitted.
-                        //
-                        // Hidden via pages.css → .edit-group:has(...).
+                        // Not user-editable — hidden via pages.css.
+                        // Declared so its value is submitted.
                         label: 'Тип',
                         type: 'text',
                         className: 'pages-field-hidden',
@@ -362,36 +369,33 @@ export class Pages {
                     // ===== Folder mode — parent folder id =====
                     {
                         key: 'parent_id',
-                        // Not user-editable. Carries the id of the
-                        // folder the item is created in. The value
-                        // comes from BaseCards.initialData (see
-                        // cards.js → openCreateForm) and is submitted
-                        // with the form. Hidden via pages.css →
-                        // .edit-group:has([data-field="parent_id"]).
-                        //
-                        // Why this field must be declared here:
-                        // BaseCardsEdit.getData() collects values
-                        // ONLY from `fields[]`. `initialData` just
-                        // prefills the form — it does not participate
-                        // in submission. Without this entry the
-                        // parent_id would be lost between the create
-                        // form and the API request.
+                        // Not user-editable — hidden via pages.css.
+                        // Declared so BaseCardsEdit.getData() submits it.
                         label: 'Родитель',
                         type: 'text',
+                    },
+
+                    // ===== Publication =====
+                    // Last field, by design: "Публиковать" is the
+                    // final decision the user makes before saving.
+                    // On by default for every new page.
+                    {
+                        key: 'is_active',
+                        label: 'Публиковать',
+                        type: 'checkbox',
+                        default: 1,
                     },
                 ],
 
                 // ===== INITIAL DATA FOR "CREATE" FORM =====
-                // The "+" button creates a regular page by default.
-                // `parent_id` is added by BaseCards from the current
-                // folder (see cards.js → openCreateForm).
                 initialData: (cards) => {
-                    const nextNum = this._nextArticleNumber(cards.items || []);
+                    const nextNum = this._utils.nextArticleNumber(cards.items || []);
                     return {
                         title: `Статья ${nextNum}`,
                         card_type: 'page',
                         is_template: 0,
                         template_id: null,
+                        is_active: 1,
                     };
                 },
 
@@ -409,9 +413,16 @@ export class Pages {
                 showSearch: false,
                 showStatusFilter: false,
 
-                // "Создать папку" — rendered by toolbar.js BEFORE
-                // the "+" button. Only when the user can edit.
+                // "Создать папку" — rendered by toolbar.js BEFORE "+".
                 showFolderButton: canEdit,
+
+                // "Копировать" — works on the current selection.
+                showCopyButton: canEdit,
+                onCopySelected: (ids) => this._copySelected(ids),
+
+                // "Переместить" — works on EXACTLY ONE item.
+                showMoveButton: canEdit,
+                onMoveSelected: (id) => this._moveSelected(id),
 
                 // ===== EXTRA TOOLBAR BUTTONS =====
                 extraToolbarButtons: canEdit
@@ -437,16 +448,13 @@ export class Pages {
                     : [],
 
                 // ===== CUSTOM CARD RENDER =====
-                // Pages and folders are rendered by _renderArticleCard.
-                // The ".." pseudo-card is rendered by _renderUpCard —
-                // BaseCards passes it through when the item's
-                // is_up flag is set (see render.js → renderItem).
-                renderCard: (item) => this._renderArticleCard(item),
-                renderUpCard: () => this._renderUpCard(),
+                // Moved to ./card.js — pure functions, no state.
+                renderCard: (item) => this._card.renderArticleCard(item),
+                renderUpCard: () => this._card.renderUpCard(),
                 cardOptions: { customClass: 'pages-card-wrapper' },
 
-                // Click → open (only for non-folder, non-up items;
-                // BaseCards intercepts ".." and folders before this).
+                // Click → open (folders and ".." are intercepted by
+                // BaseCards before this handler).
                 onItemClick: (id) => this._openArticle(id),
 
                 // Callbacks
@@ -460,7 +468,7 @@ export class Pages {
             await this.cardsInstance._initPromise;
 
             // Normalize payload types before they hit the API.
-            this._patchPayloadNormalization();
+            this._utils.patchPayloadNormalization(this);
 
             // Bind the «Заголовок» click handler directly to the
             // button rendered by toolbar.js.
@@ -501,7 +509,7 @@ export class Pages {
                    || this.props.items
                    || [];
 
-        if (items.length === 0 && this._canEdit()) {
+        if (items.length === 0 && this._utils.canEdit()) {
             setTimeout(() => {
                 if (this._emptyHint) this._emptyHint.show();
             }, 0);
@@ -532,107 +540,27 @@ export class Pages {
     }
 
     // ============================================
-    // PAYLOAD NORMALIZATION
-    // ============================================
-
-    _patchPayloadNormalization() {
-        const cards = this.cardsInstance;
-        if (!cards) return;
-
-        const fields = cards.fields || [];
-
-        const normalize = (data) => {
-            if (!data || typeof data !== 'object') return data;
-
-            const out = { ...data };
-
-            for (const field of fields) {
-                const key = field.key;
-                if (!(key in out)) continue;
-
-                const v = out[key];
-
-                switch (field.type) {
-                    case 'checkbox':
-                        out[key] = v ? 1 : 0;
-                        break;
-
-                    case 'select': {
-                        if (v === '' || v === null || v === undefined) {
-                            out[key] = null;
-                        } else if (field.valueType === 'number') {
-                            const n = Number(v);
-                            out[key] = Number.isNaN(n) ? null : n;
-                        }
-                        break;
-                    }
-
-                    case 'number': {
-                        if (v === '' || v === null || v === undefined) {
-                            out[key] = null;
-                        } else {
-                            const n = Number(v);
-                            out[key] = Number.isNaN(n) ? null : n;
-                        }
-                        break;
-                    }
-
-                    default:
-                        break;
-                }
-            }
-
-            return out;
-        };
-
-        const origAdd = cards._addItem.bind(cards);
-        cards._addItem = async (data) => origAdd(normalize(data));
-
-        const origUpdate = cards._updateItem.bind(cards);
-        cards._updateItem = async (id, data) => origUpdate(id, normalize(data));
-
-        console.log('[Pages] _patchPayloadNormalization() applied');
-    }
-
-    // ============================================
     // LOAD FROM SERVER
     // ============================================
 
     /**
      * Load the list of items for the CURRENT folder level.
      *
-     * BaseCards handles `parent_id` internally for ITS requests
-     * (see api.js → buildUrl), but Pages loads its initial list
-     * directly — bypassing BaseCards' api module. So we must add
-     * `parent_id` ourselves.
-     *
      * `this.cardsInstance.parentId` is the source of truth:
-     *   - null / undefined → we send `parent_id=` (empty) so the
-     *     backend returns ONLY the root level (parent_id IS NULL).
-     *     If we omitted the parameter entirely, the backend would
-     *     fall back to "return the whole flat list" — every item
-     *     of every level, which is the old behaviour for callers
-     *     that do not know about folders.
+     *   - null / undefined → `parent_id=` (empty) → backend returns
+     *     ONLY the root level (parent_id IS NULL);
      *   - a real id        → `parent_id=<id>` → children of that
      *     folder.
      *
      * Before BaseCards exists (during the very first _init()),
      * `this.cardsInstance` is null — we send the empty parent_id,
      * which is correct: the catalog always opens at the root.
-     *
-     * The `?parent_id=` (empty) marker is understood by the
-     * backend: see route.py → get_pages_list, which distinguishes
-     * "parameter absent" from "parameter present but empty" via
-     * request.query_params.
      */
     async _loadFromServer() {
         console.log('[Pages] _loadFromServer()');
 
         const parentId = this.cardsInstance?.parentId;
 
-        // Always send `parent_id`:
-        //   - real id → `parent_id=<id>`  (children of that folder);
-        //   - null    → `parent_id=`      (root only).
         const extra = (parentId != null)
             ? `parent_id=${encodeURIComponent(parentId)}`
             : 'parent_id=';
@@ -679,103 +607,6 @@ export class Pages {
     }
 
     // ============================================
-    // CARD RENDER
-    // ============================================
-
-    /**
-     * Render a card — either a page or a folder.
-     *
-     * Folders and pages look different:
-     *   - a page  — the usual title / description / date / badges;
-     *   - a folder — an icon, a name, a "(N)" children counter
-     *     (if the backend provides one), no date, no badges.
-     *
-     * The ".." pseudo-card is NOT handled here — it is rendered by
-     * _renderUpCard() (passed to BaseCards as `renderUpCard`).
-     */
-    _renderArticleCard(item) {
-        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[c]));
-
-        // ---- Folder ----
-        if (item.card_type === 'folder') {
-            const childrenCount = Number.isFinite(item.children_count)
-                ? item.children_count
-                : null;
-
-            const countLabel = childrenCount === null
-                ? ''
-                : `<span class="pages-folder-count">${childrenCount}</span>`;
-
-            return `
-                <div class="pages-folder">
-                    <div class="pages-folder-icon" aria-hidden="true">📁</div>
-                    <div class="pages-folder-body">
-                        <h3 class="pages-folder-title">${esc(item.title)}</h3>
-                        ${item.description ? `<p class="pages-folder-desc">${esc(item.description)}</p>` : ''}
-                    </div>
-                    ${countLabel}
-                </div>
-            `;
-        }
-
-        // ---- Regular page ----
-        const date = item.datetime
-            ? new Date(item.datetime).toLocaleDateString('ru-RU', {
-                  year: 'numeric', month: 'long', day: 'numeric'
-              })
-            : '';
-
-        const templateBadge = item.is_template
-            ? `<span class="pages-card-badge">Шаблон</span>`
-            : '';
-
-        const externalBadge = item.url
-            ? `<span class="pages-card-badge pages-card-badge-external" title="Ведёт на внешний сайт">↗</span>`
-            : '';
-
-        return `
-            <div class="pages-card">
-                <div class="pages-card-glow"></div>
-                ${item.logo ? `
-                    <div class="pages-card-logo">
-                        <img src="${esc(item.logo)}" alt="${esc(item.title)}">
-                    </div>
-                ` : ''}
-                <div class="pages-card-body">
-                    <h3 class="pages-card-title">${esc(item.title)}</h3>
-                    ${item.description ? `<p class="pages-card-desc">${esc(item.description)}</p>` : ''}
-                    ${date ? `<time class="pages-card-date">${esc(date)}</time>` : ''}
-                    ${templateBadge}
-                    ${externalBadge}
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Render the ".." pseudo-card (go one level up).
-     *
-     * The icon is the typographic arrow U+2934 (⤴), mirrored via
-     * CSS (transform: scaleX(-1)) so it points to the upper-left —
-     * the conventional "back" direction in Russian UI.
-     *
-     * Styling lives in pages.css → .pages-up.
-     */
-    _renderUpCard() {
-        return `
-            <div class="pages-up">
-                <div class="pages-up-icon" aria-hidden="true">⤴</div>
-                <div class="pages-up-body">
-                    <h3 class="pages-up-title">Вернуться</h3>
-                    <p class="pages-up-desc">На уровень выше</p>
-                </div>
-            </div>
-        `;
-    }
-
-    // ============================================
     // NAVIGATION
     // ============================================
 
@@ -783,8 +614,7 @@ export class Pages {
      * Open the clicked card.
      *
      * Called only for regular pages. BaseCards intercepts clicks on
-     * folders and on the ".." pseudo-card BEFORE this handler — see
-     * cards.js → _handleActivate.
+     * folders and on the ".." pseudo-card BEFORE this handler.
      *
      * Two cases for a regular page:
      *   1. Has an external `url` — navigate to it in the current tab.
@@ -818,8 +648,8 @@ export class Pages {
             return;
         }
 
-        const date = this._formatDate(item.datetime);
-        const time = this._formatTime(item.datetime);
+        const date = this._utils.formatDate(item.datetime);
+        const time = this._utils.formatTime(item.datetime);
 
         const baseUrl = window.coreEngine?.baseUrl || '/core/engine/default';
 
@@ -833,6 +663,30 @@ export class Pages {
     }
 
     // ============================================
+    // COPY / MOVE — thin delegates
+    // ============================================
+
+    /**
+     * Copy the selected items.
+     *
+     * Thin delegate to copy.js → copySelected(pages, ids). Kept here
+     * so BaseCards callbacks stay one-liners and the debugger stack
+     * shows a meaningful entry point.
+     */
+    async _copySelected(ids) {
+        return this._copy.copySelected(this, ids);
+    }
+
+    /**
+     * Move the single selected item.
+     *
+     * Thin delegate to move.js → moveSelected(pages, id).
+     */
+    async _moveSelected(id) {
+        return this._move.moveSelected(this, id);
+    }
+
+    // ============================================
     // RELOAD
     // ============================================
 
@@ -840,16 +694,8 @@ export class Pages {
      * Reload the list for the CURRENT folder level.
      *
      * Called by BaseCards via onReload after folder navigation
-     * (_openFolder / _goUp) and by other actions (create / delete).
-     *
-     * At this point `this.cardsInstance.parentId` already reflects
-     * the new level:
-     *   - `_openFolder(id)` sets parentId = id, then calls onReload;
-     *   - `_goUp()` pops the history and sets parentId, then calls
-     *     onReload.
-     *
-     * So `_loadFromServer` picks up the right parent_id from
-     * `this.cardsInstance.parentId` — see its docstring.
+     * (_openFolder / _goUp) and by other actions (create / delete /
+     * copy / move).
      */
     async _reload() {
         console.log('[Pages] _reload()');
@@ -860,7 +706,7 @@ export class Pages {
 
         await this._loadFromServer();
 
-        if (this._canEdit()) {
+        if (this._utils.canEdit()) {
             await this._loadTemplates();
         }
 
@@ -879,83 +725,6 @@ export class Pages {
         this._updateCardActionsHint(prevCount, newCount);
 
         this._lastItemCount = newCount;
-    }
-
-    // ============================================
-    // UTILITIES
-    // ============================================
-
-    _nextArticleNumber(items) {
-        let max = 0;
-
-        for (const item of items) {
-            const title = String(item.title || '');
-            const m = title.match(/^Статья\s+(\d+)/i);
-            if (m) {
-                const num = parseInt(m[1], 10);
-                if (num > max) max = num;
-            }
-        }
-
-        return max + 1;
-    }
-
-    _canEdit() {
-        const auth = window.coreEngine?.auth;
-        if (!auth) return false;
-
-        if (typeof auth.isAuth === 'function' && auth.isAuth()) {
-            return true;
-        }
-        if (typeof auth.isAuthenticated === 'boolean' && auth.isAuthenticated) {
-            return true;
-        }
-        if (typeof auth.getUser === 'function') {
-            return auth.getUser() != null;
-        }
-        return false;
-    }
-
-    _isSuperadmin() {
-        const auth = window.coreEngine?.auth;
-        if (!auth) return false;
-
-        if (typeof auth.isSuperadmin === 'function') {
-            return !!auth.isSuperadmin();
-        }
-        if (typeof auth.getUser === 'function') {
-            const user = auth.getUser();
-            if (!user) return false;
-            const v = user.is_superadmin;
-            return v === true || v === 1 || v === "1";
-        }
-        return false;
-    }
-
-    _formatDate(isoString) {
-        try {
-            const d = new Date(isoString);
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const dd = String(d.getDate()).padStart(2, '0');
-            return `${yyyy}${mm}${dd}`;
-        } catch (e) {
-            console.warn('[Pages] Date format error:', e);
-            return '';
-        }
-    }
-
-    _formatTime(isoString) {
-        try {
-            const d = new Date(isoString);
-            const hh = String(d.getHours()).padStart(2, '0');
-            const mi = String(d.getMinutes()).padStart(2, '0');
-            const ss = String(d.getSeconds()).padStart(2, '0');
-            return `${hh}${mi}${ss}`;
-        } catch (e) {
-            console.warn('[Pages] Time format error:', e);
-            return '';
-        }
     }
 
     // ============================================

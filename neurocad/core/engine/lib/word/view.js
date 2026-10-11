@@ -127,13 +127,20 @@ export function buildToolbarButtons(word, toolbar) {
  * We replace <body> with <div> here to preserve the id and make CSS work.
  *
  * ★ CSS strategy:
- *   - New pages: pageData.css is stored separately (DB field `css`).
- *     We serve it as a static file
+ *   - Template CSS: if the page has template_id and the template has CSS,
+ *     it is injected FIRST as an inline <style>. This gives the template
+ *     its layout (nav, sidebar, footer) before page-specific rules run.
+ *   - Page CSS: pageData.css is stored separately (DB field `css`).
+ *     Served as a static file
  *       /static/core/engine/lib/pages/public/pages/<id>.css?v=<hash>
- *     and attach via <link>. Browser caches it; ?v= busts on change.
+ *     and attached via <link>. Browser caches it; ?v= busts on change.
  *   - Legacy pages: pageData.css is null and CSS is embedded in
  *     content as <style>. Fallback: extract <style> and inject it
  *     via document.createElement('style').
+ *
+ *   ORDER MATTERS: template CSS → page CSS → content. Page rules
+ *   override template rules at equal specificity — the article styles
+ *   win over the shared layout.
  *
  *   NOTE: PAGE_CSS_URL_PREFIX below must match PAGES_CSS_URL in
  *         neurocad/core/engine/lib/pages/public/service.py.
@@ -154,13 +161,20 @@ export async function buildArticle(word) {
         || '<p class="core-engine-lib-word-empty">Контент пуст</p>';
 
     // ===== Apply template if set =====
+    // We keep templateCss alongside the merged HTML so that we can
+    // inject it FIRST (before page CSS) below. Template CSS gives
+    // the shared layout (nav, sidebar, footer); page CSS gives the
+    // article-specific styles and must be able to override it.
     let rawWithTemplate = raw;
+    let templateCss = '';
     const templateId = word.pageData?.template_id;
     if (templateId) {
         const template = await word._data.loadTemplateById(word, templateId);
         if (template && template.content) {
             rawWithTemplate = applyTemplate(template.content, raw);
-            console.log('[Word] Template applied:', templateId);
+            templateCss = (template.css || '').trim();
+            console.log('[Word] Template applied:', templateId,
+                        '| template CSS length:', templateCss.length);
         } else {
             console.warn('[Word] Template not loaded — rendering page content as-is');
         }
@@ -183,7 +197,20 @@ export async function buildArticle(word) {
     const scopeEl = document.createElement('div');
     scopeEl.className = 'core-engine-lib-word-blocks';
 
-    // ===== CSS: page.css (new) or <style> inside content (legacy) =====
+    // ===== CSS: template first, then page =====
+
+    // --- 1. Template CSS (inline <style>) ---
+    // Injected first so page CSS below can override it at equal
+    // specificity. The attribute data-js="word-template-css" lets
+    // tests / debug tools find it.
+    if (templateCss) {
+        const templateStyleEl = document.createElement('style');
+        templateStyleEl.setAttribute('data-js', 'word-template-css');
+        templateStyleEl.textContent = templateCss;
+        contentEl.appendChild(templateStyleEl);
+    }
+
+    // --- 2. Page CSS (link to static file, or inline <style> legacy) ---
     const pageId = word.pageData?.id || word.pageId;
     const pageCss = (word.pageData?.css || '').trim();
 

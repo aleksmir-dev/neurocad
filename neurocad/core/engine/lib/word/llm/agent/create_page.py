@@ -8,15 +8,59 @@ any) is ignored — the generated page replaces the canvas entirely.
 Edit mode is temporarily disabled; `_run_edit` is kept as dead code
 for a future return.
 
-Pipeline:
+Pipeline
+--------
+  Phase 0 — dialog (new):
+             a single LLM call that looks at the chat history and
+             the `brief` and decides: ask another clarifying
+             question, OR stop and start generating.
+
+             The agent asks at most ONE question per turn — the
+             user answers, the next turn runs the same phase
+             again. It skips questions the user has already
+             answered (in the router's dialog or in the first
+             message) and stops early if the user says anything
+             like "вперёд" / "хватит" / "поехали".
+
+             When the agent decides to ask, it returns
+             {"question": "..."} and the dispatcher saves it
+             with is_quest=1 and ends the run in
+             "awaiting_answer". No HTML is produced.
+
   Phase 1 — plan: one short LLM call returning section names.
+
   Phase 2 — for each section:
-              a) generate (HTML + CSS),
-              b) QA pass — a second LLM call that finds and
-                 fixes common defects (image overflow, empty
-                 buttons, invisible text, missing @media, ...).
+             a) generate (HTML + CSS),
+             b) QA pass — a second LLM call that finds and
+                fixes common defects (image overflow, empty
+                buttons, invisible text, missing @media, ...).
              Only the QA-approved section is streamed to the
              client. The user never sees a broken section.
+
+Brief
+-----
+`brief` is a JSON dict accumulated across dialog turns. It is
+stored in `Run.brief` and passed to the agent by the dispatcher.
+Shape (see the Run model docstring for details):
+
+    {
+      "genre": "landing" | "longread" | "promo" | "personal" |
+               "faq" | "menu" | null,
+      "topic": "...",
+      "audience": "...",
+      "blocks": [...],
+      "effects": "...",
+      "texts": "...",
+      "footer": "...",
+      "extras": "...",
+      "asked": [...],
+      "ready": false
+    }
+
+The agent does NOT enforce a strict shape — it writes what the
+LLM produced. The dialog phase is the only writer; the generation
+phase only reads `brief["summary"]` (a free-form brief text the
+dialog phase builds before setting ready=true).
 
 Logging / dumps
 ---------------
@@ -33,6 +77,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from .base import CoreEngineLibWordLlmAgentBase
 from ..prompts.create_page import (
+    build_dialog_prompt,
+    build_dialog_user_message,
     build_plan_prompt,
     build_plan_user_message,
     build_section_prompt,
@@ -57,6 +103,7 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
     PLAN_MAX_TOKENS = 512
     REVIEW_MAX_TOKENS = 8192
     EDIT_MAX_TOKENS = 32000
+    DIALOG_MAX_TOKENS = 512
 
     #: Whether to run the QA pass after each generated section.
     #: Set to False to save tokens / time at the cost of possible
@@ -79,21 +126,52 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
         block_catalog: Optional[list] = None,
         current_html: Optional[str] = None,
         history: Optional[list] = None,
+        brief: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
 
-        # create_page always creates from scratch. The previous
-        # content (if any) is ignored — the generated page replaces
-        # the canvas. Edit mode is temporarily disabled; _run_edit
-        # is kept as dead code for a future return.
         log(
             provider, "info",
-            f"create_page start (create-only): page_id={page_id} "
+            f"create_page start: page_id={page_id} "
             f"run={run_id!r} "
             f"current_html={len(current_html or '')} chars (ignored), "
             f"history={len(history or [])} msgs, "
+            f"brief_keys={list((brief or {}).keys())}, "
             f"review_enabled={self.REVIEW_ENABLED}",
         )
 
+        # ---- Phase 0: dialog ----
+        # The dialog phase decides whether we need to ask another
+        # question or start generating. It also updates `brief`
+        # (in-place, returned as dict).
+        dialog_result = await self._run_dialog(
+            provider=provider,
+            user_message=user_message,
+            run_id=run_id,
+            history=history,
+            brief=brief,
+            emit=emit,
+        )
+
+        # The dialog phase returned a question — we are done for
+        # this turn. The dispatcher saves it, sets the run to
+        # awaiting_answer and ends.
+        if dialog_result.get("question"):
+            return {
+                "message": "",
+                "html": None,
+                "css": None,
+                "selector": None,
+                "element_html": None,
+                "question": dialog_result["question"],
+                "streamed": True,
+            }
+
+        # The dialog phase is ready to generate. It returned an
+        # updated brief (see _run_dialog).
+        updated_brief = dialog_result.get("brief") or {}
+        brief_summary = dialog_result.get("brief_summary") or ""
+
+        # ---- Phase 1+2: create ----
         return await self._run_create(
             provider=provider,
             user_message=user_message,
@@ -101,29 +179,237 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
             run_id=run_id,
             emit=emit,
             history=history,
+            brief_summary=brief_summary,
         )
 
     # ============================================
-    # NEW-PAGE HINT
+    # PHASE 0 — DIALOG
     # ============================================
-    #
-    # Kept for backward compatibility with the disabled edit mode.
-    # Currently unused — create_page always creates from scratch.
+
+    async def _run_dialog(
+        self,
+        *,
+        provider,
+        user_message: str,
+        run_id: Any,
+        history: Optional[list],
+        brief: Optional[Dict[str, Any]],
+        emit,
+    ) -> Dict[str, Any]:
+        """
+        Ask the user a clarifying question, or decide that the
+        brief is ready.
+
+        Returns ONE of:
+
+            {"question": "<text>", "brief": <updated brief>}
+                — ask the user; the dispatcher saves the question
+                  with is_quest=1. `brief` is the updated dict
+                  (usually with the just-asked field marked as
+                  "asked" so we do not ask it again).
+
+            {"brief": <updated brief>, "brief_summary": "<text>"}
+                — brief is ready; the caller starts generation.
+                  `brief_summary` is a short free-form summary
+                  used as the user message in the generation
+                  phase (it combines the original request with
+                  the user's answers).
+
+        The dialog prompt is intentionally permissive: the model
+        skips questions the user already answered and stops as
+        soon as it has enough info, or when the user says
+        anything like "вперёд" / "хватит" / "поехали".
+        """
+        if emit:
+            await emit({
+                "type": "step",
+                "step": "create_page_dialog",
+                "message": "Уточняю задачу...",
+            })
+
+        system_prompt = build_dialog_prompt()
+        user_content = build_dialog_user_message(
+            user_message=user_message,
+            history=history,
+        )
+
+        log(
+            provider, "info",
+            f"dialog: system={len(system_prompt)} chars, "
+            f"user={len(user_content)} chars, "
+            f"history={len(history or [])}, "
+            f"max_tokens={self.DIALOG_MAX_TOKENS}",
+        )
+
+        messages = build_messages(system_prompt, user_content, history)
+
+        CoreEngineLibWordLlmDumper.dump_step(
+            run_id=run_id,
+            agent_name="create_page_dialog",
+            system_prompt=system_prompt,
+            user_content=user_content,
+            history=history,
+        )
+
+        try:
+            raw = await provider.generate_completion(
+                messages,
+                max_tokens=self.DIALOG_MAX_TOKENS,
+            )
+        except Exception as e:
+            log(provider, "error", f"dialog LLM error: {e}")
+            # On dialog error — do not block the user. Skip
+            # straight to generation with whatever we have.
+            return {
+                "brief": brief or {},
+                "brief_summary": user_message,
+            }
+
+        log(provider, "info", f"dialog response: raw_len={len(raw or '')}")
+
+        CoreEngineLibWordLlmDumper.dump_response(
+            run_id=run_id,
+            agent_name="create_page_dialog",
+            raw_response=raw,
+        )
+
+        data = self._parse_dialog_response(raw)
+
+        # ---- parse failed → skip dialog, generate ----
+        if data is None:
+            log(provider, "warning",
+                f"dialog unparsable: {str(raw)[:200]!r}")
+            return {
+                "brief": brief or {},
+                "brief_summary": user_message,
+            }
+
+        # ---- explicit "ready" ----
+        if data.get("ready") is True:
+            return {
+                "brief": brief or {},
+                "brief_summary": self._build_brief_summary(
+                    brief=brief,
+                    user_message=user_message,
+                    history=history,
+                ),
+            }
+
+        # ---- question ----
+        question = str(data.get("question", "")).strip()
+        if not question:
+            # Empty question + no ready flag → treat as ready,
+            # do not leave the user hanging.
+            log(provider, "warning",
+                "dialog returned empty question, treating as ready")
+            return {
+                "brief": brief or {},
+                "brief_summary": user_message,
+            }
+
+        return {
+            "question": question,
+            "brief": brief or {},
+        }
 
     @staticmethod
-    def _is_new_page_request(text: str) -> bool:
-        t = (text or "").lower()
-        hints = (
-            "с нуля",
-            "с чистого листа",
-            "новую страницу",
-            "новый сайт",
-            "забудь всё",
-            "переделай полностью",
-            "перегенерируй с нуля",
-            "удали всё и",
-        )
-        return any(h in t for h in hints)
+    def _parse_dialog_response(text: str) -> Optional[Dict[str, Any]]:
+        """
+        Parse the dialog response.
+
+        Expected: {"question": "..."} or {"ready": true}.
+        Tolerates code fences and surrounding prose.
+
+        If the response is NOT valid JSON but looks like a plain
+        question (ends with "?"), treat it as {"question": <text>}.
+        This happens when the model ignores the "JSON only" rule
+        and answers with a bare question string.
+        """
+        if not text:
+            return None
+
+        s = text.strip()
+
+        # Strip code fences.
+        if s.startswith("```"):
+            nl = s.find("\n")
+            if nl != -1:
+                s = s[nl + 1:]
+            if s.endswith("```"):
+                s = s[:-3]
+            s = s.strip()
+
+        # ---- Try strict JSON ----
+        data = CoreEngineLibWordLlmAgentCreatePage._try_json(s)
+        if isinstance(data, dict):
+            return data
+
+        # ---- Try JSON inside prose ----
+        start = s.find("{")
+        end = s.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            data = CoreEngineLibWordLlmAgentCreatePage._try_json(
+                s[start:end + 1]
+            )
+            if isinstance(data, dict):
+                return data
+
+        # ---- Fallback: bare question text ----
+        # The model ignored the JSON format and answered with a plain
+        # question. Treat a text that ends with "?" as a question.
+        if s.endswith("?") and len(s) < 500:
+            return {"question": s}
+
+        return None
+
+    @staticmethod
+    def _build_brief_summary(
+        *,
+        brief: Optional[Dict[str, Any]],
+        user_message: str,
+        history: Optional[list],
+    ) -> str:
+        """
+        Build the user message for the generation phase.
+
+        The generator works best with a single, self-contained
+        description. We combine:
+          - the user's own words (the last message, and — if
+            short — the first message too);
+          - a compact dump of the brief.
+
+        The result is a plain text block fed to the plan and
+        section prompts. Nothing fancy — the generator is a
+        language model, it can read the raw dump.
+        """
+        parts: List[str] = []
+
+        # First user message in history (if any) — usually the
+        # original request.
+        if history:
+            for m in history:
+                if m.get("role") == "user":
+                    first = (m.get("content") or "").strip()
+                    if first:
+                        parts.append(first)
+                    break
+
+        # Current user message — if different from the first.
+        last = (user_message or "").strip()
+        if last and (not parts or last != parts[0]):
+            parts.append(last)
+
+        # The brief itself, if non-empty.
+        if brief:
+            try:
+                brief_json = json.dumps(
+                    brief, ensure_ascii=False, indent=2
+                )
+            except (TypeError, ValueError):
+                brief_json = str(brief)
+            parts.append("Собранный бриф:\n" + brief_json)
+
+        return "\n\n".join(parts) if parts else (user_message or "")
 
     # ============================================
     # EDIT MODE — DISABLED
@@ -179,12 +465,6 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
 
         messages = build_messages(system_prompt, user_content, history)
 
-        log(
-            provider, "info",
-            f"edit messages: total={len(messages)} "
-            f"(system=1, history={max(0, len(messages) - 2)}, user=1)",
-        )
-
         try:
             raw = await provider.generate_completion(
                 messages,
@@ -193,8 +473,6 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
         except Exception as e:
             log(provider, "error", f"edit LLM error: {e}")
             return self._fail(f"⚠️ Ошибка LLM: {e}")
-
-        log(provider, "info", f"edit response: raw_len={len(raw or '')}")
 
         CoreEngineLibWordLlmDumper.dump_response(
             run_id=run_id,
@@ -207,26 +485,14 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
         if not html and raw:
             s = raw.strip()
             if s.startswith("<"):
-                log(
-                    provider, "warning",
-                    "edit: raw response starts with '<', using as-is HTML"
-                )
                 html = s
                 css = ""
 
         if not html:
-            log(
-                provider, "error",
-                f"edit non-html answer: {str(raw)[:300]!r}"
-            )
             return self._fail(
-                "⚠️ Модель вернула некорректный ответ. Попробуйте ещё раз."
+                "⚠️ Модель вернула некорректный ответ. "
+                "Попробуйте ещё раз."
             )
-
-        log(
-            provider, "info",
-            f"edit parsed: html={len(html)} chars, css={len(css)} chars"
-        )
 
         html = self._ensure_scope(html)
 
@@ -252,7 +518,13 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
         run_id: Any,
         emit,
         history: Optional[list],
+        brief_summary: str = "",
     ) -> Dict[str, Any]:
+
+        # The generation phase uses `brief_summary` if present —
+        # that is the combined request + answers. Fall back to
+        # the raw user message if there is no brief.
+        generation_message = brief_summary or user_message
 
         if emit:
             await emit({
@@ -264,13 +536,14 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
         # ---- Phase 1: plan ----
         plan = await self._get_plan(
             provider=provider,
-            user_message=user_message,
+            user_message=generation_message,
             run_id=run_id,
         )
 
         if not plan:
             return self._fail(
-                "⚠️ Не удалось спланировать страницу. Попробуйте ещё раз."
+                "⚠️ Не удалось спланировать страницу. "
+                "Попробуйте ещё раз."
             )
 
         if emit:
@@ -303,7 +576,7 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
 
             step_html, step_css = await self._generate_section(
                 provider=provider,
-                user_message=user_message,
+                user_message=generation_message,
                 run_id=run_id,
                 history=history,
                 target=target,
@@ -334,7 +607,7 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
 
                 reviewed_html, reviewed_css = await self._review_section(
                     provider=provider,
-                    user_message=user_message,
+                    user_message=generation_message,
                     run_id=run_id,
                     history=history,
                     target=target,
@@ -344,8 +617,6 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
                     section_css=step_css,
                 )
 
-                # Accept the reviewed version only if it parsed AND
-                # still looks like the same section (non-empty html).
                 if reviewed_html:
                     step_html = reviewed_html
                     if reviewed_css:
@@ -385,7 +656,8 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
         if not full_html:
             log(provider, "error", "no sections produced")
             return self._fail(
-                "⚠️ Модель не сгенерировала ни одной секции. Попробуйте ещё раз."
+                "⚠️ Модель не сгенерировала ни одной секции. "
+                "Попробуйте ещё раз."
             )
 
         full_html = self._ensure_scope(full_html)
@@ -602,7 +874,8 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
         log(
             provider, "info",
             f"step {step_num}/{target} review done: "
-            f"html={len(reviewed_html)} chars, css={len(reviewed_css)} chars, "
+            f"html={len(reviewed_html)} chars, "
+            f"css={len(reviewed_css)} chars, "
             f"fixed={fixed!r}, notes={notes!r}"
         )
 
@@ -881,6 +1154,7 @@ class CoreEngineLibWordLlmAgentCreatePage(CoreEngineLibWordLlmAgentBase):
             "css": None,
             "selector": None,
             "element_html": None,
+            "question": None,
             "streamed": True,
         }
 

@@ -11,29 +11,19 @@
  *   If the page has template_id, the base template HTML is rendered
  *   OUTSIDE the GrapesJS iframe (in .editor-template), and GrapesJS
  *   mounts only into the [data-slot="content"] placeholder.
- *   This way the template layout is visible but not editable.
  *
- *   If the page has no template, GrapesJS mounts into .editor-canvas
- *   directly — same as before.
+ *   Template CSS: because the template HTML lives in the PARENT
+ *   document (not inside the GrapesJS iframe), its styles must be
+ *   injected into the parent document <head>. We do that in
+ *   _injectEditorTemplateCss() and remove it in closeEditor().
+ *   Without this, the editor shows the nav/sidebar/footer stripped
+ *   of their layout.
  *
  * Save vs auto-save:
  *   - onSave      — manual save (toolbar / Ctrl+S). Persists and
  *                   closes the editor.
  *   - onAutoSave  — background auto-save. Persists only; the editor
  *                   stays open and untouched.
- *
- * Empty-article tutorial:
- *   When the editor is opened for an EMPTY article (no content), a
- *   short three-step walkthrough (toolbar → area-left → area-right,
- *   see ./editor/tutorial.js) is shown. It runs every time, with no
- *   "never show again" flag.
- *
- *   The tutorial CSS (./editor/tutorial.css) is loaded here, right
- *   before the JS module is imported. This guarantees the bubble is
- *   styled on the very first paint — otherwise it would render as a
- *   bare <div> until some other code happens to pull the stylesheet
- *   in. Loading is guarded by a <link> check so we do not append
- *   duplicates on every editor open.
  *
  * Race protection:
  *   Editor init is async (dynamic imports, GrapesJS init). If the user
@@ -45,22 +35,20 @@
 
 /**
  * Path to the tutorial stylesheet, relative to /static/.
- * Kept in one place so the <link> guard and loadCSS() call cannot drift.
  */
 const TUTORIAL_CSS_PATH = 'core/engine/lib/word/editor/tutorial.css';
 
 /**
+ * id of the <style> tag that holds the base template CSS in the
+ * parent document while the editor is open. Removed on close.
+ */
+const EDITOR_TEMPLATE_CSS_ID = 'word-editor-template-css';
+
+/**
  * Ensure the tutorial stylesheet is in the document exactly once.
- *
- * coreEngine.loadCSS() may or may not be idempotent depending on the
- * build; we guard here anyway so repeated editor opens do not append
- * duplicate <link> tags. The check matches both the absolute
- * (/static/...) and versioned (?v=...) forms.
  */
 function _ensureTutorialCss() {
     const href = `/static/${TUTORIAL_CSS_PATH}`;
-
-    // Already present (any version) — nothing to do.
     const existing = document.querySelector(
         `link[rel="stylesheet"][href^="${href}"]`
     );
@@ -69,14 +57,38 @@ function _ensureTutorialCss() {
     if (window.coreEngine?.loadCSS) {
         window.coreEngine.loadCSS(TUTORIAL_CSS_PATH);
     } else {
-        // Fallback — coreEngine not ready yet. Should not happen in
-        // practice because openEditor() runs after Word._init().
         console.warn('[Word] coreEngine.loadCSS not available — appending <link> manually');
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = href;
         document.head.appendChild(link);
     }
+}
+
+/**
+ * Inject the base template CSS into the parent document <head>.
+ *
+ * Why: the template HTML (nav, sidebar, footer) is rendered OUTSIDE
+ * the GrapesJS iframe — in the parent document. Styles in the parent
+ * document reach it; styles inside the iframe do not. So we drop a
+ * <style> tag into <head>.
+ *
+ * Idempotent: any previous <style> with the same id is removed first.
+ * Empty css → nothing is injected (and any previous tag is removed).
+ */
+function _injectEditorTemplateCss(css) {
+    _clearEditorTemplateCss();
+    if (!css) return;
+
+    const styleEl = document.createElement('style');
+    styleEl.id = EDITOR_TEMPLATE_CSS_ID;
+    styleEl.setAttribute('data-js', 'word-editor-template-css');
+    styleEl.textContent = css;
+    document.head.appendChild(styleEl);
+}
+
+function _clearEditorTemplateCss() {
+    document.getElementById(EDITOR_TEMPLATE_CSS_ID)?.remove();
 }
 
 /**
@@ -107,10 +119,9 @@ export async function openEditor(word) {
     }
 
     // ===== Load base template (if any) =====
-    // Render template HTML into .editor-template, replace [data-slot="content"]
-    // with the .editor-slot placeholder. GrapesJS will mount into that slot.
     const templateId = word.pageData?.template_id;
     let templateHtml = null;
+    let templateCss = '';
 
     if (templateId) {
         const template = await word._data.loadTemplateById(word, templateId);
@@ -123,11 +134,18 @@ export async function openEditor(word) {
 
         if (template && template.content) {
             templateHtml = template.content;
-            console.log('[Word] Template loaded for editor:', templateId);
+            templateCss = (template.css || '').trim();
+            console.log('[Word] Template loaded for editor:', templateId,
+                        '| template CSS length:', templateCss.length);
         } else {
             console.warn('[Word] Template not loaded — editor opens without layout');
         }
     }
+
+    // ===== Inject template CSS into the parent document =====
+    // The template HTML is rendered OUTSIDE the GrapesJS iframe,
+    // so its CSS must live in the parent <head>. Removed on close.
+    _injectEditorTemplateCss(templateCss);
 
     // Lazy-load Editor with cache-busting version
     const version = window.coreEngine?.static_version || Date.now();
@@ -137,6 +155,7 @@ export async function openEditor(word) {
     // ★ Check: was the editor closed while we were loading?
     if (word._editorToken !== myToken) {
         console.log('[Word] Editor was closed during load — aborting open');
+        _clearEditorTemplateCss();
         return;
     }
 
@@ -150,16 +169,12 @@ export async function openEditor(word) {
         pageId: word.pageId,
         pageData: word.pageData,
 
-        // Template HTML — Editor renders it into .editor-template before
-        // GrapesJS init, and mounts into .editor-slot.
         templateHtml: templateHtml,
 
-        // Manual save: persist AND close the editor.
         onSave: async (data) => {
             await word._saveContent(data);
         },
 
-        // Auto-save: persist only. Do NOT close the editor.
         onAutoSave: async (data) => {
             await word._autoSaveContent(data);
         },
@@ -180,44 +195,25 @@ export async function openEditor(word) {
             console.warn('[Word] destroy after race error:', e);
         }
         word.editorInstance = null;
+        _clearEditorTemplateCss();
         return;
     }
 
     // ===== Empty-article tutorial =====
-    // Shown when the article has no content. Runs on EVERY open of an
-    // empty page — no "never show again" flag. Destroyed together with
-    // the editor (see closeEditor).
     _maybeStartTutorial(word, version);
 }
 
 /**
  * Show the tutorial if the article is empty.
- *
- * "Empty" uses the same notion as Word._isContentEmpty(): HTML is
- * stripped, style tags are ignored, whitespace is collapsed.
- *
- * The tutorial is stored on `word._editorTutorial` so closeEditor()
- * can tear it down cleanly.
- *
- * CSS is loaded BEFORE the JS module so the bubble is styled on the
- * very first paint. _ensureTutorialCss() is idempotent — repeated
- * editor opens do not append duplicate <link> tags.
- *
- * @param {Object} word
- * @param {string|number} version — cache-busting version
  */
 async function _maybeStartTutorial(word, version) {
     if (!word._isContentEmpty || !word._isContentEmpty()) return;
 
     try {
-        // 1. CSS first — the bubble must be styled on the very first paint.
         _ensureTutorialCss();
-
-        // 2. Then the JS module (versioned dynamic import).
         const { EditorTutorial } = await import(
             `./editor/tutorial.js?v=${version}`
         );
-
         word._editorTutorial = new EditorTutorial();
         word._editorTutorial.start();
     } catch (e) {
@@ -227,13 +223,6 @@ async function _maybeStartTutorial(word, version) {
 
 /**
  * Close the GrapesJS editor and restore the article view.
- *
- * Safe against:
- *   - destroy() throwing (wrapped in try/catch)
- *   - stale widgetContentEl (re-queried before use)
- *   - pending openEditor (token invalidated at the top)
- *
- * @param {Object} word — Word instance
  */
 export async function closeEditor(word) {
     console.log('[Word] Closing GrapesJS editor');
@@ -241,7 +230,7 @@ export async function closeEditor(word) {
     // ★ Invalidate any pending openEditor
     word._editorToken = (word._editorToken || 0) + 1;
 
-    // ★ Tear down the tutorial (if any) — the editor is going away.
+    // ★ Tear down the tutorial (if any)
     if (word._editorTutorial) {
         try {
             word._editorTutorial.stop();
@@ -251,9 +240,12 @@ export async function closeEditor(word) {
         word._editorTutorial = null;
     }
 
+    // ★ Remove the template CSS we injected for the editor
+    _clearEditorTemplateCss();
+
     word.toolbarEl?.classList.remove('core-engine-lib-word-toolbar-hidden');
 
-    // Destroy editor safely — never let errors break the cleanup
+    // Destroy editor safely
     if (word.editorInstance?.destroy) {
         try {
             word.editorInstance.destroy();
@@ -264,14 +256,13 @@ export async function closeEditor(word) {
     word.editorInstance = null;
     word.isEditing = false;
 
-    // Remove any remaining resizer handles
     word._clearAllResizers();
 
     // Re-query widgetContentEl — it may be stale after re-render
     const wc = word.container?.querySelector('.core-engine-lib-word-widget-content');
     if (wc) word.widgetContentEl = wc;
 
-    // Restore article (guaranteed)
+    // Restore article
     if (word.widgetContentEl) {
         while (word.widgetContentEl.firstChild) {
             word.widgetContentEl.removeChild(word.widgetContentEl.firstChild);

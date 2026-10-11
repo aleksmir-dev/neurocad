@@ -18,10 +18,23 @@ Retries
 -------
 The LLM call is retried on transient failures — CloudFront / CDN
 throttling (HTTP 403), rate limits (429), upstream errors (5xx),
-and network timeouts. Backoff is exponential: BASE_DELAY, then
-BASE_DELAY * 2. A clean response that simply lacks <svg> is NOT
-retried — the model refused or produced invalid output, and a
-second attempt is unlikely to change that.
+network timeouts, and (since this change) an empty / no-SVG
+response. Backoff is exponential: BASE_DELAY, then BASE_DELAY * 2.
+
+Why "no <svg>" is now retried:
+  The model occasionally responds with plain prose ("К сожалению,
+  я не могу...") or with reasoning text instead of the requested
+  JSON. This is not a network error — but empirically a second
+  attempt with the same prompt often produces the expected SVG.
+  Earlier this case broke out of the retry loop immediately
+  (RETRY_MARKERS did not include it), so a single unlucky response
+  surfaced to the user as a hard 400. Now we retry it too.
+
+Token cap:
+  MAX_TOKENS caps the response length for the logo call. Logos are
+  short — a full SVG is well under 2k tokens. Passing an explicit
+  cap keeps the model from drifting into long prose or reasoning
+  that pushes the SVG out of the response window.
 
 Return shape:
     { "svg": "<svg …>…</svg>" }              — on success
@@ -53,12 +66,20 @@ MAX_ATTEMPTS = 3
 #: Attempt 2 fails → wait BASE_DELAY * 2.
 BASE_DELAY = 2.0
 
+#: Cap on max_tokens for the logo call. Logos are short — a full
+#: SVG is well under 2k tokens. Passing a small explicit cap keeps
+#: the model from drifting into long prose or reasoning that pushes
+#: the SVG out of the response window.
+MAX_TOKENS = 2048
+
 #: Substrings in the error text that mark a transient failure
 #: worth retrying. Matched against the whole error string.
 #:   403 — CloudFront / CDN throttling (DeepSeek sometimes)
 #:   429 — rate limit
 #:   5xx — upstream server errors
 #:   timeout / timed out — network, no response
+#:   no <svg> — the model responded, but the answer had no SVG
+#:              (prose, reasoning, or an empty JSON shell)
 RETRY_MARKERS = (
     "403",
     "429",
@@ -69,6 +90,7 @@ RETRY_MARKERS = (
     "timeout",
     "timed out",
     "Timeout",
+    "no <svg>",
 )
 
 
@@ -115,7 +137,9 @@ class CoreEngineLibWordLlmAgentGenerateLogo(CoreEngineLibWordLlmAgentBase):
         # Backoff:  BASE_DELAY * 2^(n-1) — 2s, 4s.
         # Retry:    only when the error text contains one of
         #           RETRY_MARKERS. A clean "no <svg> in response"
-        #           from a working model is NOT retried.
+        #           from a working model IS retried now — the
+        #           model sometimes drifts into prose and a second
+        #           attempt with the same prompt produces the SVG.
         # ============================================
 
         last_error: str = ""
@@ -124,7 +148,10 @@ class CoreEngineLibWordLlmAgentGenerateLogo(CoreEngineLibWordLlmAgentBase):
 
         for attempt in range(1, MAX_ATTEMPTS + 1):
             try:
-                raw = await provider.generate_completion(messages)
+                raw = await provider.generate_completion(
+                    messages,
+                    max_tokens=MAX_TOKENS,
+                )
             except Exception as e:
                 last_error = f"LLM error: {e}"
                 log(provider, "warning",
@@ -135,9 +162,13 @@ class CoreEngineLibWordLlmAgentGenerateLogo(CoreEngineLibWordLlmAgentBase):
                 if svg:
                     break
                 last_error = "no <svg> found in response"
+                # Log a short preview so a "no SVG" failure is
+                # actually diagnosable from the backend log —
+                # otherwise all we see is a bare "ERROR:" line.
+                preview = (raw or "")[:200].replace("\n", " ")
                 log(provider, "warning",
                     f"generate_logo attempt {attempt}/{MAX_ATTEMPTS}: "
-                    f"no <svg> in response")
+                    f"no <svg> in response; raw[:200]={preview!r}")
 
             # Retry only on transient failures.
             if not any(marker in last_error for marker in RETRY_MARKERS):

@@ -24,8 +24,41 @@
  * click handler is `props.onAddFolder`. If the handler is missing,
  * the button is not rendered (fail-closed).
  *
+ * Copy button
+ * -----------
+ * When the consumer passes `showCopyButton: true`, a "Копировать"
+ * button is rendered in the LEFT group. It is:
+ *
+ *   - disabled while nothing is selected;
+ *   - enabled when the selection has 1 or more items;
+ *   - hidden in trash mode (nothing to copy there).
+ *
+ * The click handler calls `props.onCopy()`. BaseCardsToolbar does
+ * NOT know what "copy" means — the consumer decides. See
+ * initool.js → onCopy for the wiring.
+ *
+ * Move button
+ * -----------
+ * When the consumer passes `showMoveButton: true`, a "Переместить"
+ * button is rendered in the LEFT group, BETWEEN "Edit" and "Delete".
+ * Unlike Copy, Move works on EXACTLY ONE selected item — the same
+ * rule as Edit:
+ *
+ *   - disabled unless the selection has exactly 1 item;
+ *   - disabled in trash mode.
+ *
+ * Rationale: moving is a per-item decision (which folder does THIS
+ * card belong in?). Multi-select move would require a folder picker
+ * for every batch and quickly turns into a "why did 8 cards land
+ * here?" problem. One at a time is predictable and simple.
+ *
+ * The click handler calls `props.onMove()` with no arguments —
+ * BaseCardsToolbar does NOT know what "move" means, the consumer
+ * resolves the current selection itself.
+ *
  * Layout of the LEFT group:
- *   folder (opt) → add → edit → delete → restore → extras → counter
+ *   folder (opt) → add → copy (opt) → edit → move (opt) → delete
+ *                → restore → extras → counter
  *
  * User-facing strings (button labels, placeholder, counter, trash
  * titles) are in Russian. Code comments, docstrings and identifiers
@@ -52,6 +85,16 @@ export class BaseCardsToolbar {
         this.showRestoreButton = props.showRestoreButton !== false;
         this.showTrashButton = props.showTrashButton !== false;
 
+        // Copy button — fail-closed: only when explicitly requested
+        // AND a click handler is provided.
+        this.showCopyButton = props.showCopyButton === true
+            && typeof props.onCopy === 'function';
+
+        // Move button — fail-closed: only when explicitly requested
+        // AND a click handler is provided.
+        this.showMoveButton = props.showMoveButton === true
+            && typeof props.onMove === 'function';
+
         // Folder mode: "Создать папку".
         // Fail-closed — requires an explicit `showFolderButton === true`
         // AND a handler `onAddFolder`. Otherwise the button is not
@@ -76,7 +119,7 @@ export class BaseCardsToolbar {
         this.currentStatusFilter = 'all';
         this.isLoading = false;
 
-        // First selected id (for the "Edit" button).
+        // First selected id (for the "Edit" and "Move" buttons).
         this._firstSelectedId = null;
 
         // Callbacks
@@ -84,6 +127,8 @@ export class BaseCardsToolbar {
         this.onAddFolder = props.onAddFolder || null;
         this.onEdit = props.onEdit || null;
         this.onDelete = props.onDelete || null;
+        this.onCopy = props.onCopy || null;
+        this.onMove = props.onMove || null;
         this.onRestore = props.onRestore || null;
         this.onToggleTrash = props.onToggleTrash || null;
         this.onSearch = props.onSearch || null;
@@ -129,7 +174,8 @@ export class BaseCardsToolbar {
      * Toolbar template.
      *
      * Order of buttons in the LEFT group:
-     *   folder → add → edit → delete → restore → extras → counter
+     *   folder → add → copy → edit → move → delete → restore
+     *          → extras → counter
      *
      * Order in the RIGHT group:
      *   status-filter → search → trash
@@ -157,9 +203,21 @@ export class BaseCardsToolbar {
                     </button>
                 ` : ''}                
 
+                ${this.showCopyButton ? `
+                    <button type="button" class="cards-toolbar-btn cards-toolbar-btn-copy" title="Копировать" disabled>
+                        <img class="icon" src="${this._icon('copy')}" alt="Копировать" width="20" height="20">
+                    </button>
+                ` : ''}                
+
                 ${this.showEditButton ? `
                     <button type="button" class="cards-toolbar-btn cards-toolbar-btn-edit" title="Редактировать" disabled>
                         <img class="icon" src="${this._icon('edit')}" alt="Редактировать" width="20" height="20">
+                    </button>
+                ` : ''}
+
+                ${this.showMoveButton ? `
+                    <button type="button" class="cards-toolbar-btn cards-toolbar-btn-move" title="Переместить" disabled>
+                        <img class="icon" src="${this._icon('move')}" alt="Переместить" width="20" height="20">
                     </button>
                 ` : ''}
 
@@ -267,7 +325,9 @@ export class BaseCardsToolbar {
     _cacheElements() {
         this.folderBtn = this.toolbar.querySelector('.cards-toolbar-btn-folder');
         this.addBtn = this.toolbar.querySelector('.cards-toolbar-btn-add');
+        this.copyBtn = this.toolbar.querySelector('.cards-toolbar-btn-copy');
         this.editBtn = this.toolbar.querySelector('.cards-toolbar-btn-edit');
+        this.moveBtn = this.toolbar.querySelector('.cards-toolbar-btn-move');
         this.deleteBtn = this.toolbar.querySelector('.cards-toolbar-btn-delete');
         this.restoreBtn = this.toolbar.querySelector('.cards-toolbar-btn-restore');
         this.trashBtn = this.toolbar.querySelector('[data-js="trash-btn"]');
@@ -307,6 +367,27 @@ export class BaseCardsToolbar {
         if (this.deleteBtn) {
             this.deleteBtn.addEventListener('click', () => {
                 if (this.onDelete) this.onDelete();
+            });
+        }
+
+        // Copy — pass the whole selection to the consumer.
+        // Enabled state is managed in _updateUI().
+        if (this.copyBtn) {
+            this.copyBtn.addEventListener('click', () => {
+                if (this.onCopy && this.selectedCount > 0) {
+                    this.onCopy();
+                }
+            });
+        }
+
+        // Move — works on EXACTLY ONE selected item (same rule as
+        // Edit). The consumer resolves the current selection
+        // itself; we only forward "the user asked to move".
+        if (this.moveBtn) {
+            this.moveBtn.addEventListener('click', () => {
+                if (this.onMove && this.selectedCount === 1) {
+                    this.onMove();
+                }
             });
         }
 
@@ -379,7 +460,7 @@ export class BaseCardsToolbar {
     }
 
     /**
-     * Set the first selected id (for the "Edit" button).
+     * Set the first selected id (for the "Edit" and "Move" buttons).
      */
     setFirstSelectedId(id) {
         this._firstSelectedId = id;
@@ -404,6 +485,23 @@ export class BaseCardsToolbar {
             const disabled = selected === 0 || this.isDeletedMode;
             this.deleteBtn.disabled = disabled;
             this.deleteBtn.style.opacity = disabled ? '0.4' : '1';
+        }
+
+        // Copy — one or more items selected, and not in trash mode.
+        // (Copying from the trash view makes no sense — the items
+        // are soft-deleted.)
+        if (this.copyBtn) {
+            const disabled = selected === 0 || this.isDeletedMode;
+            this.copyBtn.disabled = disabled;
+            this.copyBtn.style.opacity = disabled ? '0.4' : '1';
+        }
+
+        // Move — EXACTLY ONE item selected (same rule as Edit),
+        // and not in trash mode.
+        if (this.moveBtn) {
+            const disabled = selected !== 1 || this.isDeletedMode || !this._firstSelectedId;
+            this.moveBtn.disabled = disabled;
+            this.moveBtn.style.opacity = disabled ? '0.4' : '1';
         }
 
         // Restore — only in trash mode.

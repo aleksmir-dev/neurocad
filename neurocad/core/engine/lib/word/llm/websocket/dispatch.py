@@ -56,6 +56,34 @@ Result frames sent to the client (see `_run_agent`):
       assistant_message — text for the chat
       done              — end of the run
 
+  Clarifying question (router OR agent)
+  -------------------------------------
+  When the router cannot pick an agent yet, it returns
+  `{"agent": None, "question": "<text>"}`. When an agent needs
+  more info from the user before it can do its work, it returns
+  `{"question": "<text>", ...}` from its `run()`. Both cases are
+  handled by the same helper `_handle_route_question`:
+
+      1. saves the question with is_quest=1;
+      2. sets the run status to "awaiting_answer";
+      3. sends the question as `assistant_message`;
+      4. sends `done` and returns — no HTML, no CSS.
+
+  On the next `start` message, the flow repeats: the router reads
+  the history (which now ends with is_quest=1), the agent reads
+  its `brief`, and either asks another question or generates.
+
+  Brief
+  -----
+  Agents that ask clarifying questions may keep a structured
+  "brief" in `Run.brief` (JSON). Only create_page currently uses
+  it. The dispatcher:
+
+      - reads Run.brief before calling the agent;
+      - passes it as the `brief` argument, but ONLY for agents
+        listed in `_BRIEF_AGENTS` — other agents' run() signature
+        has no such parameter and would raise TypeError.
+
 Namespace: CoreEngineLibWordLlmWS (via Base + mixins)
 """
 
@@ -89,6 +117,13 @@ _BALANCE_ERROR_MESSAGES = {
         "Обратитесь к администратору."
     ),
 }
+
+
+# Agents whose run() accepts the `brief` argument. Others do not
+# — passing brief to them would raise TypeError. Kept as a small
+# explicit list (not a duck-typed try/except) so that a real bug
+# in another agent's signature is NOT masked.
+_BRIEF_AGENTS = frozenset({"create_page"})
 
 
 class DispatchMixin:
@@ -311,6 +346,84 @@ class DispatchMixin:
             )
 
     # ============================================
+    # CLARIFYING QUESTION (router OR agent)
+    # ============================================
+
+    async def _handle_route_question(
+        self,
+        websocket: WebSocket,
+        page_id: int,
+        run_id: int,
+        question: str,
+    ) -> None:
+        """
+        A clarifying question was asked — either by the router
+        (before picking an agent) or by an agent itself (before
+        doing its work). Both cases are identical from the
+        dispatcher's point of view.
+
+        Steps:
+          1. Save the question as an assistant message with
+             is_quest=1. This is the flag the router reads on the
+             NEXT user turn to know the user is replying, and the
+             agent reads to know it should continue its dialog.
+          2. Set the run status to "awaiting_answer" — it is still
+             in flight, it will continue when the user replies.
+          3. Send the question to the client as a normal assistant
+             message (no technical markers, clean text).
+          4. Send "done" and return.
+
+        No HTML is sent. The next `start` message will resume the
+        flow: the router picks an agent (or re-asks), and the agent
+        continues its dialog / starts generation.
+
+        Callers are responsible for charging tokens BEFORE calling
+        this helper — the clarifying turn itself costs tokens (the
+        router's or the agent's LLM call).
+        """
+        from ..service import CoreEngineLibWordLlmService
+        from ..runs import CoreEngineLibWordLlmRuns
+
+        # 1. Save the question with the is_quest flag.
+        try:
+            await CoreEngineLibWordLlmService.save_chat_message(
+                page_id=page_id,
+                role="assistant",
+                content=question,
+                is_quest=True,
+            )
+        except Exception as e:
+            await self._log(
+                websocket, "warning",
+                f"[ws] save question failed: {e}",
+            )
+
+        # 2. Mark the run as awaiting the user's answer.
+        try:
+            await CoreEngineLibWordLlmRuns.update_run_status(
+                run_id,
+                status="awaiting_answer",
+                message="Ожидаю ответа пользователя",
+            )
+        except Exception as e:
+            await self._log(
+                websocket, "warning",
+                f"[ws] update run status failed: {e}",
+            )
+
+        # 3. Send the question to the client.
+        await self._safe_send(
+            websocket,
+            {"type": "assistant_message", "content": question},
+        )
+
+        # 4. Done.
+        await self._safe_send(
+            websocket,
+            {"type": "done", "run_id": run_id},
+        )
+
+    # ============================================
     # TYPE: start — router then agent
     # ============================================
 
@@ -332,18 +445,19 @@ class DispatchMixin:
           1.  Resolve the provider (mock or real, from the DB).
           2.  Dump meta for this run (for post-mortem debugging).
           3.  Load the current page HTML (for router state + agents).
-          4.  Ask the router which agent should handle the request.
-          0b. If the router picked "create" — generation guard (gen > 0 on pro).
-          5.  Run that agent and send its result to the client.
+          4.  Ask the router: pick an agent OR ask a question.
+              - If the router asks a question — save it with
+                is_quest=1, send to the user, end the run.
+              - If the router picks an agent — continue below.
+          0b. If the router picked "create" — generation guard.
+          4b. If the agent accepts a `brief` (see _BRIEF_AGENTS),
+              load Run.brief and pass it in.
+          5.  Run the agent. The agent may itself ask a clarifying
+              question (returns "question") — handle it the same
+              way as the router's question.
           6.  Charge tokens + (for create on pro) 1 gen.
 
         Result frames — see the module docstring for the full list.
-        In short:
-          - streamed agents (create_page stepwise) emit their own
-            `page_step` frames; the dispatcher does not re-send the
-            full html/css afterwards.
-          - non-streamed agents get one `html_update` / `page_css_update`
-            / `element_update` from the dispatcher.
         """
         from ..runs import CoreEngineLibWordLlmRuns
         from ..service import CoreEngineLibWordLlmService
@@ -390,18 +504,41 @@ class DispatchMixin:
                 user_message=user_message,
                 selection=selection,
                 current_html=current_html,
+                history=history,
                 run_id=run_id,
                 emit=_emit,
             )
-            agent_name = routing.get("agent", "help")
-            target = routing.get("target")
+
+            agent_name = routing.get("agent")
+            question = routing.get("question")
+
+            # ---- ROUTER WANTS TO ASK FIRST ----
+            if question:
+                await self._handle_route_question(
+                    websocket=websocket,
+                    page_id=page_id,
+                    run_id=run_id,
+                    question=question,
+                )
+                return
+
+            # ---- ROUTER FAILED TO PICK ----
+            if not agent_name:
+                # No agent, no question — router could not decide.
+                # Fall back to "none" (polite decline). "help" is
+                # temporarily disabled — see router.py.
+                await self._log(
+                    websocket, "warning",
+                    f"[run-agent] run {run_id}: router returned no "
+                    f"agent and no question, falling back to none",
+                )
+                agent_name = "none"
 
             # "edit", "create_effect" and "rename" are only reachable
-            # via their explicit WS types. Fall back to help if the
+            # via their explicit WS types. Fall back to "none" if the
             # router returned them in a start flow.
             if agent_name in ("edit", "create_effect", "rename"):
-                agent_name = "help"
-                target = None
+                agent_name = "none"
 
             if cancel_event.is_set():
                 await self._finish_cancelled(websocket, run_id)
@@ -454,7 +591,7 @@ class DispatchMixin:
             # ---- AGENT ----
             agent_cls = _AGENTS.get(agent_name)
             if agent_cls is None:
-                agent_cls = _AGENTS["help"]
+                agent_cls = _AGENTS["none"]
 
             await CoreEngineLibWordLlmRuns.update_run_status(
                 run_id,
@@ -463,8 +600,28 @@ class DispatchMixin:
                 message="Обрабатываю запрос...",
             )
 
+            # ---- 4b. BRIEF (only for agents that accept it) ----
+            # create_page keeps a structured clarification dialog in
+            # Run.brief. Other agents do not — passing brief to them
+            # would raise TypeError, because their run() has no such
+            # parameter. See _BRIEF_AGENTS.
+            agent_brief: Optional[Dict[str, Any]] = None
+            if agent_name in _BRIEF_AGENTS:
+                try:
+                    agent_brief = await CoreEngineLibWordLlmRuns.get_run_brief(
+                        run_id
+                    )
+                except Exception as e:
+                    await self._log(
+                        websocket, "warning",
+                        f"[run-agent] run {run_id}: get_run_brief failed: {e}",
+                    )
+                    agent_brief = None
+
             agent = agent_cls()
-            result = await agent.run(
+
+            # Build kwargs — brief only for agents that accept it.
+            run_kwargs: Dict[str, Any] = dict(
                 provider=provider,
                 user_message=user_message,
                 page_id=page_id,
@@ -475,9 +632,33 @@ class DispatchMixin:
                 current_html=current_html,
                 history=history,
             )
+            if agent_name in _BRIEF_AGENTS:
+                run_kwargs["brief"] = agent_brief
+
+            result = await agent.run(**run_kwargs)
 
             if cancel_event.is_set():
                 await self._finish_cancelled(websocket, run_id)
+                return
+
+            # ---- 5b. AGENT ASKED A CLARIFYING QUESTION ----
+            # Same mechanism as the router's question. The agent
+            # will resume its work on the next `start` — by that
+            # time, history contains this question with is_quest=1
+            # and (for create_page) Run.brief is up to date.
+            agent_question = result.get("question")
+            if agent_question:
+                # Charge BEFORE sending the question — the agent's
+                # LLM call already happened and cost tokens. We do
+                # not charge gen: no page was produced.
+                await self._charge_tokens(websocket, provider)
+
+                await self._handle_route_question(
+                    websocket=websocket,
+                    page_id=page_id,
+                    run_id=run_id,
+                    question=str(agent_question),
+                )
                 return
 
             # ---- CHARGE ----
@@ -513,10 +694,6 @@ class DispatchMixin:
                 )
 
             # ---- store final HTML for run history ----
-            # In streamed mode the agent returns the aggregated page
-            # HTML (wrapped in `.core-engine-lib-word-blocks`) for
-            # storage only. The client has already accumulated it
-            # from the `page_step` frames.
             if html and str(html).strip().startswith("<"):
                 final_html = html
             elif element_html and str(element_html).strip().startswith("<"):
@@ -531,10 +708,7 @@ class DispatchMixin:
 
             # ---- html_update — replace canvas ----
             # Skipped for streamed agents: the agent has already
-            # emitted one `page_step` per section, and the front
-            # end accumulated them onto the canvas. Sending a bulk
-            # html_update here would cause a visible "snap" and is
-            # not needed.
+            # emitted one `page_step` per section.
             if not is_streamed:
                 if html and str(html).strip().startswith("<"):
                     await self._safe_send(
@@ -542,7 +716,6 @@ class DispatchMixin:
                         {"type": "html_update", "html": html},
                     )
 
-                # ---- page_css_update — replace page CSS ----
                 if css and str(css).strip():
                     await self._safe_send(
                         websocket,
@@ -550,7 +723,6 @@ class DispatchMixin:
                     )
 
             # ---- element_update — replace one element (fill / effect) ----
-            # Never streamed; element updates always go through here.
             if selector and element_html:
                 await self._safe_send(
                     websocket,

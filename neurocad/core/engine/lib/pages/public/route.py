@@ -111,6 +111,14 @@ Generated on demand from page.css (see neurocad/utils/css.py).
 For legacy pages (CSS embedded in content as <style>) the CSS is
 extracted by the service before rendering.
 
+Template CSS:
+    If a page inherits from a base template (page.template_id is
+    set), the template's CSS is ALSO served as a static file
+    (under the template page's id) and injected BEFORE the page's
+    own CSS in public.html. This gives the template layout
+    (nav, sidebar, footer) its styles, while letting the page's
+    article styles override them at equal specificity.
+
 Namespace: CoreEngineLibPagesPublic*
 """
 
@@ -718,7 +726,7 @@ async def _load_folder_row(
 
 
 # ============================================
-# RENDER HELPER (SINGLE PAGE) — unchanged
+# RENDER HELPER (SINGLE PAGE)
 # ============================================
 
 async def _render_public_page(
@@ -732,8 +740,15 @@ async def _render_public_page(
     BalanceChecked.page_renderable(user_id). If blocked — returns
     the "Страница недоступна" placeholder (HTTP 200).
 
-    If page has template_id — loads the base template page and inserts
-    page content into [data-slot="content"] of the template.
+    If page has template_id:
+      1. Loads the base template page and inserts page content
+         into [data-slot="content"] of the template (see
+         _resolve_content).
+      2. Loads the TEMPLATE's CSS and serves it as its own static
+         file (<template_id>.css). Passed to the template as
+         template_css_url and injected BEFORE the page's own CSS
+         in public.html, so page styles can override the shared
+         layout at equal specificity.
 
     Page CSS is written to
         static/core/engine/lib/pages/public/pages/<id>.css
@@ -764,6 +779,23 @@ async def _render_public_page(
     # Apply base template if set
     final_content = await _resolve_content(page)
 
+    # ==== TEMPLATE CSS (if page inherits from a base template) ====
+    # Load the template's CSS and serve it as its own static file.
+    # Injected BEFORE the page CSS in public.html, so the page
+    # styles win on conflicts (nav/sidebar/footer vs article).
+    template_css_url = None
+    if page.template_id:
+        template_css = await CoreEngineLibPagesPublicService.get_template_css(
+            page.template_id, nav_id=page.nav_id
+        )
+        if template_css and template_css.strip():
+            template_css_url = ensure_css_file(
+                page.template_id,
+                template_css,
+                directory=PAGES_CSS_DIR,
+                url_prefix=PAGES_CSS_URL,
+            )
+
     # Page CSS — write derivative file (if needed) and get URL with ?v=<hash>.
     page_css_url = ensure_css_file(
         page.id,
@@ -782,6 +814,7 @@ async def _render_public_page(
             "datetime": dt_display,
             "logo": page.logo,
             "nav_id": page.nav_id,
+            "template_css_url": template_css_url,
             "page_css_url": page_css_url,
         },
     )

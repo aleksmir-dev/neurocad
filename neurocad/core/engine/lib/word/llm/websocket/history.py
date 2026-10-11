@@ -9,10 +9,22 @@ Two responsibilities:
      Loads the last HISTORY_LIMIT messages from `page_chat` and
      returns them in the OpenAI/Anthropic-compatible shape:
 
-         [{"role": "user"|"assistant", "content": "..."}, ...]
+         [{"role": "user"|"assistant", "content": "...",
+           "is_quest": 0|1}, ...]
 
      Only user/assistant messages are kept — system prompts are
      constructed fresh by each agent. Non-string content is dropped.
+
+     `is_quest` is carried through from `page_chat`. It is set to 1
+     on messages that are clarifying questions from the router (the
+     "administrator" agent). The router uses it to distinguish:
+
+       - a REPLY to a previous question (last assistant message has
+         is_quest=1) — the router can now pick an agent;
+
+       - a NEW request (last assistant message has is_quest=0, or
+         there is no assistant message) — the router must ask a
+         clarifying question first.
 
      HISTORY_LIMIT is defined on the base class (20) — this mixin
      reads it via `self.HISTORY_LIMIT`.
@@ -66,13 +78,18 @@ class HistoryMixin:
     # CHAT HISTORY
     # ============================================
 
-    async def _load_history(self, page_id: int) -> List[Dict[str, str]]:
+    async def _load_history(self, page_id: int) -> List[Dict[str, object]]:
         """
         Load the last HISTORY_LIMIT messages from page_chat.
 
-        Returns a list of {"role", "content"} dicts, oldest first.
-        Empty list on any failure — the caller treats a missing
-        history as "no prior context".
+        Returns a list of {"role", "content", "is_quest"} dicts,
+        oldest first. Empty list on any failure — the caller treats
+        a missing history as "no prior context".
+
+        `is_quest` is passed through from the DB. It is 1 on
+        clarifying questions from the router, 0 on everything else.
+        The router uses it to decide whether the incoming user
+        message is a reply to a pending question or a new request.
         """
         # Import here, not at module level: the service module pulls
         # in the whole app + DB stack. Keeping the import local to the
@@ -90,7 +107,11 @@ class HistoryMixin:
         tail = rows[-limit:] if len(rows) > limit else rows
 
         return [
-            {"role": m["role"], "content": m["content"]}
+            {
+                "role": m["role"],
+                "content": m["content"],
+                "is_quest": int(m.get("is_quest") or 0),
+            }
             for m in tail
             if m.get("role") in ("user", "assistant") and m.get("content")
         ]

@@ -14,6 +14,20 @@ Runs are stored in the shared SQLite database, so:
 All methods are async and use the project's SQLite helper
 (`get_db_sqlite`). They never raise on "not found" — they return None
 or an empty list instead, matching the style of the LLMService.
+
+Brief
+-----
+`brief` is a JSON blob used by agents that ask clarifying
+questions before doing work (currently: create_page). See the
+Run model docstring for its shape. This module treats it as an
+opaque dict:
+
+  - get_run_brief(run_id)          → dict | None
+  - set_run_brief(run_id, brief)   → bool
+  - clear_run_brief(run_id)        → bool
+
+Nobody here validates the shape — the agent that writes it is
+the agent that reads it.
 """
 
 import json
@@ -59,8 +73,11 @@ class CoreEngineLibWordLlmRuns:
         Convert a Run model to a dict.
 
         `include_heavy=False` (default) omits block_catalog, plan,
-        filled, final_html — useful when listing runs for a page.
-        Set to True to get everything.
+        filled, brief, final_html — useful when listing runs for a
+        page. Set to True to get everything.
+
+        `brief` follows the same rule as plan / filled / effects: it
+        is decoded from JSON and only included in the heavy payload.
         """
         data = {
             "id": run.id,
@@ -80,6 +97,7 @@ class CoreEngineLibWordLlmRuns:
                 "plan": CoreEngineLibWordLlmRuns._loads(run.plan),
                 "filled": CoreEngineLibWordLlmRuns._loads(run.filled),
                 "effects": CoreEngineLibWordLlmRuns._loads(run.effects),
+                "brief": CoreEngineLibWordLlmRuns._loads(run.brief),
                 "final_html": run.final_html,
             })
         return data
@@ -140,10 +158,22 @@ class CoreEngineLibWordLlmRuns:
         """
         Return the latest run for a page that is not yet finished.
 
-        Active statuses: pending, planning, filling, effects.
+        Active statuses: pending, planning, awaiting_answer, filling,
+        effects.
+
+        `awaiting_answer` is set when the router asked a clarifying
+        question and is waiting for the user's reply. Such a run is
+        still "in flight" — a new `start` will supersede it.
+
         Returns None if there is no active run.
         """
-        active_statuses = ("pending", "planning", "filling", "effects")
+        active_statuses = (
+            "pending",
+            "planning",
+            "awaiting_answer",
+            "filling",
+            "effects",
+        )
         async for session in get_db_sqlite():
             stmt = (
                 select(Run)
@@ -170,8 +200,9 @@ class CoreEngineLibWordLlmRuns:
         """
         List recent runs for a page (light fields only).
 
-        Heavy fields (block_catalog, plan, filled, final_html) are
-        omitted. Use `get_run(id)` to fetch the full data for one run.
+        Heavy fields (block_catalog, plan, filled, brief, final_html)
+        are omitted. Use `get_run(id)` to fetch the full data for one
+        run.
         """
         async for session in get_db_sqlite():
             stmt = (
@@ -188,6 +219,64 @@ class CoreEngineLibWordLlmRuns:
             ]
 
         return []
+
+    # ============================================
+    # BRIEF
+    # ============================================
+
+    @staticmethod
+    async def get_run_brief(run_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Load the clarification brief for a run.
+
+        Returns the decoded dict, or None if the run does not exist
+        or has no brief yet. The shape is defined by the agent that
+        writes it (see the Run model docstring); this method does
+        not validate it.
+        """
+        async for session in get_db_sqlite():
+            stmt = select(Run.brief).where(Run.id == run_id)
+            result = await session.execute(stmt)
+            raw = result.scalar_one_or_none()
+            return CoreEngineLibWordLlmRuns._loads(raw)
+
+        return None
+
+    @staticmethod
+    async def set_run_brief(
+        run_id: int,
+        brief: Optional[Dict[str, Any]],
+    ) -> bool:
+        """
+        Save the clarification brief for a run.
+
+        `brief` is a plain dict — it is JSON-encoded here. Pass None
+        to clear the field (equivalent to clear_run_brief). Returns
+        True on success, False if the run does not exist.
+        """
+        async for session in get_db_sqlite():
+            stmt = select(Run).where(Run.id == run_id)
+            result = await session.execute(stmt)
+            run = result.scalar_one_or_none()
+            if not run:
+                return False
+            run.brief = CoreEngineLibWordLlmRuns._dumps(brief)
+            run.updated_at = datetime.now()
+            await session.commit()
+            return True
+
+        return False
+
+    @staticmethod
+    async def clear_run_brief(run_id: int) -> bool:
+        """
+        Reset the brief to NULL.
+
+        Thin wrapper around set_run_brief(run_id, None), kept so
+        callers that want to explicitly "forget" the dialog do not
+        have to pass None themselves.
+        """
+        return await CoreEngineLibWordLlmRuns.set_run_brief(run_id, None)
 
     # ============================================
     # UPDATE

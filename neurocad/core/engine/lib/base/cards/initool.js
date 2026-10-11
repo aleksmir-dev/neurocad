@@ -24,6 +24,31 @@
  * is resolved here, and the click is wired to `cards.openCreateForm()`
  * with a pre-filled initialData. See below.
  *
+ * Copy button
+ * -----------
+ * When the consumer passes `showCopyButton: true`, an extra
+ * "Копировать" button is rendered in the LEFT group. It is
+ * disabled while nothing is selected, enabled when the selection
+ * has 1+ items, and hidden in trash mode (there is nothing to
+ * copy from the deleted items view).
+ *
+ * The click handler calls `cards._handleCopySelected(ids)` with
+ * the array of currently selected ids. BaseCards itself does not
+ * know how to copy — the consumer must provide an
+ * `onCopySelected` callback in `cards.props`. Without it, the
+ * button click logs a warning and does nothing.
+ *
+ * Move button
+ * -----------
+ * When the consumer passes `showMoveButton: true`, an extra
+ * "Переместить" button is rendered in the LEFT group, BETWEEN
+ * "Edit" and "Delete". Unlike Copy, Move works on EXACTLY ONE
+ * selected item — the same rule as Edit. The click handler calls
+ * `cards._handleMoveSelected()` with no arguments; BaseCards
+ * resolves the current selection itself and forwards it to the
+ * consumer's `onMoveSelected` callback. Without that callback,
+ * the click logs a warning and does nothing.
+ *
  * extraToolbarButtons
  * -------------------
  * Optional array of link-buttons rendered in the right group of the
@@ -63,6 +88,13 @@ export function initToolbar(cards) {
     const showStatusFilter  = cards.props.showStatusFilter === true
         && Object.keys(cards.statuses).length > 0;
 
+    // Copy button — fail-closed: only when explicitly requested.
+    // Consumers that don't want it simply omit the flag.
+    const showCopyButton    = cards.props.showCopyButton === true;
+
+    // Move button — fail-closed: only when explicitly requested.
+    const showMoveButton    = cards.props.showMoveButton === true;
+
     // Folder mode: "Создать папку" button.
     // Only makes sense together with `folders === true`. Fail-closed:
     // requires an explicit `showFolderButton === true`.
@@ -85,6 +117,8 @@ export function initToolbar(cards) {
         showTrashButton,
         showSearch,
         showStatusFilter,
+        showCopyButton,
+        showMoveButton,
         showFolderButton,
         extraToolbarButtons: extraToolbarButtons.length,
     });
@@ -101,6 +135,8 @@ export function initToolbar(cards) {
         showDeleteButton,
         showRestoreButton,
         showTrashButton,
+        showCopyButton,
+        showMoveButton,
         showFolderButton,
 
         // Extra buttons — rendered in the right group, after
@@ -135,6 +171,22 @@ export function initToolbar(cards) {
         onEdit: (id) => cards.openEditForm(id),
         onDelete: () => cards._handleDeleteSelected(),
         onRestore: () => cards._handleRestoreSelected(),
+
+        // Copy — pass the array of selected ids to BaseCards.
+        // BaseCards delegates to the consumer's onCopySelected.
+        onCopy: () => {
+            const ids = Array.from(cards.selectedIds);
+            if (ids.length === 0) return;
+            cards._handleCopySelected(ids);
+        },
+
+        // Move — works on EXACTLY ONE selected item (same rule as
+        // Edit). Forward to BaseCards, which resolves the selection
+        // itself and calls the consumer's onMoveSelected(id).
+        onMove: () => {
+            cards._handleMoveSelected();
+        },
+
         onToggleTrash: (enabled) => {
             cards.isDeletedMode = enabled;
             cards.selectedIds.clear();

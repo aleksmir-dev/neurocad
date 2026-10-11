@@ -3,499 +3,461 @@
 """
 Prompts for the create_page agent.
 
-The agent has FOUR modes, each backed by its own prompt builder:
+Two groups:
 
-  1. PLAN      — one short call. Returns the LIST of sections:
-                     {"sections": ["hero", "features", "footer"]}
-                 No HTML, no CSS. Structure is a single decision.
+  1. GENERATION (existing) — plan, section, review, edit.
+     These are the phases the agent runs after the brief is
+     collected (or skipped, if the user said "вперёд" on the
+     first turn).
 
-  2. SECTION   — one call per section from the plan. Each call
-                 knows exactly which section it produces and returns:
-                     {"section_name": "hero",
-                      "html": "<section ...>",
-                      "css":  ".hero { ... }"}
+  2. DIALOG (new) — a single prompt used BEFORE generation.
+     The agent looks at the chat history and decides:
+       - ask the next clarifying question, OR
+       - stop asking and start generating.
 
-  3. REVIEW    — one call per generated section. QA pass that finds
-                 and fixes common defects (images overflowing, empty
-                 buttons, invisible text, missing @media, ...).
-                 Crucially: the QA pass DOES NOT simplify the design.
-                 It fixes bugs and PRESERVES every visual effect.
+     The dialog prompt lists the 6 genres and the questions
+     that make sense for each. The model is NOT forced to ask
+     every question — it skips what the user already answered
+     (in the router's dialog, or in the first message), and it
+     recognises ANY formulation of "вперёд" / "хватит" /
+     "поехали" / "на твоё усмотрение" — no hard triggers.
 
-  4. EDIT      — one call that rewrites an existing page. Kept as
-                 dead code (edit mode is disabled in the agent);
-                 still used as a template for future reference.
+Constants
+---------
+MAX_SECTIONS, MIN_SECTIONS — bounds for the plan phase.
 
-Why plan-then-generate
-----------------------
-Stepwise mode relied on the model to not repeat section names and
-to stop on its own. deepseek-flash cannot do either — a 10-step
-run produced 10 hero sections and never stopped. Splitting the
-concerns fixes it:
-  - structure is a single deterministic decision;
-  - each per-section call is focused and cannot drift;
-  - the driver stops after the last item of the plan.
-
-Design direction
-----------------
-The default visual language is "modern 2026":
-  - light theme, soft grey-blue background (#f6f8fb range);
-  - a single saturated accent (deep blue #2563eb by default);
-  - soft gradients (linear / radial, low saturation);
-  - glassmorphism cards (translucent white + backdrop-filter blur);
-  - layered, subtle shadows;
-  - generous whitespace;
-  - one accent per block, never acid / never dark.
-
-SVG
----
-Sections may use inline <svg> freely:
-  - icon per card in features / services / categories (24-48px,
-    stroke="currentColor", stroke-width="2", fill="none");
-  - one abstract decorative <svg> as hero background (blurred blobs,
-    soft waves, concentric circles — anything that reads as
-    "decoration", not as a picture);
-  - any other inline SVG where it improves the layout.
-
-No separate SVG agent is called — everything is generated in the
-same section response.
-
-Shared invariants (HTML/CSS split, no frameworks, etc.) are stored
-in module-level constants and composed into each prompt. This
-keeps the rules in ONE place and stops them drifting between the
-modes.
-
-No static imports beyond the standard library.
+User-facing strings are in Russian. Code, comments and
+identifiers are in English.
 """
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 
 # ============================================
-# LIMITS
+# CONSTANTS
 # ============================================
 
-#: Hard cap on sections in a single page. The planner is asked for
-#: 4-7; the driver clamps to this as a safety net.
+#: Bounds for the number of sections in the plan.
+#: Kept small on purpose: for a typical landing 4–5 sections
+#: are enough. A short longread may have 3. 7 is the ceiling.
+#: Larger numbers (10+) make the generation visibly slow —
+#: each section is a separate LLM call (plus QA, if enabled).
+MIN_SECTIONS = 3
 MAX_SECTIONS = 7
 
-#: Lower bound — a plan with fewer items is almost certainly a
-#: parsing failure, not a real design choice.
-MIN_SECTIONS = 3
-
 
 # ============================================
-# SHARED RULES (single source of truth)
+# DIALOG — GENRES AND QUESTIONS
 # ============================================
 #
-# These snippets are composed into the prompts below. Keeping them
-# here stops the rules from drifting between plan / section /
-# review / edit — one place to change, all prompts updated.
+# The list below is embedded in the dialog prompt. Keep it short
+# and concrete — the model does not need prose, it needs a menu.
 
-_LANGUAGE_RULES = """\
-ЯЗЫК:
-- Весь видимый текст (заголовки, кнопки, подписи, alt) — только
-  на русском.
-- Технические имена (class, id, CSS-свойства) — на английском."""
-
-_SPLIT_RULES = """\
-РАЗДЕЛЕНИЕ HTML И CSS (критически важно):
-- HTML содержит ТОЛЬКО разметку. Ни одного <style>, ни одной
-  ссылки <link rel="stylesheet">.
-- CSS — отдельная строка. БЕЗ тега <style>, БЕЗ обёрток,
-  БЕЗ комментариев-заголовков. Просто правила.
-- GrapesJS парсит HTML и CSS по разным каналам. Если смешать —
-  редактор молча выбросит дерево компонентов."""
-
-_NO_FRAMEWORKS_RULES = """\
-ЗАПРЕЩЕНО:
-- <script>, <iframe>, <object>, <embed>.
-- Внешние <img src="http://..."> и <img src="https://...">.
-- Tailwind, Bootstrap и любые CSS-фреймворки.
-- Markdown-обёртка вокруг ответа (без ```json и ```).
-- Любой текст до или после JSON."""
-
-
-# ============================================
-# STYLE — visual direction
-# ============================================
-#
-# This is the "design brief" the model must follow. It defines the
-# default look so a generated page does not fall back to a flat,
-# corporate-default grey. Every rule here has a reason — do not
-# trim without thinking.
-
-_STYLE_RULES = """\
-ВИЗУАЛЬНОЕ НАПРАВЛЕНИЕ — «современный 2026»:
-
-Тема — СВЕТЛАЯ. Фон страницы — мягкий светло-серо-голубой
-(#f6f8fb или близкий). Чисто-белый тоже можно, но не по умолчанию.
-Никаких тёмных тем, никаких чёрных фонов.
-
-ПАЛИТРА:
-- один акцентный цвет (по умолчанию глубокий синий #2563eb);
-- 2-3 поддерживающих оттенка (светлый синий, мягкий серый,
-  почти-белый);
-- НЕ использовать кислотные цвета, НЕ использовать чистый красный,
-  НЕ использовать несколько конкурирующих акцентов.
-
-ЭФФЕКТЫ (обязательны, но дозированно):
-- мягкие градиенты: linear-gradient или radial-gradient с НИЗКОЙ
-  насыщенностью (не «кислотный» переход, а лёгкий оттенок);
-- glassmorphism для карточек: полупрозрачный белый фон
-  (rgba(255,255,255,0.7)) + backdrop-filter: blur(10px) + тонкая
-  светлая граница (1px solid rgba(255,255,255,0.6));
-- аккуратные МНОГОСЛОЙНЫЕ тени:
-    box-shadow:
-      0 4px 16px rgba(15, 23, 42, 0.06),
-      0 1px 3px rgba(15, 23, 42, 0.04);
-- hover-состояния на всех кликабельных элементах (карточки,
-  кнопки, ссылки): плавный transition 0.2-0.3s, translateY(-2px),
-  усиление тени, лёгкое изменение цвета;
-- появление секций через @keyframes (opacity 0 -> 1, translateY
-  12px -> 0) с animation-delay по порядку, чтобы страница
-  «оживала» при загрузке.
-
-ГДЕ ЭФФЕКТЫ УМЕСТНЫ:
-- HERO   — фон-градиент, абстрактный SVG-фон, крупный H1,
-           кнопка с hover-эффектом;
-- КАРТОЧКИ — glassmorphism, тень, hover-подъём;
-- КНОПКИ — transition, лёгкое затемнение при hover;
-- H2 СЕКЦИЙ — может быть с небольшим декоративным подчёркиванием
-              или коротким акцентным штрихом.
-
-ГДЕ ЭФФЕКТОВ НЕ ДОЛЖНО БЫТЬ:
-- обычные абзацы текста — просто аккуратная типографика;
-- футер — спокойный, без градиентов и анимаций;
-- длинные списки — без hover и декоративных элементов на каждом
-  пункте.
-
-ЭМОДЗИ:
-- допустимы в H2 секций и в заголовках карточек (по одному,
-  максимум — не в каждом абзаце);
-- НЕ использовать эмодзи в футере, в H1 и в кнопках.
-
-SVG:
-- в карточках features / services / categories — по одной
-  инлайн-иконке SVG (stroke="currentColor", stroke-width="2",
-  fill="none", размер 32-48px);
-- в hero — один абстрактный декоративный SVG-фон (мягкие пятна,
-  волны, концентрические круги — то, что читается как украшение,
-  а не как картинка);
-- допустимы инлайн SVG в других секциях, если они улучшают
-  композицию.
-
-ТИПОГРАФИКА:
-- H1 ≈ 56-72px, font-weight 700-800, letter-spacing -0.02em;
-- H2 ≈ 36-44px, font-weight 700;
-- H3 ≈ 20-22px, font-weight 600;
-- основной текст ≈ 16-18px, line-height 1.6.
-
-РИТМ:
-- между секциями — 80-120px вертикального пространства;
-- внутри секции — 32-48px между смысловыми блоками;
-- контент центрируется, max-width 1100-1200px.
-
-АДАПТИВНОСТЬ:
-- @media для (max-width: 1024px) и (max-width: 768px);
-- на мобильном — одна колонка, шрифты меньше на 20-25%,
-  отступы плотнее, но не «вжатые»."""
+_GENRES = [
+    (
+        "landing",
+        "Лендинг",
+        "Одна страница, чтобы что-то продать "
+        "(товар, услугу, курс, запись).",
+    ),
+    (
+        "longread",
+        "Лонгрид / статья",
+        "Один большой текст с подзаголовками, "
+        "возможно с цитатами и картинками.",
+    ),
+    (
+        "promo",
+        "Промо / приглашение",
+        "Короткая страница про событие: что, когда, где, "
+        "как попасть.",
+    ),
+    (
+        "personal",
+        "Личная страница / портфолио",
+        "Визитка: кто я, чем занимаюсь, что показать, "
+        "как связаться.",
+    ),
+    (
+        "faq",
+        "FAQ-страница",
+        "Вопросы и ответы по одной теме.",
+    ),
+    (
+        "menu",
+        "Меню / прайс / мини-каталог",
+        "Список позиций (товары, услуги, блюда) "
+        "с ценами и категориями.",
+    ),
+]
 
 
 # ============================================
-# PHASE 1 — PLAN
+# DIALOG PROMPT
+# ============================================
+
+def build_dialog_prompt() -> str:
+    """
+    System prompt for the dialog phase.
+
+    The model receives the whole chat history and decides:
+      - ask one clarifying question (returns {"question": "..."}), OR
+      - stop asking and generate (returns {"ready": true}).
+
+    It must NOT generate HTML here — only decide and, if needed,
+    ask. Generation happens in the next phase.
+
+    Hard rule for ready=true: genre AND topic must be known,
+    AND at least 2 topic-specific questions (numbered 4+) must be
+    answered (or the user said "вперёд"). The model is explicitly
+    told NOT to guess on the user's behalf. This is the NeuroCad
+    rule: better to ask once more than to generate the wrong page.
+
+    The list of questions is genre-specific: for a landing it is
+    different from a personal page. The model must use the list
+    under the chosen genre — not a generic checklist.
+    """
+    genres_block = "\n".join(
+        f"  - {key}: {label} — {desc}"
+        for key, label, desc in _GENRES
+    )
+
+    return f"""Ты — помощник NeuroCad. Пользователь хочет, чтобы ты собрал ему страницу. Прежде чем начать, ты задаёшь ему уточняющие вопросы — но НЕ все подряд, а только те, ответов на которые ещё нет.
+
+ТВОЯ ЗАДАЧА СЕЙЧАС:
+Посмотреть историю чата и решить — задать ещё один вопрос ИЛИ начать генерировать.
+
+ЖАНРЫ СТРАНИЦ (выбери один, если он ещё не выбран):
+
+{genres_block}
+
+ВОПРОСЫ ПО ЖАНРАМ (задавай по одному, только то, чего ещё нет в истории):
+
+Общие для всех жанров (пункты 1–3 — НЕ считаются в правиле 7в):
+  1. Жанр — что за страница? (если не ясно из первого сообщения)
+  2. Тематика — о чём страница?
+  3. Аудитория — для кого?
+
+Лендинг:
+  4. Что продаёшь? (товар / услуга / курс)
+  5. Блоки — hero / фичи / отзывы / цены / FAQ / форма? (или на твоё усмотрение)
+  6. Эффекты — fade / slide / без?
+  7. Тексты — сам напишешь или пользователь даст?
+  8. Особые пожелания?
+
+Лонгрид / статья:
+  4. Главная мысль — что хочешь донести?
+  5. Длина — короткая (5–10 абзацев) / длинная (20+)?
+  6. Стиль — нейтральный / разговорный / научный / художественный?
+  7. Подзаголовки / цитаты / картинки / списки — что нужно?
+  8. Текст пишу я (с нуля) или у вас есть свой?
+
+Промо / приглашение:
+  4. Какое событие?
+  5. Когда?
+  6. Где?
+  7. Как попасть? (регистрация / билет / свободный вход)
+  8. Карта места нужна?
+
+Личная страница / портфолио:
+  4. Кто ты / чем занимаешься?
+  5. Что показать? (фото / работы / опыт)
+  6. Контакты — как связаться?
+  7. Особые пожелания?
+
+FAQ:
+  4. Тема — про что вопросы?
+  5. Сколько вопросов — 5 / 10 / 20?
+  6. Примерные вопросы есть или придумать?
+  7. Стиль ответов — короткие / подробные?
+
+Меню / прайс:
+  4. Что за позиции? (товары / услуги / блюда)
+  5. Сколько позиций?
+  6. Категории нужны?
+  7. Цены показывать?
+  8. Описания к каждой позиции или только названия?
+
+ПРАВИЛА:
+
+1. Сначала посмотри историю чата. Возможно, пользователь УЖЕ ответил на какие-то вопросы — сам, или в диалоге с администратором. НЕ переспрашивай то, что уже есть.
+
+2. Задавай ТОЛЬКО ОДИН вопрос за раз. Не список.
+
+3. Вопрос должен быть коротким, дружелюбным, на русском, заканчиваться на "?".
+
+4. Если жанр ещё не определён — первый вопрос ВСЕГДА про жанр.
+
+5. Если жанр уже определён (например, пользователь написал "собери лендинг") — пропусти вопрос про жанр, начни с тематики.
+
+6. Если пользователь написал что-то вроде "вперёд", "хватит", "поехали", "не спрашивай больше", "на твоё усмотрение", "давай сам" — прекращай спрашивать. Ставь ready = true. Независимо от того, сколько вопросов задано.
+
+7. Ставь ready = true ТОЛЬКО если выполнены ВСЕ условия:
+
+   а) Жанр определён (landing / longread / promo / personal / faq / menu).
+      Если пользователь не назвал жанр — спроси.
+
+   б) Тематика ясна — о чём страница.
+      Если непонятно — спроси.
+
+   в) Получены ответы МИНИМУМ на 2 вопроса ИЗ СПИСКА ПОД ЖАНР, НЕ СЧИТАЯ
+      пункты 1, 2, 3 (жанр, тематика, аудитория). Считаются ТОЛЬКО
+      пункты с номером 4 и выше в списке выбранного жанра.
+      Если ответов меньше 2 — задай следующий неотвеченный вопрос
+      из списка под жанр.
+
+   г) ИЛИ пользователь сказал что-то вроде "вперёд" / "хватит" / "поехали".
+
+   Если хотя бы одно из условий а, б, в не выполнено (и нет г) —
+   задавай следующий неотвеченный вопрос из списка под жанр.
+
+8. НЕ додумывай за пользователя. Даже если тебе кажется, что "и так
+   всё ясно" — проверь по списку под жанр, есть ли МИНИМУМ 2 ответа
+   на пункты 4+. Если нет — задай следующий вопрос. Это правило
+   NeuroCad: ЛУЧШЕ ПЕРЕСПРОСИТЬ, чем сгенерировать не то.
+
+9. Если вопросов больше не осталось (все пункты 4+ из списка под жанр
+   заданы и получены ответы) — ставь ready = true.
+
+10. Если пользователь в первом сообщении уже дал ответы на ВСЕ пункты
+    списка под жанр (например, для personal — и "кто", и "что показать",
+    и "контакты", и "особые пожелания"), и этих ответов МИНИМУМ 2 из
+    пунктов 4+ — ставь ready = true. Если хотя бы один пункт 4+ из
+    списка под жанр НЕ упомянут и НЕ подразумевается однозначно —
+    задай вопрос по нему.
+
+ФОРМАТ ОТВЕТА — ТОЛЬКО ВАЛИДНЫЙ JSON, ОДИН ИЗ ДВУХ:
+
+  {{"question": "<твой вопрос>"}}
+  {{"ready": true}}
+
+Не пиши ничего кроме JSON. Не объясняй. Не добавляй текст до или после.
+
+ПРИМЕРЫ, ГДЕ ready = FALSE (надо задать вопрос):
+
+- История пуста, первое сообщение: "Собери страницу для кофейни"
+  → {{"question": "Какого типа страница нужна — лендинг, лонгрид, промо, личная, FAQ или меню?"}}
+
+- Первое сообщение: "Собери лендинг для кофейни"
+  (жанр есть, тематика есть, но из пунктов 4+ НЕТ ни одного)
+  → {{"question": "Что именно продаёте или продвигаете?"}}
+
+- Первое сообщение: "Хочу статью про то, как я учился фотографировать в горах"
+  (жанр — лонгрид — ясен, тематика — ясна, но из пунктов 4+ ничего)
+  → {{"question": "О чём именно рассказать — про конкретную поездку или про опыт в целом?"}}
+
+- Первое сообщение: "Сделай визитку. Анна, фотограф, Москва, instagram @anna_photo. Стиль — минимализм"
+  (жанр — personal — ясен, тематика — фотограф — ясна, контакты — есть.
+   НО: «что показать» — работы / опыт / услуги — НЕ указано.
+   И «особые пожелания» к содержанию — НЕ указаны.
+   Из пунктов 4+ получен ответ только на пункт 6 (контакты) — это 1 ответ, меньше 2.)
+  → {{"question": "Что показать на странице — работы, опыт, услуги?"}}
+
+- Любое сообщение, где из пунктов 4+ получено меньше 2 ответов
+  → {{"question": "<следующий неотвеченный вопрос из списка под жанр>"}}
+
+ПРИМЕРЫ, ГДЕ ready = TRUE (достаточно информации):
+
+- Диалог:
+  "Собери лендинг для кофейни" → "Готовая или шаблон?" → "Готовая" → "5 блоков, hero/фичи/форма, эффект fade"
+  (жанр, тематика + из пунктов 4+: блоки и эффекты — 2 ответа)
+  → {{"ready": true}}
+
+- Пользователь сказал "вперёд" или "хватит" на любом шаге
+  → {{"ready": true}}
+
+- Диалог:
+  "Сделай визитку" → "Чем занимаетесь?" → "Фотограф, показываю работы" → "Какие контакты?" → "Instagram @anna_photo"
+  (жанр, тематика + из пунктов 4+: что показать и контакты — 2 ответа)
+  → {{"ready": true}}
+
+Верни ОДИН JSON-объект. Начни с {{ и закончи }}.
+"""
+
+
+def build_dialog_user_message(
+    user_message: str,
+    history: Optional[List[Dict[str, str]]] = None,
+) -> str:
+    """
+    User-message part of the dialog prompt.
+
+    Contains the last user message and (optionally) a short
+    summary of the dialog so far. The full history is passed
+    to the model separately, as `messages`, so this function
+    focuses on the CURRENT turn.
+
+    Actually, the agent calls this with the same user_message
+    that came in from the WS. The history itself is passed to
+    `build_messages(system, user, history)` — see steps/common.
+    So the string here is just the user message itself.
+    """
+    return user_message or ""
+
+
+# ============================================
+# PLAN PROMPT
 # ============================================
 
 def build_plan_prompt() -> str:
     """
-    System prompt for the planning call.
+    System prompt for the plan phase.
 
-    Asks for a JSON object with a single "sections" array of
-    snake_case identifiers. No HTML, no CSS, no "done".
+    The model returns a JSON with a list of section names —
+    snake_case, short, one per section. The order is the
+    order of sections on the page.
 
-    @returns the full system prompt as a string
+    The upper bound is small (MAX_SECTIONS = 7) on purpose:
+    each section is a separate LLM call, and 10+ sections
+    make generation visibly slow. For a typical landing 4–5
+    are enough; a short longread may have 3.
     """
-    return """Ты — планировщик лендингов.
+    return f"""Ты — планировщик структуры страницы для конструктора NeuroCad.
 
-Тебе дают описание страницы. Ты возвращаешь СПИСОК СЕКЦИЙ, из
-которых она должна состоять — сверху вниз.
-
-ФОРМАТ ОТВЕТА — СТРОГО ВАЛИДНЫЙ JSON:
-{
-  "sections": ["hero", "features", "pricing", "testimonials", "faq", "footer"]
-}
+Твоя задача — предложить РАЗУМНУЮ структуру страницы по описанию пользователя.
 
 ПРАВИЛА:
-1. От 4 до 7 секций.
-2. Имя секции — короткий английский snake_case: hero, features,
-   about, pricing, testimonials, faq, gallery, cta, contact,
-   footer, stats, team, menu, services, program, reviews, ...
-3. Все имена уникальны. Ни одного повтора.
-4. Порядок — как у нормального лендинга:
-   - первая: hero (или header),
-   - последняя: footer (или cta).
-5. Секции должны соответствовать теме запроса.
-6. Возвращай ТОЛЬКО JSON — без HTML, без CSS, без пояснений.
+1. Верни от {MIN_SECTIONS} до {MAX_SECTIONS} секций.
+   Для лендинга обычно 4–5 секций. Не раздувай список.
+2. Каждая секция — это короткое имя на латинице в snake_case:
+   только строчные буквы, цифры и подчёркивания.
+3. Порядок — сверху вниз, как на реальной странице.
+4. Имена должны быть осмысленными: hero, about, features, gallery,
+   pricing, testimonials, faq, cta, contacts, footer.
+5. Не повторяйся — каждая секция уникальна.
+6. Каждая секция должна быть содержательной, а не "заполнителем".
+   Не добавляй пустые блоки только чтобы дотянуть до максимума.
+7. Не добавляй пояснений, комментариев, текста вокруг.
 
-ПРИМЕРЫ:
+ФОРМАТ ОТВЕТА — ТОЛЬКО ВАЛИДНЫЙ JSON:
+{{"sections": ["hero", "features", "pricing", "cta"]}}
 
-Запрос: «собери лендинг для приюта кошек»
-Ответ: {"sections": ["hero", "about", "cats", "adopt", "donate", "footer"]}
-
-Запрос: «сделай страницу для кофейни»
-Ответ: {"sections": ["hero", "menu", "about", "gallery", "contact", "footer"]}
-
-Запрос: «промо для онлайн-курса по Python»
-Ответ: {"sections": ["hero", "program", "author", "reviews", "pricing", "cta", "footer"]}
-
-Запрос: «сайт стоматологии»
-Ответ: {"sections": ["hero", "services", "doctors", "reviews", "prices", "contact", "footer"]}
-
-Верни ОДИН JSON-объект. Начни с { и закончи }."""
+Верни ОДИН JSON-объект. Начни с {{ и закончи }}.
+"""
 
 
-def build_plan_user_message(user_request: str) -> str:
-    """User message for the planning call."""
-    text = (user_request or "").strip()
+def build_plan_user_message(user_message: str) -> str:
+    """User-message part of the plan prompt."""
     return (
-        f"Запрос на страницу:\n\n{text}\n\n"
-        'Верни JSON: {"sections": [...]}.'
+        "Описание страницы от пользователя:\n\n"
+        f"{user_message}\n\n"
+        "Верни JSON со списком секций."
     )
 
 
 # ============================================
-# PHASE 2 — ONE SECTION
+# SECTION PROMPT
 # ============================================
-
-def _format_names(names: Optional[List[str]], empty: str) -> str:
-    """Render a list of section names as a numbered block."""
-    if not names:
-        return empty
-    return "\n".join(f"  {i + 1}. {n}" for i, n in enumerate(names))
-
 
 def build_section_prompt(
     target_section: str,
-    sections_done: Optional[List[str]] = None,
-    sections_remaining: Optional[List[str]] = None,
+    sections_done: List[str],
+    sections_remaining: List[str],
 ) -> str:
     """
-    System prompt for ONE per-section call.
+    System prompt for generating ONE section.
 
-    @param target_section      the exact section to produce now
-    @param sections_done       sections already generated (for
-                               style continuity)
-    @param sections_remaining  sections still to come (so the
-                               model doesn't cram everything into
-                               the current section)
-
-    @returns the full system prompt as a string
+    Receives the section name, the already-generated ones and
+    the ones still to come — so the model does not repeat
+    content or duplicate styles.
     """
-    done_block = _format_names(
-        sections_done,
-        "(пока ничего — это первая секция)",
-    )
-    remaining_block = _format_names(
-        sections_remaining,
-        "(последняя секция страницы)",
+    done_block = ", ".join(sections_done) if sections_done else "(пока ничего)"
+    remaining_block = (
+        ", ".join(sections_remaining) if sections_remaining else "(это последняя)"
     )
 
-    if not sections_done:
-        # First section: it sets the visual language for the whole
-        # page. Be explicit about what that means.
-        style_block = """\
-Ты открываешь страницу — задаёшь палитру, шрифт, скругления,
-тени и общий ритм отступов. Последующие секции будут к ним
-подстраиваться. Определи всё это сейчас и держись выбора во всех
-следующих шагах.
+    return f"""Ты — генератор HTML+CSS секций для конструктора NeuroCad.
 
-Если целевая секция — hero, она должна ЗАДАТЬ ТОН: мягкий
-градиентный фон, возможно абстрактный декоративный SVG на фоне,
-крупный заголовок, одна акцентная кнопка."""
-    else:
-        style_block = """\
-СОХРАНЯЙ ЕДИНЫЙ СТИЛЬ со уже сгенерированными секциями:
-- та же палитра,
-- тот же шрифт,
-- те же скругления,
-- тот же ритм отступов.
-Новую палитру и новый шрифт НЕ вводи.
+Сейчас ты генерируешь ОДНУ секцию: «{target_section}».
 
-Если предыдущие секции содержали glassmorphism-карточки, тени,
-hover-эффекты — продолжай эту линию. Не «упрощай» на второй
-секции: пользователь ждёт ту же визуальную плотность."""
-
-    return f"""\
-Ты — веб-дизайнер и фронтенд-разработчик.
-
-Ты собираешь лендинг пошагово. На этом шаге — РОВНО ОДНА секция:
-«{target_section}».
-
-НЕ генерируй другие секции. НЕ генерируй всю страницу. Один
-корневой элемент: <section> (или <header>/<footer>/<nav>, если
-так логичнее по смыслу).
-
-{_LANGUAGE_RULES}
-
-УЖЕ СГЕНЕРИРОВАНО:
+УЖЕ СГЕНЕРИРОВАНО (не повторяй содержание и стили):
 {done_block}
 
-ПОСЛЕ ЭТОЙ СЕКЦИИ БУДУТ:
+ЕЩЁ БУДЕТ (не забегай вперёд):
 {remaining_block}
 
-{style_block}
+ПРАВИЛА:
+1. Верни ТОЛЬКО эту одну секцию — один блок <section> с уникальными классами.
+2. Никаких inline-стилей (style="..."). Всё — в CSS.
+3. CSS — в отдельном поле ответа. Классы — с префиксом от имени секции, чтобы не пересекались с другими.
+4. Адаптивность: добавь @media для узких экранов (max-width: 768px), если есть сетка или колонки.
+5. Осмысленный контент: не lorem ipsum, не «текст текст текст». Реальные фразы по теме пользователя.
+6. Никаких ссылок на внешние картинки, которых нет. Если нужна картинка — используй SVG-заглушку или иконку символом.
+7. Не используй position: absolute без родителя с position: relative.
+8. Не используй отрицательные margin, если не уверен в раскладке.
+9. Не задавай z-index без необходимости.
 
-ФОРМАТ ОТВЕТА — СТРОГО ВАЛИДНЫЙ JSON:
-{{
-  "section_name": "{target_section}",
-  "html": "<section class=\\"{target_section}\\">...</section>",
-  "css":  ".{target_section} {{ ... }}"
-}}
+ФОРМАТ ОТВЕТА — ТОЛЬКО ВАЛИДНЫЙ JSON:
+{{"html": "<section class=\\"...\\">...</section>", "css": ".имя-секции {{ ... }}"}}
 
-{_SPLIT_RULES}
-
-КЛАССЫ:
-- Префикс = имя секции. Всё внутри .{target_section} начинается
-  с .{target_section}__* — например .{target_section}__title,
-  .{target_section}__lead, .{target_section}__grid.
-- Не используй классы из нашего редактора (.section, .container,
-  .card, .btn, .grid) — у тебя своя система.
-
-{_STYLE_RULES}
-
-КАРТИНКИ И SVG:
-- Внешние URL запрещены.
-- Иконки в карточках — инлайн <svg> с stroke="currentColor",
-  stroke-width="2", fill="none", размер 32-48px. Подбирай иконки
-  по смыслу карточки (сердце для «заботы», молния для «скорости»,
-  щит для «защиты» и т.п.).
-- Абстрактный декоративный SVG — только в hero, как фон.
-- Не используй <img src="placeholder.svg"> — если нужна
-  «картинка», сделай её через CSS-градиент или SVG.
-
-{_NO_FRAMEWORKS_RULES}
-
-ПРИМЕР ОТВЕТА (секция features, БОГАТАЯ вёрстка):
-
-{{
-  "section_name": "features",
-  "html": "<section class=\\"features\\"><div class=\\"features__inner\\"><h2 class=\\"features__title\\">Почему нас выбирают</h2><div class=\\"features__grid\\"><div class=\\"features__card\\"><div class=\\"features__icon\\"><svg viewBox=\\"0 0 24 24\\" width=\\"40\\" height=\\"40\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><path d=\\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\\"/></svg></div><h3 class=\\"features__card-title\\">Забота 24/7</h3><p class=\\"features__card-text\\">Мы рядом в любое время</p></div><div class=\\"features__card\\"><div class=\\"features__icon\\"><svg viewBox=\\"0 0 24 24\\" width=\\"40\\" height=\\"40\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><polygon points=\\"13 2 3 14 12 14 11 22 21 10 12 10 13 2\\"/></svg></div><h3 class=\\"features__card-title\\">Быстро</h3><p class=\\"features__card-text\\">Ответ за пару минут</p></div></div></div></section>",
-  "css": "@keyframes features-fade-in {{ from {{ opacity: 0; transform: translateY(12px); }} to {{ opacity: 1; transform: translateY(0); }} }} .features {{ position: relative; padding: 100px 24px; background: #f6f8fb; overflow-x: hidden; }} .features__inner {{ max-width: 1100px; margin: 0 auto; animation: features-fade-in 0.6s ease-out; }} .features__title {{ font-size: 42px; font-weight: 700; letter-spacing: -0.01em; color: #0f172a; margin: 0 0 48px; text-align: center; }} .features__grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }} .features__card {{ padding: 36px 28px; border-radius: 20px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04); transition: transform 0.25s ease, box-shadow 0.25s ease; }} .features__card:hover {{ transform: translateY(-4px); box-shadow: 0 12px 32px rgba(37, 99, 235, 0.12), 0 4px 12px rgba(15, 23, 42, 0.08); }} .features__icon {{ width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%); color: #2563eb; margin-bottom: 20px; }} .features__card-title {{ font-size: 20px; font-weight: 600; color: #0f172a; margin: 0 0 8px; }} .features__card-text {{ font-size: 16px; line-height: 1.6; color: #64748b; margin: 0; }} @media (max-width: 768px) {{ .features {{ padding: 64px 16px; }} .features__title {{ font-size: 30px; margin-bottom: 32px; }} .features__card {{ padding: 28px 22px; }} }}"
-}}
-
-Верни ОДИН JSON-объект. Начни с {{ и закончи }}."""
+Верни ОДИН JSON-объект. Начни с {{ и закончи }}.
+"""
 
 
-def build_section_user_message(user_request: str) -> str:
-    """User message for a per-section call."""
-    text = (user_request or "").strip()
-    return f"Запрос на страницу:\n\n{text}"
+def build_section_user_message(user_message: str) -> str:
+    """User-message part of the section prompt."""
+    return (
+        "Описание страницы от пользователя:\n\n"
+        f"{user_message}\n\n"
+        "Сгенерируй следующую секцию по системной инструкции."
+    )
 
 
 # ============================================
-# PHASE 3 — REVIEW ONE SECTION (QA)
+# REVIEW PROMPT (QA)
 # ============================================
 
 def build_review_prompt(target_section: str) -> str:
     """
     System prompt for the QA pass over ONE generated section.
 
-    The QA pass fixes ONLY real defects — it does NOT simplify the
-    design. Every visual effect (gradient, shadow, hover, glass,
-    animation) must be preserved. If the section is bare, the QA
-    pass is allowed to ADD subtle accents — but never to strip
-    existing ones.
+    The model receives HTML+CSS of one section and must find
+    and fix common layout / content defects. Returns the
+    fixed HTML+CSS, or an empty pair if nothing to fix.
 
-    @param target_section  the section name (for the JSON echo)
-    @returns the full system prompt as a string
+    Known defect classes the QA must look for:
+      - position: absolute without a positioned ancestor;
+      - negative margins that pull content out of bounds;
+      - z-index set without a stacking context;
+      - overflow: hidden clipping real content;
+      - inline styles (style="...");
+      - empty buttons / links without text;
+      - images without alt;
+      - missing @media for a grid layout;
+      - text that would be invisible on its background
+        (contrast check, best-effort).
     """
-    return f"""\
-Ты — QA-инженер для сгенерированной секции лендинга.
+    return f"""Ты — QA-проверяющий для секции «{target_section}» в конструкторе NeuroCad.
 
-Тебе дают ОДНУ секцию страницы (HTML + CSS). Твоя задача —
-найти и исправить ТОЛЬКО типичные дефекты вёрстки, НЕ трогая
-дизайн.
+Ты получаешь HTML+CSS одной секции. Твоя задача — найти и ИСПРАВИТЬ типичные дефекты вёрстки. Если дефектов нет — верни исходный HTML+CSS без изменений.
 
-ФОРМАТ ОТВЕТА — СТРОГО ВАЛИДНЫЙ JSON:
+ЧТО ПРОВЕРЯТЬ:
+
+1. position: absolute без родителя с position: relative — исправь, добавив position: relative родителю.
+2. Отрицательные margin, которые «утаскивают» контент за пределы — убери или компенсируй padding.
+3. z-index без контекста наложения — убери или задай родителю position: relative.
+4. overflow: hidden, который обрезает реальный контент — замени на overflow: visible или добавь padding.
+5. Inline-стили (style="...") — вынеси в CSS-класс.
+6. Кнопки и ссылки без текста — добавь осмысленный текст.
+7. Изображения без alt — добавь.
+8. Сетка на flex/grid без @media для узких экранов — добавь.
+9. Невидимый текст (тёмный на тёмном, светлый на светлом) — исправь цвета.
+10. Перекрытие соседних элементов (если видно из структуры) — убери.
+
+ПРАВИЛА:
+1. НЕ переписывай секцию с нуля. Только точечные исправления.
+2. НЕ меняй содержание — только вёрстку.
+3. НЕ добавляй новых блоков или элементов.
+4. Если дефектов нет — верни ровно то, что получил, и укажи fixed: [].
+5. Список fixed — короткий, по одному пункту на исправление.
+
+ФОРМАТ ОТВЕТА — ТОЛЬКО ВАЛИДНЫЙ JSON:
 {{
-  "section_name": "{target_section}",
-  "html": "<section class=\\"{target_section}\\">...</section>",
-  "css":  ".{target_section} {{ ... }}",
-  "fixed": ["images_overflow", "empty_button"],
-  "notes": "кратко что исправил"
+  "html": "<section ...>...</section>",
+  "css": ".имя-секции {{ ... }}",
+  "fixed": ["краткое описание исправления 1", "описание 2"],
+  "notes": "короткий комментарий, необязательно"
 }}
-
-ЖЕЛЕЗНОЕ ПРАВИЛО — СОХРАНЯЙ ВСЕ ЭФФЕКТЫ:
-
-Визуал этой секции — НЕ твоя задача. НЕ упрощай. НЕ убирай:
-  - градиенты (linear-gradient, radial-gradient, conic-gradient);
-  - тени (box-shadow, text-shadow, drop-shadow);
-  - эффекты прозрачности и размытия (backdrop-filter, opacity);
-  - hover-состояния, :focus, :active, transition;
-  - @keyframes и animation;
-  - декоративные ::before / ::after;
-  - инлайн SVG;
-  - большие отступы, ритм, типографику.
-
-Если что-то из перечисленного сломано (например, transition
-ссылается на несуществующее свойство) — ПОЧИНИ, но не удаляй.
-
-Если визуал кажется тебе «избыточным» — не трогай. Это решение
-дизайнера, а не твоё. Твоя работа — баги, не вкус.
-
-ИЩИ И ИСПРАВЛЯЙ ТОЛЬКО ЭТИ ДЕФЕКТЫ:
-
-1. ПЕРЕПОЛНЕНИЕ ПО ГОРИЗОНТАЛИ.
-   - На корневую секцию добавь `overflow-x: hidden;`, если её нет.
-   - Если у <img> или <svg> нет max-width: 100% — добавь.
-   - Если у контейнера жёсткая width с большим числом —
-     замени на max-width + margin: 0 auto; padding: 0 24px.
-
-2. ПУСТЫЕ КНОПКИ И ССЫЛКИ.
-   - <button></button> без текста → подставь осмысленный русский
-     текст по смыслу.
-   - <a href="#"></a> без текста → либо добавь текст, либо удали.
-
-3. НЕВИДИМЫЙ ТЕКСТ.
-   - Если у текстового блока `color: #fff` или `#ffffff`, а фон
-     секции светлый — поменяй color на тёмный (#0f172a).
-   - Если текст и фон совпадают — исправь.
-
-4. ОТСУТСТВУЮЩИЕ @media.
-   - Если есть grid/flex с несколькими колонками, но нет
-     @media (max-width: 768px) — добавь упрощение до 1 колонки.
-
-5. ДУБЛИРУЮЩИЕСЯ @import.
-   - Оставь только ПЕРВЫЙ, остальные удали.
-
-6. ШИРИНА КОНТЕЙНЕРА.
-   - Если у внутреннего контейнера `width: <число>px` с большим
-     числом (960, 1100, 1200, 1440) без max-width — замени на
-     `max-width: <число>px; margin: 0 auto; padding: 0 24px;`.
-
-7. СИНТАКСИЧЕСКИЕ ОШИБКИ В CSS.
-   - Незакрытые скобки, лишние символы, обрезанные правила —
-     почини.
-
-8. ОБЩИЙ ЗАПАХ «ПУСТОЙ СЕКЦИИ» (ТОЛЬКО ДОБАВЛЕНИЕ, НЕ УДАЛЕНИЕ).
-   - Если секция выглядит абсолютно «голой» — ни фона, ни тени,
-     ни одного hover-эффекта — МОЖЕШЬ добавить ОДИН мягкий
-     акцент: лёгкую тень на карточках, мягкий градиент на фоне
-     hero, transition на кнопках. Не больше. Не переделывай
-     структуру. Не меняй палитру.
-   - Если у секции уже есть эффекты — этот пункт НЕ применяй.
-
-ЕСЛИ ДЕФЕКТОВ НЕТ:
-Верни исходные html и css ДОСЛОВНО (символ в символ) и
-`"fixed": []`. НЕ ПЫТАЙСЯ улучшить то, что уже работает.
-
-ЧЕГО НЕ ДЕЛАТЬ:
-- Не переписывать тексты.
-- Не менять палитру.
-- Не вводить новые CSS-классы без необходимости.
-- Не удалять существующие @media, @keyframes, transition,
-  box-shadow, backdrop-filter, градиенты.
-- Не оборачивать ответ в markdown (без ```json и ```).
-- Не добавлять пояснений до или после JSON.
 
 Верни ОДИН JSON-объект. Начни с {{ и закончи }}.
 """
@@ -508,84 +470,50 @@ def build_review_user_message(
     user_request: str,
 ) -> str:
     """
-    User message for the QA pass.
+    User-message part of the review prompt.
 
-    @param target_section  section name (echoed for the model)
-    @param section_html    the generated HTML to review
-    @param section_css     the generated CSS to review
-    @param user_request    the original prompt (for context)
-    @returns the user message as a string
+    Contains the section to review, its CSS, and the original
+    user request (as context — what the section is supposed
+    to be about).
     """
-    parts = []
-
-    parts.append(f"Секция: {target_section}")
-    parts.append("")
-    parts.append("Исходный запрос пользователя:")
-    parts.append((user_request or "").strip() or "(без текста)")
-    parts.append("")
-
-    parts.append("--- BEGIN SECTION HTML ---")
-    parts.append((section_html or "").strip() or "(пусто)")
-    parts.append("--- END SECTION HTML ---")
-    parts.append("")
-
-    parts.append("--- BEGIN SECTION CSS ---")
-    parts.append((section_css or "").strip() or "(пусто)")
-    parts.append("--- END SECTION CSS ---")
-    parts.append("")
-
-    parts.append(
-        "Проверь секцию по списку дефектов из системного промпта. "
-        "СОХРАНИ все эффекты (градиенты, тени, hover, анимации, "
-        "glassmorphism, SVG). Верни JSON."
+    return (
+        f"Секция: {target_section}\n\n"
+        f"Исходный запрос пользователя:\n{user_request}\n\n"
+        f"HTML секции:\n{section_html}\n\n"
+        f"CSS секции:\n{section_css}\n\n"
+        "Проверь и исправь дефекты по системной инструкции. "
+        "Верни JSON."
     )
-
-    return "\n".join(parts)
 
 
 # ============================================
-# PHASE 4 — EDIT AN EXISTING PAGE
+# EDIT PROMPT (disabled mode, kept for the future)
 # ============================================
 
 def build_edit_prompt() -> str:
     """
-    System prompt for EDIT mode.
+    System prompt for the edit phase (currently disabled).
 
-    Kept as a reference / dead code — the create_page agent no
-    longer routes into edit. If edit mode returns, this prompt is
-    ready to use.
+    Kept for the future — when create_page can edit an existing
+    page instead of always replacing it.
     """
-    return f"""\
-Ты — редактор лендинга.
+    return """Ты — редактор страницы в конструкторе NeuroCad.
 
-Тебе дают ТЕКУЩУЮ страницу (HTML + CSS) и запрос на правку.
-Ты возвращаешь ОБНОВЛЁННУЮ страницу ЦЕЛИКОМ.
+Пользователь просит изменить существующую страницу. Ты получаешь её текущий HTML и CSS, а также запрос пользователя. Верни ИЗМЕНЁННУЮ страницу целиком.
 
-ЭТО НЕ ГЕНЕРАЦИЯ С НУЛЯ. ЭТО ТОЧЕЧНАЯ ПРАВКА.
+ПРАВИЛА:
+1. Сохраняй всё, что пользователь не просил менять.
+2. Не переписывай секции с нуля, если это не требуется.
+3. Никаких inline-стилей. CSS — отдельным полем.
+4. Если пользователь просит «убери блок» — убери целиком.
+5. Если пользователь просит «поменяй текст» — поменяй только текст.
+6. Верни весь HTML страницы целиком, а не только изменённый кусок.
 
-ФОРМАТ ОТВЕТА — СТРОГО ВАЛИДНЫЙ JSON:
-{{
-  "html": "<весь HTML страницы>",
-  "css":  "<весь CSS страницы>"
-}}
+ФОРМАТ ОТВЕТА — ТОЛЬКО ВАЛИДНЫЙ JSON:
+{{"html": "<section...>...</section>", "css": ".имя-секции {{ ... }}"}}
 
-ГЛАВНОЕ ПРАВИЛО — МИНИМАЛЬНОЕ ВМЕШАТЕЛЬСТВО:
-
-1. Сохрани ВСЁ, что не просили менять:
-   - секции, не упомянутые в запросе — оставь как есть;
-   - палитру, шрифты, отступы, скругления — не трогай;
-   - тексты, которые не просили менять — оставь дословно;
-   - эффекты (градиенты, тени, hover, анимации) — сохрани.
-
-2. Меняй ТОЛЬКО то, что просит пользователь.
-
-3. НЕ перегенерируй страницу с нуля.
-
-{_SPLIT_RULES}
-
-{_NO_FRAMEWORKS_RULES}
-
-Верни ОДИН JSON-объект. Начни с {{ и закончи }}."""
+Верни ОДИН JSON-объект. Начни с {{ и закончи }}.
+"""
 
 
 def build_edit_user_message(
@@ -593,36 +521,10 @@ def build_edit_user_message(
     current_html: str,
     current_css: str,
 ) -> str:
-    """
-    User message for the edit call.
-
-    @param user_request   raw text from the chat
-    @param current_html   the page HTML currently on the canvas
-    @param current_css    the page CSS currently on the canvas
-    @returns the user message as a string
-    """
-    parts: List[str] = []
-
-    parts.append("ЗАПРОС НА ПРАВКУ:")
-    parts.append((user_request or "").strip() or "(без текста)")
-    parts.append("")
-
-    parts.append("--- BEGIN CURRENT PAGE HTML ---")
-    parts.append((current_html or "").strip() or "(пусто)")
-    parts.append("--- END CURRENT PAGE HTML ---")
-    parts.append("")
-
-    if current_css and current_css.strip():
-        parts.append("--- BEGIN CURRENT PAGE CSS ---")
-        parts.append(current_css.strip())
-        parts.append("--- END CURRENT PAGE CSS ---")
-        parts.append("")
-
-    parts.append(
-        "Верни обновлённую страницу ЦЕЛИКОМ: "
-        '{"html": "...", "css": "..."}. '
-        "Меняй только то, что просит пользователь. "
-        "Всё остальное сохрани ДОСЛОВНО."
+    """User-message part of the edit prompt."""
+    return (
+        f"Запрос пользователя:\n{user_request}\n\n"
+        f"Текущий HTML страницы:\n{current_html}\n\n"
+        f"Текущий CSS страницы:\n{current_css}\n\n"
+        "Верни JSON с изменённым HTML и CSS."
     )
-
-    return "\n".join(parts)

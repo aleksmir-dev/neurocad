@@ -377,6 +377,7 @@ class CoreEngineLibWordLlmService:
                     "model": m.model,
                     "prompt_tokens": m.prompt_tokens,
                     "completion_tokens": m.completion_tokens,
+                    "is_quest": m.is_quest,
                     "created_at": m.created_at.isoformat() if m.created_at else None,
                 }
                 for m in rows
@@ -415,8 +416,18 @@ class CoreEngineLibWordLlmService:
         model: Optional[str] = None,
         prompt_tokens: Optional[int] = None,
         completion_tokens: Optional[int] = None,
+        is_quest: bool = False,
     ) -> Optional[Dict[str, Any]]:
-        """Save one chat message."""
+        """
+        Save one chat message.
+
+        `is_quest` — set to True when this is a clarifying
+        question from the router (the "administrator" agent).
+        The flag lives in a separate DB column, NOT inside
+        `content` — the user must see a clean question without
+        any technical markers. Default False, so every existing
+        caller keeps working unchanged.
+        """
         async for session in get_db_sqlite():
             msg = PageChat(
                 page_id=page_id,
@@ -425,6 +436,7 @@ class CoreEngineLibWordLlmService:
                 model=model,
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
+                is_quest=1 if is_quest else 0,
                 created_at=datetime.now(),
             )
             session.add(msg)
@@ -438,6 +450,7 @@ class CoreEngineLibWordLlmService:
                 "model": msg.model,
                 "prompt_tokens": msg.prompt_tokens,
                 "completion_tokens": msg.completion_tokens,
+                "is_quest": msg.is_quest,
                 "created_at": msg.created_at.isoformat() if msg.created_at else None,
             }
 

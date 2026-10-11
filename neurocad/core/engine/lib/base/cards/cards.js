@@ -31,6 +31,40 @@
  * The array is empty by default, so existing consumers that do not
  * pass it see no change.
  *
+ * Copy button
+ * -----------
+ * Opt-in via `showCopyButton: true` on props. When set, the toolbar
+ * renders an extra "Копировать" button next to Edit / Delete. The
+ * button works on the CURRENT SELECTION — same model as Delete and
+ * Restore — and calls back into the consumer through
+ * `onCopySelected(ids)`.
+ *
+ * BaseCards itself does NOT know how to copy — it only:
+ *   1. collects the selected ids from `selectedIds`;
+ *   2. forwards them to `onCopySelected`.
+ *
+ * The consumer (e.g. Pages) is responsible for the actual API call
+ * and for reloading the list afterwards. Without an `onCopySelected`
+ * callback the button click logs a warning and does nothing.
+ *
+ * Move button
+ * -----------
+ * Opt-in via `showMoveButton: true` on props. When set, the toolbar
+ * renders an extra "Переместить" button BETWEEN Edit and Delete.
+ * Unlike Copy, Move works on EXACTLY ONE selected item — same rule
+ * as Edit:
+ *
+ *   - disabled unless the selection has exactly 1 item;
+ *   - disabled in trash mode.
+ *
+ * The button calls `_handleMoveSelected()`, which forwards the
+ * single selected id to the consumer's `onMoveSelected(id)`
+ * callback. BaseCards does NOT know what "move" means — the
+ * consumer is responsible for the folder picker and the API call.
+ *
+ * Without an `onMoveSelected` callback the click logs a warning
+ * and does nothing.
+ *
  * Folder mode
  * -----------
  * Opt-in via `folders: true`. When enabled, the list becomes a
@@ -174,6 +208,22 @@ export class BaseCards {
         this.onItemClick = props.onItemClick || null;   // navigation (for Nav)
         this.onReload = props.onReload || null;
         this.onRetry = props.onRetry || null;
+
+        // Copy callback — provided by the consumer (e.g. Pages).
+        // Called with the array of selected ids when the "Копировать"
+        // button is clicked. BaseCards does NOT perform the copy —
+        // it just forwards the selection.
+        this.onCopySelected = typeof props.onCopySelected === 'function'
+            ? props.onCopySelected
+            : null;
+
+        // Move callback — provided by the consumer (e.g. Pages).
+        // Called with the single selected id when the "Переместить"
+        // button is clicked. BaseCards does NOT perform the move —
+        // it just forwards the selection.
+        this.onMoveSelected = typeof props.onMoveSelected === 'function'
+            ? props.onMoveSelected
+            : null;
 
         this._initialized = false;
         this._initPromise = null;
@@ -387,6 +437,79 @@ export class BaseCards {
 
     async _handleRestoreSelected() {
         return this._selection.handleRestoreSelected(this);
+    }
+
+    /**
+     * Copy selected items.
+     *
+     * Called by BaseCardsToolbar when the "Копировать" button is
+     * clicked. BaseCards does NOT know what copying means — it just
+     * forwards the selected ids to the consumer's `onCopySelected`
+     * callback.
+     *
+     * The consumer is expected to:
+     *   - perform the actual copy (e.g. POST /item/<id>/duplicate);
+     *   - reload the list afterwards (via onReload).
+     *
+     * If no callback was provided, the click is logged and ignored.
+     * This keeps BaseCards agnostic — a consumer that enables the
+     * copy button but forgets the callback sees a warning instead
+     * of a silent no-op.
+     *
+     * @param {number[]} ids — array of selected item ids
+     */
+    async _handleCopySelected(ids) {
+        if (!this.onCopySelected) {
+            console.warn(
+                '[BaseCards] _handleCopySelected(): onCopySelected ' +
+                'callback is not set — nothing to do'
+            );
+            return;
+        }
+
+        console.log('[BaseCards] _handleCopySelected() ids =', ids);
+        await this.onCopySelected(ids);
+    }
+
+    /**
+     * Move the single selected item.
+     *
+     * Called by BaseCardsToolbar when the "Переместить" button is
+     * clicked. The toolbar only enables the button when the
+     * selection has EXACTLY ONE item, so we can safely resolve the
+     * single id here.
+     *
+     * BaseCards does NOT know what "move" means — it just forwards
+     * the id to the consumer's `onMoveSelected` callback. The
+     * consumer is expected to:
+     *   - open a folder picker (or any other UI);
+     *   - send the update (e.g. PUT /item/<id> with parent_id);
+     *   - reload the list afterwards (via onReload).
+     *
+     * If no callback was provided, or the selection is not exactly
+     * one item, the click is logged and ignored.
+     */
+    async _handleMoveSelected() {
+        if (!this.onMoveSelected) {
+            console.warn(
+                '[BaseCards] _handleMoveSelected(): onMoveSelected ' +
+                'callback is not set — nothing to do'
+            );
+            return;
+        }
+
+        const ids = Array.from(this.selectedIds);
+        if (ids.length !== 1) {
+            console.warn(
+                '[BaseCards] _handleMoveSelected(): expected exactly 1 ' +
+                'selected item, got', ids.length
+            );
+            return;
+        }
+
+        const id = ids[0];
+        console.log('[BaseCards] _handleMoveSelected() id =', id);
+        await this.onMoveSelected(id);
     }
 
     async _deleteItem(id) {

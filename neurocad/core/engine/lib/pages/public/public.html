@@ -16,36 +16,46 @@
     <link rel="icon" type="image/x-icon"
           href="/media/{{ nav_id }}/favicon.ico">
 
-    {# Public page CSS — wrapper layout only (content CSS comes from DB) #}
+    {# Public page CSS — wrapper layout only #}
     <link rel="stylesheet" href="{{ 'core/engine/lib/pages/public/public.css'|static }}">
+
+    {#
+      Base template CSS — shared layout and styles.
+
+      template_css_url is prepared by the route handler
+      from the CSS of the selected base template.
+
+      Loaded before page-specific CSS so page styles
+      can override template styles when necessary.
+    #}
+    {% if template_css_url %}
+    <link rel="stylesheet" href="{{ template_css_url }}">
+    {% endif %}
 
     {# Cookie consent banner.
        Self-contained: injects its own <style>, no CSS file needed.
-       Runs with `defer`, so it executes after the HTML is parsed
-       (document.body is available) but before DOMContentLoaded
-       handlers fire. See cookie.js for the localStorage key and
-       the reset instructions. #}
+       Runs with defer, so it executes after the HTML is parsed
+       but before DOMContentLoaded handlers fire.
+    #}
     <script src="{{ 'core/engine/lib/pages/public/cookie.js'|static }}" defer></script>
 
     {#
       Page-specific CSS — from Page.css (source of truth in DB),
       served as /static/pages/<id>.css?v=<hash>.
 
-      This single file already contains EVERYTHING the page needs:
+      This single file contains the styles assembled at save time:
 
           content.css          (theme variables + shared atoms)
         + used blocks/*.css    (hero, cta, features, flex-shell, ...)
         + used fx/*.css        (ocean-swell-shore, vinyl-grooves, ...)
         + custom page CSS      (from GrapesJS Style Manager)
 
-      Assembled at save time by word/css_builder.py and frozen
-      in Page.css. The public page does NOT load any CSS from the
-      editor/ directory directly — so updating an effect or block
-      in a future version of the constructor cannot change an
-      already-published page.
+      The public page does NOT load CSS from the editor/ directory
+      directly, so future constructor updates do not change
+      an already-published page.
 
       page_css_url is built by the route handler via
-      ensure_css_file() — includes ?v=<hash> for cache-busting.
+      ensure_css_file() and includes ?v=<hash> for cache-busting.
       None for pages without any CSS.
     #}
     {% if page_css_url %}
@@ -55,9 +65,9 @@
 <body class="core-engine-lib-pages-public-body">
 
     {#
-      .core-engine-lib-word-blocks is the single scope wrapper for the
-      whole page content — all content classes (.btn, .hero, .card, ...)
-      are defined under this class.
+      .core-engine-lib-word-blocks is the single scope wrapper
+      for the whole page content — all content classes
+      (.btn, .hero, .card, ...) are defined under this class.
 
       The same class is added to the iframe <body> inside the editor
       (see GrapesLoader._applyScopeClass), so styles work identically

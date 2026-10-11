@@ -2,7 +2,7 @@
 
 from sqlalchemy import select, func
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Set
 
 from ....models.base import Page
 from ....models.nav import Nav
@@ -30,6 +30,7 @@ class CoreEngineLibPagesService:
         limit: int = 20,
         is_active: Optional[int] = None,
         is_template: Optional[int] = None,
+        is_folder: Optional[int] = None,
         parent_id: Optional[int] = None,
         parent_id_provided: bool = False,
     ) -> Dict[str, Any]:
@@ -41,11 +42,15 @@ class CoreEngineLibPagesService:
         limit — page size
         is_active — filter: 1 (active only), 0 (inactive only), None (all)
         is_template — filter: 1 (templates only), 0 (regular only), None (all)
+        is_folder — filter: 1 (folders only), 0 (pages only), None (all).
+            Used by the "move" picker: GET /list?is_folder=1 returns
+            every folder in the nav as a flat list, so the client can
+            build the tree for the destination picker.
 
         Folder mode:
           - parent_id_provided=False → no parent filter (backward
             compatible; returns the whole flat list). This is what
-            old callers get.
+            old callers get — and what the move picker wants.
           - parent_id_provided=True, parent_id=None → only items
             with parent_id IS NULL (the root).
           - parent_id_provided=True, parent_id=<id> → only items
@@ -72,6 +77,16 @@ class CoreEngineLibPagesService:
 
             if is_template is not None:
                 base_stmt = base_stmt.where(Page.is_template == is_template)
+
+            if is_folder is not None:
+                if is_folder == 1:
+                    base_stmt = base_stmt.where(
+                        Page.card_type == CARD_TYPE_FOLDER
+                    )
+                elif is_folder == 0:
+                    base_stmt = base_stmt.where(
+                        Page.card_type == CARD_TYPE_PAGE
+                    )
 
             # ---- Parent filter (folder mode) ----
             if parent_id_provided:
@@ -387,6 +402,120 @@ class CoreEngineLibPagesService:
         return None
 
     # ========================================
+    # DUPLICATE
+    # ========================================
+
+    @staticmethod
+    async def duplicate_item(
+        item_id: int,
+        nav_id: int,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Duplicate a page or folder inside the same nav.
+
+        Copies ALL content fields:
+          - title (with " (копия)" suffix), description, logo;
+          - content, content_json, css;
+          - url, card_type, parent_id, sort_order;
+          - is_template, template_id, is_active.
+
+        Resets:
+          - id           → new (DB autoincrement);
+          - datetime     → now() for pages; stays NULL for folders;
+          - rss_yandex_id → None;
+          - is_delete    → 0;
+          - created_at / updated_at → now().
+
+        Does NOT copy:
+          - PageHist (history) — new page starts with empty history;
+          - PageChat (LLM chat) — new page starts with empty chat.
+
+        Datetime uniqueness:
+          For pages, if the current second matches the original's
+          second, we add 1 second so the public URL
+          (/page/<YYYYMMDD>/<HHMMSS>) is unique. Without this, a
+          copy made in the same second would collide with the
+          original on the public route.
+
+        Balance:
+          This does NOT consume the page limit. Duplicating is
+          treated as content management, not creation. If you ever
+          want to count it, add a BalanceChecked.page_allowed()
+          call before the insert — same as create_item.
+
+        Returns the new item dict, or None if the original is not
+        found or does not belong to this nav.
+        """
+        async for session in get_db_sqlite():
+            # ---- Find original ----
+            stmt = select(Page).where(
+                Page.id == item_id,
+                Page.nav_id == nav_id,
+                Page.is_delete == 0,
+            )
+            original = (await session.execute(stmt)).scalar_one_or_none()
+
+            if not original:
+                return None
+
+            is_folder = (original.card_type == CARD_TYPE_FOLDER)
+
+            # ---- Build new title ----
+            base_title = (original.title or "").strip() or "Страница"
+            copy_title = f"{base_title} (копия)"
+            if len(copy_title) > 255:
+                copy_title = copy_title[:252] + "..."
+
+            # ---- Build new datetime (pages only) ----
+            new_datetime = None
+            if not is_folder:
+                now = datetime.now()
+                # If the original has the same second — shift by 1s,
+                # so the public URL is unique. Compare on
+                # (y, m, d, H, M, S), ignore microseconds.
+                if original.datetime is not None:
+                    orig_sec = original.datetime.replace(microsecond=0)
+                    now_sec = now.replace(microsecond=0)
+                    if orig_sec == now_sec:
+                        now = now + timedelta(seconds=1)
+                new_datetime = now
+
+            # ---- Create copy ----
+            new_item = Page(
+                nav_id=nav_id,
+                datetime=new_datetime,
+                title=copy_title,
+                description=original.description,
+                logo=original.logo,
+                content=original.content,
+                content_json=original.content_json,
+                css=original.css,
+                url=original.url,
+                card_type=original.card_type,
+                parent_id=original.parent_id,
+                sort_order=original.sort_order,
+                is_template=original.is_template,
+                template_id=original.template_id,
+                is_active=original.is_active,
+                is_delete=0,
+                rss_yandex_id=None,
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+            )
+            session.add(new_item)
+            await session.commit()
+            await session.refresh(new_item)
+
+            print(
+                f"[Pages] duplicate_item: {original.id} -> {new_item.id} "
+                f"({new_item.title!r})"
+            )
+
+            return CoreEngineLibPagesService._to_dict(new_item)
+
+        return None
+
+    # ========================================
     # UPDATE
     # ========================================
 
@@ -396,7 +525,26 @@ class CoreEngineLibPagesService:
         data: CoreEngineLibPagesItemUpdate,
         nav_id: int,
     ) -> Optional[Dict[str, Any]]:
-        """Update an article or folder."""
+        """
+        Update an article or folder.
+
+        Cycle prevention on parent_id
+        -----------------------------
+        A folder must not become a descendant of itself. Without
+        this guard, PUT /item/<id> {parent_id: <descendant>} would
+        silently corrupt the tree: the folder would contain its own
+        ancestor, and any recursive walk (list, path build, delete
+        detach) would loop forever.
+
+        The check runs BEFORE the assignment, on the same session:
+          - only when `parent_id` is present in the update payload;
+          - only when the new parent_id is not null;
+          - only when the item being moved is itself a folder
+            (moving a page never creates a cycle).
+
+        The chain is walked by parent_id links, with a depth limit
+        as a safety net against pre-existing corruption.
+        """
         async for session in get_db_sqlite():
             stmt = select(Page).where(
                 Page.id == item_id,
@@ -410,6 +558,26 @@ class CoreEngineLibPagesService:
                 return None
 
             update_data = data.model_dump(exclude_unset=True)
+
+            # ---- Cycle prevention ----
+            # Only relevant when we are actually changing parent_id,
+            # the new parent is not null, and the item is a folder.
+            if (
+                "parent_id" in update_data
+                and update_data["parent_id"] is not None
+                and page_item.card_type == CARD_TYPE_FOLDER
+            ):
+                new_parent_id = update_data["parent_id"]
+                is_cycle = await CoreEngineLibPagesService._is_descendant(
+                    session, page_item.id, new_parent_id,
+                )
+                if is_cycle:
+                    print(
+                        f"[Pages] update_item: refusing to move folder "
+                        f"{page_item.id} into its own descendant "
+                        f"{new_parent_id}"
+                    )
+                    return None
 
             # Fields that may be explicitly set to None (meaning "clear"):
             #   - template_id — unlink from a base template
@@ -534,6 +702,57 @@ class CoreEngineLibPagesService:
             return True
 
         return False
+
+    # ========================================
+    # INTERNAL — CYCLE CHECK
+    # ========================================
+
+    @staticmethod
+    async def _is_descendant(
+        session,
+        ancestor_id: int,
+        candidate_id: int,
+    ) -> bool:
+        """
+        Return True if `candidate_id` is `ancestor_id` itself or
+        anywhere in its subtree.
+
+        Walks the tree UP from `candidate_id` via parent_id links
+        until it either hits `ancestor_id` (→ True), hits the root
+        (→ False), or exceeds the depth limit (→ True, treated as
+        unsafe).
+
+        Depth limit: 100. A real page tree is far shallower; a
+        deeper chain means pre-existing corruption, and refusing
+        the move is safer than allowing it.
+
+        Used by update_item() to prevent moving a folder into its
+        own descendant.
+        """
+        if ancestor_id == candidate_id:
+            return True
+
+        current_id = candidate_id
+        depth = 0
+
+        while current_id is not None and depth < 100:
+            depth += 1
+
+            if current_id == ancestor_id:
+                return True
+
+            stmt = select(Page.parent_id).where(Page.id == current_id)
+            result = await session.execute(stmt)
+            row = result.scalar_one_or_none()
+
+            # No such page, or reached the root — the chain ends.
+            if row is None:
+                return False
+
+            current_id = row
+
+        # Depth limit hit — assume unsafe.
+        return True
 
     # ========================================
     # INTERNAL — SERIALIZATION

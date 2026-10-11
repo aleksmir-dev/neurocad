@@ -288,6 +288,11 @@ async def get_pages_list(
     limit: int = Query(20, ge=1, le=100, description="Page size"),
     is_active: Optional[int] = Query(None, description="Filter: 1 — active, 0 — inactive"),
     is_template: Optional[int] = Query(None, description="Filter: 1 — templates only, 0 — regular only"),
+    is_folder: Optional[int] = Query(
+        None,
+        description="Filter: 1 — folders only, 0 — pages only. "
+                    "Used by the move picker (GET /list?is_folder=1).",
+    ),
 ) -> JSONResponse:
     """
     Get a paginated list of articles / folders. Public endpoint.
@@ -308,6 +313,15 @@ async def get_pages_list(
     present but empty" when the type is `Optional[int]` — both come
     through as `None`. So we inspect `request.query_params`
     directly to tell the two apart.
+
+    `is_folder` is an independent filter (folders only / pages
+    only). It is used by the move picker to fetch the flat list of
+    folders across all levels:
+
+        GET /core/engine/lib/pages/list?is_folder=1
+
+    Combined with the absence of `parent_id`, this returns every
+    folder in the nav, which the client then turns into a tree.
 
     Response shape is unchanged: { success, data: [...], total,
     page, limit }. Each item now carries `card_type`, `parent_id`,
@@ -335,6 +349,7 @@ async def get_pages_list(
         limit=limit,
         is_active=is_active,
         is_template=is_template,
+        is_folder=is_folder,
         parent_id=parent_id,
         parent_id_provided=parent_id_provided,
     )
@@ -522,6 +537,57 @@ async def create_page_item(
 
 
 # ========================================
+# DUPLICATE
+# ========================================
+
+@router.post("/item/{item_id}/duplicate")
+async def duplicate_page_item(
+    item_id: int,
+    request: Request,
+    nav_id: Optional[int] = Query(None, description="Nav instance ID (optional)"),
+    current_user: dict = Depends(get_current_user),
+) -> JSONResponse:
+    """
+    Duplicate an article or folder inside the same nav.
+
+    Copies ALL content fields (content, content_json, css, url,
+    description, logo, card_type, parent_id, sort_order,
+    is_template, template_id, is_active).
+
+    Resets:
+      - id            → new (DB autoincrement);
+      - datetime      → now() for pages; NULL for folders;
+      - rss_yandex_id → None;
+      - is_delete     → 0.
+
+    Does NOT copy:
+      - PageHist (history) — new page starts with empty history;
+      - PageChat (LLM chat) — new page starts with empty chat.
+
+    Title of the copy: "<original> (копия)". The user can rename
+    it later through the normal edit form.
+
+    Does NOT consume the page limit — duplicating is treated as
+    content management, not creation.
+
+    Any authenticated user.
+    """
+    resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
+
+    item = await CoreEngineLibPagesService.duplicate_item(
+        item_id, nav_id=resolved_nav_id
+    )
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    return JSONResponse({
+        "success": True,
+        "data": item,
+    })
+
+
+# ========================================
 # UPDATE
 # ========================================
 
@@ -539,12 +605,38 @@ async def update_page_item(
     `card_type` cannot be changed here — see schema.py. Moving an
     item to another folder is done by sending `parent_id` (a value
     or null for root).
+
+    Cycle prevention
+    ----------------
+    The service refuses to move a folder into itself or into one of
+    its own descendants (see service.py → _is_descendant). When that
+    happens, the service raises ValueError("cycle"), which this
+    route translates into a 400 Bad Request with a Russian message.
+
+    The distinction matters:
+
+      - 404 — the item does not exist (or does not belong to this
+        nav). The client shows "элемент не найден".
+      - 400 — the item exists, but the requested move is invalid.
+        The client shows the message as-is.
     """
     resolved_nav_id = await _resolve_nav_id(request, nav_id, current_user=current_user)
 
-    item = await CoreEngineLibPagesService.update_item(
-        item_id, data, nav_id=resolved_nav_id
-    )
+    try:
+        item = await CoreEngineLibPagesService.update_item(
+            item_id, data, nav_id=resolved_nav_id
+        )
+    except ValueError as e:
+        # service.py raises ValueError("cycle") when the move would
+        # create a loop in the folder tree.
+        if str(e) == "cycle":
+            raise HTTPException(
+                status_code=400,
+                detail="Нельзя переместить папку внутрь себя или своей вложенной папки",
+            )
+        # Any other ValueError — treat as a bad request too, but
+        # keep the original text so we do not hide information.
+        raise HTTPException(status_code=400, detail=str(e))
 
     if not item:
         raise HTTPException(status_code=404, detail="Article not found")
