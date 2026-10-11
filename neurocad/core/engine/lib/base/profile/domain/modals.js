@@ -23,8 +23,9 @@
  *
  * Contract with domain.js:
  *   - read state:   ctx.data (robots_2 / robots_3 / subdomain /
- *                             custom / policy / rules /
- *                             policy_default / rules_default)
+ *                             custom / policy / rules / contacts /
+ *                             policy_default / rules_default /
+ *                             contacts_default)
  *   - write state:  ctx._robotsModal, ctx._sitemapModal,
  *                             ctx._legalModal
  *   - api base:     ctx._apiBase (getter, returns the string)
@@ -141,48 +142,67 @@ export async function openSitemapModal(ctx) {
 }
 
 /**
- * Open the legal-text editor (Policy or Rules).
+ * Open the legal-text editor (Policy / Rules / Contacts).
  *
- * @param {object} ctx              — the BaseProfileDomain instance
- * @param {"policy"|"rules"} which  — target field:
- *   "policy" → users.policy (served at /policy on the user's host);
- *   "rules"  → users.rules  (served at /rules  on the user's host).
+ * @param {object} ctx                            — the BaseProfileDomain instance
+ * @param {"policy"|"rules"|"contacts"} which     — target field:
+ *   "policy"   → users.policy   (served at /policy   on the user's host);
+ *   "rules"    → users.rules    (served at /rules    on the user's host);
+ *   "contacts" → users.contacts (served at /contacts on the user's host).
  *
  * The modal is a markdown editor with a small live preview, a
  * "Вставить шаблон" preset, and a "Сохранить" button that POSTs
  * to /domain/legal. On success it calls onSaved(which, savedText)
- * so we can update ctx.data.policy / ctx.data.rules without a
- * full reload of the domain card — the badge in the legal card
- * then flips from "Не задано" to "Заполнено" on the next render.
+ * so we can update ctx.data.policy / ctx.data.rules /
+ * ctx.data.contacts without a full reload of the domain card —
+ * the badge in the legal card then flips from "Универсальный
+ * текст" to "Заполнено" on the next render.
  *
  * When the user's field is empty (NULL, "", or whitespace-only),
  * the modal is seeded with the same universal fallback the public
- * /policy and /rules endpoints serve — see ctx.data.policy_default
- * and ctx.data.rules_default. The modal is told this via the third
- * argument to open() (isDefault = true), so it can render a hint
- * explaining that the text shown is the fallback currently
- * published on the site, and the user may keep it or replace it.
+ * /policy, /rules and /contacts endpoints serve — see
+ * ctx.data.policy_default / rules_default / contacts_default. The
+ * modal is told this via the third argument to open()
+ * (isDefault = true), so it can render a hint explaining that the
+ * text shown is the fallback currently published on the site, and
+ * the user may keep it or replace it.
+ *
+ * `contacts` is NOT a legal document — it holds the user's own
+ * contact details (phone / email / address / messengers). Same
+ * textarea, same save endpoint. The only difference is on the
+ * generation side: the "✨ Сгенерировать" preset is disabled for
+ * contacts (the LLM cannot invent a phone number from the home
+ * page text). See legal.js → _refreshPresetButtons.
  *
  * Same lazy-import + reuse pattern as openRobotsModal: one
  * instance per page, reused across opens. This is why the modal
  * itself accepts `which` and `initialText` on every open() call
- * rather than at construction time — the same instance serves
- * both the Policy and the Rules row.
+ * rather than at construction time — the same instance serves all
+ * three rows.
  */
 export async function openLegalModal(ctx, which = 'policy') {
     console.log('[BaseProfileDomain] _openLegalModal()', which);
 
     // The user's own text for this document (may be NULL or "" —
-    // both mean "not set").
-    const userText = which === 'rules'
-        ? ((ctx.data && ctx.data.rules) || '')
-        : ((ctx.data && ctx.data.policy) || '');
+    // both mean "not set"). Same read pattern for all three
+    // documents: read the field, fall back to empty string so the
+    // caller can safely .trim() it.
+    const userTextByWhich = {
+        policy:   (ctx.data && ctx.data.policy)   || '',
+        rules:    (ctx.data && ctx.data.rules)    || '',
+        contacts: (ctx.data && ctx.data.contacts) || '',
+    };
+    const userText = userTextByWhich[which] ?? userTextByWhich.policy;
 
     // The universal fallback — same text the public page serves
-    // when the field is empty.
-    const defaultText = which === 'rules'
-        ? ((ctx.data && ctx.data.rules_default) || '')
-        : ((ctx.data && ctx.data.policy_default) || '');
+    // when the field is empty. Read from a parallel map so the
+    // three lookups stay in lockstep.
+    const defaultByWhich = {
+        policy:   (ctx.data && ctx.data.policy_default)   || '',
+        rules:    (ctx.data && ctx.data.rules_default)    || '',
+        contacts: (ctx.data && ctx.data.contacts_default) || '',
+    };
+    const defaultText = defaultByWhich[which] ?? defaultByWhich.policy;
 
     // If the user has no text, seed the modal with the fallback
     // and tell it that what it shows is the fallback. If the user
@@ -201,8 +221,15 @@ export async function openLegalModal(ctx, which = 'policy') {
             ctx._legalModal = new LegalModal({
                 onSaved: (savedWhich, savedText) => {
                     if (!ctx.data) return;
+                    // Mirror the request `which` into the matching
+                    // field on the local state. The three branches
+                    // are explicit on purpose — a misspelled key
+                    // (e.g. "contact") would silently write to the
+                    // wrong field under a dynamic lookup.
                     if (savedWhich === 'rules') {
                         ctx.data.rules = savedText;
+                    } else if (savedWhich === 'contacts') {
+                        ctx.data.contacts = savedText;
                     } else {
                         ctx.data.policy = savedText;
                     }

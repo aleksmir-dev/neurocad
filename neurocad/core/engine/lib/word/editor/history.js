@@ -16,6 +16,19 @@
  *      Snapshot CSS (data.css) is injected as <style> in the iframe head.
  *      For legacy snapshots without data.css, CSS is extracted from
  *      <style> tags inside data.html.
+ *
+ *      The iframe ALSO loads creatives/public/block.js — the same
+ *      ES-module the public page uses. It finds core-creative blocks
+ *      in the snapshot and fills them with ACTUAL creative data
+ *      from /creatives/public/item/{id}. If the creative was edited
+ *      or turned off after the snapshot was taken, the preview
+ *      shows the current state (or hides the block). This matches
+ *      what a reader would see on the public page right now.
+ *
+ *      Loading is done via a dynamic import() inside a plain <script>
+ *      tag in the iframe srcdoc — no type="module", no window globals.
+ *      Same pattern as word.js and pages/public/public.html.
+ *
  *   4. On "Откатить" — confirm dialog, then POST /word/{id}/rollback/{hist_id}.
  *      On success — call onRollback(data) and close the modal.
  *   5. On "Удалить" — confirm dialog, then DELETE /word/{id}/history/{hist_id}.
@@ -422,6 +435,29 @@ class HistoryModal {
             ? `<style data-source="snapshot">${css}</style>`
             : '';
 
+        // Creative block — public patcher.
+        //
+        // Same ES-module as on the public page (creatives/public/block.js):
+        // it finds [data-block="core-creative"] sections inside the
+        // snapshot and fills them from /creatives/public/item/{id}.
+        //
+        // Loaded INSIDE the iframe via a plain <script> tag with a
+        // dynamic import() inside — no type="module", no window
+        // globals. The iframe has its own document, so the parent
+        // window's import() does not apply; each iframe re-imports
+        // the module in its own context.
+        //
+        // The iframe sandbox is "allow-same-origin allow-scripts" —
+        // required both for fetch() and for the script to run. See
+        // the iframe setup below.
+        //
+        // Effect: the preview shows ACTUAL creative data — if the
+        // creative was edited or turned off after the snapshot was
+        // taken, the block shows the current state (or hides itself).
+        // Matches what a reader would see on the public page right now.
+        const creativeBlockScriptUrl =
+            `/static/core/engine/lib/creatives/public/block.js?v=${version}`;
+
         const srcdoc = `<!DOCTYPE html>
 <html>
 <head>
@@ -436,6 +472,19 @@ ${snapshotStyle}
 </head>
 <body>
 <div class="core-engine-lib-word-blocks">${htmlWithoutStyles}</div>
+<script>
+  (function () {
+    import('${creativeBlockScriptUrl}')
+      .then(function (mod) {
+        if (mod && typeof mod.patchCreativeBlocks === 'function') {
+          mod.patchCreativeBlocks();
+        }
+      })
+      .catch(function (e) {
+        console.warn('[History] creative block.js not loaded:', e);
+      });
+  })();
+</script>
 </body>
 </html>`;
 

@@ -82,5 +82,47 @@
 
     </article>
 
+    {#
+      Creative block — public patcher.
+
+      Loaded as a dynamic import inside a plain <script> tag. The
+      script tag has no `type="module"`, but the import() call
+      inside is a dynamic import — same pattern the project uses
+      everywhere else. This keeps the "no static imports" rule
+      intact and avoids `window` globals.
+
+      What it does:
+        - finds <section data-block="core-creative" data-creative-id="N">
+          on the page;
+        - fetches GET /creatives/public/item/N;
+        - fills the block with current data, or hides it if the
+          creative was turned off (is_active = 0) or deleted (404).
+
+      The block itself stores ONLY data-creative-id — no snapshot
+      of the creative data. Editing or turning off a creative in
+      the admin is reflected on the next page load WITHOUT
+      re-saving every page.
+
+      The same module runs in the admin preview (word.js, via
+      dynamic import) and inside the history modal's preview
+      iframe (history.js, dynamic import in srcdoc).
+
+      Placed at the end of <body> so the section elements are
+      already in the DOM by the time patchCreativeBlocks() runs.
+    #}
+    <script>
+        (function () {
+            import('{{ "core/engine/lib/creatives/public/block.js"|static }}')
+                .then(function (mod) {
+                    if (mod && typeof mod.patchCreativeBlocks === 'function') {
+                        mod.patchCreativeBlocks();
+                    }
+                })
+                .catch(function (e) {
+                    console.warn('[Creative] block.js not loaded:', e);
+                });
+        })();
+    </script>
+
 </body>
 </html>

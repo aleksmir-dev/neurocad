@@ -8,24 +8,35 @@ there is no list of custom domains — just one slot.
 
 Responses carry:
 
-  - subdomain       — read-only free third-level host (<login>.<APP_DOMAIN>);
-  - custom          — the user's custom domain, or None;
-  - caddy_available — probe result, drives the "Caddy server not found" hint;
-  - server_ip       — public IP, shown in DNS instructions;
-  - pages           — list of the user's pages (id + title + datetime),
-                      used by the "Home page" selector;
-  - home_page_id    — the user's chosen home page id (or None);
-  - robots_2        — current text of the custom domain's robots.txt;
-  - robots_3        — current text of the free subdomain's robots.txt;
-  - pages_url       — absolute URL of the public catalog on the owner's
-                      public host (https://<login>.<APP_DOMAIN>/pages
-                      or https://<custom-domain>/pages);
-  - policy          — current markdown text of the user's policy;
-  - rules           — current markdown text of the user's rules;
-  - policy_default  — fallback markdown the public /policy serves
-                      when users.policy is NULL or "";
-  - rules_default   — fallback markdown the public /rules serves
-                      when users.rules is NULL or "".
+  - subdomain         — read-only free third-level host
+                        (<login>.<APP_DOMAIN>);
+  - custom            — the user's custom domain, or None;
+  - caddy_available   — probe result, drives the "Caddy server
+                        not found" hint;
+  - server_ip         — public IP, shown in DNS instructions;
+  - pages             — list of the user's pages (id + title +
+                        datetime), used by the "Home page"
+                        selector;
+  - home_page_id      — the user's chosen home page id (or None);
+  - robots_2          — current text of the custom domain's
+                        robots.txt;
+  - robots_3          — current text of the free subdomain's
+                        robots.txt;
+  - pages_url         — absolute URL of the public catalog on the
+                        owner's public host
+                        (https://<login>.<APP_DOMAIN>/pages or
+                        https://<custom-domain>/pages);
+  - policy            — current markdown text of the user's
+                        policy;
+  - rules             — current markdown text of the user's rules;
+  - contacts          — current markdown text of the user's
+                        contacts page;
+  - policy_default    — fallback markdown the public /policy
+                        serves when users.policy is NULL or "";
+  - rules_default     — fallback markdown the public /rules serves
+                        when users.rules is NULL or "";
+  - contacts_default  — fallback markdown the public /contacts
+                        serves when users.contacts is NULL or "".
 
 Status is NOT stored in the DB. It is derived at read time from the
 current DNS record and Caddy availability, so a user who fixed their
@@ -46,36 +57,49 @@ Both fields follow the same rules:
     subdomain), and POST /domain/robots carries `which` to tell the
     backend where to save the text.
 
-Legal texts (policy / rules) are ALSO stored per user:
+Legal texts (policy / rules / contacts) are ALSO stored per user:
 
-  - users.policy — markdown text of the user's Policy page;
-  - users.rules  — markdown text of the user's Rules page.
+  - users.policy   — markdown text of the user's Policy page;
+  - users.rules    — markdown text of the user's Rules page;
+  - users.contacts — markdown text of the user's Contacts page.
 
-Both fields follow the same rules as robots:
+All three fields follow the same rules as robots:
 
   - NULL and "" are distinct: "" means the user cleared the field
     on purpose, NULL means they never touched it;
   - the modal edits whichever field the calling button selects
-    (data-which="policy" or data-which="rules"), and POST
+    (data-which="policy" | "rules" | "contacts"), and POST
     /domain/legal carries `which` to tell the backend where to
     save the text;
-  - the public endpoints /policy and /rules (see public.py) read
-    these fields by Host and render them to HTML on the fly;
+  - the public endpoints /policy, /rules and /contacts (see
+    public.py) read these fields by Host and render them to HTML
+    on the fly;
   - if the field is NULL, "", or whitespace-only, the public
     endpoints serve a universal fallback from
-    modal/legal/policy.md / modal/legal/rules.md. The SAME text is
-    sent to the frontend in `policy_default` / `rules_default`, so
+    modal/legal/policy.md / modal/legal/rules.md /
+    modal/legal/contacts.md. The SAME text is sent to the frontend
+    in `policy_default` / `rules_default` / `contacts_default`, so
     the legal modal can seed its textarea with it and show an
-    explanatory hint.
+    explanatory hint;
   - the public endpoint returns 404 only when the Host does not
     resolve to any user.
+
+`contacts` is NOT a legal document — it holds the user's own
+contact details (phone / email / address / messengers). It shares
+the storage pipeline (same column type, same modal, same save
+endpoint) because the shape is identical: free-form markdown in a
+Text column, served as an HTML page on the user's own host. The
+only difference is that LLM generation is disabled for it — the
+LLM cannot invent a phone number or an address from the home page
+text. See the two Generate* schemas below.
 
 Legal generation endpoint:
 
   - POST /domain/legal/generate — runs the generate_legal LLM agent
     against the user's home page and returns a fresh markdown body
     WITHOUT saving it. The user reviews the text in the modal and
-    saves it via POST /domain/legal themselves.
+    saves it via POST /domain/legal themselves. Available only for
+    "policy" and "rules" — NOT for "contacts".
 
 sitemap.xml is NOT part of this JSON payload and has NO schema here.
 It is generated on the fly (nothing is stored), and returned as
@@ -104,6 +128,16 @@ DOMAIN_STATUS_CADDY_OFF = "caddy_off"  # DNS ok, but Caddy is not up
 #: Default robots.txt body when the field is empty. Must match the
 #: constants in service/robots.py and utils/routes.py.
 DEFAULT_ROBOTS_CLOSED = "User-agent: *\nDisallow: /\n"
+
+
+#: Allowed targets for the legal storage endpoints.
+#: `contacts` is stored in the same way as policy / rules — free-form
+#: markdown in a Text column — but it is NOT a legal document and is
+#: NOT generateable by the LLM. It is grouped here so the two sides
+#: of the pipeline (save vs generate) stay in sync: save accepts all
+#: three, generate accepts only the first two.
+LEGAL_WHICH_ALL        = ("policy", "rules", "contacts")
+LEGAL_WHICH_GENERABLE  = ("policy", "rules")
 
 
 class CoreEngineLibBaseProfileDomainSubdomain(BaseModel):
@@ -216,6 +250,15 @@ class CoreEngineLibBaseProfileDomainData(BaseModel):
         description="users.rules — markdown body of the Rules page",
     )
 
+    #: Current markdown text of the user's Contacts page
+    #: (users.contacts). Same NULL / "" semantics as `policy` and
+    #: `rules`. NOT a legal document — it holds the user's own
+    #: contact details (phone / email / address / messengers).
+    contacts: Optional[str] = Field(
+        None,
+        description="users.contacts — markdown body of the Contacts page",
+    )
+
     #: Fallback markdown for the Policy page — the same text the
     #: public /policy endpoint serves when users.policy is NULL or
     #: whitespace-only. Read from modal/legal/policy.md on every
@@ -234,6 +277,15 @@ class CoreEngineLibBaseProfileDomainData(BaseModel):
     rules_default: str = Field(
         "",
         description="Fallback markdown for the rules page",
+    )
+
+    #: Fallback markdown for the Contacts page — same semantics as
+    #: `policy_default`, read from modal/legal/contacts.md. The
+    #: contacts fallback does not use the {date} placeholder — a
+    #: contacts page has no date.
+    contacts_default: str = Field(
+        "",
+        description="Fallback markdown for the contacts page",
     )
 
 
@@ -352,13 +404,13 @@ class CoreEngineLibBaseProfileDomainSetRobotsResponse(BaseModel):
 
 
 # ============================================
-# LEGAL — POLICY / RULES
+# LEGAL — POLICY / RULES / CONTACTS
 # ============================================
 
-#: Maximum size of a policy / rules markdown body, in characters.
-#: Bump this if a user's text ever exceeds it; 64 KB is roughly
-#: 20-30 pages of plain markdown, which is far more than any
-#: realistic policy or rules text needs.
+#: Maximum size of a policy / rules / contacts markdown body, in
+#: characters. Bump this if a user's text ever exceeds it; 64 KB is
+#: roughly 20-30 pages of plain markdown, which is far more than any
+#: realistic document needs.
 LEGAL_TEXT_MAX_LENGTH = 65536
 
 
@@ -368,8 +420,9 @@ class CoreEngineLibBaseProfileDomainSetLegalRequest(BaseModel):
 
     `which` selects the target field:
 
-      - "policy" → users.policy;
-      - "rules"  → users.rules.
+      - "policy"   → users.policy;
+      - "rules"    → users.rules;
+      - "contacts" → users.contacts.
 
     `text` — full markdown body of the document. Stored verbatim,
     including an empty string. The backend does not parse or validate
@@ -377,13 +430,17 @@ class CoreEngineLibBaseProfileDomainSetLegalRequest(BaseModel):
     public endpoints' job (markdown → HTML on the fly).
 
     The modal passes `which` based on which "Edit policy" / "Edit
-    rules" button was clicked (data-which="policy" or
-    data-which="rules").
+    rules" / "Edit contacts" button was clicked
+    (data-which="policy" | "rules" | "contacts").
+
+    `contacts` shares the storage pipeline with policy / rules —
+    free-form markdown in a Text column. It is NOT generateable by
+    the LLM (see GenerateLegalRequest below).
     """
 
-    which: Literal["policy", "rules"] = Field(
+    which: Literal["policy", "rules", "contacts"] = Field(
         ...,
-        description="Which text to save: 'policy' or 'rules'",
+        description="Which text to save: 'policy', 'rules' or 'contacts'",
     )
     text: str = Field(
         ...,
@@ -398,7 +455,7 @@ class CoreEngineLibBaseProfileDomainSetLegalData(BaseModel):
     #: Echoed back so the frontend can update its state without a
     #: second GET. `which` mirrors the request, `text` is the saved
     #: text (== request text, since we store verbatim).
-    which: Literal["policy", "rules"]
+    which: Literal["policy", "rules", "contacts"]
     text: str
 
 
@@ -419,6 +476,12 @@ class CoreEngineLibBaseProfileDomainGenerateLegalRequest(BaseModel):
 
       - "policy" → Policy;
       - "rules"  → Rules.
+
+    `contacts` is deliberately NOT accepted here: the LLM cannot
+    invent a phone number, an email or an address from the home
+    page text. The frontend disables the "✨ Сгенерировать" button
+    for contacts, and the route returns 400 if the value slips
+    through anyway.
 
     The agent reads the user's home page (users.home_page_id, or the
     first page by datetime ASC in the user's first nav), extracts

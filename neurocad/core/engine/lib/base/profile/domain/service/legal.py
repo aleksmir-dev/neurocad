@@ -1,34 +1,48 @@
 # neurocad/core/engine/lib/base/profile/domain/service/legal.py
 
 """
-Legal texts (policy / rules) storage for the domain service.
+Legal texts (policy / rules / contacts) storage for the domain
+service.
 
 Provides:
 
-  - set_legal()          — save users.policy or users.rules;
-  - get_legal_for_user() — read both fields for a user id;
+  - set_legal()          — save users.policy, users.rules, or
+                           users.contacts;
+  - get_legal_for_user() — read all three fields for a user id;
   - get_legal_for_host() — resolve a Host header to a user and
-                           return that user's policy / rules;
-  - get_defaults()       — read both default markdown files from
-                           disk (modal/legal/policy.md and
-                           modal/legal/rules.md);
+                           return that user's policy / rules /
+                           contacts;
+  - get_defaults()       — read all three default markdown files
+                           from disk (modal/legal/policy.md,
+                           rules.md, contacts.md);
   - load_home_context()  — read the user's home page (title,
                            description, visible text) as context
-                           for the generate_legal agent.
+                           for the generate_legal agent. This is
+                           only used for policy / rules — contacts
+                           are not generated.
 
-Every user owns their own policy and rules texts, because every
-user runs their own site on their own subdomain (or custom
+Every user owns their own policy, rules and contacts texts, because
+every user runs their own site on their own subdomain (or custom
 domain). neurocad.ru is no exception: the platform's root domain
-is bound to the superadmin as a regular user, and their policy /
-rules live in the same columns as everyone else's.
+is bound to the superadmin as a regular user, and their texts live
+in the same columns as everyone else's.
 
-The texts are stored in markdown. The public endpoints /policy
-and /rules (see public.py) render them to HTML on the fly, with
-the same default files as a fallback when the field is empty.
+The texts are stored in markdown. The public endpoints /policy,
+/rules and /contacts (see public.py) render them to HTML on the
+fly, with the same default files as a fallback when the field is
+empty.
 
-Nothing here touches the schema — the field names are "policy"
-and "rules" on User, and `which` in the public API accepts
-exactly those two strings.
+`contacts` is NOT a legal document — it holds the user's own
+contact details (phone / email / address / messengers). It shares
+the storage pipeline with policy / rules because the shape is
+identical: free-form markdown in a Text column, served as an HTML
+page on the user's own host. The only difference is on the
+generation side: the LLM cannot invent a phone number from the
+home page text, so /domain/legal/generate refuses `contacts`.
+
+Nothing here touches the schema — the field names are "policy",
+"rules" and "contacts" on User, and `which` in the public API
+accepts exactly those three strings.
 
 Namespace: CoreEngineLibBaseProfileDomain*
 """
@@ -42,6 +56,12 @@ from neurocad.core.models.user import User
 from neurocad.utils.sqlite import get_db_sqlite
 
 from ..public import read_default
+
+
+#: Allowed targets for save / read. Kept as a module constant so
+#: set_legal, get_legal_for_user and get_defaults agree on the set
+#: and adding a fourth document later is a one-line change.
+_LEGAL_WHICH = ("policy", "rules", "contacts")
 
 
 # ============================================
@@ -84,7 +104,8 @@ def _strip_html(html: str, max_len: int = 3000) -> str:
 
 
 class LegalMixin:
-    """Save and read the user's policy / rules markdown texts."""
+    """Save and read the user's policy / rules / contacts markdown
+    texts."""
 
     # ========================================
     # WRITE
@@ -94,13 +115,13 @@ class LegalMixin:
     async def set_legal(
         cls,
         user_id: int,
-        which: Literal["policy", "rules"],
+        which: Literal["policy", "rules", "contacts"],
         text: str,
         log=None,
     ) -> Optional[str]:
         """
-        Save users.policy (which="policy") or users.rules
-        (which="rules").
+        Save users.policy (which="policy"), users.rules
+        (which="rules"), or users.contacts (which="contacts").
 
         Returns the stored text on success, or None if the user
         does not exist / is deleted / `which` is invalid.
@@ -110,7 +131,7 @@ class LegalMixin:
         user cleared the field on purpose, NULL means they never
         touched it.
         """
-        if which not in ("policy", "rules"):
+        if which not in _LEGAL_WHICH:
             return None
 
         async for session in get_db_sqlite():
@@ -139,16 +160,22 @@ class LegalMixin:
     @classmethod
     async def get_legal_for_user(cls, user_id: int) -> dict:
         """
-        Read both fields for a user id.
+        Read all three fields for a user id.
 
         Returns a dict:
-            {"policy": str | None, "rules": str | None}
+            {
+              "policy":   str | None,
+              "rules":    str | None,
+              "contacts": str | None,
+            }
 
-        Both values are None if the user does not exist or is
+        All values are None if the user does not exist or is
         soft-deleted. Callers that need to distinguish "no such
         user" from "user has no texts" should check user existence
         separately; the public routes treat both cases as 404.
         """
+        empty = {"policy": None, "rules": None, "contacts": None}
+
         async for session in get_db_sqlite():
             stmt = select(User).where(
                 User.id == user_id,
@@ -156,13 +183,14 @@ class LegalMixin:
             )
             user = (await session.execute(stmt)).scalar_one_or_none()
             if user is None:
-                return {"policy": None, "rules": None}
+                return empty
             return {
                 "policy": user.policy,
                 "rules": user.rules,
+                "contacts": user.contacts,
             }
 
-        return {"policy": None, "rules": None}
+        return empty
 
     # ========================================
     # READ — by Host header
@@ -172,7 +200,7 @@ class LegalMixin:
     async def get_legal_for_host(cls, host: str) -> Optional[dict]:
         """
         Resolve a Host header to a user and return their policy /
-        rules.
+        rules / contacts.
 
         Resolution order (same as /robots.txt, see utils/routes.py):
 
@@ -183,8 +211,9 @@ class LegalMixin:
           3. Anything else:
                 None (caller returns 404)
 
-        Returns {"policy": str | None, "rules": str | None}, or
-        None if the host does not belong to any user.
+        Returns {"policy": str | None, "rules": str | None,
+        "contacts": str | None}, or None if the host does not
+        belong to any user.
         """
         from neurocad.utils.hosts import (
             slug_from_host,
@@ -217,16 +246,18 @@ class LegalMixin:
     @staticmethod
     def get_defaults() -> dict:
         """
-        Read both default markdown texts from disk.
+        Read all three default markdown texts from disk.
 
         Returns:
-            {"policy": str, "rules": str}
+            {"policy": str, "rules": str, "contacts": str}
 
-        The files live at ./modal/legal/policy.md and
-        ./modal/legal/rules.md. The {date} placeholder in each file
-        is substituted with today's ISO date, matching what the
-        public /policy and /rules endpoints serve when the field
-        is empty.
+        The files live at ./modal/legal/policy.md, rules.md and
+        contacts.md. The {date} placeholder in each file is
+        substituted with today's ISO date, matching what the public
+        /policy, /rules and /contacts endpoints serve when the
+        field is empty. The contacts.md file does not use {date} —
+        a contacts page has no date — but read_default substitutes
+        anyway, harmlessly.
 
         Never raises: a missing or unreadable file yields a short
         inline fallback (see public.read_default).
@@ -234,6 +265,7 @@ class LegalMixin:
         return {
             "policy": read_default("policy"),
             "rules": read_default("rules"),
+            "contacts": read_default("contacts"),
         }
 
     # ========================================
@@ -265,6 +297,11 @@ class LegalMixin:
         stays focused on LLM interaction, not on parsing. The
         stripped text is trimmed to a reasonable size (see
         _strip_html) — the LLM does not need the whole page.
+
+        Used only for policy / rules generation. Contacts are not
+        generated (the LLM cannot invent a phone number from the
+        home page text) — /domain/legal/generate refuses that
+        `which` before it ever reaches here.
         """
         from neurocad.core.models.nav import Nav
         from neurocad.core.models.page import Page

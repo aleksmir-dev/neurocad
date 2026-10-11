@@ -1,4 +1,4 @@
-# neurocad 1.0.20
+# neurocad 1.0.21
 
 Release date: 2026-10-11
 
@@ -6,20 +6,85 @@ Release date: 2026-10-11
 
 ## English
 
-**Creatives and placements.** The Creative model has grown from a bare name + URL into a full ad record: `text`, `button_text`, `brand`, `inn` are now part of the payload. The admin page at `?page=creatives` was reworked accordingly — the create/edit modal has eight fields, all optional except `name`. On the placements tab, the toolbar button «Создать размещение» and the per-row «Удалить» button were removed: placements are born on the page, not here. To close a placement, you edit the page and clear the «Креатив» select or uncheck «Публиковать».
+**Contacts page.** Every user's site can now publish a contacts page
+alongside `/policy` and `/rules`. The contacts text lives in a new
+`users.contacts` column (TEXT, nullable) and is served at
+`/contacts` on the user's own host — subdomain or custom domain —
+by the same resolver as the two legal pages: Host → user → column.
+When the field is empty, the page falls back to a universal
+contacts template (`modal/legal/contacts.md`), so a footer link
+never leads to a dead end.
 
-**Creative block on a page.** A new ready-made section `core-creative` was added to the block library (category «Секции»). It renders an advertising insert — text, link, and the three legal markers required by Russian law: «Реклама», advertiser name, INN, and ERID. On drop, the block automatically fills itself from the creative already attached to the page (the select in the page properties), with no extra modal to re-ask what the user just chose. If no creative is attached, the block ships with placeholders and the editor fills it in by hand.
+**Legal card — third row.** The "Документы сайта" card in
+Profile → Domains now has three rows instead of two: Policy,
+Rules, Contacts. Each row keeps its own state badge
+(«Универсальный текст» / «Заполнено»), its own preview link, and
+its own "Редактировать" button that opens the same shared modal.
 
-**Bug fix — modal form.** `BaseModalForm` reused a stale container in the DOM when a new modal instance was created. Old listeners from previous instances stayed attached and fired along with the new one, each calling `_collectData()` on its own detached inputs. The server then received empty values for exactly the fields the user just filled. The fix is simple: `_createDOM()` now always removes the stale container before creating a fresh one.
+**Contacts is not a legal document.** It shares the storage
+pipeline with policy / rules (free-form markdown in a Text column,
+same modal, same save endpoint), but the "✨ Сгенерировать" preset
+is disabled for it: the LLM cannot invent a phone number or an
+address from the home page text. The frontend disables the button
+and the backend returns 400 on `/domain/legal/generate` with
+`which="contacts"` — guarded on both sides so a keyboard user or a
+stale client cannot accidentally spend tokens on a request that
+cannot be honoured.
 
-**Internal.** `creative.js` was added to the editor — a 1:1 copy of `brand.js` for the drop-time patcher. `manifest.json` in the block library now lists `creative-block` as a class of `ReadyBlocks`, so the backend picks up `ready.css` even on pages that contain nothing but this block.
+**Footer block.** The ready-made `core-footer` section now ships
+with three relative links — Политика, Правила, Контакты — so the
+new page is discoverable from every page that uses the block. No
+absolute URL is hardcoded; the links resolve against whatever host
+the page is served on.
+
+**Internal.** The `LegalModal` was generalised from two targets to
+three via a single `LEGAL_WHICH` list and a `LEGAL_META` map of
+per-document strings (title, URL, noun). Adding a fourth document
+later is a one-line change in four places: `LEGAL_WHICH` in the
+modal, `_LEGAL_WHICH` in `service/legal.py`, `_LEGAL_WHICH` in
+`public.py`, and `LEGAL_WHICH_ALL` in `schema.py`. The route,
+service, and public pipelines now agree on the set through these
+constants instead of hardcoding ("policy", "rules") in six places.
 
 ## Русский
 
-**Креативы и размещения.** Модель `Creative` выросла из «имя + ссылка» в полноценную рекламную запись: в payload появились `text`, `button_text`, `brand`, `inn`. Админка на `?page=creatives` обновлена соответственно — модалка создания/редактирования теперь на восемь полей, все опциональные кроме `name`. На вкладке «Размещения» убраны кнопка «Создать размещение» в тулбаре и кнопка «Удалить» в каждой строке: размещения рождаются на странице, а не здесь. Чтобы закрыть размещение — открываешь страницу, очищаешь select «Креатив» или снимаешь «Публиковать».
+**Страница «Контакты».** Теперь на сайте каждого пользователя
+может публиковаться страница контактов — рядом с `/policy` и
+`/rules`. Текст хранится в новой колонке `users.contacts` (TEXT,
+nullable) и отдаётся по адресу `/contacts` на хосте
+пользователя — поддомене или кастомном домене — тем же
+резолвером, что и две юридические страницы: Host → user →
+колонка. Если поле не заполнено, отдаётся универсальный шаблон
+(`modal/legal/contacts.md`), так что ссылка в подвале никогда не
+ведёт в никуда.
 
-**Блок «Креатив» на странице.** В библиотеку блоков добавлена новая готовая секция `core-creative` (категория «Секции»). Она рендерит рекламную вставку — текст, ссылку и три юридические маркировки по закону о рекламе: «Реклама», наименование рекламодателя, ИНН и ERID. При перетаскивании блок автоматически заполняется данными того креатива, который уже привязан к странице (через select в свойствах страницы) — без лишней модалки, которая переспрашивала бы то, что пользователь только что выбрал. Если креатив не привязан — блок приходит с заглушками, редактор заполняет их вручную.
+**Карточка «Документы сайта» — третья строка.** В
+Profile → Домены у карточки теперь три строки вместо двух:
+Политика, Правила, Контакты. У каждой — свой бейдж состояния
+(«Универсальный текст» / «Заполнено»), своя preview-ссылка и
+своя кнопка «Редактировать», открывающая ту же общую модалку.
 
-**Исправлен баг — модалка формы.** `BaseModalForm` переиспользовала старый контейнер в DOM при создании нового экземпляра. Слушатели от прошлых экземпляров оставались навешанными и срабатывали вместе с новым — каждый вызывал `_collectData()` на своих detached-полях. На бэк уходили пустые значения ровно для тех полей, которые пользователь только что заполнил. Фикс простой: `_createDOM()` теперь всегда удаляет stale-контейнер перед созданием нового.
+**Контакты — не юридический документ.** Они живут в том же
+пайплайне, что policy / rules (свободный markdown в Text-колонке,
+та же модалка, тот же эндпоинт сохранения), но пресет
+«✨ Сгенерировать» для них выключен: LLM не может выдумать
+телефон или адрес из текста главной страницы. Фронт гасит
+кнопку, бэк возвращает 400 на `/domain/legal/generate` с
+`which="contacts"` — защита с обеих сторон, чтобы клавиатурный
+пользователь или устаревший клиент случайно не потратили токены
+на запрос, который всё равно не будет выполнен.
 
-**Внутреннее.** В редактор добавлен `creative.js` — копия `brand.js` 1:1 для drop-обработчика. В `manifest.json` библиотеки блоков теперь указан `creative-block` как класс `ReadyBlocks` — чтобы бэк подтягивал `ready.css` даже на страницах, где нет ничего кроме этого блока.
+**Блок подвала.** Готовая секция `core-footer` теперь содержит
+три относительные ссылки — Политика, Правила, Контакты — чтобы
+новая страница была доступна с любой страницы, где стоит этот
+блок. Никаких абсолютных URL — ссылки резолвятся против того
+хоста, на котором отдаётся страница.
+
+**Внутреннее.** `LegalModal` обобщена с двух целей до трёх через
+единый список `LEGAL_WHICH` и карту `LEGAL_META` со строками для
+каждого документа (title, URL, noun). Добавить четвёртый документ
+теперь — одна строка в четырёх местах: `LEGAL_WHICH` в модалке,
+`_LEGAL_WHICH` в `service/legal.py`, `_LEGAL_WHICH` в
+`public.py`, `LEGAL_WHICH_ALL` в `schema.py`. Роут, сервис и
+публичный пайплайн теперь согласованы через эти константы, а не
+через хардкод `("policy", "rules")` в шести местах.

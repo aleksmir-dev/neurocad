@@ -116,6 +116,29 @@ class User(Base):
     # Profile → Domains → "Edit rules".
     rules: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
+    # Markdown body of the user's Contacts page (phone / email /
+    # address / messengers for the user's own site).
+    #
+    # Same semantics as `policy` and `rules`:
+    #   - NULL  — never touched, modal opens empty;
+    #   - ""    — cleared on purpose, DB state distinct from NULL;
+    #   - text  — stored verbatim, served at /contacts on the user's
+    #             own host (NULL → fallback text).
+    #
+    # Contacts are stored as free-form markdown — NOT as separate
+    # columns (phone / email / address) — because the exact set of
+    # fields varies: some users want one phone, others want five
+    # messengers, address, working hours, etc. A fixed schema would
+    # either be too narrow or full of NULLs. Markdown keeps the
+    # model uniform with policy / rules and lets the user shape
+    # their own contacts block. If the footer ever needs a
+    # machine-readable phone number, it can be parsed from the
+    # rendered HTML at render time.
+    #
+    # Edited via the legal modal in
+    # Profile → Domains → "Edit contacts".
+    contacts: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
     __table_args__ = (
         Index('idx_users_login', 'login'),
         Index('idx_users_is_delete', 'is_delete'),

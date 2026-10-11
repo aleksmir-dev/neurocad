@@ -16,7 +16,8 @@ This mixin provides:
                             one user (subdomain, custom slot, Caddy
                             status, pages, home_page_id, robots_2,
                             robots_3, pages_url, policy, rules,
-                            policy_default, rules_default).
+                            contacts, policy_default, rules_default,
+                            contacts_default).
 
 get_for_user is the assembly point of the whole service: it calls
 into almost every other mixin (dns, caddy, pages, robots, legal)
@@ -174,17 +175,16 @@ class CommonMixin:
         Read the subdomain + custom domain slot + Caddy availability
         + the user's pages and home page id + robots_2 / robots_3
         + the absolute public URL of the article catalog (pages_url)
-        + the user's policy / rules markdown texts
-        + the universal fallback texts for both.
+        + the user's policy / rules / contacts markdown texts
+        + the universal fallback texts for all three.
 
         This is the assembly point for GET /domain/ — every other
         read helper feeds into it.
 
-        policy / rules semantics:
+        policy / rules / contacts semantics:
           - NULL in the DB → None in the payload. The frontend then
-            opens the modal with `policy_default` / `rules_default`
-            as the starting text and marks it as "this is the
-            fallback, not your text".
+            opens the modal with `*_default` as the starting text and
+            marks it as "this is the fallback, not your text".
           - "" in the DB → "" in the payload. Same as NULL from the
             frontend's point of view; the DB keeps the two distinct.
           - Neither is substituted with a default here — that is
@@ -192,10 +192,20 @@ class CommonMixin:
             and by the public endpoints (see public.py). We only
             send the fallback text as separate fields.
 
-        policy_default / rules_default:
-          - Always read from disk (modal/legal/policy.md and
-            modal/legal/rules.md) by LegalMixin.get_defaults().
+        `contacts` follows the same pipeline as policy / rules —
+        free-form markdown in a Text column, served at /contacts on
+        the user's own host. It is NOT a legal document: the "✨
+        Сгенерировать" preset is disabled for it, both in the
+        frontend (legal.js) and on the backend
+        (route.py → generate_legal refuses `which="contacts"`).
+
+        policy_default / rules_default / contacts_default:
+          - Always read from disk (modal/legal/policy.md,
+            rules.md, contacts.md) by LegalMixin.get_defaults().
           - {date} is already substituted with today's ISO date.
+            contacts.md does not use {date} — a contacts page has
+            no date — but read_default substitutes anyway,
+            harmlessly.
           - Never None — a missing file yields a short inline
             fallback (see public.read_default).
         """
@@ -241,20 +251,23 @@ class CommonMixin:
         robots_2 = (user.robots_2 if user and user.robots_2 else None) or ROBOTS_CLOSED
         robots_3 = (user.robots_3 if user and user.robots_3 else None) or ROBOTS_CLOSED
 
-        # policy / rules — NULL or "" means "user has no text".
-        # Pass through as-is; the frontend substitutes the default
-        # when opening the modal, and the public endpoints do the
-        # same when serving the page.
-        policy = user.policy if user else None
-        rules  = user.rules  if user else None
+        # policy / rules / contacts — NULL or "" means "user has no
+        # text". Pass through as-is; the frontend substitutes the
+        # default when opening the modal, and the public endpoints
+        # do the same when serving the page.
+        policy   = user.policy   if user else None
+        rules    = user.rules    if user else None
+        contacts = user.contacts if user else None
 
-        # Default fallback texts — the same ones the public /policy
-        # and /rules endpoints serve when the field is empty. Sent
-        # to the frontend so the legal modal can seed its textarea
-        # with the fallback and show an explanatory hint.
+        # Default fallback texts — the same ones the public
+        # /policy, /rules and /contacts endpoints serve when the
+        # field is empty. Sent to the frontend so the legal modal
+        # can seed its textarea with the fallback and show an
+        # explanatory hint.
         defaults = cls.get_defaults()
-        policy_default = defaults["policy"]
-        rules_default = defaults["rules"]
+        policy_default   = defaults["policy"]
+        rules_default    = defaults["rules"]
+        contacts_default = defaults["contacts"]
 
         # Absolute public URL of the article catalog on the OWNER's
         # public host. Built from the same base as the sitemap:
@@ -287,6 +300,8 @@ class CommonMixin:
             pages_url=pages_url,
             policy=policy,
             rules=rules,
+            contacts=contacts,
             policy_default=policy_default,
             rules_default=rules_default,
+            contacts_default=contacts_default,
         )

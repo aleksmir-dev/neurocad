@@ -119,6 +119,15 @@ Template CSS:
     (nav, sidebar, footer) its styles, while letting the page's
     article styles override them at equal specificity.
 
+Creative block patching:
+    Page.content in the DB may hold a stale data-creative-id — it
+    is only updated by word.service.save_content, and changing
+    the creative via page properties (PUT /pages/item) does NOT
+    re-save the HTML. So the public route patches the final HTML
+    at render time: every <section data-block="core-creative">
+    gets data-creative-id rewritten to the page's CURRENT active
+    placement id. See word/creative.py for the full rationale.
+
 Namespace: CoreEngineLibPagesPublic*
 """
 
@@ -142,6 +151,15 @@ from neurocad.core.engine.lib.balance.checked import BalanceChecked
 # "/" handlers and public page handlers apply exactly the same
 # rules. See neurocad/utils/hosts.py.
 from neurocad.utils.hosts import is_dev_host, user_id_from_host
+
+# Creative block patching — used at render time to rewrite
+# data-creative-id on every core-creative section to the page's
+# CURRENT active placement id. Without this, the public page would
+# render whatever stale id is stored in Page.content — the DB
+# copy is only refreshed by save_content, and changing the
+# creative via page properties (PUT /pages/item) does NOT
+# re-save the HTML.
+from neurocad.core.engine.lib.word.creative import patch_creative_blocks
 
 from .service import (
     CoreEngineLibPagesPublicService,
@@ -754,6 +772,17 @@ async def _render_public_page(
         static/core/engine/lib/pages/public/pages/<id>.css
     (if not already there with the same content) and passed to the
     template as page_css_url.
+
+    Creative block patching:
+      Page.content in the DB may hold a stale data-creative-id —
+      it is only refreshed by word.service.save_content, and
+      changing the creative via page properties (PUT /pages/item)
+      does NOT re-save the HTML. After _resolve_content (which may
+      have inserted page content into a base template slot), the
+      final HTML is passed through patch_creative_blocks() —
+      every <section data-block="core-creative"> gets its
+      data-creative-id rewritten to the page's CURRENT active
+      placement id. See word/creative.py for the full rationale.
     """
     # ==== LAZY TARIFF CHECK ====
     user_id = await _resolve_nav_owner(page.nav_id)
@@ -778,6 +807,25 @@ async def _render_public_page(
 
     # Apply base template if set
     final_content = await _resolve_content(page)
+
+    # ==== PATCH CREATIVE BLOCKS ====
+    # Rewrite data-creative-id on every core-creative section to
+    # the page's CURRENT active creative_id. Page.content in the
+    # DB may hold a stale id — it is only updated by save_content,
+    # and changing the creative via page properties (PUT /pages/item)
+    # does NOT re-save the HTML. The public page must always show
+    # the current creative, so we patch at render time.
+    #
+    # patch_creative_blocks() takes a session — we open one here
+    # for this single operation. If the page has no core-creative
+    # sections, the helper returns the HTML unchanged without
+    # touching the DB.
+    if final_content and 'core-creative' in final_content:
+        async for session in get_db_sqlite():
+            final_content = await patch_creative_blocks(
+                final_content, page.id, session
+            )
+            break
 
     # ==== TEMPLATE CSS (if page inherits from a base template) ====
     # Load the template's CSS and serve it as its own static file.

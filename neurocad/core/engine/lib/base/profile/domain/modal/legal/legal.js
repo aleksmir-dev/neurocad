@@ -1,20 +1,30 @@
 // neurocad/core/engine/lib/base/profile/domain/modal/legal/legal.js
 
 /**
- * LegalModal — universal editor for policy / rules markdown texts.
+ * LegalModal — universal editor for policy / rules / contacts
+ * markdown texts.
  *
- * One modal, two targets. BaseProfileDomain opens it from either of
- * the two "Редактировать" buttons in the legal card:
+ * One modal, three targets. BaseProfileDomain opens it from one of
+ * the three "Редактировать" buttons in the legal card:
  *
- *   - the button in the "Политика" row → which = "policy"
- *     (users.policy, served at /policy on the user's host);
- *   - the button in the "Правила" row  → which = "rules"
- *     (users.rules,  served at /rules  on the user's host).
+ *   - the button in the "Политика"  row → which = "policy"
+ *     (users.policy,   served at /policy   on the user's host);
+ *   - the button in the "Правила"   row → which = "rules"
+ *     (users.rules,    served at /rules    on the user's host);
+ *   - the button in the "Контакты"  row → which = "contacts"
+ *     (users.contacts, served at /contacts on the user's host).
  *
  * The modal itself does not care which document is being edited —
  * it receives `which` and the current text, and POSTs them back.
  * The backend routes the save to the right column via
  * POST /domain/legal.
+ *
+ * `contacts` is NOT a legal document — it holds the user's own
+ * contact details (phone / email / address / messengers). It shares
+ * the storage pipeline with policy / rules (same textarea, same
+ * save endpoint), but the "✨ Сгенерировать" preset is DISABLED for
+ * it: the LLM cannot invent a phone number from the home page text.
+ * See _refreshPresetButtons() and _generate().
  *
  * Layout:
  *
@@ -25,22 +35,25 @@
  *   [ actions: Отмена | Сохранить ]
  *
  * The preview is a live, client-side markdown render. It uses the
- * same parser the backend uses for the public /policy and /rules
- * pages — but only a subset is implemented here (headings,
- * paragraphs, lists, code, links, bold, italic, tables). This is
- * enough for authoring; the authoritative rendering is done by the
- * backend, and the preview is a convenience, not a contract.
+ * same parser the backend uses for the public /policy, /rules and
+ * /contacts pages — but only a subset is implemented here
+ * (headings, paragraphs, lists, code, links, bold, italic, tables).
+ * This is enough for authoring; the authoritative rendering is
+ * done by the backend, and the preview is a convenience, not a
+ * contract.
  *
  * Presets:
  *   - "✨ Сгенерировать" — calls POST /domain/legal/generate, which
  *     runs the generate_legal LLM agent against the user's home
  *     page and returns a fresh markdown body. Nothing is saved —
  *     the result replaces the textarea contents, and the user
- *     reviews it and clicks "Сохранить" themselves.
+ *     reviews it and clicks "Сохранить" themselves. DISABLED for
+ *     `which="contacts"` — the LLM cannot invent contact details.
  *   - "Вставить шаблон" — fills the textarea with a starter
  *     markdown document. The template depends on `which`:
  *     Policy gets a 152-ФЗ-shaped skeleton, Rules gets a
- *     terms-of-use skeleton.
+ *     terms-of-use skeleton, Contacts gets a contacts skeleton
+ *     (phone / email / address / messengers).
  *   - "Очистить" — empties the textarea. The user still has to
  *     click "Сохранить" to persist.
  *
@@ -78,20 +91,52 @@
  *
  *   - isDefault = true  → the user has not written their own text
  *     yet. The textarea is seeded with the universal fallback (the
- *     same text the public /policy or /rules endpoint serves when
- *     the field is empty — see public.py → read_default), and the
- *     hint is extended with a note explaining that this fallback is
- *     currently published on the site, and that the user may keep
- *     it or replace it with their own.
+ *     same text the public /policy, /rules or /contacts endpoint
+ *     serves when the field is empty — see public.py →
+ *     read_default), and the hint is extended with a note
+ *     explaining that this fallback is currently published on the
+ *     site, and that the user may keep it or replace it with their
+ *     own.
  *
  * The caller (modals.js → openLegalModal) decides which case
- * applies based on ctx.data.policy / ctx.data.rules.
+ * applies based on ctx.data.policy / ctx.data.rules /
+ * ctx.data.contacts.
  *
  * Props:
- *   - onSaved    {Function} — (which: "policy"|"rules", savedText: string) => void
+ *   - onSaved    {Function} — (which: "policy"|"rules"|"contacts",
+ *                             savedText: string) => void
  *                             Called after a successful POST, so the
  *                             caller can update its local state.
  */
+
+//: Allowed targets for the legal modal. `contacts` is not a legal
+//: document but shares the pipeline: same textarea, same save
+//: endpoint. The only difference is that generation is disabled
+//: for it (see _generate and _refreshPresetButtons).
+const LEGAL_WHICH = ['policy', 'rules', 'contacts'];
+
+//: Per-which strings — title, URL and noun used in the header
+//: hint. Kept as a module constant so adding a fourth document
+//: later is a one-line change and there is no scattered "if
+//: which === ..." logic.
+const LEGAL_META = {
+    policy: {
+        title: 'Политика обработки данных',
+        url: '/policy',
+        noun: 'Документ',
+    },
+    rules: {
+        title: 'Правила использования',
+        url: '/rules',
+        noun: 'Документ',
+    },
+    contacts: {
+        title: 'Контакты',
+        url: '/contacts',
+        noun: 'Страница',
+    },
+};
+
 export class LegalModal {
     constructor(options = {}) {
         console.log('[LegalModal] Constructor called');
@@ -142,7 +187,7 @@ export class LegalModal {
     /**
      * Open the modal.
      *
-     * @param {"policy"|"rules"} which  — target document
+     * @param {"policy"|"rules"|"contacts"} which — target document
      * @param {string} initialText      — markdown body to show
      * @param {boolean} isDefault       — true when initialText is
      *   the universal fallback (user has no own text), false when
@@ -150,25 +195,29 @@ export class LegalModal {
      *
      * If the modal is already open, the new `which` / `initialText`
      * / `isDefault` are applied to the existing dialog (title, hint,
-     * textarea, preview) and the textarea is refocused. This makes
-     * open() safe to call from any click handler without checking
-     * state first.
+     * textarea, preview, preset-button state) and the textarea is
+     * refocused. This makes open() safe to call from any click
+     * handler without checking state first.
      */
     open(which, initialText, isDefault = false) {
         console.log('[LegalModal] open()', which, 'isDefault=', isDefault);
 
-        this._which = which === 'rules' ? 'rules' : 'policy';
+        // Reject anything not in the allowed set — treat unknown
+        // values as "policy" (the previous behaviour, kept for
+        // safety: a stale caller does not break the modal).
+        this._which = LEGAL_WHICH.includes(which) ? which : 'policy';
         this._isDefault = !!isDefault;
         this._initialText = typeof initialText === 'string' ? initialText : '';
 
         if (this._overlay) {
-            // Already open — update title / hint / textarea / preview
-            // and refocus.
+            // Already open — update title / hint / textarea /
+            // preview / presets and refocus.
             if (this._textarea) {
                 this._textarea.value = this._initialText;
             }
             this._renderHeader();
             this._refreshPreview();
+            this._refreshPresetButtons();
             this._clearError();
             this._focusTextarea();
             return;
@@ -291,6 +340,40 @@ export class LegalModal {
         ].join('\n');
     }
 
+    /**
+     * Starter template for the contacts page.
+     *
+     * Unlike policy / rules, this is NOT a legal document — it is a
+     * structured list of ways to reach the site owner. The
+     * placeholder values are meant to be replaced: nothing here is
+     * plausible for a real user, so there is no risk of a forgotten
+     * placeholder going live unnoticed.
+     *
+     * The {date} placeholder is deliberately absent: a contacts
+     * page has no "last updated" line.
+     */
+    _textContactsTemplate() {
+        return [
+            '# Контакты',
+            '',
+            '**Телефон:** +7 (000) 000-00-00',
+            '',
+            '**Email:** mail@example.com',
+            '',
+            '**Адрес:** Город, улица, дом',
+            '',
+            '**Telegram:** @username',
+            '',
+            '**Часы работы:** Пн–Пт, 10:00–19:00',
+            '',
+            '---',
+            '',
+            'Свяжитесь с нами любым удобным способом — мы ответим',
+            'в течение рабочего дня.',
+            '',
+        ].join('\n');
+    }
+
     // ============================================
     // RENDER
     // ============================================
@@ -383,20 +466,18 @@ export class LegalModal {
 
         this._renderHeader();
         this._refreshPreview();
+        this._refreshPresetButtons();
     }
 
     _renderHeader() {
         if (!this._titleEl || !this._hintEl) return;
 
-        const isRules = this._which === 'rules';
-        const url = isRules ? '/rules' : '/policy';
+        const meta = LEGAL_META[this._which] || LEGAL_META.policy;
 
-        this._titleEl.textContent = isRules
-            ? 'Правила использования'
-            : 'Политика обработки данных';
+        this._titleEl.textContent = meta.title;
 
         let hint =
-            `Документ публикуется по адресу <code>${url}</code> ` +
+            `${meta.noun} публикуется по адресу <code>${meta.url}</code> ` +
             `на вашем домене. Поддерживается Markdown.`;
 
         if (this._isDefault) {
@@ -408,6 +489,35 @@ export class LegalModal {
         }
 
         this._hintEl.innerHTML = hint;
+    }
+
+    /**
+     * Enable / disable the "✨ Сгенерировать" button depending on
+     * the current `which`.
+     *
+     * Generation makes sense only for policy / rules — the LLM can
+     * draft a legal document from the home page text. Contacts are
+     * the user's own data (phone, email, address) — the LLM cannot
+     * invent them. The button is disabled with an explanatory
+     * title so the user understands why.
+     *
+     * Called both from _render() (first open) and from open()
+     * (subsequent reopens with a different `which`).
+     */
+    _refreshPresetButtons() {
+        const btn = this._overlay?.querySelector('[data-action="legal-generate"]');
+        if (!btn) return;
+
+        const allowGenerate = this._which !== 'contacts';
+        btn.disabled = !allowGenerate;
+
+        if (allowGenerate) {
+            btn.title = 'Сгенерировать текст по содержанию главной страницы';
+            btn.classList.remove('domain-btn-disabled');
+        } else {
+            btn.title = 'Генерация недоступна для контактов — заполните вручную';
+            btn.classList.add('domain-btn-disabled');
+        }
     }
 
     _focusTextarea() {
@@ -459,7 +569,7 @@ export class LegalModal {
      * This is NOT a full CommonMark parser. It is good enough for
      * authoring feedback. The authoritative rendering is done by
      * the backend (markdown-it-py) when the document is served at
-     * /policy or /rules.
+     * /policy, /rules or /contacts.
      *
      * All output is escaped first — raw HTML in the source is not
      * passed through, same policy as the backend.
@@ -750,10 +860,13 @@ export class LegalModal {
     // ============================================
 
     _applyTemplate() {
-        const template = this._which === 'rules'
-            ? this._textRulesTemplate()
-            : this._textPolicyTemplate();
-        this._applyPreset(template);
+        const byWhich = {
+            policy:   () => this._textPolicyTemplate(),
+            rules:    () => this._textRulesTemplate(),
+            contacts: () => this._textContactsTemplate(),
+        };
+        const fn = byWhich[this._which] || byWhich.policy;
+        this._applyPreset(fn());
     }
 
     _applyPreset(text) {
@@ -779,10 +892,23 @@ export class LegalModal {
      *
      * The button is disabled while the request is in flight, so a
      * double-click cannot fire two requests.
+     *
+     * Guard: contacts are user-specific data (phone, email, address)
+     * the LLM cannot invent. The button is disabled in the UI (see
+     * _refreshPresetButtons), but a keyboard user or a programmatic
+     * click could still reach here — so we refuse early, before any
+     * request is sent.
      */
     async _generate() {
         if (this._generating) return;
         if (!this._textarea) return;
+
+        if (this._which === 'contacts') {
+            this._showError(
+                'Контакты нельзя сгенерировать — заполните их вручную.'
+            );
+            return;
+        }
 
         const btn = this._overlay?.querySelector('[data-action="legal-generate"]');
         const prevLabel = btn ? btn.textContent : '';
@@ -823,7 +949,11 @@ export class LegalModal {
         } finally {
             this._generating = false;
             if (btn) {
-                btn.disabled = false;
+                // Re-evaluate disabled state — if `which` was switched
+                // to contacts while the request was in flight, the
+                // button must stay disabled. _refreshPresetButtons
+                // makes the correct decision.
+                this._refreshPresetButtons();
                 btn.textContent = prevLabel;
             }
         }

@@ -7,7 +7,8 @@ Namespace: CoreEngineLibCreativesRouter
 
 Endpoints:
   — public (no auth):
-      POST /creatives/hit              — track a show or click
+      POST /creatives/hit                    — track a show or click
+      GET  /creatives/public/item/{id}       — one creative, public fields only
   — admin (auth required):
       GET    /creatives/list                — all creatives of the nav
       POST   /creatives/item                — create a creative
@@ -137,6 +138,106 @@ async def register_hit(data: HitRequest) -> JSONResponse:
             detail="Размещение не найдено",
         )
     return JSONResponse({"success": True})
+
+
+# ============================================
+# PUBLIC — one creative
+# ============================================
+
+@router.get("/public/item/{creative_id}")
+async def get_public_creative(creative_id: int) -> JSONResponse:
+    """
+    One creative — PUBLIC endpoint, no auth.
+
+    Called by creatives/public/block.js on every public page that
+    contains a core-creative block. The block reads its
+    data-creative-id and fetches this endpoint to fill itself in.
+
+    WHY PUBLIC
+    ----------
+    Readers of a public page are not logged in. The block must be
+    able to fetch its creative data without a session.
+
+    WHAT IS RETURNED
+    ----------------
+    Only the fields needed to render the ad block:
+
+        id, text, button_text, target_url, brand, inn, erid, is_active
+
+    NOT returned (internal / admin-only):
+        nav_id, description, media_file, created_at, updated_at,
+        is_delete.
+
+    is_active is included so the public script can decide whether
+    to SHOW or HIDE the block. If is_active == 0 → block hides.
+    This is the mechanism that lets the user turn off a creative
+    in the admin and have the block disappear everywhere WITHOUT
+    re-saving every page.
+
+    NOT FOUND
+    ---------
+    404 for:
+      - a non-existent id;
+      - a soft-deleted creative (is_delete = 1).
+
+    The public script treats 404 as "hide the block".
+
+    CACHING
+    -------
+    Cache-Control: public, max-age=300 — 5 minutes.
+
+    Why 5 minutes:
+      - the same creative may appear on many pages, and each page
+        load would otherwise hit the database;
+      - 5 minutes is a compromise: admin edits become visible on
+        the next page load after the cache expires;
+      - the browser caches per URL, so a page with 3 blocks with
+        3 different creatives makes 3 requests, all cached
+        independently.
+
+    If you need "instant" updates, drop the cache header or use
+    ETag with updated_at. For now — simple max-age.
+
+    WHY NOT /creatives/item/{id}
+    ----------------------------
+    /creatives/item/{id} is the ADMIN endpoint — it requires auth
+    and returns the full internal payload. We keep them separate
+    so an accidental auth bypass cannot leak admin-only fields.
+    """
+    async for session in get_db_sqlite():
+        # Lazy import — avoid a circular dependency in case
+        # Creative later imports something from the route module.
+        from neurocad.core.models.creative import Creative
+
+        stmt = select(Creative).where(
+            Creative.id == creative_id,
+            Creative.is_delete == 0,
+        )
+        creative = (await session.execute(stmt)).scalar_one_or_none()
+
+        if not creative:
+            raise HTTPException(status_code=404, detail="Creative not found")
+
+        payload = {
+            "id":         creative.id,
+            "text":       creative.text,
+            "button_text": creative.button_text,
+            "target_url": creative.target_url,
+            "brand":      creative.brand,
+            "inn":        creative.inn,
+            "erid":       creative.erid,
+            "is_active":  creative.is_active,
+        }
+
+        return JSONResponse(
+            {"success": True, "data": payload},
+            headers={
+                # 5 minutes browser cache — see docstring above.
+                "Cache-Control": "public, max-age=300",
+            },
+        )
+
+    raise HTTPException(status_code=500, detail="DB error")
 
 
 # ============================================

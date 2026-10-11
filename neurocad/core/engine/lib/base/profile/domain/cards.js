@@ -434,29 +434,40 @@ export function makeCards(helpers) {
     }
 
     // ============================================
-    // LEGAL CARD — POLICY / RULES
+    // LEGAL CARD — POLICY / RULES / CONTACTS
     // ============================================
 
     /**
      * Legal section — sits at the very bottom of the domain page,
      * below the sitemap card.
      *
-     * Two editable markdown documents that the user can publish on
-     * their own site:
+     * Three editable markdown documents that the user can publish
+     * on their own site:
      *
-     *   - Policy — served at /policy on the user's host;
-     *   - Rules  — served at /rules  on the user's host.
+     *   - Policy   — served at /policy   on the user's host;
+     *   - Rules    — served at /rules    on the user's host;
+     *   - Contacts — served at /contacts on the user's host.
      *
      * Each row has a state badge and an "Edit" button that opens the
      * shared legal modal (see ./modal/legal/legal.js, opened from
      * ./modals.js → openLegalModal).
+     *
+     * `contacts` is NOT a legal document — it holds the user's own
+     * contact details (phone, email, address, messengers). It
+     * shares the storage pipeline with policy / rules (same modal,
+     * same save endpoint) because the shape is identical: free-form
+     * markdown in a Text column. The only difference is on the
+     * generation side: the "✨ Сгенерировать" preset is disabled for
+     * contacts (the LLM cannot invent a phone number from the home
+     * page text). See legal.js → _refreshPresetButtons.
      *
      * Badge state is derived from the presence of the field:
      *
      *   - null / "" / whitespace → "Универсальный текст"
      *     The user has not written their own text. The public page
      *     serves the universal fallback from modal/legal/policy.md
-     *     (or rules.md), and the modal opens with that same text.
+     *     (rules.md / contacts.md), and the modal opens with that
+     *     same text.
      *
      *   - any non-empty text → "Заполнено"
      *     The public page serves the user's text.
@@ -467,8 +478,9 @@ export function makeCards(helpers) {
      * the fallback is live".
      */
     function renderLegalCard(data) {
-        const policyText = data?.policy;
-        const rulesText = data?.rules;
+        const policyText   = data?.policy;
+        const rulesText    = data?.rules;
+        const contactsText = data?.contacts;
 
         // Public host for the preview links. Prefer the custom
         // domain, fall back to the subdomain.
@@ -486,8 +498,9 @@ export function makeCards(helpers) {
         // renders as nothing.
         const isSet = (text) => typeof text === 'string' && text.trim().length > 0;
 
-        const policySet = isSet(policyText);
-        const rulesSet = isSet(rulesText);
+        const policySet   = isSet(policyText);
+        const rulesSet    = isSet(rulesText);
+        const contactsSet = isSet(contactsText);
 
         // Badge: green "Заполнено" when the user's own text is set,
         // neutral "Универсальный текст" otherwise (the fallback is
@@ -497,6 +510,10 @@ export function makeCards(helpers) {
             : `<span class="domain-badge">Универсальный текст</span>`;
 
         const rulesBadge = rulesSet
+            ? `<span class="domain-badge domain-badge-ok">Заполнено</span>`
+            : `<span class="domain-badge">Универсальный текст</span>`;
+
+        const contactsBadge = contactsSet
             ? `<span class="domain-badge domain-badge-ok">Заполнено</span>`
             : `<span class="domain-badge">Универсальный текст</span>`;
 
@@ -516,12 +533,21 @@ export function makeCards(helpers) {
                    title="Открыть опубликованную версию">/rules</a>`
             : `<code>/rules</code>`;
 
+        const contactsPreview = publicHost
+            ? `<a class="domain-link-ghost"
+                   href="${escapeAttr(publicHost + '/contacts')}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="Открыть опубликованную версию">/contacts</a>`
+            : `<code>/contacts</code>`;
+
         return `
             <section class="domain-card">
                 <div class="domain-card-title">Документы сайта</div>
                 <p class="domain-card-hint">
                     Тексты в формате Markdown. Публикуются на вашем сайте
-                    по адресам <code>/policy</code> и <code>/rules</code>.
+                    по адресам <code>/policy</code>, <code>/rules</code>
+                    и <code>/contacts</code>.
                     Если поле не заполнено — публикуется универсальный
                     текст для сайта-визитки.
                 </p>
@@ -557,6 +583,24 @@ export function makeCards(helpers) {
                                 class="domain-btn"
                                 data-action="edit-legal"
                                 data-which="rules">
+                            Редактировать
+                        </button>
+                    </div>
+                </div>
+
+                <div class="domain-legal-row">
+                    <div class="domain-legal-row-left">
+                        <div class="domain-legal-row-title">Контакты</div>
+                        <div class="domain-legal-row-hint">
+                            Телефон, email, адрес и другие способы связи. ${contactsPreview}
+                        </div>
+                    </div>
+                    <div class="domain-legal-row-right">
+                        ${contactsBadge}
+                        <button type="button"
+                                class="domain-btn"
+                                data-action="edit-legal"
+                                data-which="contacts">
                             Редактировать
                         </button>
                     </div>

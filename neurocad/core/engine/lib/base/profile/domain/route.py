@@ -7,19 +7,23 @@ Endpoints (mounted under /core/engine/lib/base/profile/domain):
     GET    /                  — subdomain + custom slot + Caddy status
                                 + pages + home_page_id
                                 + robots_2 + robots_3
-                                + policy + rules
+                                + policy + rules + contacts
     POST   /add               — set custom domain (checks DNS + Caddy)
     DELETE /remove            — clear the custom domain slot
     POST   /home              — set the home page (users.home_page_id)
     DELETE /home              — clear the home page
     POST   /robots            — save users.robots_2 or users.robots_3
                                 (which one is chosen by `which`)
-    POST   /legal             — save users.policy or users.rules
-                                (which one is chosen by `which`)
+    POST   /legal             — save users.policy, users.rules, or
+                                users.contacts (which one is chosen
+                                by `which`)
     POST   /legal/generate    — generate a fresh policy / rules text
                                 from the user's home page via the LLM
                                 (nothing is saved — the caller gets
-                                the text back and decides)
+                                the text back and decides). NOT
+                                available for `contacts` — contacts
+                                are the user's own data, not a
+                                generated legal document.
     GET    /sitemap           — sitemap.xml for the current user,
                                 generated on the fly, returned as
                                 text/plain for the in-admin modal
@@ -77,8 +81,10 @@ async def get_domains(
     + the user's pages (for the home-page selector) + home_page_id
     + the current robots_2 and robots_3 texts (for the robots.txt
     modal, which edits whichever field the user opened)
-    + the current policy and rules markdown texts (for the legal
-    modal, same pattern).
+    + the current policy, rules and contacts markdown texts (for
+    the legal modal, same pattern)
+    + the universal fallback texts for all three documents
+    (policy_default / rules_default / contacts_default).
     """
     user = _require_user(current_user)
 
@@ -290,7 +296,7 @@ async def set_robots(
 
 
 # ============================================
-# LEGAL — POLICY / RULES SAVE
+# LEGAL — POLICY / RULES / CONTACTS SAVE
 # ============================================
 
 @router.post("/legal")
@@ -300,7 +306,8 @@ async def set_legal(
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """
-    Save a policy or rules markdown body for the current user.
+    Save a policy, rules, or contacts markdown body for the current
+    user.
 
     Body:
       {
@@ -310,15 +317,23 @@ async def set_legal(
 
     `which` selects the target field:
 
-      - "policy" → users.policy;
-      - "rules"  → users.rules.
+      - "policy"   → users.policy;
+      - "rules"    → users.rules;
+      - "contacts" → users.contacts.
 
     The text is stored verbatim — the backend does not parse or
     validate markdown. Empty string is stored as-is (distinct from
     NULL in the DB: "" means the user cleared the field on purpose).
 
-    The public endpoints /policy and /rules (see utils/routes.py)
-    read these fields by Host and render them to HTML on the fly.
+    The public endpoints /policy, /rules and /contacts (see
+    public.py) read these fields by Host and render them to HTML
+    on the fly.
+
+    `contacts` shares the storage pipeline with policy / rules but
+    is NOT a legal document — it holds the user's own contact
+    details (phone / email / address / messengers). The only
+    difference is on the generation side: /domain/legal/generate
+    refuses `which="contacts"`.
 
     Response:
       {
@@ -341,9 +356,10 @@ async def set_legal(
 
     if saved is None:
         # set_legal returns None either because the user does not
-        # exist or because `which` was outside {"policy", "rules"}.
-        # The Pydantic schema already constrains `which`, so the
-        # only remaining case is "user not found".
+        # exist or because `which` was outside
+        # {"policy", "rules", "contacts"}. The Pydantic schema
+        # already constrains `which`, so the only remaining case
+        # is "user not found".
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 
     return JSONResponse({
@@ -371,6 +387,12 @@ async def generate_legal(
     Body:
       { "which": "policy" | "rules" }
 
+    `contacts` is deliberately rejected here with 400: the LLM
+    cannot invent a phone number, an email or an address from the
+    home page text. The frontend disables the "✨ Сгенерировать"
+    button for contacts, but a keyboard user or a stale client
+    could still send the request — so we guard the route too.
+
     The flow:
       1. balance guard (same as logo generation) — tariff + tokens;
       2. load the user's home page (users.home_page_id, or the first
@@ -383,7 +405,7 @@ async def generate_legal(
       6. return { which, text }.
 
     Errors:
-      400 — user has no pages (nothing to base the document on)
+      400 — `which` is "contacts", or the user has no pages
       403 — tariff blocks LLM (free) or tokens exhausted
       500 — LLM error, provider error, or unexpected exception
     """
@@ -391,7 +413,23 @@ async def generate_legal(
     user_id = int(user["id"])
     log = request.app.state.log
 
-    # ---- 0. Balance guard ----
+    # ---- 0. Reject contacts early ----
+    # Contacts are the user's own data — the LLM cannot invent a
+    # phone number, an email or an address from the home page text.
+    # Reject before the balance guard so no tokens are ever spent
+    # on a request the frontend should not have sent in the first
+    # place.
+    if body.which == "contacts":
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Контакты нельзя сгенерировать — их нужно заполнить "
+                "вручную. Укажите телефон, email, адрес и другие "
+                "способы связи."
+            ),
+        )
+
+    # ---- 1. Balance guard ----
     from neurocad.core.engine.lib.balance.checked import BalanceChecked
 
     bal, err = await BalanceChecked.logo_allowed(user_id, log=log)
@@ -419,7 +457,7 @@ async def generate_legal(
             detail=detail_map.get(err, "Лимит исчерпан."),
         )
 
-    # ---- 1. Load the home page context ----
+    # ---- 2. Load the home page context ----
     ctx = await CoreEngineLibBaseProfileDomainService.load_home_context(user_id)
     if ctx is None:
         raise HTTPException(
@@ -430,7 +468,7 @@ async def generate_legal(
             ),
         )
 
-    # ---- 2. Resolve the LLM provider ----
+    # ---- 3. Resolve the LLM provider ----
     try:
         from neurocad.utils.llm.factory import get_provider
         provider = await get_provider(log=log)
@@ -440,7 +478,7 @@ async def generate_legal(
             detail=f"Failed to get LLM provider: {e}",
         )
 
-    # ---- 3. Run the agent ----
+    # ---- 4. Run the agent ----
     from neurocad.core.engine.lib.word.llm.agent.generate_legal import (
         CoreEngineLibWordLlmAgentGenerateLegal,
     )
@@ -468,7 +506,7 @@ async def generate_legal(
             detail=result.get("error") or "Не удалось сгенерировать текст.",
         )
 
-    # ---- 4. Charge tokens (+1 gen on pro) ----
+    # ---- 5. Charge tokens (+1 gen on pro) ----
     # Same accounting as the images router — kept local to this
     # route so the domain router does not depend on that package.
     try:

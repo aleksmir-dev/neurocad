@@ -18,7 +18,7 @@
  *   - Contacts       — contact info: address, phone, email
  *   - Footer         — bottom section: brand + legal links
  *   - Article catalog — grid of page cards (links)
- *   - Creative       — advertising insert (text + link + legal line)
+ *   - Creative       — advertising insert (dynamic, by creative_id)
  *
  * NOTE: blocks are NOT wrapped in .core-engine-lib-word-blocks anymore.
  * That class is the single scope wrapper for the whole page:
@@ -368,10 +368,10 @@ export class ReadyBlocks {
          * publication; copyright does not expire and does not need
          * annual renewal).
          *
-         * The two links — "Политика" and "Правила" — point to the
-         * relative paths /policy and /rules, so they always resolve
-         * against whatever host the page is served on. No absolute
-         * URL is hardcoded.
+         * The three links — "Политика", "Правила" и "Контакты" —
+         * point to the relative paths /policy, /rules and /contacts,
+         * so they always resolve against whatever host the page is
+         * served on. No absolute URL is hardcoded.
          *
          * Layout: brand left, links right; wraps to two centered
          * rows on narrow screens (see ready.css → .footer).
@@ -387,6 +387,7 @@ export class ReadyBlocks {
                         <nav class="footer__nav">
                             <a href="/policy" class="footer__link">Политика</a>
                             <a href="/rules" class="footer__link">Правила</a>
+                            <a href="/contacts" class="footer__link">Контакты</a>
                         </nav>
                     </div>
                 </footer>
@@ -456,93 +457,97 @@ export class ReadyBlocks {
         // ===== CREATIVE =====
 
         /*
-         * Creative — advertising insert.
+         * Creative — advertising insert (dynamic, by creative_id).
          *
-         * Структура блока:
+         * Блок хранит ТОЛЬКО ссылку на креатив: data-creative-id="5"
+         * на корне <section>. Сами данные (текст, ссылка, реквизиты,
+         * флаг активности) подтягиваются ДИНАМИЧЕСКИ:
          *
-         *   <section class="section creative-block" data-block="core-creative">
-         *     <div class="container creative-block__inner" data-creative-block>
-         *       <p class="creative-block__text">…описание рекламы…</p>
-         *       <a class="creative-block__link" href="…" target="_blank"
-         *          rel="noopener noreferrer nofollow sponsored">
-         *         <span class="creative-block__btn-text">…CTA…</span>
+         *   - в редакторе — editor/creative.js: при drop ставит
+         *     data-creative-id из pageData.creative_id и заполняет
+         *     блок; при загрузке страницы — обновляет все блоки;
+         *
+         *   - на публичной странице — creatives/public/block.js:
+         *     читает data-creative-id, тянет GET /creatives/public/item/{id},
+         *     заполняет блок или скрывает его (is_active = 0 / 404).
+         *
+         * ПОЧЕМУ ВНУТРИ — ЗАГЛУШКИ, А НЕ ПУСТЫЕ ТЕГИ
+         * ----------------------------------------
+         * GrapesJS парсит <p>ТЕКСТ</p> как компонент type: "text"
+         * с дочерним textnode. set('content', value) у такого
+         * компонента пишет в textnode и РЕНДЕРИТСЯ.
+         *
+         * А <p></p> или <p>&nbsp;</p> парсится как `default`
+         * (пустой контейнер без детей). set('content', value) у
+         * `default` пишет в content, но <p> отображает ДОЧЕРНИЕ
+         * компоненты, а не content — текст не появляется.
+         *
+         * Поэтому внутри — непустые заглушки. applyCreative ЗАМЕНИТ
+         * их на реальные данные из креатива. Если креатив не привязан
+         * к странице — заглушки останутся видимыми до момента, пока
+         * креатив не будет привязан в свойствах страницы.
+         *
+         * ПОЧЕМУ ТОЛЬКО ССЫЛКА, А НЕ СЛЕПОК
+         * ---------------------------------
+         * Раньше блок хранил копию данных креатива в HTML. Это
+         * означало: сменил креатив в админке — надо пересохранять
+         * страницу. Отключил креатив — надо пересохранять ВСЕ
+         * страницы, где он есть. Плохо масштабируется.
+         *
+         * Теперь блок — тонкая обёртка. Данные живут в одном
+         * месте (креатив), блок только ссылается. Правка креатива
+         * или его отключение сразу видны везде — без пересохранений.
+         *
+         * СТРУКТУРА
+         * ---------
+         *   <section class="section creative-block"
+         *            data-block="core-creative"
+         *            data-creative-id="">              ← ключ
+         *     <div class="container creative-block__inner"
+         *          data-creative-block>                   ← маркер для find()
+         *       <p class="creative-block__text">…</p>
+         *       <a class="creative-block__link" ...>
+         *         <span class="creative-block__btn-text">…</span>
          *         <span class="creative-block__arrow">→</span>
          *       </a>
          *       <p class="creative-block__legal">
-         *         Реклама. <span class="creative-block__brand">…бренд…</span>
-         *         ИНН <span class="creative-block__inn">…ИНН…</span>
-         *         erid: <span class="creative-block__erid">…ERID…</span>
+         *         Реклама. <span class="creative-block__brand">…</span>
+         *         ИНН <span class="creative-block__inn">…</span>
+         *         erid: <span class="creative-block__erid">…</span>
          *       </p>
          *     </div>
          *   </section>
          *
-         * ПОЧЕМУ ИМЕННО ТАК
-         * -----------------
-         * 1. Маркер data-creative-block стоит на ВЛОЖЕННОМ <div>,
-         *    а не на корне <section>. Это сделано специально —
-         *    чтобы работала автоподстановка. Точка входа —
-         *    canvas:drop в editor/creative.js, там делается
-         *    model.find('[data-creative-block]').
+         * ПОЧЕМУ data-creative-block НА ВЛОЖЕННОМ <div>
+         * --------------------------------------------
+         * GrapesJS: model.find(selector) ищет только среди ДОЧЕРНИХ
+         * компонентов, сам model в результат не попадает. Поэтому
+         * маркер стоит ВНУТРИ секции, а не на её корне. Иначе
+         * find('[data-creative-block]') вернул бы пусто.
+         * У подвала (core-footer) data-footer-brand тоже на
+         * вложенном <div> — работает по той же причине.
          *
-         *    GrapesJS: model.find(selector) ищет только среди
-         *    ДОЧЕРНИХ компонентов, сам model в результат не
-         *    попадает. Если бы маркер стоял на корне <section>,
-         *    find() вернул бы пусто, и автоподстановка не
-         *    сработала бы. У подвала (core-footer) маркер
-         *    data-footer-brand тоже стоит на вложенном <div> —
-         *    работает по той же причине.
+         * ПРО rel="noopener noreferrer nofollow sponsored"
+         * ------------------------------------------------
+         * sponsored обязателен для поисковых систем по требованиям
+         * маркировки рекламы. nofollow — не передавать вес.
+         * noopener noreferrer — стандарт для target="_blank".
+         * target="_blank" — реклама открывается в новой вкладке.
          *
-         * 2. Юридические реквизиты (brand, inn, erid) — три
-         *    отдельные span-а. Автоподстановка находит их по
-         *    классу и заменяет только содержимое.
-         *
-         * 3. rel="noopener noreferrer nofollow sponsored" —
-         *    sponsored обязателен для поисковых систем по
-         *    требованиям маркировки рекламы. nofollow — не
-         *    передавать вес. noopener noreferrer — стандарт
-         *    для target="_blank".
-         *
-         * 4. target="_blank" — реклама открывается в новой
-         *    вкладке, чтобы не уводить пользователя со
-         *    страницы.
-         *
-         * 5. data-block="core-creative" — как у всех блоков.
-         *    Используется бэком для подбора CSS и аналитикой.
-         *
-         * АВТОПОДСТАНОВКА ДАННЫХ ИЗ КРЕАТИВА
-         * ----------------------------------
-         * При drop блока в canvas открывается модалка со списком
-         * креативов (см. editor/creative.js). После выбора:
-         *   - .creative-block__text       ← creative.text
-         *   - .creative-block__btn-text   ← creative.button_text
-         *   - .creative-block__link[href] ← creative.target_url
-         *   - .creative-block__brand      ← creative.brand
-         *   - .creative-block__inn        ← creative.inn
-         *   - .creative-block__erid       ← creative.erid
-         *
-         * Пустые поля креатива — соответствующий span скрывается
-         * (display: none). Юридическая строка автоматически
-         * становится короче. Закон о рекламе соблюдён: что есть —
-         * показано, чего нет — не показано.
-         *
-         * ПРИМЕЧАНИЕ ПРО СТИЛИ
-         * --------------------
-         * Стили блока живут в ready.css → .creative-block*.
+         * ПРО СТИЛИ
+         * ---------
          * Блок умышленно скромный: без фона, без рамки, без
-         * акцентных кнопок. Реклама в статье не должна
-         * выпячиваться. Если нужен более заметный дизайн —
-         * правится только ready.css, HTML не меняется.
+         * акцентных кнопок. Реклама в статье не должна выпячиваться.
+         * Стили — в ready.css → .creative-block*.
          */
         this.bm.add('core-creative', {
             label: 'Креатив (реклама)',
             category: this.category,
             media: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="6" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="2"/><line x1="6" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="2"/><circle cx="19" cy="6" r="1.5" fill="currentColor"/></svg>',
             content: `
-                <section class="section creative-block" data-block="core-creative">
+                <section class="section creative-block" data-block="core-creative" data-creative-id="">
                     <div class="container creative-block__inner" data-creative-block>
-                        <p class="creative-block__text">
-                            Ищете хостинг для размещения вашего проекта в сети Интернет?
-                        </p>
+                        <p class="creative-block__text">Ищете хостинг для размещения вашего проекта в сети Интернет?</p>
                         <a href="#" class="creative-block__link" target="_blank" rel="noopener noreferrer nofollow sponsored">
                             <span class="creative-block__btn-text">Посмотрите здесь</span>
                             <span class="creative-block__arrow" aria-hidden="true">→</span>

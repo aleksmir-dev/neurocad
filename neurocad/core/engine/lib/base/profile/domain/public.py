@@ -1,7 +1,7 @@
 # neurocad/core/engine/lib/base/profile/domain/public.py
 
 """
-Public legal routes — /policy and /rules.
+Public legal routes — /policy, /rules and /contacts.
 
 These are PUBLIC pages: they are opened on the user's own host
 (subdomain or custom domain), not in the admin panel. There is no
@@ -12,19 +12,29 @@ resolved from the Host header, exactly like /robots.txt and
 Resolution order (same as robots / sitemap):
 
     1. Host is a user subdomain (<login>.<APP_DOMAIN>):
-         testuser3.neurocad.ru → users.policy / users.rules
+         testuser3.neurocad.ru → users.policy / users.rules /
+                                 users.contacts
     2. Host is a user custom domain (users.domain):
-         atou.ru → users.policy / users.rules
+         atou.ru → users.policy / users.rules / users.contacts
     3. Anything else (apex APP_DOMAIN, IP, unknown host):
          404. There is no one to serve a legal page for.
+
+`/contacts` follows the same pipeline as `/policy` and `/rules`,
+but is NOT a legal document — it holds the user's own contact
+details (phone / email / address / messengers), stored in
+users.contacts. Same markdown → HTML rendering, same fallback
+mechanics, same Host-based resolution.
 
 Fallback when the field is empty
 --------------------------------
 If the user has never filled the field (NULL) or cleared it ("",
 whitespace-only), the endpoint serves a universal short text from
-./modal/legal/policy.md or ./modal/legal/rules.md. The text is
-regenerated on every request, with today's date substituted into
-the {date} placeholder.
+./modal/legal/policy.md, ./modal/legal/rules.md, or
+./modal/legal/contacts.md. The text is regenerated on every
+request, with today's date substituted into the {date}
+placeholder. The contacts.md file does not use {date} — a
+contacts page has no date — but read_default substitutes
+harmlessly.
 
 The endpoint returns 404 only when the Host does not resolve to
 any user. If the Host resolves but the field is empty, it returns
@@ -42,8 +52,9 @@ the admin modal sees the change reflected on their public site on
 the next request.
 
 Mounted at the application root (no prefix) — the URLs are
-exactly /policy and /rules, on whatever host the request arrived
-on. The router is registered in utils/routes.py → setup_routes().
+exactly /policy, /rules and /contacts, on whatever host the
+request arrived on. The router is registered in utils/routes.py →
+setup_routes().
 
 read_default() is also imported by service/legal.py (see
 LegalMixin.get_defaults), so the same fallback texts that the
@@ -80,11 +91,17 @@ _DEFAULTS_DIR = Path(__file__).parent / "modal" / "legal"
 
 #: Very short inline fallback if the .md file cannot be read.
 #: Should never be used in practice — it exists so that a missing
-#: file produces a valid (if minimal) legal page instead of a 500.
+#: file produces a valid (if minimal) page instead of a 500.
 _INLINE_FALLBACK = {
-    "policy": "# Политика обработки персональных данных\n\nТекст политики не задан.\n",
-    "rules":  "# Правила использования сайта\n\nТекст правил не задан.\n",
+    "policy":   "# Политика обработки персональных данных\n\nТекст политики не задан.\n",
+    "rules":    "# Правила использования сайта\n\nТекст правил не задан.\n",
+    "contacts": "# Контакты\n\nКонтактные данные не заданы.\n",
 }
+
+#: Every `which` accepted by read_default / _legal_text_for_host.
+#: Kept as a module constant so the two stay in sync when a fourth
+#: document is added later.
+_LEGAL_WHICH = ("policy", "rules", "contacts")
 
 
 def _today_iso() -> str:
@@ -94,7 +111,7 @@ def _today_iso() -> str:
 
 def read_default(which: str) -> str:
     """
-    Read the default markdown for "policy" or "rules".
+    Read the default markdown for "policy", "rules" or "contacts".
 
     Returns the file contents with {date} substituted by today's
     ISO date. Any unknown `which` value falls back to "policy".
@@ -106,8 +123,12 @@ def read_default(which: str) -> str:
     imports it — see LegalMixin.get_defaults. The defaults must be
     identical in both places: what the public page serves and what
     the admin modal seeds its textarea with.
+
+    The contacts.md file does not use the {date} placeholder — a
+    contacts page has no date. str.format() is still applied; a
+    file with no placeholders just returns itself.
     """
-    key = "rules" if which == "rules" else "policy"
+    key = which if which in _LEGAL_WHICH else "policy"
     path = _DEFAULTS_DIR / f"{key}.md"
 
     try:
@@ -121,7 +142,7 @@ def read_default(which: str) -> str:
     except Exception:
         # If the file contains a stray "{" that is not a known
         # placeholder, str.format() raises. Fall back to the raw
-        # text — better a policy without a date than a 500.
+        # text — better a page without a date than a 500.
         return raw
 
 
@@ -160,13 +181,17 @@ def _md_to_html(markdown_text: str) -> str:
 
 def _render_legal_page(title: str, markdown_text: str) -> str:
     """
-    Render a legal page (policy or rules) to a complete HTML
-    document.
+    Render a legal or contacts page to a complete HTML document.
 
     The stylesheet is inlined so the page has zero external
     dependencies — it must load identically on any host the user
     attaches, without relying on the admin panel's static assets
     being reachable from that host.
+
+    The same wrapper is used for policy, rules and contacts: the
+    template is generic (a single <main class="legal"> with a
+    heading and body). The page title differs, the content differs,
+    the CSS is identical.
     """
     body_html = _md_to_html(markdown_text or "")
     safe_title = _html_escape(title)
@@ -256,10 +281,10 @@ def _render_legal_page(title: str, markdown_text: str) -> str:
 
 async def _legal_text_for_host(host: Optional[str], which: str) -> Optional[str]:
     """
-    Resolve a Host header to a user and return the requested legal
-    text (users.policy or users.rules).
+    Resolve a Host header to a user and return the requested text
+    (users.policy, users.rules, or users.contacts).
 
-    `which` must be "policy" or "rules".
+    `which` must be "policy", "rules", or "contacts".
 
     Returns:
       - the user's own text, if the field is non-empty (after strip);
@@ -275,7 +300,7 @@ async def _legal_text_for_host(host: Optional[str], which: str) -> Optional[str]
     from neurocad.core.models.user import User
     from neurocad.utils.sqlite import get_db_sqlite
 
-    if which not in ("policy", "rules"):
+    if which not in _LEGAL_WHICH:
         return None
 
     normalized = normalize_host(host)
@@ -349,6 +374,34 @@ async def rules_page(request: Request) -> Response:
     if text is None:
         return Response(status_code=404, content="Правила не найдены")
     html = _render_legal_page("Правила", text)
+    return Response(
+        content=html,
+        media_type=LEGAL_MEDIA_TYPE,
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+    )
+
+
+@router.get("/contacts")
+async def contacts_page(request: Request) -> Response:
+    """
+    Public Contacts page for the current host.
+
+    Renders users.contacts for the user resolved from the Host
+    header. Falls back to a universal short text (see
+    read_default) when the field is empty. Returns 404 only when
+    the Host does not belong to any user.
+
+    Unlike /policy and /rules, contacts are NOT a legal document —
+    they are the user's own contact details (phone, email, address,
+    messengers). The rendering pipeline is identical: markdown →
+    HTML, same CSS wrapper, same Host-based resolution, same
+    fallback mechanics.
+    """
+    host = request.headers.get("host")
+    text = await _legal_text_for_host(host, "contacts")
+    if text is None:
+        return Response(status_code=404, content="Контакты не найдены")
+    html = _render_legal_page("Контакты", text)
     return Response(
         content=html,
         media_type=LEGAL_MEDIA_TYPE,

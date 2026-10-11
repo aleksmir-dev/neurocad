@@ -13,35 +13,29 @@
  * All submodules are loaded dynamically with a version to avoid
  * browser cache issues on updates.
  *
- * Scoping:
- *   Every word API request carries ?nav_id=<id>, which identifies
- *   the nav instance this page belongs to. The value comes from
- *   props.nav_id (injected by CoreEngine from <body data-nav-id>),
- *   with a fallback to window.coreEngine.navId / body dataset.
+ * Creative block:
+ *   After the page is rendered, word.js does two things:
  *
- * Permissions:
- *   - Guests: read-only view of the page.
- *   - Any authenticated user (including superadmin): full toolbar
- *     (back / edit / public), editor, save.
+ *     1. Writes data-creative-id into the DOM of every
+ *        [data-block="core-creative"] section, using
+ *        pageData.creative_id. This is necessary because the
+ *        attribute may be empty in the saved HTML — GrapesJS
+ *        does not always preserve it, and older pages were saved
+ *        before the attribute existed at all. pageData.creative_id
+ *        is the source of truth: it comes from the backend
+ *        (word/service.py → _page_to_dict) and is always up to date.
  *
- * Caption: on _init() we pick up the shared caption helpers from
- * window.coreEngine.base (_setCaption / _restoreCaption). They are
- * used by actions.setHeaderTitle() to swap the header/tab title to the
- * page title, and by destroy() to restore whatever was there before.
+ *     2. Dynamic import of creatives/public/block.js — the same
+ *        ES-module the public page uses — and a call to its
+ *        exported patchCreativeBlocks(). That function finds the
+ *        sections by data-creative-id, fetches the creative from
+ *        /creatives/public/item/{id}, and fills the block — or
+ *        hides it if the creative was turned off.
  *
- * Empty-article hint:
- *   When the page has no content AND the user can edit, an onboarding
- *   tooltip (EmptyArticleHint, see ./hint.js) is shown under the
- *   "Редактировать" button. It can be dismissed (✕) or permanently
- *   suppressed via a "Не показывать больше" checkbox (localStorage).
- *
- * Effects: each effect is its own file under editor/effects/fx/,
- * loaded on every page — so that effects applied in the editor
- * (classes like .fx-shadow-top-n) render on the public page as well.
- * The list is fetched from GET /editor/effects (single source of
- * truth — effects/registry.json on the backend, served by the API).
- * Loading order matches the editor canvas:
- *   content.css → fx/*.css → blocks/*.css.
+ *   block.js has no auto-run and no window globals. It exports a
+ *   single function; the call site (word.js, public.html, the
+ *   history modal) decides when to invoke it. This keeps the
+ *   global scope clean and makes the call explicit.
  *
  * Public API (to Renderer / Word):
  *   - waitForInit()
@@ -265,6 +259,58 @@ export class Word {
             // Set header title and render
             actions.setHeaderTitle(this);
             await view.render(this);
+
+            // ============================================================
+            // Creative block — patch in three steps.
+            //
+            // Step 1: write data-creative-id into the DOM.
+            //   The attribute may be empty in the saved HTML — GrapesJS
+            //   does not always preserve it. pageData.creative_id is the
+            //   source of truth: it comes from the backend
+            //   (word/service.py → _page_to_dict) and is always up to
+            //   date. We patch the DOM directly so block.js sees a
+            //   non-empty id.
+            //
+            // Step 2: dynamic import of block.js — an ES-module.
+            //
+            // Step 3: call mod.patchCreativeBlocks() explicitly.
+            //   block.js has no auto-run: it only exports the function.
+            //   The call site decides when to run it — this file for
+            //   the admin preview, public.html for the public page,
+            //   history.js for the history modal.
+            //
+            // No window globals — the function lives in the module and
+            // is reached via the module object returned by import().
+            // ============================================================
+            try {
+                const creativeId = this.pageData?.creative_id;
+
+                if (creativeId != null) {
+                    const sections = document.querySelectorAll(
+                        '[data-block="core-creative"]'
+                    );
+                    sections.forEach((s) => {
+                        const current = s.getAttribute('data-creative-id');
+                        if (!current) {
+                            s.setAttribute('data-creative-id', String(creativeId));
+                        }
+                    });
+                }
+
+                const blockMod = await import(
+                    `/static/core/engine/lib/creatives/public/block.js?v=${version}`
+                );
+
+                if (blockMod && typeof blockMod.patchCreativeBlocks === 'function') {
+                    blockMod.patchCreativeBlocks();
+                } else {
+                    console.warn(
+                        '[Word] block.js does not export patchCreativeBlocks'
+                    );
+                }
+            } catch (e) {
+                console.warn('[Word] creative block.js not loaded:', e);
+            }
 
             // Empty-article hint — load the class and show if the page
             // has no content and the user can edit.
