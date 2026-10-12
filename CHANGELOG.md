@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.23] - 2026-10-12
+- "Главная" in the header menu now links to the module root (`/core/engine/admin`) instead of `/` — the menu renderer treats a bare "/" or empty href as "current module root" and substitutes `window.coreEngine.baseUrl`. Fixes the header link leading out of the admin shell to the public landing page configured in `.env`. Fixed 500 on `GET /creatives/stats`: `_public_base_for_nav` in `creatives/service.py` used `from ....base…` (four dots) instead of `from ..base…` (two dots, same as `word/url.py`), raising `ImportError: attempted relative import beyond top-level package` on the first request and breaking the "Отчёт" tab.
+
 ## [1.0.22] - 2026-10-12
 - Placement tracking works end to end: `creatives/public/block.js` sends `show` / `click` hits to `POST /creatives/hit` via `navigator.sendBeacon`, and the admin "Отчёт" tab now shows real counts. Report "Страница" column shows the destination page's title as a clickable link to its public URL (`https://<owner-host>/page/…`), with `#<page_id>` fallback; numeric columns center-aligned in header and body. Footer links in Word view rebased onto `pageData.public_host` so admin preview matches the public page. No more FOUC on `?page=setup` / `?page=profile` / `?page=creatives`: `coreEngine.loadCSS()` now returns a Promise resolved on `link.onload`, and the affected components await it in `_init()`. `pages/public/route.py` split into six modules (route / render / cookies / html / hosts / paths) — no behaviour change.
 
@@ -113,6 +116,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.23]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.22...v1.0.23
 [1.0.22]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.21...v1.0.22
 [1.0.21]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.20...v1.0.21
 [1.0.20]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.19...v1.0.20

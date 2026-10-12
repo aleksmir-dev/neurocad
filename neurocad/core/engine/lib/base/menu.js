@@ -1,4 +1,4 @@
-// app/core/engine/lib/base/menu.js
+// neurocad/core/engine/lib/base/menu.js
 
 /**
  * Menu — header menu.
@@ -16,7 +16,7 @@
  * Items that navigate to a URL are rendered as real <a href="...">,
  * WITHOUT any JS interceptor:
  *
- *   - "Главная"           — <a href="item.href">
+ *   - "Главная"           — <a href="<moduleBaseUrl>">
  *   - "Профиль" (user)    — <a href="<module>?page=profile">
  *   - "Логин" (guest)     — <a href="<module>?auth=login">
  *   - "Баланс" (superadm) — <a href="<module>/balance">
@@ -63,6 +63,23 @@
  *   <module>?page=setup                    → setup landing
  *
  * <module> here is window.coreEngine.baseUrl — e.g. /core/engine/admin.
+ *
+ * Home item — hard target
+ * -----------------------
+ * The "Главная" item is a CONFIGURED menu entry (props.menu, from
+ * the page JSON). Historically its href was "/" — which on the
+ * platform host means the public landing page, not the admin shell.
+ * That is why the header link went to the wrong place.
+ *
+ * The renderer now treats an href of "/" (or an empty href) as
+ * "the current module root" and substitutes window.coreEngine.baseUrl
+ * (e.g. /core/engine/admin). Any other href — a real path or an
+ * absolute URL — is rendered as-is, so custom menu entries keep
+ * working.
+ *
+ * This is a safety net: fixing the href in the page JSON is the
+ * cleaner fix. The fallback exists so a stale config does not push
+ * users to the wrong host.
  *
  * Access
  * ------
@@ -139,6 +156,30 @@ export class Menu {
         return `${base}${query}`;
     }
 
+    /**
+     * Resolve an item href from the page JSON.
+     *
+     * A configured href of "/" (or "" / null) is treated as
+     * "the current module root" and rewritten to the module base
+     * URL — /core/engine/admin on the admin module. Any other
+     * value is left untouched: real paths, absolute URLs, and
+     * future deep links all render verbatim.
+     *
+     * Why: on the platform host "/" means the PUBLIC landing page
+     * (or the owner's home redirect on a user domain), not the
+     * admin shell. The menu is part of the admin shell, so its
+     * home link must stay inside the shell.
+     */
+    _resolveItemHref(item) {
+        const raw = item && item.href ? String(item.href) : '';
+
+        if (raw === '' || raw === '/') {
+            return this._moduleBaseUrl();
+        }
+
+        return raw;
+    }
+
     updateUI() {
         const guestEl = document.querySelector('.core-engine-lib-base-menu-guest');
         const loginEl = document.querySelector('.core-engine-lib-base-menu-login');
@@ -191,8 +232,12 @@ export class Menu {
 
         const moduleBaseUrl = this._moduleBaseUrl();
 
+        // Items from the page JSON (props.menu). The href is passed
+        // through _resolveItemHref — a bare "/" becomes the module
+        // base URL, everything else is used as-is.
         const itemsHtml = this.items.map(item => {
-            return `<a href="${item.href || '#'}" class="core-engine-lib-base-menu-item">${item.text}</a>`;
+            const href = this._resolveItemHref(item);
+            return `<a href="${href}" class="core-engine-lib-base-menu-item">${item.text}</a>`;
         }).join('');
 
         // "Баланс" — superadmin-only. Hidden via inline style so

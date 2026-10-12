@@ -511,7 +511,7 @@ class CoreEngineLibCreativesService:
         """
         # Late import — the domain service pulls in httpx/ssl/socket
         # and would slow down every import of this module.
-        from ....base.profile.domain.service.facade import (
+        from ..base.profile.domain.service.facade import (
             CoreEngineLibBaseProfileDomainService,
         )
 
