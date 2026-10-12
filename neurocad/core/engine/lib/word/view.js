@@ -150,6 +150,25 @@ export function buildToolbarButtons(word, toolbar) {
  *   (see GrapesLoader._applyScopeClass). Block CSS rules
  *   (.core-engine-lib-word-blocks .btn, ...) only match when this
  *   wrapper is present — both in the editor and on the view page.
+ *
+ * ★ Footer links are rebased onto the user's PUBLIC host.
+ *   The Word widget is rendered on the admin host (neurocad.ru or
+ *   neurocad-dev.ru), but the footer links in the page content are
+ *   RELATIVE — /policy, /rules, /contacts. Without rebasing, a click
+ *   on those links in the ADMIN VIEW would go to
+ *   neurocad.ru/policy (the platform's own domain, or a 404), not
+ *   to the page owner's site.
+ *
+ *   The public host is resolved by the backend (word/url.py →
+ *   build_public_url) and arrives as pageData.public_host:
+ *       "user.neurocad.ru" for a subdomain owner;
+ *       "custom.ru"        for a custom-domain owner.
+ *
+ *   We rewrite href="/..." → href="https://<public_host>/...". Links
+ *   that are already absolute (http://, https://, //, mailto:,
+ *   tel:, #, etc.) are left untouched. If public_host is missing —
+ *   leave the links as they are (better a broken relative link than
+ *   a wrong absolute one).
  */
 
 // URL prefix for page CSS files. Must match PAGES_CSS_URL in
@@ -245,6 +264,12 @@ export async function buildArticle(word) {
         scopeEl.appendChild(temp.firstChild);
     }
 
+    // ===== Rebase relative footer links onto the public host =====
+    // Runs on the assembled scopeEl — after template insertion, so
+    // template-injected footers are covered too. No-op when
+    // public_host is missing or no matching links are present.
+    rebaseFooterLinks(scopeEl, word.pageData?.public_host);
+
     contentEl.appendChild(scopeEl);
     article.appendChild(contentEl);
     return article;
@@ -268,6 +293,61 @@ export function applyTemplate(templateHtml, contentHtml) {
 
     slot.innerHTML = contentHtml;
     return temp.innerHTML;
+}
+
+/**
+ * Rebase relative footer links onto the public host.
+ *
+ * The Word widget is rendered on the ADMIN host. Footer links in the
+ * page content are relative ("/policy", "/rules", "/contacts"), so a
+ * click in the admin view would land on the admin host — not on the
+ * page owner's site. On the public page the same links resolve
+ * correctly because the origin is already the owner's host; only the
+ * admin preview is wrong.
+ *
+ * Rewrites href="/..." → href="https://<publicHost>/...". Absolute
+ * hrefs (http://, https://, //, mailto:, tel:, #, etc.) are left
+ * untouched.
+ *
+ * Scope: only links inside .footer__nav. Other relative links in the
+ * page (if any) are NOT rebased — those are the author's content and
+ * may intentionally be relative to the current host. The footer is
+ * a system block (see ready.js → core-footer) with a fixed set of
+ * relative URLs, so rebasing it here is a targeted fix, not a general
+ * policy.
+ *
+ * @param {HTMLElement} root        — the assembled scope wrapper
+ * @param {string|null} publicHost  — "user.neurocad.ru" | "custom.ru" | null
+ */
+function rebaseFooterLinks(root, publicHost) {
+    if (!root) return;
+
+    const host = (publicHost || '').trim();
+    if (!host) {
+        // No public host resolved — a wrong absolute link would be
+        // worse than the (currently relative) one. Leave as-is.
+        return;
+    }
+
+    // Scheme-less base. href values start with "/" so the join is
+    // "https://<host>/policy" without a double slash.
+    const base = `https://${host}`;
+
+    const links = root.querySelectorAll('.footer__nav a[href^="/"]');
+    if (!links || !links.length) return;
+
+    links.forEach((a) => {
+        const path = a.getAttribute('href');
+        if (!path) return;
+
+        // Skip protocol-relative URLs ("//example.com/x") — they
+        // start with "/" but carry their own host.
+        if (path.startsWith('//')) return;
+
+        a.setAttribute('href', base + path);
+    });
+
+    console.log('[Word] footer links rebased onto', host, '— count:', links.length);
 }
 
 /**

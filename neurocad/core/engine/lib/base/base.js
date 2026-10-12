@@ -49,6 +49,27 @@
  *   `<body data-section>` are kept as fallbacks for server-rendered
  *   pages that do not go through the URL query at all.
  *
+ * Visibility / FOUC
+ * -----------------
+ * The constructor hides <body> immediately (`display: none`) so the
+ * user never sees a half-rendered shell. It is revealed again only
+ * when the requested page has finished building — via _reveal().
+ *
+ * Every "reveal" call in _initAuth() must run AFTER the awaited
+ * page builder returns:
+ *
+ *   - auth form      → await this.auth.showLogin() / showRegister() / ...
+ *   - app page       → await this._openPage(page, section)
+ *   - default flow   → await this.renderContent()
+ *
+ * Earlier versions called _reveal() BEFORE the awaited builder (or
+ * without awaiting at all). That produced a visible flash of an
+ * empty area-center on ?page=profile and ?page=creatives — the
+ * page shell was already visible while the dynamic import and the
+ * first data fetch were still in flight. Setup appeared to work
+ * only because the guest branch shows a lightweight login form
+ * synchronously — nothing to flash.
+ *
  * Reload after login
  * ------------------
  * After a successful login (auth:changed with isAuthenticated=true)
@@ -142,11 +163,23 @@ export class Base {
         this._setCaption = null;
         this._restoreCaption = null;
 
+        // Hide the body until the requested page is ready.
+        // _reveal() shows it again — called once per page in _initAuth().
         document.body.style.display = 'none';
 
         this._loadBaseCSS();
 
         this._initPromise = this._init();
+    }
+
+    /**
+     * Reveal the body — called once per page, after the awaited
+     * page builder has finished. Hides the FOUC: the shell is not
+     * visible until _reveal() runs.
+     */
+    _reveal() {
+        document.body.style.display = 'flex';
+        document.body.style.flexDirection = 'column';
     }
 
     _loadBaseCSS() {
@@ -355,6 +388,11 @@ export class Base {
         // Comes from ?auth=<form> (via props.params.auth) or from
         // <body data-auth-form>. Only login / register / restore /
         // password — `profile` is not an auth form anymore.
+        //
+        // The body stays hidden until the awaited show*() has built
+        // the form. showLogin / showRegister / showRestore / showPassword
+        // are async — they dynamically import the form component and
+        // wait for its render.
         if (this.authForm) {
             const map = {
                 login:    () => this.auth.showLogin(),
@@ -365,9 +403,8 @@ export class Base {
             const fn = map[this.authForm];
             if (fn) {
                 this._isAuthenticating = true;
-                fn();
-                document.body.style.display = 'flex';
-                document.body.style.flexDirection = 'column';
+                await fn();
+                this._reveal();
                 return;
             }
             console.warn('[Base] Unknown auth form:', this.authForm);
@@ -379,65 +416,72 @@ export class Base {
         // is not authenticated, the login form is shown instead; once
         // the user logs in, the reload (see auth:changed) re-runs the
         // whole init with the session in place.
+        //
+        // Both branches are awaited: the body stays hidden until the
+        // page (or the login form) has finished building. That is
+        // what makes ?page=profile and ?page=creatives appear as one
+        // atomic paint instead of a flash of an empty area-center
+        // followed by the page.
         if (this.page) {
             if (!isAuthenticated) {
                 console.log('[Base] page requested but not authenticated — showing login');
                 this._isAuthenticating = true;
-                this.auth.showLogin();
-                document.body.style.display = 'flex';
-                document.body.style.flexDirection = 'column';
+                await this.auth.showLogin();
+                this._reveal();
                 return;
             }
 
-            document.body.style.display = 'flex';
-            document.body.style.flexDirection = 'column';
-            this._openPage(this.page, this.section);
+            await this._openPage(this.page, this.section);
+            this._reveal();
             return;
         }
 
         // ===== 3. Default flow =====
+        // No explicit auth form and no explicit page: this is the
+        // normal config-driven route. Auth-required routes without
+        // a session fall back to the auth page; everything else
+        // renders the config content. Both branches are awaited
+        // before revealing the body.
         if (this.authRequired) {
             if (!isAuthenticated) {
-                this.pages.showAuthPage();
+                await this.pages.showAuthPage();
             } else {
-                this.renderContent();
+                await this.renderContent();
             }
         } else {
-            this.renderContent();
+            await this.renderContent();
         }
 
         if (this.header && typeof this.header.bindEvents === 'function') {
             this.header.bindEvents();
         }
 
-        document.body.style.display = 'flex';
-        document.body.style.flexDirection = 'column';
+        this._reveal();
     }
 
     /**
      * Open an app page (profile / setup / creatives) with an optional
      * section.
      *
-     * Centralises the page → BasePages mapping so both _initAuth()
-     * and the auth:changed handler stay in sync.
+     * Async: it awaits the delegated page controller so callers can
+     * reveal the body only after the page has actually been built.
+     * Returns when the target page is on screen (or when it decided
+     * not to open — e.g. the user cancelled a confirm dialog).
      *
      * @param {string} page — 'profile' | 'setup' | 'creatives'
      * @param {string|null} section — sub-page inside `page`
      */
-    _openPage(page, section = null) {
+    async _openPage(page, section = null) {
         console.log('[Base] _openPage()', { page, section });
 
         if (page === 'profile') {
-            this.showProfile(section || 'main');
-            return;
+            return await this.showProfile(section || 'main');
         }
         if (page === 'setup') {
-            this.showSetup(section || 'main');
-            return;
+            return await this.showSetup(section || 'main');
         }
         if (page === 'creatives') {
-            this.showCreatives();
-            return;
+            return await this.showCreatives();
         }
         console.warn('[Base] Unknown page:', page);
     }
@@ -491,24 +535,27 @@ export class Base {
 
     /**
      * Open a profile page. Delegates to BasePages.
+     * Async — propagates the pages.js promise so callers can await
+     * page readiness before revealing the body.
      */
-    showProfile(section = 'main') {
+    async showProfile(section = 'main') {
         if (!this.pages) {
             console.warn('[Base] showProfile called before init');
             return null;
         }
-        return this.pages.showProfile(section);
+        return await this.pages.showProfile(section);
     }
 
     /**
      * Open a setup page. Delegates to BasePages.
+     * Async — same contract as showProfile.
      */
-    showSetup(section = 'main') {
+    async showSetup(section = 'main') {
         if (!this.pages) {
             console.warn('[Base] showSetup called before init');
             return null;
         }
-        return this.pages.showSetup(section);
+        return await this.pages.showSetup(section);
     }
 
     /**
@@ -518,13 +565,15 @@ export class Base {
      * creatives and placements). Guests are stopped by the guard in
      * BasePages.showCreatives(); the URL rule (?page=creatives needs
      * an authenticated user) is checked here too, in _initAuth().
+     *
+     * Async — same contract as showProfile.
      */
-    showCreatives() {
+    async showCreatives() {
         if (!this.pages) {
             console.warn('[Base] showCreatives called before init');
             return null;
         }
-        return this.pages.showCreatives();
+        return await this.pages.showCreatives();
     }
 
     /**

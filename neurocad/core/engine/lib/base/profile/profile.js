@@ -8,6 +8,22 @@
  * domain, password) and opens the existing password-change page
  * (auth/password.js).
  *
+ * Styles / FOUC
+ * -------------
+ * The component's stylesheet (profile.css) is loaded in _init(),
+ * which is awaited by BaseAreas.renderInArea BEFORE render() runs.
+ * That means the <link> is not only appended to <head> — it has
+ * actually fired `load` and is in effect. By the time the element
+ * reaches area-center and Base._initAuth reveals the body, the
+ * page is fully styled.
+ *
+ * The earlier version fired loadCSS() in the constructor without
+ * awaiting. The link was appended but not loaded, render() ran
+ * immediately, and the user saw a flash of an unstyled menu
+ * (FOUC) — the "menu items with no spacing" look that lasts until
+ * profile.css finished downloading. Awaiting the CSS here is what
+ * closes that gap. Same fix as setup.js.
+ *
  * Props:
  *   - section        {string}   — 'main'
  *   - user           {object}   — current user (from auth)
@@ -36,14 +52,24 @@ export class BaseProfile {
         this._initialized = false;
         this._initPromise = null;
 
-        this._loadCSS();
-
+        // NOTE: _loadCSS() is NOT called here. It runs inside _init(),
+        // which is awaited by BaseAreas.renderInArea before render().
+        // That guarantees the stylesheet is fully loaded — not just
+        // appended — before the element reaches area-center, so the
+        // user never sees an unstyled flash.
         this._initPromise = this._init();
     }
 
     async _init() {
         console.log('[BaseProfile] _init() START');
         try {
+            // Wait for the component's own stylesheet before letting
+            // anyone render. _loadCSS is async and resolves only when
+            // profile.css has fired `load` (or `error`). renderInArea
+            // awaits this._initPromise, so the render path is: CSS
+            // ready → render() → mount → Base reveals the body.
+            await this._loadCSS();
+
             this._initialized = true;
             console.log('[BaseProfile] _init() COMPLETE');
         } catch (error) {
@@ -53,10 +79,18 @@ export class BaseProfile {
         }
     }
 
-    _loadCSS() {
+    /**
+     * Load the component's stylesheet and wait for it.
+     *
+     * window.coreEngine.loadCSS() returns a Promise that resolves
+     * once the <link> fires `load` (or `error`). Awaiting it here
+     * is what prevents the unstyled flash: by the time _init()
+     * resolves, the stylesheet is already applied.
+     */
+    async _loadCSS() {
         console.log('[BaseProfile] _loadCSS()');
         if (window.coreEngine && typeof window.coreEngine.loadCSS === 'function') {
-            window.coreEngine.loadCSS('core/engine/lib/base/profile/profile.css');
+            await window.coreEngine.loadCSS('core/engine/lib/base/profile/profile.css');
         }
     }
 

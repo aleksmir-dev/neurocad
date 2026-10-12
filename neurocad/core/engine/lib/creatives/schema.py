@@ -187,12 +187,38 @@ class StatsFilter(BaseModel):
 
 
 class StatsItem(BaseModel):
-    """One report row — per placement for the period."""
+    """
+    One report row — per placement for the period.
+
+    `page_id` is kept as the raw numeric identifier so admin tools
+    can reference the page without parsing a URL. Two extra fields
+    describe that page for a human:
+
+      - `page_title`    — the page's title (falls back to None if
+                          the page was deleted after the stats
+                          were accumulated; the row is still
+                          returned, the link just does not render);
+      - `page_url`      — the ABSOLUTE public URL of the page on
+                          the owner's public host, or None when
+                          the host cannot be resolved. Built with
+                          the same base as the sitemap and the
+                          "Open article catalog" button, so a user
+                          who switches between subdomain and
+                          custom domain sees the URL change to
+                          match.
+
+    The public report table renders `page_title` as a link when
+    `page_url` is present, and as plain text otherwise. Keeping
+    both fields optional means a placement whose page was deleted
+    (soft-delete) still produces a report row instead of vanishing.
+    """
     placement_id: int
     creative_id: int
     creative_name: str
     erid: Optional[str] = None
     page_id: int
+    page_title: Optional[str] = None
+    page_url: Optional[str] = None
     shows: int = 0
     clicks: int = 0
     target_actions: int = 0

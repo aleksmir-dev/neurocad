@@ -43,6 +43,21 @@
  *                    unchecks "Публиковать".
  *   - "Отчёт"      — shows / clicks / target_actions for a period.
  *
+ * Styles / FOUC
+ * -------------
+ * The component's stylesheet (creatives.css) is loaded in _init(),
+ * which is awaited by BaseAreas.renderInArea BEFORE render() runs.
+ * That means the <link> is not only appended to <head> — it has
+ * actually fired `load` and is in effect. By the time the element
+ * reaches area-center and Base._initAuth reveals the body, the
+ * page is fully styled.
+ *
+ * The earlier version called _loadCSS() directly from the
+ * constructor and never assigned _initPromise — so renderInArea
+ * had nothing to await, and render() ran while creatives.css was
+ * still in flight. That is the flash of an unstyled widget. Same
+ * fix as setup.js and profile.js.
+ *
  * Modals
  * ------
  * Create and Edit use createModal('form') — a multi-field modal
@@ -121,16 +136,50 @@ export class Creatives {
         // Guard against double render
         this._rendered = false;
 
-        this._loadCSS();
+        // Kick off init. The promise is awaited by BaseAreas.renderInArea
+        // BEFORE render() runs — see the module docstring on FOUC.
+        // NOTE: _loadCSS() is NOT called here directly; it runs inside
+        // _init() and is awaited there.
+        this._initPromise = this._init();
     }
 
     // ============================================
-    // LIFECYCLE — render / bindEvents / destroy
+    // LIFECYCLE — init / render / bindEvents / destroy
     // ============================================
 
-    _loadCSS() {
+    /**
+     * Init: load the component's stylesheet and wait for it.
+     *
+     * Awaited by BaseAreas.renderInArea before render() runs, so
+     * the <link> is guaranteed to have fired `load` before the
+     * widget reaches area-center. That is what prevents the flash
+     * of an unstyled widget (FOUC).
+     */
+    async _init() {
+        console.log('[Creatives] _init() START');
+        try {
+            await this._loadCSS();
+            this._initialized = true;
+            console.log('[Creatives] _init() COMPLETE');
+        } catch (error) {
+            console.error('[Creatives] Init error:', error);
+            this._initialized = false;
+            throw error;
+        }
+    }
+
+    /**
+     * Load the component's stylesheet and wait for it.
+     *
+     * window.coreEngine.loadCSS() returns a Promise that resolves
+     * once the <link> fires `load` (or `error`). Awaiting it here
+     * is what prevents the unstyled flash: by the time _init()
+     * resolves, the stylesheet is already applied.
+     */
+    async _loadCSS() {
+        console.log('[Creatives] _loadCSS()');
         if (window.coreEngine?.loadCSS) {
-            window.coreEngine.loadCSS('core/engine/lib/creatives/creatives.css');
+            await window.coreEngine.loadCSS('core/engine/lib/creatives/creatives.css');
         }
     }
 
@@ -459,7 +508,7 @@ export class Creatives {
                 <tr>
                     <td>${this._escape(r.creative_name || '—')}</td>
                     <td>${this._escape(r.erid || '—')}</td>
-                    <td>${r.page_id}</td>
+                    <td class="creatives-num">${this._pageCell(r)}</td>
                     <td class="creatives-num">${r.shows ?? 0}</td>
                     <td class="creatives-num">${r.clicks ?? 0}</td>
                     <td class="creatives-num">${r.target_actions ?? 0}</td>
@@ -480,10 +529,10 @@ export class Creatives {
                         <tr>
                             <th>Креатив</th>
                             <th>ERID</th>
-                            <th>Страница</th>
-                            <th>Показы</th>
-                            <th>Клики</th>
-                            <th>Целевые действия</th>
+                            <th class="creatives-num">Страница</th>
+                            <th class="creatives-num">Показы</th>
+                            <th class="creatives-num">Клики</th>
+                            <th class="creatives-num">Целевые действия</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
@@ -775,6 +824,48 @@ export class Creatives {
     // ============================================
     // UI HELPERS
     // ============================================
+
+    /**
+     * Render the "Страница" cell of a report row.
+     *
+     * The report carries three fields for the destination page:
+     *
+     *   - page_id     — always present (raw numeric id);
+     *   - page_title  — the page's title, or null if the page was
+     *                   deleted since the stats were accumulated;
+     *   - page_url    — the absolute public URL of the page on the
+     *                   owner's public host, or null when the host
+     *                   cannot be resolved.
+     *
+     * Preference:
+     *   1. page_url present → render page_title (or "#<id>" if the
+     *      title is missing) as a link to the public page, opening
+     *      in a new tab.
+     *   2. page_url missing but page_title present → render the
+     *      title as plain text — the destination is unknown but the
+     *      reader still sees which page this is.
+     *   3. both missing → render "#<page_id>" as plain text. This
+     *      is the "page has been deleted, only the id remains"
+     *      case: the row is still useful (the numbers count) but
+     *      there is nowhere to link.
+     *
+     * Everything is HTML-escaped before it goes into the template.
+     */
+    _pageCell(r) {
+        const id = r?.page_id;
+        const title = r?.page_title;
+        const url = r?.page_url;
+
+        const label = (title != null && String(title).trim() !== '')
+            ? String(title)
+            : `#${id ?? '—'}`;
+
+        if (url) {
+            return `<a href="${this._escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${this._escape(label)}</a>`;
+        }
+
+        return this._escape(label);
+    }
 
     _renderError(text) {
         this.contentEl.innerHTML = `

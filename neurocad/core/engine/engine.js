@@ -412,18 +412,54 @@ class CoreEngine {
         return paths;
     }
 
+    /**
+     * Load a CSS file and resolve when it is actually applied.
+     *
+     * Returns a Promise that resolves once the <link> has fired
+     * `load` (or `error` — a broken stylesheet should not hang the
+     * caller). An already-present <link> resolves immediately, so
+     * calling this twice for the same URL is cheap.
+     *
+     * Callers that render only after their styles are ready MUST
+     * await this. Callers that do not care can keep calling it
+     * fire-and-forget — the return value is a Promise, which is
+     * harmless to ignore.
+     *
+     * Why it matters
+     * --------------
+     * A bare `<link rel="stylesheet">` starts fetching the moment
+     * it is appended, but nothing waits for it by default. Without
+     * awaiting, a component's render() can run while its stylesheet
+     * is still in flight, and the user briefly sees an unstyled
+     * "skeleton" (FOUC). Wrapping the load in a Promise lets the
+     * page builder — Base._initAuth, in particular — reveal the
+     * body only after the styles are in effect.
+     */
     loadCSS(path) {
         const fullUrl = `/static/${path}${this.static_version ? '?v=' + this.static_version : ''}`;
 
-        const existing = document.querySelector(`link[href="${fullUrl}"]`);
-        if (existing) {
-            return;
-        }
+        return new Promise((resolve) => {
+            const existing = document.querySelector(`link[href="${fullUrl}"]`);
+            if (existing) {
+                resolve();
+                return;
+            }
 
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = fullUrl;
-        document.head.appendChild(link);
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = fullUrl;
+
+            link.onload = () => resolve();
+            link.onerror = () => {
+                console.warn('[CoreEngine] CSS failed to load:', fullUrl);
+                // Resolve anyway — a missing stylesheet should not
+                // block the page forever. The page renders with
+                // whatever CSS did load.
+                resolve();
+            };
+
+            document.head.appendChild(link);
+        });
     }
 
     showError() {

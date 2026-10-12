@@ -7,6 +7,9 @@
  * актуальные данные через GET /creatives/public/item/{id} и
  * заполняет / скрывает их.
  *
+ * Заодно отправляет хиты (показ / клик) в POST /creatives/hit —
+ * для отчёта в админке (вкладка «Отчёт» на странице креативов).
+ *
  * ES-MODULE, БЕЗ AUTO-RUN
  * -----------------------
  * Этот файл — ES-модуль. Он экспортирует ОДНУ функцию —
@@ -47,7 +50,7 @@
  * ЧТО ДЕЛАЕТ
  * ----------
  * 1. Находит все <section data-block="core-creative"
- *    data-creative-id="N">, где N — непустой id.
+ *    data-creative-id="N" data-placement-id="P">, где N — непустой id.
  *
  * 2. Для каждого блока — fetch('/creatives/public/item/N').
  *
@@ -61,9 +64,36 @@
  *    Пустые поля креатива → соответствующий span скрывается
  *    (display: none), юридическая строка становится короче.
  *
+ * 5. После успешного заполнения — отправляет ХИТ ПОКАЗА на
+ *    /creatives/hit с data-placement-id. На клик по ссылке
+ *    (.creative-block__link) — отправляет ХИТ КЛИКА.
+ *
+ * ТРЕКИНГ
+ * -------
+ * POST /core/engine/lib/creatives/hit
+ *   body: { placement_id: <int>, hit_type: "show" | "click" }
+ *
+ * Трекинг отправляется через navigator.sendBeacon, а не fetch:
+ *   - при показе: не блокирует основной поток, не мешает рендеру;
+ *   - при клике: пользователь начинает навигацию на target_url,
+ *     и обычный fetch был бы отменён. sendBeacon гарантирует
+ *     доставку даже при переходе на другую страницу.
+ *
+ * Fallback: если sendBeacon недоступен (старый браузер) —
+ * fetch с keepalive: true, который делает то же самое.
+ *
+ * Если data-placement-id пуст (креатив привязан к странице, но
+ * активного размещения нет) — хит не отправляется. Счётчика
+ * для такого блока не существует.
+ *
+ * ОШИБКИ ТРЕКИНГА ГЛОТАЮТСЯ МОЛЧА — счётчик не должен ломать
+ * рендер страницы. Если хит не ушёл (сеть, 500), пользователь
+ * этого не заметит; в отчёте просто не будет одной записи.
+ *
  * ПОЧЕМУ ТОЛЬКО ССЫЛКА, А НЕ ДАННЫЕ
  * ---------------------------------
- * В HTML блока хранится ТОЛЬКО data-creative-id. Сами данные
+ * В HTML блока хранится ТОЛЬКО data-creative-id (и, после
+ * рендера публичного роута, data-placement-id). Сами данные
  * подтягиваются динамически при каждом просмотре. Правка
  * креатива в админке видна сразу — без пересохранения страниц.
  *
@@ -73,16 +103,22 @@
  * 5 минут (Cache-Control: max-age=300, см. бэкенд). За это
  * время повторные загрузки страницы не дёргают сервер.
  *
+ * POST /creatives/hit — без кэша (это запись, а не чтение).
+ * Никаких заголовков не требуется: браузер не кэширует POST.
+ *
  * ЗАВИСИМОСТИ
  * -----------
- * Никаких. Только fetch() и DOM API. Относительный URL
- * /creatives/public/item/N резолвится по текущему origin —
- * один и тот же и для demo.neurocad-dev.ru, и для custom domain.
+ * Никаких. Только fetch() и DOM API. Относительные URL'ы
+ * резолвятся по текущему origin — один и тот же и для
+ * demo.neurocad-dev.ru, и для custom domain.
  */
 
 // URL публичного роута. Относительный — резолвится по origin
 // текущей страницы (пользовательский поддомен или custom domain).
 const API_BASE = '/core/engine/lib/creatives/public/item/';
+
+// URL трекинга. Тот же origin, тот же префикс модуля.
+const HIT_URL = '/core/engine/lib/creatives/hit';
 
 
 // ============================================
@@ -155,6 +191,9 @@ function loadCreative(section, id) {
  * is_active = 0 → скрыть блок целиком.
  * Иначе — заполнить поля. Пустые поля креатива → соответствующий
  * span скрывается (display: none).
+ *
+ * После заполнения — отправить хит показа и повесить обработчик
+ * клика на ссылку.
  */
 function apply(section, c) {
     // is_active = 0 → скрыть блок целиком.
@@ -179,6 +218,28 @@ function apply(section, c) {
         }
         // target и rel уже стоят в HTML из ready.js,
         // дублировать не нужно.
+    }
+
+    // ---- Трекинг ----
+    // Блок реально показан (не скрыт, есть контент). Считаем показ.
+    // Если data-placement-id пуст — счётчика для этого блока нет,
+    // trackHit сам это проверит и молча выйдет.
+    const placementId = section.getAttribute('data-placement-id');
+    trackHit(placementId, 'show');
+
+    // Клик по ссылке. Обработчик добавляется один раз на секцию:
+    // section не пересоздаётся между вызовами (мы её не клонируем),
+    // а loadCreative вызывается для каждой секции один раз при
+    // patchCreativeBlocks. Повторный вызов apply() для той же
+    // секции в рамках одной загрузки страницы не происходит —
+    // но на всякий случай помечаем через dataset.
+    if (link && placementId) {
+        if (!link.dataset.trackBound) {
+            link.dataset.trackBound = '1';
+            link.addEventListener('click', () => {
+                trackHit(placementId, 'click');
+            });
+        }
     }
 }
 
@@ -205,4 +266,71 @@ function setText(root, selector, value) {
  */
 function hide(section) {
     section.style.display = 'none';
+}
+
+
+// ============================================
+// TRACKING
+// ============================================
+
+/**
+ * Отправить хит в /creatives/hit.
+ *
+ * placement_id — id размещения (из data-placement-id).
+ * hit_type     — "show" | "click".
+ *
+ * Пустой/нулевой placement_id → тихий выход: либо креатив не
+ * привязан к странице, либо активного размещения нет. Счётчика
+ * для такого блока не существует.
+ *
+ * sendBeacon не блокирует навигацию: при клике по ссылке браузер
+ * сразу начинает переход на target_url, и обычный fetch был бы
+ * отменён. sendBeacon доставляется. При показе — не блокирует
+ * основной поток.
+ *
+ * Blob с явным content-type: FastAPI-эндпоинт объявлен как
+ * HitRequest (Pydantic) и ожидает application/json. Если
+ * отправить строку, content-type будет text/plain, и Pydantic
+ * вернёт 422. Blob({type: 'application/json'}) решает это.
+ *
+ * Любая ошибка отправки глотается молча — счётчик не должен
+ * ломать рендер страницы. Если хит не ушёл (сеть, 500), в
+ * отчёте просто не будет одной записи.
+ */
+function trackHit(placementId, hitType) {
+    if (!placementId) return;
+    const pid = Number(placementId);
+    if (!pid || !Number.isFinite(pid)) return;
+
+    const body = JSON.stringify({
+        placement_id: pid,
+        hit_type: hitType,
+    });
+
+    try {
+        if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+            const blob = new Blob([body], { type: 'application/json' });
+            const ok = navigator.sendBeacon(HIT_URL, blob);
+            if (ok) return;
+            // sendBeacon вернул false — очередь переполнена или
+            // браузер отказал. Падаем в fetch-фоллбэк ниже.
+        }
+    } catch (e) {
+        // sendBeacon может бросить в необычных окружениях
+        // (file://, ограничения приватного режима). Не мешаем —
+        // пробуем fetch.
+    }
+
+    // Fallback — fetch с keepalive. keepalive сохраняет запрос
+    // живым при навигации (клик по ссылке ведёт на другой URL).
+    try {
+        fetch(HIT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+            keepalive: true,
+        }).catch(() => {});
+    } catch (e) {
+        // Совсем нет возможности отправить — молча выходим.
+    }
 }

@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import select, func
 
 from ....models.base import Creative, Placement, PlacementStat
+from ....models.base import Page
 from .....utils.sqlite import get_db_sqlite
 
 
@@ -358,8 +359,42 @@ class CoreEngineLibCreativesService:
         Report over placements for the period [date_from, date_to].
 
         Returns a list with SUM(shows) / SUM(clicks) /
-        SUM(target_actions) per placement.
+        SUM(target_actions) per placement, plus the destination
+        page's title and public URL.
+
+        `page_title` — Page.title, or None when the page has been
+        soft-deleted since the stats were accumulated. The row is
+        still returned (with page_title=None) so historical numbers
+        are not lost.
+
+        `page_url` — absolute public URL of the page on the owner's
+        public host, built from the SAME base as the sitemap and
+        the "Open article catalog" button:
+
+            https://<login>.<ROOT_DOMAIN>/page/<YYYYMMDD>/<HHMMSS>
+            https://<custom-domain>/page/<YYYYMMDD>/<HHMMSS>
+
+        None when:
+          - the page has no datetime (should not happen for a live
+            page — datetime is NOT NULL — but folders are excluded
+            from placements anyway);
+          - the nav owner or their public base URL cannot be
+            resolved (a misconfigured account, or a nav whose user
+            was soft-deleted).
+
+        The public base is resolved ONCE for the whole report — not
+        per row. `get_public_base_url` is a chain of a few queries
+        (users.domain, then settings.APP_DOMAIN); calling it for
+        every row would multiply the cost of a report that is
+        usually small but should not be O(n) in network-bound work.
         """
+        # Resolve the public base once. Imported lazily to keep the
+        # creatives module independent of the domain service at
+        # import time (domain.service imports httpx/ssl — heavy).
+        public_base = await CoreEngineLibCreativesService._public_base_for_nav(
+            nav_id
+        )
+
         async for session in get_db_sqlite():
             stmt = (
                 select(
@@ -368,12 +403,19 @@ class CoreEngineLibCreativesService:
                     Creative.name,
                     Creative.erid,
                     Placement.page_id,
+                    Page.title,
+                    Page.datetime,
                     func.sum(PlacementStat.shows).label("shows"),
                     func.sum(PlacementStat.clicks).label("clicks"),
                     func.sum(PlacementStat.target_actions).label("target_actions"),
                 )
                 .join(Creative, Creative.id == Placement.creative_id)
                 .join(PlacementStat, PlacementStat.placement_id == Placement.id)
+                # LEFT JOIN — a placement whose page was deleted still
+                # shows up in the report, with page_title=None and
+                # page_url=None. An INNER JOIN would silently drop
+                # those rows and shrink the totals.
+                .outerjoin(Page, Page.id == Placement.page_id)
                 .where(
                     Creative.nav_id == nav_id,
                     Placement.is_delete == 0,
@@ -387,16 +429,10 @@ class CoreEngineLibCreativesService:
             rows = (await session.execute(stmt)).all()
 
             return [
-                {
-                    "placement_id": r[0],
-                    "creative_id": r[1],
-                    "creative_name": r[2],
-                    "erid": r[3],
-                    "page_id": r[4],
-                    "shows": r[5] or 0,
-                    "clicks": r[6] or 0,
-                    "target_actions": r[7] or 0,
-                }
+                CoreEngineLibCreativesService._stats_row_to_dict(
+                    r,
+                    public_base=public_base,
+                )
                 for r in rows
             ]
         return []
@@ -456,6 +492,102 @@ class CoreEngineLibCreativesService:
     # ============================================
     # HELPERS
     # ============================================
+
+    @staticmethod
+    async def _public_base_for_nav(nav_id: int) -> Optional[str]:
+        """
+        Resolve the public base URL (no trailing slash) for the
+        owner of a nav, or None.
+
+        Delegates to the domain service's get_public_base_url,
+        which already knows the rule (custom domain, else
+        https://<login>.<ROOT_DOMAIN>). We resolve the nav's user_id
+        here — one cheap query — because the creatives report is
+        keyed by nav, not by user.
+
+        Never raises: any failure (nav not found, user soft-deleted,
+        settings misconfigured) is treated as "no public base", and
+        the caller falls back to page_url=None.
+        """
+        # Late import — the domain service pulls in httpx/ssl/socket
+        # and would slow down every import of this module.
+        from ....base.profile.domain.service.facade import (
+            CoreEngineLibBaseProfileDomainService,
+        )
+
+        async for session in get_db_sqlite():
+            # Nav owner.
+            from ....models.nav import Nav
+
+            u_stmt = select(Nav.user_id).where(
+                Nav.id == nav_id,
+                Nav.is_delete.is_(False),
+            )
+            user_id = (await session.execute(u_stmt)).scalar_one_or_none()
+            if user_id is None:
+                return None
+            break
+
+        try:
+            return await CoreEngineLibBaseProfileDomainService.get_public_base_url(
+                user_id
+            )
+        except Exception:
+            return None
+
+    @staticmethod
+    def _stats_row_to_dict(
+        row,
+        public_base: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Turn one row of the get_stats query into a JSON-safe dict.
+
+        The query returns a tuple in a fixed order:
+
+            [0] placement_id       int
+            [1] creative_id        int
+            [2] creative_name      str
+            [3] erid               str | None
+            [4] page_id            int
+            [5] page_title         str | None   (from LEFT JOIN)
+            [6] page_datetime      datetime | None (from LEFT JOIN)
+            [7] shows              int | None
+            [8] clicks             int | None
+            [9] target_actions     int | None
+
+        Aggregations come back as NULL when there are no matching
+        stats rows — we coalesce to 0.
+
+        `page_url` is built only when both `public_base` and the
+        page's datetime are known. Otherwise it stays None, and the
+        frontend renders the page id as plain text (no link).
+        """
+        page_id = row[4]
+        page_title = row[5]
+        page_dt = row[6]
+
+        page_url: Optional[str] = None
+        if public_base and page_dt is not None:
+            try:
+                date_part = page_dt.strftime("%Y%m%d")
+                time_part = page_dt.strftime("%H%M%S")
+                page_url = f"{public_base}/page/{date_part}/{time_part}"
+            except Exception:
+                page_url = None
+
+        return {
+            "placement_id": row[0],
+            "creative_id": row[1],
+            "creative_name": row[2],
+            "erid": row[3],
+            "page_id": page_id,
+            "page_title": page_title,
+            "page_url": page_url,
+            "shows": row[7] or 0,
+            "clicks": row[8] or 0,
+            "target_actions": row[9] or 0,
+        }
 
     @staticmethod
     def _creative_to_dict(c: Creative) -> Dict[str, Any]:

@@ -1,90 +1,29 @@
-# neurocad 1.0.21
+# neurocad 1.0.22
 
-Release date: 2026-10-11
+Release date: 2026-10-12
 
 ---
 
 ## English
 
-**Contacts page.** Every user's site can now publish a contacts page
-alongside `/policy` and `/rules`. The contacts text lives in a new
-`users.contacts` column (TEXT, nullable) and is served at
-`/contacts` on the user's own host — subdomain or custom domain —
-by the same resolver as the two legal pages: Host → user → column.
-When the field is empty, the page falls back to a universal
-contacts template (`modal/legal/contacts.md`), so a footer link
-never leads to a dead end.
+**Placement tracking works end to end.** `PlacementStat` had a reader but no writer — the "Отчёт" tab showed zeroes for every placement because nothing ever called `POST /creatives/hit`. The public tracking script (`creatives/public/block.js`) now sends a hit when a `core-creative` block is rendered (`show`) and when its link is clicked (`click`), using `navigator.sendBeacon` so the request survives the navigation. The admin report shows the real counts.
 
-**Legal card — third row.** The "Документы сайта" card in
-Profile → Domains now has three rows instead of two: Policy,
-Rules, Contacts. Each row keeps its own state badge
-(«Универсальный текст» / «Заполнено»), its own preview link, and
-its own "Редактировать" button that opens the same shared modal.
+**Report table — readable page link and aligned numbers.** The "Страница" column now shows the destination page's title as a clickable link to its public URL (`https://<owner-host>/page/…`), falling back to `#<page_id>` when the page has been deleted or the owner's host cannot be resolved. Numeric columns (Показы, Клики, Целевые действия) are center-aligned in both the header and the body — previously the header sat left and the numbers right, so the columns did not visually line up.
 
-**Contacts is not a legal document.** It shares the storage
-pipeline with policy / rules (free-form markdown in a Text column,
-same modal, same save endpoint), but the "✨ Сгенерировать" preset
-is disabled for it: the LLM cannot invent a phone number or an
-address from the home page text. The frontend disables the button
-and the backend returns 400 on `/domain/legal/generate` with
-`which="contacts"` — guarded on both sides so a keyboard user or a
-stale client cannot accidentally spend tokens on a request that
-cannot be honoured.
+**Footer links in the admin preview go to the owner's host.** In Word view the `core-footer` links are relative (`/policy`, `/rules`, `/contacts`), so a click opened them on `neurocad.ru` instead of the page owner's site. The renderer now rebases them onto `pageData.public_host` — the subdomain or custom domain resolved on the backend — so the admin preview matches what the public page does.
 
-**Footer block.** The ready-made `core-footer` section now ships
-with three relative links — Политика, Правила, Контакты — so the
-new page is discoverable from every page that uses the block. No
-absolute URL is hardcoded; the links resolve against whatever host
-the page is served on.
+**No more flash of unstyled pages.** `?page=setup`, `?page=profile` and `?page=creatives` used to show a "bare" version of the page for a few hundred milliseconds while their stylesheets were still being fetched. `window.coreEngine.loadCSS()` now returns a Promise that resolves when the `<link>` fires `load`, and the affected components await it in `_init()` before rendering. The shell reveals the body only after the awaited page builder has returned, so the user sees a fully styled page from the first frame.
 
-**Internal.** The `LegalModal` was generalised from two targets to
-three via a single `LEGAL_WHICH` list and a `LEGAL_META` map of
-per-document strings (title, URL, noun). Adding a fourth document
-later is a one-line change in four places: `LEGAL_WHICH` in the
-modal, `_LEGAL_WHICH` in `service/legal.py`, `_LEGAL_WHICH` in
-`public.py`, and `LEGAL_WHICH_ALL` in `schema.py`. The route,
-service, and public pipelines now agree on the set through these
-constants instead of hardcoding ("policy", "rules") in six places.
+**Internal.** `pages/public/route.py` split into six modules — `route.py` (URLs and handlers), `render.py` (page / catalog / placeholder / `resolve_content`), `cookies.py` (folder-path cookie), `html.py` (`strip_body_wrapper`, `apply_template`), `hosts.py` (host ownership and nav resolution), `paths.py` (folder-chain walk). No behaviour change; the same three URLs serve the same three handlers.
 
 ## Русский
 
-**Страница «Контакты».** Теперь на сайте каждого пользователя
-может публиковаться страница контактов — рядом с `/policy` и
-`/rules`. Текст хранится в новой колонке `users.contacts` (TEXT,
-nullable) и отдаётся по адресу `/contacts` на хосте
-пользователя — поддомене или кастомном домене — тем же
-резолвером, что и две юридические страницы: Host → user →
-колонка. Если поле не заполнено, отдаётся универсальный шаблон
-(`modal/legal/contacts.md`), так что ссылка в подвале никогда не
-ведёт в никуда.
+**Трекинг размещений работает от начала до конца.** У `PlacementStat` был читатель, но не было писателя — вкладка «Отчёт» показывала нули для каждого размещения, потому что `POST /creatives/hit` никто не вызывал. Публичный трекинг-скрипт (`creatives/public/block.js`) теперь отправляет хит при отрисовке блока `core-creative` (`show`) и при клике по его ссылке (`click`) через `navigator.sendBeacon`, чтобы запрос дошёл даже при навигации. Отчёт в админке показывает реальные числа.
 
-**Карточка «Документы сайта» — третья строка.** В
-Profile → Домены у карточки теперь три строки вместо двух:
-Политика, Правила, Контакты. У каждой — свой бейдж состояния
-(«Универсальный текст» / «Заполнено»), своя preview-ссылка и
-своя кнопка «Редактировать», открывающая ту же общую модалку.
+**Отчёт — кликабельная ссылка на страницу и выровненные числа.** Столбец «Страница» теперь показывает название страницы-назначения кликабельной ссылкой на её публичный URL (`https://<хост-владельца>/page/…`), с фолбэком на `#<page_id>`, если страница удалена или публичный хост владельца не резолвится. Числовые столбцы (Показы, Клики, Целевые действия) центрированы и в шапке, и в теле — раньше шапка стояла слева, а числа справа, столбцы визуально не совпадали.
 
-**Контакты — не юридический документ.** Они живут в том же
-пайплайне, что policy / rules (свободный markdown в Text-колонке,
-та же модалка, тот же эндпоинт сохранения), но пресет
-«✨ Сгенерировать» для них выключен: LLM не может выдумать
-телефон или адрес из текста главной страницы. Фронт гасит
-кнопку, бэк возвращает 400 на `/domain/legal/generate` с
-`which="contacts"` — защита с обеих сторон, чтобы клавиатурный
-пользователь или устаревший клиент случайно не потратили токены
-на запрос, который всё равно не будет выполнен.
+**Ссылки подвала в админском просмотре ведут на хост владельца.** В Word-просмотре ссылки блока `core-footer` относительные (`/policy`, `/rules`, `/contacts`), поэтому клик открывал их на `neurocad.ru`, а не на сайте владельца страницы. Рендерер теперь переписывает их на `pageData.public_host` — поддомен или кастомный домен, резолвленный на бэке, — так что админский просмотр совпадает с публичной страницей.
 
-**Блок подвала.** Готовая секция `core-footer` теперь содержит
-три относительные ссылки — Политика, Правила, Контакты — чтобы
-новая страница была доступна с любой страницы, где стоит этот
-блок. Никаких абсолютных URL — ссылки резолвятся против того
-хоста, на котором отдаётся страница.
+**Больше нет мелькания неотрисованных страниц.** `?page=setup`, `?page=profile` и `?page=creatives` показывали «голую» версию страницы на несколько сот миллисекунд, пока их стили ещё грузились. `window.coreEngine.loadCSS()` теперь возвращает Promise, который резолвится по `link.onload`, и затронутые компоненты ждут его в `_init()` до рендера. Shell показывает body только после того, как отрендерился запрошенный компонент, поэтому пользователь видит полностью стилизованную страницу с первого кадра.
 
-**Внутреннее.** `LegalModal` обобщена с двух целей до трёх через
-единый список `LEGAL_WHICH` и карту `LEGAL_META` со строками для
-каждого документа (title, URL, noun). Добавить четвёртый документ
-теперь — одна строка в четырёх местах: `LEGAL_WHICH` в модалке,
-`_LEGAL_WHICH` в `service/legal.py`, `_LEGAL_WHICH` в
-`public.py`, `LEGAL_WHICH_ALL` в `schema.py`. Роут, сервис и
-публичный пайплайн теперь согласованы через эти константы, а не
-через хардкод `("policy", "rules")` в шести местах.
+**Внутреннее.** `pages/public/route.py` разбит на шесть модулей — `route.py` (URL'ы и обработчики), `render.py` (страница / каталог / заглушка / `resolve_content`), `cookies.py` (cookie текущей папки), `html.py` (`strip_body_wrapper`, `apply_template`), `hosts.py` (проверка владельца хоста и резолюция nav), `paths.py` (построение цепочки папок). Логика не менялась: те же три URL обслуживаются теми же тремя обработчиками.
