@@ -22,3 +22,9 @@ from .domain import Domain
 from .creative import Creative
 from .placement import Placement
 from .placement_stat import PlacementStat
+from .panel_limit import PanelLimit
+from .panel_limit_hist import PanelLimitHist
+from .panel_stat import PanelStat
+from .panel_task import PanelTask
+from .panel_task_hist import PanelTaskHist
+from .backup_run import BackupRun

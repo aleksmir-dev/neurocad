@@ -20,7 +20,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 # Explicit constraint name so downgrade() can find it reliably,
 # and so PostgreSQL does not choke on drop_constraint(None, ...).
-FK_NAME = op.f("fk_users_home_page_id")
+#
+# Plain string, NOT op.f(...): op.f() must only be called inside
+# upgrade()/downgrade() — Alembic imports every migration module
+# at startup (e.g. for `alembic history`), and op.f() at module
+# level raises NameError: proxy object has not yet been established.
+FK_NAME = "fk_users_home_page_id"
 
 
 def upgrade() -> None:

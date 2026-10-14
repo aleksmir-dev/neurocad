@@ -1,0 +1,513 @@
+/* neurocad/core/engine/lib/backup/backup.css */
+
+/* ============================================
+   ROOT
+   ============================================ */
+
+.core-engine-lib-backup {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    gap: 0.75rem;
+
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+    padding: 0.75rem;
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+
+.core-engine-lib-backup .backup-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--border-hover);
+    padding-bottom: 0.25rem;
+    flex-shrink: 0;
+}
+
+.core-engine-lib-backup .backup-tab {
+    padding: 0.5rem 0.875rem;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    transition: background 0.15s, color 0.15s;
+}
+
+.core-engine-lib-backup .backup-tab:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.core-engine-lib-backup .backup-tab.is-active {
+    color: var(--brand-blue);
+    font-weight: 700;
+    border-bottom: 2px solid var(--brand-blue);
+    margin-bottom: -1px;
+}
+
+.core-engine-lib-backup .backup-tabs-spacer {
+    flex: 1;
+}
+
+.core-engine-lib-backup .backup-back-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: background 0.15s, color 0.15s;
+}
+
+.core-engine-lib-backup .backup-back-link:hover {
+    background: var(--bg-hover);
+    color: var(--brand-blue);
+}
+
+.core-engine-lib-backup .backup-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.core-engine-lib-backup .backup-icon-btn:hover {
+    background: var(--bg-hover);
+    color: var(--brand-blue);
+    border-color: var(--border-hover);
+}
+
+/* ============================================
+   STATUS
+   ============================================ */
+
+.core-engine-lib-backup .backup-status {
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+}
+
+.core-engine-lib-backup .backup-status-success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.core-engine-lib-backup .backup-status-error {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+}
+
+.core-engine-lib-backup .backup-status-info {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #90caf9;
+}
+
+/* ============================================
+   CONTENT
+   ============================================ */
+
+.core-engine-lib-backup .backup-content {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow: hidden;
+}
+
+.core-engine-lib-backup .backup-loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.core-engine-lib-backup .backup-hint {
+    padding: 0.5rem 0.75rem;
+    background: #f7f7f7;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+/* ============================================
+   SCROLL + TABLE
+   ============================================ */
+
+.core-engine-lib-backup .backup-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: #ffffff;
+}
+
+.core-engine-lib-backup .backup-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+}
+
+.core-engine-lib-backup .backup-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.core-engine-lib-backup .backup-table thead th {
+    background: #f7f7f7;
+    color: var(--text-main);
+    font-weight: 700;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid #e0e0e0;
+    white-space: nowrap;
+}
+
+.core-engine-lib-backup .backup-table td {
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    vertical-align: middle;
+    background: #ffffff;
+}
+
+.core-engine-lib-backup .backup-table tbody tr:hover td {
+    background: #f5f5f5;
+}
+
+.core-engine-lib-backup .backup-table code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8125rem;
+    background: #f5f5f5;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+}
+
+.core-engine-lib-backup .backup-row-failed td {
+    color: #c62828;
+}
+
+/* ============================================
+   TABLE — SCHEDULES ROWS
+   ============================================ */
+
+/*
+ * .backup-row-inactive — task is disabled (active=false).
+ * The row stays in the table (so it can be re-enabled), but is
+ * visually muted: less contrast, no hover highlight emphasis.
+ */
+.core-engine-lib-backup .backup-table tbody tr.backup-row-inactive td {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.core-engine-lib-backup .backup-table tbody tr.backup-row-inactive td code {
+    background: #fafafa;
+}
+
+/*
+ * .backup-actions — actions cell (▶, ✎, ⏸/⏵).
+ * Flex row, small gap, no wrap — the buttons always fit on one line.
+ */
+.core-engine-lib-backup .backup-actions {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    align-items: center;
+}
+
+/*
+ * .backup-action-btn — small square button used in the actions cell.
+ * Same look as .backup-icon-btn but smaller (28px) — so three of
+ * them fit in one cell without wrapping.
+ */
+.core-engine-lib-backup .backup-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: #ffffff;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.15s;
+    padding: 0;
+}
+
+.core-engine-lib-backup .backup-action-btn:hover {
+    background: var(--bg-hover);
+    color: var(--brand-blue);
+    border-color: var(--brand-blue);
+}
+
+.core-engine-lib-backup .backup-empty {
+    padding: 3rem 1rem;
+    background: #f7f7f7;
+    color: var(--text-muted);
+    text-align: center;
+    border-radius: var(--radius-md);
+}
+
+/* ============================================
+   FORM (SETTINGS)
+   ============================================ */
+
+.core-engine-lib-backup .backup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.core-engine-lib-backup .backup-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.core-engine-lib-backup .backup-field-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.core-engine-lib-backup .backup-field-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.core-engine-lib-backup .backup-field input[type="text"],
+.core-engine-lib-backup .backup-field input[type="number"],
+.core-engine-lib-backup .backup-field input[type="password"],
+.core-engine-lib-backup .backup-field textarea {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+    background: #ffffff;
+    color: var(--text-main);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.core-engine-lib-backup .backup-field input:focus,
+.core-engine-lib-backup .backup-field textarea:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-backup .backup-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.core-engine-lib-backup .backup-fieldset {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem 1rem;
+    margin: 0;
+}
+
+.core-engine-lib-backup .backup-fieldset legend {
+    padding: 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* ---- Keep grid ----
+ *
+ * Компактные поля по центру, слева. Раньше был grid по 5 колонок —
+ * поля растягивались на всю ширину и выглядели пустыми. Теперь —
+ * flex с фиксированной шириной поля (5rem / 80px), label сверху,
+ * число по центру.
+ *
+ * Стрелки number-инпута скрыты (appearance: textfield) — они
+ * сдвигали цифру от центра, а пользователь всё равно вводит
+ * значение руками. Крутить мышью по одному — медленно.
+ */
+
+.core-engine-lib-backup .backup-keep-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    justify-content: flex-start;
+}
+
+.core-engine-lib-backup .backup-keep {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.core-engine-lib-backup .backup-keep-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.core-engine-lib-backup .backup-keep input[type="number"] {
+    width: 5rem;
+    padding: 0.375rem 0.5rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+    background: #ffffff;
+    color: var(--text-main);
+    box-sizing: border-box;
+
+    /* Hide the native spinner arrows — they push the digit off
+     * center and the user types the value by hand anyway. */
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.core-engine-lib-backup .backup-keep input[type="number"]::-webkit-outer-spin-button,
+.core-engine-lib-backup .backup-keep input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.core-engine-lib-backup .backup-keep input[type="number"]:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.core-engine-lib-backup .backup-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Inside a fieldset (S3 "Проверить подключение" button):
+ * no top border (the fieldset already has a frame), more breathing
+ * room above and below — so it does not kiss the fieldset border. */
+.core-engine-lib-backup .backup-form-actions-inline {
+    border-top: none;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+    padding-bottom: 0.25rem;
+}
+
+.core-engine-lib-backup .backup-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: #ffffff;
+    color: var(--text-main);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.core-engine-lib-backup .backup-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+}
+
+.core-engine-lib-backup .backup-btn-primary {
+    background: var(--brand-blue);
+    color: #fff;
+    border-color: var(--brand-blue);
+}
+
+.core-engine-lib-backup .backup-btn-primary:hover {
+    background: var(--brand-blue-hover, #1565c0);
+}
+
+/* ============================================
+   ERROR
+   ============================================ */
+
+.core-engine-lib-backup .backup-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    gap: 0.75rem;
+    text-align: center;
+}
+
+.core-engine-lib-backup .backup-error-icon {
+    font-size: 2rem;
+}
+
+.core-engine-lib-backup .backup-error-text {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    max-width: 30rem;
+    word-break: break-word;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-backup .backup-field-row {
+        grid-template-columns: 1fr;
+    }
+
+    .core-engine-lib-backup .backup-keep input[type="number"] {
+        width: 4.5rem;
+    }
+
+    .core-engine-lib-backup .backup-back-link {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* Actions cell — allow horizontal scroll on narrow screens
+     * rather than wrapping the three buttons to multiple rows. */
+    .core-engine-lib-backup .backup-actions {
+        overflow-x: auto;
+    }
+}

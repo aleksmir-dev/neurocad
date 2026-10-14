@@ -73,6 +73,16 @@ class Settings(BaseSettings):
     # Access token lifetime (minutes).
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
+    # Token for internal scripts (backup.sh, cron tasks).
+    #
+    # Used by POST /panel/backup/report — called by backup.sh, not
+    # by users. Those callers are not logged-in sessions and cannot
+    # present a JWT, so they authenticate with this static token.
+    #
+    # Set in .env: PANEL_TOKEN=...  (generate with `openssl rand -hex 32`)
+    # If empty — the endpoint rejects every call (fail closed).
+    PANEL_TOKEN: Optional[str] = None
+
     # ============================================
     # SUPERADMIN
     # ============================================

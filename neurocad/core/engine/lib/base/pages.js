@@ -3,12 +3,13 @@
 /**
  * BasePages — page controllers for area-center.
  *
- * Owns the four "page-level" entry points that replace area-center
+ * Owns the five "page-level" entry points that replace area-center
  * with a full-page component:
  *
  *   - showProfile(section)  — user profile (main / balance / domain)
  *   - showSetup(section)    — setup landing + sub-pages (main / llm / creatives)
  *   - showCreatives()       — creatives page (top-level, ?page=creatives)
+ *   - showServices(section) — services page (SUPERADMIN, ?page=services)
  *   - showAuthPage()        — auth fallback page (login/register/...)
  *
  * Each show* method:
@@ -20,7 +21,9 @@
  *
  * Navigation between sections is done by passing `onNavigate` down to
  * the component — the component calls it with the next section name,
- * and it calls back into this module.
+ * and it calls back into this module. Exceptions: showCreatives and
+ * showServices do not pass onNavigate — their sections are handled
+ * via real URLs (full page reload), not in-place navigation.
  *
  * All state lives on the owning Base instance:
  *   - base.auth, base.savedContent, base.redirectUrl, base.authRedirect
@@ -220,6 +223,97 @@ export class BasePages {
 
         await this.base.renderInArea(ComponentClass, {
             section: 'creatives',
+            user,
+            setCaption: this.base._setCaption,
+            restoreCaption: this.base._restoreCaption,
+        });
+    }
+
+    // ============================================
+    // SERVICES
+    // ============================================
+
+    /**
+     * Open the Services page in area-center.
+     *
+     * Available to SUPERADMIN ONLY — services expose system-level
+     * tools (backup, panel, metrics). Guests and regular users are
+     * stopped by the guard below; the server enforces the same rule
+     * on the API endpoints behind each service.
+     *
+     * Sections, separate components:
+     *   - null / 'main' → ./services/services.js  (BaseServices) — services landing / menu
+     *   - 'backup'      → ../backup/backup.js     (Backup)       — backup: settings, schedules, history
+     *   - 'panel'       → ../panel/panel.js       (Panel)        — subsystems status (later)
+     *
+     * Navigation between sections is done by passing `onNavigate`
+     * down to the component ONLY for sections that need it. The
+     * services landing (BaseServices) does NOT need it — its items
+     * are real <a href> links that trigger a full page reload; the
+     * URL (?page=services&section=X) is re-read by Base._initAuth()
+     * and routed back here.
+     *
+     * Same for Backup / Panel: they have internal tabs (not URL
+     * sections), so `onNavigate` is not passed.
+     *
+     * @param {string|null} section — null (landing), 'backup' or 'panel'
+     */
+    async showServices(section = null) {
+        console.log('[BasePages] showServices()', section);
+
+        const user = this.base.auth?.getUser?.();
+        if (!user) {
+            console.warn('[BasePages] showServices: access denied (not authenticated)');
+            if (this.base.auth) this.base.auth.showLogin();
+            return;
+        }
+
+        // Superadmin only.
+        const isSuperadmin =
+            user.is_superadmin === true ||
+            user.is_superadmin === 1 ||
+            user.is_superadmin === '1';
+
+        if (!isSuperadmin) {
+            console.warn('[BasePages] showServices: access denied (not superadmin)');
+            return;
+        }
+
+        const proceed = await this.base.teardownAreas();
+        if (!proceed) {
+            console.log('[BasePages] showServices cancelled by user');
+            return;
+        }
+
+        const version = window.coreEngine?.static_version || Date.now();
+
+        let ComponentClass = null;
+        try {
+            if (section === 'backup') {
+                const mod = await import(`../backup/backup.js?v=${version}`);
+                ComponentClass = mod.Backup;
+            } else if (section === 'panel') {
+                // Panel is not implemented yet. Fall back to the
+                // services landing so the URL does not break — the
+                // user sees the menu and can pick another service.
+                const mod = await import(`./services/services.js?v=${version}`);
+                ComponentClass = mod.BaseServices;
+            } else {
+                const mod = await import(`./services/services.js?v=${version}`);
+                ComponentClass = mod.BaseServices;
+            }
+        } catch (err) {
+            console.error('[BasePages] showServices import error:', err);
+            return;
+        }
+
+        if (!ComponentClass) {
+            console.error('[BasePages] showServices: component class not found for section', section);
+            return;
+        }
+
+        await this.base.renderInArea(ComponentClass, {
+            section,
             user,
             setCaption: this.base._setCaption,
             restoreCaption: this.base._restoreCaption,

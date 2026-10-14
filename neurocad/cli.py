@@ -126,6 +126,56 @@ def cmd_create_user(args):
 
 
 # ============================================
+# backup — run a backup (hourly / daily / …)
+# ============================================
+
+def cmd_backup(args):
+    """
+    Run one backup of the given level.
+
+    Reads settings from the shared `settings` table (one row,
+    domain="neurocad", subsys="backup", key="backup"). Writes the
+    result to backup_runs (direct DB write — no HTTP, no token).
+
+    Called by cron:
+
+        0 * * * * nice -n 19 /path/venv/bin/neurocad backup hourly
+
+    or manually:
+
+        neurocad backup hourly
+
+    Exit code: 0 on success, 1 on failure. Suitable for cron + logs.
+    """
+    import asyncio
+    from .core.engine.lib.backup.core import run_backup
+    from .core.engine.lib.backup.core import LEVELS
+
+    if args.level not in LEVELS:
+        print(
+            f"Ошибка: неизвестный уровень {args.level!r}. "
+            f"Допустимо: {', '.join(LEVELS)}"
+        )
+        raise SystemExit(1)
+
+    async def _run() -> int:
+        result = await run_backup(args.level)
+        if result.success:
+            size_mb = (result.size_bytes or 0) / (1024 * 1024)
+            print(
+                f"OK: {result.level} / success / "
+                f"{result.archive_name} / {size_mb:.1f} MB"
+            )
+            return 0
+        else:
+            print(f"FAIL: {result.level} / {result.error}")
+            return 1
+
+    exit_code = asyncio.run(_run())
+    raise SystemExit(exit_code)
+
+
+# ============================================
 # main
 # ============================================
 
@@ -162,6 +212,18 @@ def main(argv=None):
         help="Email (optional).",
     )
     p_cu.set_defaults(func=cmd_create_user)
+
+    # ---- backup ----
+    p_bk = sub.add_parser(
+        "backup",
+        help="Run a backup (hourly / daily / weekly / monthly / yearly)",
+    )
+    p_bk.add_argument(
+        "level",
+        choices=["hourly", "daily", "weekly", "monthly", "yearly"],
+        help="Backup level",
+    )
+    p_bk.set_defaults(func=cmd_backup)
 
     args = parser.parse_args(argv)
     args.func(args)

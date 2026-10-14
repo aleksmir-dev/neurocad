@@ -21,13 +21,14 @@
  *   - "Логин" (guest)     — <a href="<module>?auth=login">
  *   - "Баланс" (superadm) — <a href="<module>/balance">
  *   - "Настройки"         — <a href="<module>?page=setup"> (all authed)
+ *   - "Сервисы" (superadm)— <a href="<module>?page=services">
  *   - items from `items`  — <a href="item.href">
  *
  * The browser handles them natively. If JS fails to load, or an
  * init step throws, or the menu was re-rendered without re-binding
  * — the links still work.
  *
- * Items that perform an ACTION (no URL) are rendered as <a href="#">
+ * Items that perform an ACTION (no URL) are rendered as <a href="#">>
  * with `data-action="..."` and handled by the delegated listener:
  *
  *   - "Выход" / "Вход" — auth.logout() / auth.showLogin()
@@ -47,12 +48,13 @@
  *             Strictly authentication. Does NOT carry `profile`.
  *
  *   `page`  — which APP page to open, i.e. which page from
- *             base/pages/: profile / setup / creatives. User-facing
- *             page inside the shell.
+ *             base/pages/: profile / setup / creatives / services.
+ *             User-facing page inside the shell.
  *
  *   `section` — a sub-page inside `page`:
- *                 page=profile → section=balance / domain / ...
- *                 page=setup   → section=llm / ...
+ *                 page=profile  → section=balance / domain / ...
+ *                 page=setup    → section=llm / ...
+ *                 page=services → section=backup / panel / ...
  *
  * So:
  *
@@ -61,6 +63,8 @@
  *   <module>?page=profile                  → profile landing
  *   <module>?page=profile&section=balance  → profile → balance
  *   <module>?page=setup                    → setup landing
+ *   <module>?page=services                 → services landing
+ *   <module>?page=services&section=backup  → services → backup
  *
  * <module> here is window.coreEngine.baseUrl — e.g. /core/engine/admin.
  *
@@ -85,7 +89,8 @@
  * ------
  * "Настройки" is visible to every authenticated user (it hosts
  * per-user sections like Creatives). "Баланс" stays superadmin-only.
- * Guests see neither.
+ * "Сервисы" stays superadmin-only (backup, panel, metrics — all
+ * system-level). Guests see none of them.
  */
 export class Menu {
     constructor(options = {}) {
@@ -123,6 +128,17 @@ export class Menu {
      * ("Баланс").
      */
     _canSeeBalance() {
+        return this.user?.is_superadmin === true;
+    }
+
+    /**
+     * Whether current user can see the "Сервисы" item.
+     *
+     * Superadmin-only — services expose system-level tools (backup,
+     * panel, metrics). The same rule is enforced by BasePages.showServices
+     * and by the API endpoints behind each service.
+     */
+    _canSeeServices() {
         return this.user?.is_superadmin === true;
     }
 
@@ -184,11 +200,17 @@ export class Menu {
         const guestEl = document.querySelector('.core-engine-lib-base-menu-guest');
         const loginEl = document.querySelector('.core-engine-lib-base-menu-login');
         const setupEl = document.querySelector('.core-engine-lib-base-menu-setup');
+        const servicesEl = document.querySelector('.core-engine-lib-base-menu-services');
         const balanceEl = document.querySelector('.core-engine-lib-base-menu-balance');
 
         // "Настройки" — for every authenticated user.
         if (setupEl) {
             setupEl.style.display = this._isAuthed() ? '' : 'none';
+        }
+
+        // "Сервисы" — superadmin-only.
+        if (servicesEl) {
+            servicesEl.style.display = this._canSeeServices() ? '' : 'none';
         }
 
         // "Баланс" — superadmin-only.
@@ -260,10 +282,22 @@ export class Menu {
                style="${setupStyle}">Настройки</a>
         `;
 
+        // "Сервисы" — superadmin-only. A real <a href> to
+        // ?page=services on the current module. Hidden for guests
+        // and regular users via inline style. The API endpoints
+        // behind each service enforce the same rule server-side.
+        const servicesStyle = this._canSeeServices() ? '' : 'display:none;';
+        const servicesHtml = `
+            <a class="core-engine-lib-base-menu-item core-engine-lib-base-menu-services"
+               href="${moduleBaseUrl}?page=services"
+               style="${servicesStyle}">Сервисы</a>
+        `;
+
         return `
             ${itemsHtml}
             ${balanceHtml}
             ${setupHtml}
+            ${servicesHtml}
             <a class="core-engine-lib-base-menu-item core-engine-lib-base-menu-guest"
                href="${profileHref}">${displayName}</a>
             <a class="core-engine-lib-base-menu-item core-engine-lib-base-menu-login"
@@ -306,8 +340,9 @@ export class Menu {
      * inside it. Everything else is ignored.
      *
      * Only `data-action` items are intercepted. Real <a href> links
-     * ("Настройки", "Баланс", "Профиль", "Главная", auth form links)
-     * are followed by the browser natively — no JS interceptor.
+     * ("Настройки", "Сервисы", "Баланс", "Профиль", "Главная",
+     * auth form links) are followed by the browser natively — no JS
+     * interceptor.
      */
     bindEvents() {
         if (this._bound) return;

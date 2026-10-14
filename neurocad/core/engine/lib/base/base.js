@@ -11,7 +11,8 @@
  *
  * Delegated concerns (loaded dynamically in _loadModules):
  *   - areas.js        → BaseAreas         (renderInArea / teardownAreas / side areas)
- *   - pages.js        → BasePages         (showProfile / showSetup / showCreatives / showAuthPage)
+ *   - pages.js        → BasePages         (showProfile / showSetup / showCreatives /
+ *                                          showServices / showAuthPage)
  *   - chat.js         → BaseChatController (chat panel lifecycle)
  *
  * Public API kept stable for external callers (auth.js, menu.js, …):
@@ -20,6 +21,7 @@
  *   base.showProfile(section)
  *   base.showSetup(section)
  *   base.showCreatives()
+ *   base.showServices(section)
  *   base.openChat() / base.closeChat()
  *
  * Runtime params:
@@ -29,11 +31,12 @@
  *     - `auth`    — which AUTH form to open (login / register /
  *                   restore / password). Strictly authentication.
  *
- *     - `page`    — which APP page to open (profile / setup / creatives).
+ *     - `page`    — which APP page to open (profile / setup / creatives / services).
  *
  *     - `section` — a sub-page inside `page`:
- *                     page=profile → section=balance / domain / ...
- *                     page=setup   → section=llm / ...
+ *                     page=profile  → section=balance / domain / ...
+ *                     page=setup    → section=llm / ...
+ *                     page=services → section=backup / panel / ...
  *
  *   `auth` and `page` are independent:
  *
@@ -44,6 +47,8 @@
  *     ?page=setup                            → setup landing
  *     ?page=setup&section=llm                → setup → llm
  *     ?page=creatives                        → creatives page
+ *     ?page=services                         → services landing
+ *     ?page=services&section=backup          → services → backup
  *
  *   `<body data-auth-form>` / `<body data-page>` /
  *   `<body data-section>` are kept as fallbacks for server-rendered
@@ -112,7 +117,7 @@ export class Base {
             || document.body.dataset.authForm
             || null;
 
-        // `page` — which APP page to open (profile / setup / creatives).
+        // `page` — which APP page to open (profile / setup / creatives / services).
         this.page = this.params.page
             || document.body.dataset.page
             || null;
@@ -143,7 +148,7 @@ export class Base {
         this.redirectUrl = null;
         this.childComponents = [];
 
-        // Active "page" instance rendered into area-center (profile, setup, creatives, ...).
+        // Active "page" instance rendered into area-center (profile, setup, creatives, services, ...).
         // Not the same as childComponents — those come from the config.
         this.areaInstance = null;
 
@@ -412,10 +417,10 @@ export class Base {
 
         // ===== 2. App page requested =====
         // Comes from ?page=<name> (via props.params.page) or from
-        // <body data-page>. profile / setup / creatives. If the user
-        // is not authenticated, the login form is shown instead; once
-        // the user logs in, the reload (see auth:changed) re-runs the
-        // whole init with the session in place.
+        // <body data-page>. profile / setup / creatives / services.
+        // If the user is not authenticated, the login form is shown
+        // instead; once the user logs in, the reload (see auth:changed)
+        // re-runs the whole init with the session in place.
         //
         // Both branches are awaited: the body stays hidden until the
         // page (or the login form) has finished building. That is
@@ -460,15 +465,15 @@ export class Base {
     }
 
     /**
-     * Open an app page (profile / setup / creatives) with an optional
-     * section.
+     * Open an app page (profile / setup / creatives / services) with
+     * an optional section.
      *
      * Async: it awaits the delegated page controller so callers can
      * reveal the body only after the page has actually been built.
      * Returns when the target page is on screen (or when it decided
      * not to open — e.g. the user cancelled a confirm dialog).
      *
-     * @param {string} page — 'profile' | 'setup' | 'creatives'
+     * @param {string} page — 'profile' | 'setup' | 'creatives' | 'services'
      * @param {string|null} section — sub-page inside `page`
      */
     async _openPage(page, section = null) {
@@ -482,6 +487,9 @@ export class Base {
         }
         if (page === 'creatives') {
             return await this.showCreatives();
+        }
+        if (page === 'services') {
+            return await this.showServices(section);
         }
         console.warn('[Base] Unknown page:', page);
     }
@@ -574,6 +582,27 @@ export class Base {
             return null;
         }
         return await this.pages.showCreatives();
+    }
+
+    /**
+     * Open the Services page. Delegates to BasePages.
+     *
+     * Available to SUPERADMIN only (services expose backup, panel,
+     * metrics — all system-level). Guests and regular users are
+     * stopped by the guard in BasePages.showServices(); the URL rule
+     * (?page=services needs a superadmin) is checked here too, in
+     * _initAuth().
+     *
+     * Async — same contract as showProfile.
+     *
+     * @param {string|null} section — 'backup' | 'panel' | null (menu)
+     */
+    async showServices(section = null) {
+        if (!this.pages) {
+            console.warn('[Base] showServices called before init');
+            return null;
+        }
+        return await this.pages.showServices(section);
     }
 
     /**
