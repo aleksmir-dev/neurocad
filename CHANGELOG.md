@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.26] - 2026-10-15
+- Fix: `use_botinv` was missing from `GET /core/engine/lib/base/profile/` and `POST /core/auth/login` responses, so `BaseAuth.getUser()` never carried the flag and the inventory section stayed hidden for non-superadmin users even when the DB flag was set. Also normalized `serialize_user` output to a real boolean (`bool(user.use_botinv)` instead of `or False`, which leaked `1` as an int).
+
 ## [1.0.25] - 2026-10-15
 - Inventory module (`botinv`): per-user walking tool for marking items by inventory number. Excel/CSV import (`inv_num;name;room`), case-insensitive lookups, substring search with a numbered candidate list, chat + inventory table side by side, XLSX export. Enabled per user via the new `users.use_botinv` flag. New tables `botinv_sheets` / `botinv_items` and four migrations. `BaseChat` gained `headerExtra`, `setPlaceholder` and per-message `variant` (success / warning / error).
 

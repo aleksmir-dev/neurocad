@@ -20,12 +20,12 @@ login_attempts = {}
 async def login(request: Request, login_data: CoreAuthLoginRequestSchema) -> JSONResponse:
     """
     Вход пользователя
-    
+
     Возвращает JWT токен в HttpOnly cookie
     """
     log = request.app.state.log if hasattr(request.app.state, 'log') else None
     client_ip = request.client.host if request.client else "unknown"
-    
+
     # Rate limiting
     now = time.time()
     if client_ip in login_attempts:
@@ -40,16 +40,16 @@ async def login(request: Request, login_data: CoreAuthLoginRequestSchema) -> JSO
                     "message": "Слишком много попыток. Попробуйте через час."
                 }
             )
-    
+
     # Аутентификация
     user = await CoreAuthLoginService.login(login_data.login, login_data.password, log=log)
-    
+
     if not user:
         # Запоминаем неудачную попытку
         if client_ip not in login_attempts:
             login_attempts[client_ip] = []
         login_attempts[client_ip].append(time.time())
-        
+
         if log:
             await log.log_warning(target="auth", message=f"Failed login attempt for: {login_data.login} from IP: {client_ip}")
         return JSONResponse(
@@ -59,14 +59,14 @@ async def login(request: Request, login_data: CoreAuthLoginRequestSchema) -> JSO
                 "message": "Неверный логин или пароль"
             }
         )
-    
+
     # Успешный вход - сбрасываем попытки
     if client_ip in login_attempts:
         login_attempts[client_ip] = []
-    
+
     # Создаём JWT токен
     access_token = CoreAuthDependencies.create_access_token(data={"sub": str(user["id"])})
-    
+
     # Создаём ответ с токеном в cookie
     response = JSONResponse(
         status_code=200,
@@ -79,12 +79,18 @@ async def login(request: Request, login_data: CoreAuthLoginRequestSchema) -> JSO
                     "login": user["login"],
                     "name": user["name"],
                     "email": user["email"],
-                    "is_superadmin": user["is_superadmin"]
+                    "is_superadmin": user["is_superadmin"],
+                    # Per-user feature flag for the inventory module
+                    # (botinv). Coerced to a real boolean so the
+                    # frontend can rely on `=== true`. The value
+                    # comes from serialize_user in auth/service.py,
+                    # which reads User.use_botinv (NULL / 0 / 1).
+                    "use_botinv": bool(user.get("use_botinv", False)),
                 }
             }
         }
     )
-    
+
     # Устанавливаем HttpOnly cookie
     response.set_cookie(
         key="access_token",
@@ -94,7 +100,7 @@ async def login(request: Request, login_data: CoreAuthLoginRequestSchema) -> JSO
         samesite="lax",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
-    
+
     if log:
         await log.log_info(target="auth", message=f"User {user['login']} logged in successfully")
     return response
@@ -104,11 +110,11 @@ async def login(request: Request, login_data: CoreAuthLoginRequestSchema) -> JSO
 async def logout(request: Request) -> JSONResponse:
     """
     Выход пользователя
-    
+
     Удаляет HttpOnly cookie с токеном
     """
     log = request.app.state.log if hasattr(request.app.state, 'log') else None
-    
+
     response = JSONResponse(
         status_code=200,
         content={
@@ -117,7 +123,7 @@ async def logout(request: Request) -> JSONResponse:
         }
     )
     response.delete_cookie("access_token")
-    
+
     if log:
         await log.log_info(target="auth", message="User logged out")
     return response

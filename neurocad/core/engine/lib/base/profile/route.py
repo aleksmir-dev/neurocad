@@ -75,6 +75,13 @@ async def get_profile(
     would not know it is impersonating and would hide the yellow
     "Вы вошли под пользователем X" bar.
 
+    The response also includes `use_botinv` — the per-user flag that
+    gates the inventory module. The flag is stored on `users` and is
+    NULL by default; here it is coerced to a real boolean so the
+    frontend can rely on `=== true`. BasePages.showServices('botinv')
+    and BaseServices._services() check this flag; without it the
+    inventory section is hidden even when the DB flag is set.
+
     Available to any authenticated user.
     """
     user = _require_user(current_user)
@@ -86,6 +93,14 @@ async def get_profile(
             "login": user.get("login"),
             "name": user.get("name"),
             "is_superadmin": bool(user.get("is_superadmin", False)),
+            # Per-user feature flag for the inventory module
+            # (botinv). Set manually in the DB; NULL/0 → False.
+            # The frontend uses it to gate the "Инвентаризация"
+            # section in BasePages.showServices('botinv') and in
+            # BaseServices._services(). Without this field
+            # getUser().use_botinv is undefined and the section
+            # is hidden even when the DB flag is set.
+            "use_botinv": bool(user.get("use_botinv", False)),
             # Impersonation marker, if any. get_current_user puts
             # `impersonated_by` into the returned dict when the JWT
             # carries `imp_by` (see core/auth/dependencies.py). For
