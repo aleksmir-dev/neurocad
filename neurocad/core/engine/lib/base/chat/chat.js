@@ -37,6 +37,19 @@
  * object `{ text, variant }`, the `variant` ("success" | "warning" |
  * "error") is forwarded to addMessage.
  *
+ * HTML in messages
+ * ----------------
+ * addMessage() takes an optional fourth argument `asHtml` (default
+ * false). When it is true, the message body is injected with
+ * innerHTML; otherwise it is set with textContent. This is used by
+ * the inventory chat to colour the numbered candidate list
+ * (`.botinv-cand-num` / `.botinv-cand-inv`), while every other
+ * message in the app stays plain text.
+ *
+ * SECURITY: pass `asHtml: true` ONLY with strings built by the
+ * caller itself — never with raw user input or raw API output.
+ * The caller is responsible for escaping interpolated values.
+ *
  * `headerExtra` is inserted as-is (via innerHTML) into the header.
  * The caller is responsible for the markup and for binding any
  * events on the injected nodes — BaseChat only places them.
@@ -117,6 +130,9 @@ export class BaseChat {
                     text: msg.text || msg.message || '',
                     isUser: msg.is_user || msg.role === 'user',
                     variant: null,
+                    // History always renders as plain text — the
+                    // server does not know about our HTML messages.
+                    asHtml: false,
                     timestamp: msg.created_at || msg.timestamp || new Date()
                 }));
                 if (this.messagesContainer) {
@@ -269,8 +285,9 @@ export class BaseChat {
      *
      * If `onSend` is set, it replaces `_sendToAPI`. Its return value
      * is rendered as a bot message. It may be:
-     *   - a string                → rendered as plain bot text;
-     *   - { text, variant }       → rendered with the given variant.
+     *   - a string                     → plain bot text;
+     *   - { text, variant }            → rendered with the variant;
+     *   - { text, variant, html: true } → rendered as HTML.
      */
     async _handleSend() {
         if (!this.inputField) return;
@@ -296,17 +313,19 @@ export class BaseChat {
 
             this._removeLoadingIndicator(loadingId);
 
-            // Response may be a string or { text, variant }.
+            // Response may be a string or { text, variant, html }.
             let replyText = '';
             let variant = null;
+            let asHtml = false;
             if (response && typeof response === 'object') {
                 replyText = response.text || '';
                 variant = response.variant || null;
+                asHtml = response.html === true;
             } else {
                 replyText = String(response ?? '');
             }
 
-            this.addMessage(replyText, false, variant);
+            this.addMessage(replyText, false, variant, asHtml);
         } catch (error) {
             this._removeLoadingIndicator(loadingId);
             this.addMessage(
@@ -345,14 +364,23 @@ export class BaseChat {
      * @param {string} text
      * @param {boolean} isUser
      * @param {string|null} variant — "success" | "warning" | "error" | null
+     * @param {boolean} asHtml  — if true, `text` is injected with
+     *                            innerHTML; otherwise with textContent.
+     *                            Default: false.
+     *
+     * SECURITY: pass `asHtml: true` ONLY with strings that the
+     * caller built itself — never with raw user input or raw API
+     * output. The inventory chat uses it for a fixed markup
+     * template (numbered candidate list) with escaped values.
      */
-    addMessage(text, isUser, variant = null) {
-        console.log('[Chat] addMessage()', text, isUser, variant);
+    addMessage(text, isUser, variant = null, asHtml = false) {
+        console.log('[Chat] addMessage()', text, isUser, variant, asHtml);
         const msg = {
             id: Date.now() + Math.random(),
             text: text,
             isUser: isUser,
             variant: variant,
+            asHtml: asHtml === true,
             timestamp: new Date()
         };
         this.messages.push(msg);
@@ -391,7 +419,13 @@ export class BaseChat {
                 cls += ` chat-message-${msg.variant}`;
             }
             div.className = cls;
-            div.textContent = msg.text;
+            // HTML only when the caller explicitly asked for it.
+            // Everything else — plain text, exactly as before.
+            if (msg.asHtml) {
+                div.innerHTML = msg.text;
+            } else {
+                div.textContent = msg.text;
+            }
             this.messagesContainer.appendChild(div);
         });
     }

@@ -9,8 +9,8 @@
  *   - showProfile(section)  — user profile (main / balance / domain)
  *   - showSetup(section)    — setup landing + sub-pages (main / llm / creatives)
  *   - showCreatives()       — creatives page (top-level, ?page=creatives)
- *   - showServices(section) — services page (superadmin, or botinv for
- *                             users with use_botinv = True)
+ *   - showServices(section) — services page (per-section access: see
+ *                             the method docstring)
  *   - showAuthPage()        — auth fallback page (login/register/...)
  *
  * Each show* method:
@@ -237,18 +237,20 @@ export class BasePages {
     /**
      * Open the Services page in area-center.
      *
-     * Access is per-section:
+     * Access is per-section. "Сервисы" is the LANDING for the tools
+     * a user can reach — not a superadmin privilege per se. Anyone
+     * who has at least one accessible service must be able to open
+     * the landing and see that service; the landing filters its own
+     * items via BaseServices._services(), so a use_botinv user sees
+     * only the inventory card.
      *
-     *   - landing / 'backup' / 'panel' — SUPERADMIN ONLY. Services
-     *     expose system-level tools (backup, panel, metrics). Guests
-     *     and regular users are stopped by the guard below; the
-     *     server enforces the same rule on the API endpoints.
+     * Rules:
      *
-     *   - 'botinv' — SUPERADMIN OR any user with use_botinv = True.
-     *     The inventory module is a per-user tool; the flag is set
-     *     manually in the DB (see models/user.py → use_botinv). The
-     *     server enforces the same rule via _resolve_nav_id_for_botinv
-     *     (see botinv/route.py).
+     *   - landing (section == null) — SUPERADMIN OR use_botinv.
+     *   - 'botinv'                 — SUPERADMIN OR use_botinv.
+     *   - 'backup' / 'panel' / …   — SUPERADMIN ONLY. These expose
+     *                                system-level tools; a regular
+     *                                user never sees them.
      *
      * Sections, separate components:
      *   - null / 'main' → ./services/services.js  (BaseServices) — services landing / menu
@@ -277,18 +279,37 @@ export class BasePages {
             return;
         }
 
+        // Tolerant of bool / int / string — the backend may leak
+        // an INT from SQLite through a stale path.
         const isSuperadmin =
             user.is_superadmin === true ||
             user.is_superadmin === 1 ||
             user.is_superadmin === '1';
 
-        const canBotInv = user.use_botinv === true;
+        const canBotInv =
+            user.use_botinv === true ||
+            user.use_botinv === 1 ||
+            user.use_botinv === '1';
+
         const isBotInvSection = (section === 'botinv');
 
         // Per-section access check.
+        //
+        //   - botinv section          — superadmin OR use_botinv.
+        //   - landing (section == null) — superadmin OR use_botinv.
+        //     Anyone with at least one accessible service must be
+        //     able to open the landing; BaseServices._services()
+        //     hides the sections they cannot use.
+        //   - explicit system-level sections (backup, panel, …)
+        //     — superadmin only.
         if (isBotInvSection) {
             if (!canBotInv && !isSuperadmin) {
                 console.warn('[BasePages] showServices: access denied (no use_botinv)');
+                return;
+            }
+        } else if (section === null) {
+            if (!isSuperadmin && !canBotInv) {
+                console.warn('[BasePages] showServices: access denied (no services)');
                 return;
             }
         } else {

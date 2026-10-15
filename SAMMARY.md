@@ -82,4 +82,109 @@
 
 **Остальные** — код есть, в роутер не включены. Причина: старая версия роутера не справлялась с выбором между похожими агентами. Решение — включать по одному, с проверкой.
 
+# SUMMARY.md — что делали в последней сессии
+
+## Что сделано
+
+Реализован модуль **botinv** (инвентаризация) — пер-юзерный инструмент для
+обхода помещений с бухгалтером. Полный цикл: импорт Excel/CSV → поиск по
+фрагменту в чате → отметка позиции → экспорт XLSX.
+
+### Backend
+
+- **Модели:** `BotInvSheet`, `BotInvItem`; поле `User.use_botinv`.
+- **Миграции:** 4 штуки — создать таблицы, добавить `inv_num_norm`,
+  синхронизировать nullable, добавить `use_botinv`.
+- **`importer.py`:** парсит `.xlsx` / `.csv`, ищет заголовки по именам
+  (`inv_num`, `name`, `room`), дедуплицирует по `inv_num.upper()`.
+- **`exporter.py`:** XLSX с title-строкой, шапкой, 7 колонками,
+  монопространственный для inv_num, транслит в имени файла.
+- **`service.py`:** `list_sheets`, `get_active_sheet`, `create_sheet_from_file`,
+  `activate_sheet`, `soft_delete_sheet`, `list_items`, `change_room`,
+  `find_and_mark`, `resolve_nav_id_for_botinv`. Философия `note` — только
+  при повторах.
+- **`route.py`:** `/active`, `/sheets`, `/sheets/import`, `/sheets/{id}/activate`,
+  `/sheets/{id}` PATCH/DELETE, `/sheets/{id}/items`, `/sheets/{id}/export`,
+  `/room`, `/mark`.
+
+### Frontend
+
+- **`botinv.js`** — оркестратор `BaseBotInv`, три области + `BotInvResizer`.
+- **`list/list.js`** — список ведомостей (sidebar + drawer).
+- **`table/table.js`** — обёртка над `base/table/table.js`, highlight.
+- **`chat/handler.js`** — обёртка над `BaseChat`, поиск по фрагменту,
+  кандидаты 1/2/3, `#NNN` — смена кабинета.
+- **`resizer.js`** — ручки между панелями, localStorage.
+- **`api.js`** — HTTP-клиент.
+- Патчи в `base/chat/chat.js` (`headerExtra`, `setPlaceholder`),
+  `base/chat/chat.css` (варианты сообщений),
+  `base/pages.js` (`showServices('botinv')`),
+  `base/services/services.js` (пункт «Инвентаризация»),
+  `core/auth/service.py` (`serialize_user` → bool).
+
+### Релиз
+
+- `1.0.25` — модуль `botinv`.
+- `1.0.26` — фикс доставки `use_botinv` на фронт (`profile/route.py`,
+  `login/route.py`, `auth/service.py`).
+
+## Что осталось на завтра (релиз 1.0.27)
+
+1. **Скроллбар таблицы** — сделать видимым (`base/table/table.css`).
+   `thumb: #94a3b8` вместо `var(--border-hover)` + `track: #eef2f8` +
+   `scrollbar-color` для Firefox.
+
+2. **Иконки в списке ведомостей** — заменить `⤓ ✎ ✕` на `<img src="...">`
+   из `base/images/export.svg`, `edit.svg`, `delete.svg` (в `list.js`).
+
+3. **Фильтры в таблице** — над каждой колонкой:
+   - Инв. № — текст (подстрока, case-insensitive);
+   - Наименование — текст;
+   - Каб. до — select из уникальных `room_before`;
+   - Каб. после — select из уникальных `room_after`;
+   - Найден/не найден — select (все / найден / не найден);
+   - Примечание — текст.
+   
+   Плюс счётчик «Показано N из M» и кнопка «Сбросить» над таблицей.
+   
+   Фильтры **на фронте** (`applyFilters` в `table.js`). Логика AND.
+   
+   При `updateAndHighlight(item)` — **сначала `resetFilters()`**,
+   потом `updateRow`, потом `highlight` — чтобы строка не оказалась
+   скрытой фильтром.
+
+4. **Сборка 1.0.27** — обновить `pyproject.toml`, `CHANGELOG.md`,
+   `RELEASE_1.0.27.md`, собрать, поставить на оба инстанса.
+
+## Что нужно от пользователя в начале следующего чата
+
+- Содержимое `base/images/export.svg`, `edit.svg`, `delete.svg`
+  (и `reset.svg`, `add.svg`, `burger.svg`, если хотим сразу).
+- Актуальный `botinv/table/table.js` — полный код.
+- Актуальный `botinv/table/table.css` — полный код.
+- Актуальный `botinv/list/list.js` — полный код.
+- Актуальный `base/table/table.css` — блок `::-webkit-scrollbar*`.
+
+## Ключевые правила проекта
+
+- CSS без `!important`, кроме редких случаев.
+- JS без статических импортов — всё через `await import()` с `?v=`.
+- Комментарии на английском, строки для пользователя на русском.
+- `__init__.py` — не трогать.
+- Не трогать `test/static/` — это сгенерированная папка, синк при старте.
+
+## Два инстанса
+
+- `neurocad.ru` — main, superadmin `admin`.
+- `inv.uc-rosseti-ural.ru` — боевой для бухгалтера, юзер `inv` (id=10).
+  Ведомость на 531 позицию загружена.
+
+## Открытые вопросы
+
+- Ведомость 531 позиция — фильтры на фронте. Если будет > 5000 — переедем
+  на бэкенд.
+- Nav «Инвентаризация» создаётся лениво. `module_id = None`, иначе
+  `ensure_default_nav` падает.
+- `change_room` принимает **любой текст** — валидировать не по чему.
+
 *Конец документа. Обновляется в конце каждой сессии.*

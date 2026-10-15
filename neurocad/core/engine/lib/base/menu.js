@@ -21,7 +21,8 @@
  *   - "Логин" (guest)     — <a href="<module>?auth=login">
  *   - "Баланс" (superadm) — <a href="<module>/balance">
  *   - "Настройки"         — <a href="<module>?page=setup"> (all authed)
- *   - "Сервисы" (superadm)— <a href="<module>?page=services">
+ *   - "Сервисы"           — <a href="<module>?page=services">
+ *                            (superadmin OR use_botinv = True)
  *   - items from `items`  — <a href="item.href">
  *
  * The browser handles them natively. If JS fails to load, or an
@@ -54,7 +55,7 @@
  *   `section` — a sub-page inside `page`:
  *                 page=profile  → section=balance / domain / ...
  *                 page=setup    → section=llm / ...
- *                 page=services → section=backup / panel / ...
+ *                 page=services → section=backup / botinv / ...
  *
  * So:
  *
@@ -65,6 +66,7 @@
  *   <module>?page=setup                    → setup landing
  *   <module>?page=services                 → services landing
  *   <module>?page=services&section=backup  → services → backup
+ *   <module>?page=services&section=botinv  → services → inventory
  *
  * <module> here is window.coreEngine.baseUrl — e.g. /core/engine/admin.
  *
@@ -89,8 +91,10 @@
  * ------
  * "Настройки" is visible to every authenticated user (it hosts
  * per-user sections like Creatives). "Баланс" stays superadmin-only.
- * "Сервисы" stays superadmin-only (backup, panel, metrics — all
- * system-level). Guests see none of them.
+ * "Сервисы" is visible to superadmins AND to users with
+ * use_botinv = True — the inventory module lives there, and the
+ * landing page filters its own items (backup stays superadmin-only).
+ * Guests see none of them.
  */
 export class Menu {
     constructor(options = {}) {
@@ -132,14 +136,43 @@ export class Menu {
     }
 
     /**
+     * Whether the current user is a superadmin.
+     *
+     * Tolerates bool / int / string forms — the backend may send
+     * is_superadmin as true / 1 / "1".
+     */
+    _isSuperadmin() {
+        const v = this.user?.is_superadmin;
+        return v === true || v === 1 || v === '1';
+    }
+
+    /**
+     * Whether the current user is allowed to use the inventory
+     * module. Set manually in the DB (User.use_botinv).
+     *
+     * Tolerates bool / int / string for the same reason as
+     * _isSuperadmin — a raw INT from SQLite may leak through.
+     */
+    _canBotInv() {
+        const v = this.user?.use_botinv;
+        return v === true || v === 1 || v === '1';
+    }
+
+    /**
      * Whether current user can see the "Сервисы" item.
      *
-     * Superadmin-only — services expose system-level tools (backup,
-     * panel, metrics). The same rule is enforced by BasePages.showServices
-     * and by the API endpoints behind each service.
+     * Visible to:
+     *   - superadmins — they see every service;
+     *   - users with use_botinv = True — they see the services
+     *     landing with the inventory section only.
+     *
+     * The same rule is enforced by BasePages.showServices (routing)
+     * and by the API endpoints behind each service. The landing
+     * page (BaseServices._services()) additionally hides backup
+     * from non-superadmins.
      */
     _canSeeServices() {
-        return this.user?.is_superadmin === true;
+        return this._isSuperadmin() || this._canBotInv();
     }
 
     /**
@@ -208,7 +241,7 @@ export class Menu {
             setupEl.style.display = this._isAuthed() ? '' : 'none';
         }
 
-        // "Сервисы" — superadmin-only.
+        // "Сервисы" — superadmin OR use_botinv = True.
         if (servicesEl) {
             servicesEl.style.display = this._canSeeServices() ? '' : 'none';
         }
@@ -282,10 +315,12 @@ export class Menu {
                style="${setupStyle}">Настройки</a>
         `;
 
-        // "Сервисы" — superadmin-only. A real <a href> to
-        // ?page=services on the current module. Hidden for guests
-        // and regular users via inline style. The API endpoints
-        // behind each service enforce the same rule server-side.
+        // "Сервисы" — superadmin OR use_botinv = True. A real
+        // <a href> to ?page=services on the current module. Hidden
+        // for guests and for users without either flag via inline
+        // style. The API endpoints behind each service enforce the
+        // same rule server-side; the landing page filters its own
+        // items (backup stays superadmin-only).
         const servicesStyle = this._canSeeServices() ? '' : 'display:none;';
         const servicesHtml = `
             <a class="core-engine-lib-base-menu-item core-engine-lib-base-menu-services"

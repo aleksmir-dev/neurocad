@@ -73,6 +73,25 @@ extra text on a clean first find is just noise.
                               is appended, every time.
 
 Without a repeat, `note` stays empty and the table stays clean.
+
+Message format in _mark_item
+----------------------------
+The message is assembled from pieces so that missing rooms
+simply do not appear in the text:
+
+  - room_before missing, room_after present:
+        "Находится в каб. <room_after>."
+    (the item was not recorded in any room; we are not "finding"
+    it — we are saying where it is now);
+  - both present:
+        "Каб. до: <room_before>. Каб. после: <room_after>."
+  - only room_before present (a degenerate case — a first find
+    always sets room_after; seen only if the caller passes an
+    empty current_room, which the guard above forbids):
+        "Каб. до: <room_before>."
+
+The message never contains "None" — the two helpers
+_room_line_before / _room_line_after drop the missing side.
 """
 
 from sqlalchemy import select, func
@@ -659,6 +678,11 @@ class CoreEngineLibBotInvService:
         Shared by both lookup paths in find_and_mark. Handles the
         already_found / first-find branches and the sheet counter.
         Commits the session before returning.
+
+        Message assembly is done by _build_mark_message — see its
+        docstring for the format. The two rooms (before / after)
+        are printed only if non-empty; "Каб. до: None" never
+        reaches the user.
         """
         now = datetime.now()
 
@@ -670,10 +694,8 @@ class CoreEngineLibBotInvService:
             await session.commit()
             await session.refresh(item)
 
-            msg = (
-                f"⚠️ {item.name}. Уже найдена.\n"
-                f"Каб. до: {item.room_before}. "
-                f"Каб. после: {item.room_after}."
+            msg = CoreEngineLibBotInvService._build_mark_message(
+                item, prefix="⚠️", suffix="Уже найдена.",
             )
             if item.note:
                 msg += f"\nПримечание: {item.note}"
@@ -704,10 +726,8 @@ class CoreEngineLibBotInvService:
         await session.commit()
         await session.refresh(item)
 
-        msg = (
-            f"✅ {item.name}.\n"
-            f"Каб. до: {item.room_before}. "
-            f"Каб. после: {item.room_after}."
+        msg = CoreEngineLibBotInvService._build_mark_message(
+            item, prefix="✅", suffix=None,
         )
         if item.note:
             msg += f"\nПримечание: {item.note}"
@@ -720,6 +740,68 @@ class CoreEngineLibBotInvService:
             "candidates": None,
             "total_matches": None,
         }
+
+    @staticmethod
+    def _build_mark_message(
+        item: BotInvItem,
+        prefix: str,
+        suffix: Optional[str],
+    ) -> str:
+        """
+        Assemble the human-readable message for one mark event.
+
+        Shape:
+
+            <prefix> <item.name>. [<suffix>]
+            <room line>
+
+        where <room line> is one of:
+
+            "Каб. до: <before>. Каб. после: <after>."
+                — both rooms known (the normal case);
+            "Находится в каб. <after>."
+                — no room_before; we do not say "найдена",
+                  because the item was not lost — we are just
+                  saying where it is now;
+            "Каб. до: <before>."
+                — only room_before known (a degenerate case; a
+                  first find always sets room_after, and
+                  current_room is guaranteed non-empty by the
+                  guard in find_and_mark, so this branch is
+                  effectively unreachable — kept for symmetry);
+            "" (empty)
+                — neither known. Not printed.
+
+        "<room>. <room>." — each room carries its own trailing
+        period, so a message never ends with a stray dot and the
+        word "None" never appears.
+
+        `prefix` is "✅" for a first find, "⚠️" for a repeat.
+        `suffix` is "Уже найдена." for a repeat, None for a first
+        find (the "✅" prefix already says the item was located).
+        """
+        # --- Header line: "<prefix> <name>. [<suffix>]" ---
+        head_parts = [f"{prefix} {item.name}."]
+        if suffix:
+            head_parts.append(suffix)
+        head = " ".join(head_parts)
+
+        # --- Room line ---
+        before = (item.room_before or "").strip()
+        after = (item.room_after or "").strip()
+
+        if before and after:
+            room_line = f"Каб. до: {before}. Каб. после: {after}."
+        elif after:
+            room_line = f"Находится в каб. {after}."
+        elif before:
+            room_line = f"Каб. до: {before}."
+        else:
+            room_line = ""
+
+        if room_line:
+            return f"{head}\n{room_line}"
+        return head
 
     # ========================================
     # NAV RESOLUTION

@@ -23,14 +23,34 @@
  *                   <span>15.01.2026</span>
  *               </div>
  *               <div class="botinv-sheet-actions">
- *                   <button class="botinv-sheet-action" data-action="export">⤓</button>
- *                   <button class="botinv-sheet-action" data-action="rename">✎</button>
- *                   <button class="botinv-sheet-action is-danger" data-action="delete">✕</button>
+ *                   <button … data-action="export">
+ *                       <img src="/static/.../export.svg" width="16" height="16" alt="">
+ *                   </button>
+ *                   <button … data-action="rename">
+ *                       <img src="/static/.../edit.svg" width="16" height="16" alt="">
+ *                   </button>
+ *                   <button … data-action="delete">
+ *                       <img src="/static/.../delete.svg" width="16" height="16" alt="">
+ *                   </button>
  *               </div>
  *           </div>
  *           ...
  *       </div>
  *   </div>
+ *
+ * Icons
+ * -----
+ * The three action buttons use SVG files from
+ * /static/core/engine/lib/base/images/ (export.svg, edit.svg,
+ * delete.svg) as <img> tags, not inline SVG. The static_version
+ * query string is appended so cache busting works the same way
+ * as for every other static asset in the project.
+ *
+ * The SVGs are drawn in the design system's own colour; the
+ * browser renders them as-is (no currentColor inheritance — an
+ * <img> tag does not participate in the page's CSS colour
+ * cascade). That is intentional: the icons look right on both
+ * the default and hover backgrounds without extra work.
  *
  * Events are delegated: one click listener on the root handles
  * every item and every action button. The root is re-rendered by
@@ -164,6 +184,15 @@ export class BotInvList {
         const dateStr = this._formatDate(sheet.batch_date);
         const name = this._escape(sheet.name || 'Без названия');
 
+        // Action icons — loaded from the shared images directory
+        // with the same ?v=<static_version> cache-busting key the
+        // rest of the project uses.
+        const v = window.coreEngine?.static_version || Date.now();
+        const imgBase = `/static/core/engine/lib/base/images`;
+        const iconExport = `${imgBase}/export.svg?v=${v}`;
+        const iconEdit   = `${imgBase}/edit.svg?v=${v}`;
+        const iconDelete = `${imgBase}/delete.svg?v=${v}`;
+
         return `
             <div class="${cls}" data-id="${sheet.id}">
                 <div class="botinv-sheet-name">${name}</div>
@@ -175,15 +204,21 @@ export class BotInvList {
                     <button type="button"
                             class="botinv-sheet-action"
                             title="Скачать ведомость"
-                            data-action="export">⤓</button>
+                            data-action="export">
+                        <img src="${iconExport}" alt="" width="16" height="16">
+                    </button>
                     <button type="button"
                             class="botinv-sheet-action"
                             title="Переименовать"
-                            data-action="rename">✎</button>
+                            data-action="rename">
+                        <img src="${iconEdit}" alt="" width="16" height="16">
+                    </button>
                     <button type="button"
                             class="botinv-sheet-action is-danger"
                             title="Удалить"
-                            data-action="delete">✕</button>
+                            data-action="delete">
+                        <img src="${iconDelete}" alt="" width="16" height="16">
+                    </button>
                 </div>
             </div>
         `;

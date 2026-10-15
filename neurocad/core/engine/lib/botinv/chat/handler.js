@@ -47,6 +47,24 @@
  * If the user answers with anything other than 1/2/3, the candidate
  * list is discarded and the input is treated as a fresh query.
  *
+ * HTML in the candidate list
+ * --------------------------
+ * Every other bot message in the inventory chat is plain text —
+ * it is rendered via BaseChat.addMessage(..., asHtml = false) and
+ * lands in the bubble through textContent. The numbered candidate
+ * list is the ONLY exception: its three rows must visually stand
+ * out (the accountant picks one by number, and the inventory
+ * number is the thing he actually cares about). So the list is
+ * built as HTML and passed with `html: true` in the reply object;
+ * BaseChat then renders that one message via innerHTML.
+ *
+ * The markup is fixed (a span for the number, a span for the
+ * inventory number, the rest is plain text), and every value that
+ * comes from the sheet — inv_num, name, room_before, and the
+ * query — is HTML-escaped by _escapeHtml before interpolation.
+ * The colour itself lives in botinv/chat/chat.css
+ * (.botinv-cand-num / .botinv-cand-inv).
+ *
  * Placeholder
  * -----------
  * The input placeholder is intentionally SHORT — it must fit on
@@ -100,7 +118,8 @@ export class BotInvChatHandler {
     async _init() {
         console.log('[BotInvChatHandler] _init() START');
         try {
-            // 1. Load our own CSS (burger, title tweaks).
+            // 1. Load our own CSS (burger, title tweaks, candidate
+            //    list colours).
             await this._loadCSS();
 
             // 2. Dynamically import BaseChat.
@@ -300,7 +319,9 @@ export class BotInvChatHandler {
      * controller can highlight the row in the table.
      *
      * On "ambiguous", the candidate list is stored and printed —
-     * the user then answers with 1, 2 or 3.
+     * the user then answers with 1, 2 or 3. That reply is the ONLY
+     * one in this module that carries `html: true`: see the class
+     * docstring ("HTML in the candidate list").
      */
     async _handleMark(invNum) {
         const currentRoom = this.getCurrentRoom() || null;
@@ -333,6 +354,7 @@ export class BotInvChatHandler {
                     res.total_matches,
                 ),
                 variant: 'warning',
+                html: true,
             };
         }
 
@@ -398,6 +420,10 @@ export class BotInvChatHandler {
      *
      * Used by both the direct path (_handleMark) and the candidate
      * path (_handleCandidatePick).
+     *
+     * Note: the returned object never sets `html: true`. The
+     * server's message is plain text; it is rendered through
+     * textContent by BaseChat.
      */
     _renderMarkResult(res) {
         // Status → variant mapping.
@@ -427,6 +453,18 @@ export class BotInvChatHandler {
     /**
      * Format the candidate list for the chat.
      *
+     * Returns an HTML string — the caller (_handleMark) marks the
+     * reply with `html: true`, so BaseChat renders it with
+     * innerHTML. Two styled spans per row:
+     *
+     *   .botinv-cand-num — the "1." / "2." / "3." prefix
+     *   .botinv-cand-inv — the inventory number
+     *
+     * Both are tinted in botinv/chat/chat.css. Values that come
+     * from the sheet (inv_num, name, room_before) and the query
+     * itself are HTML-escaped — the markup is built here, the data
+     * is never trusted as markup.
+     *
      * The final line tells a first-time user what to type next:
      * "Выберите номер: 1, 2 или 3." — listing only the numbers
      * that are actually present (when the list is shorter than 3,
@@ -446,17 +484,25 @@ export class BotInvChatHandler {
             ? totalMatches
             : candidates.length;
 
+        const q = this._escapeHtml(query);
         const header = (total === 1)
-            ? `Найдена 1 позиция по запросу «${query}»:`
-            : `Найдено ${total} позиций по запросу «${query}»:`;
+            ? `Найдена 1 позиция по запросу «${q}»:`
+            : `Найдено ${total} позиций по запросу «${q}»:`;
         lines.push(header);
 
         candidates.forEach((c, i) => {
             const num = i + 1;
-            const name = (c.name || '').trim();
-            const room = c.room_before ? ` (каб. ${c.room_before})` : '';
+            const inv = this._escapeHtml(c.inv_num || '');
+            const name = this._escapeHtml((c.name || '').trim());
+            const room = c.room_before
+                ? ` (каб. ${this._escapeHtml(c.room_before)})`
+                : '';
             const foundMark = c.found ? ' ✓' : '';
-            lines.push(`${num}. ${c.inv_num} — ${name}${room}${foundMark}`);
+            lines.push(
+                `<span class="botinv-cand-num">${num}.</span> ` +
+                `<span class="botinv-cand-inv">${inv}</span>` +
+                ` — ${name}${room}${foundMark}`
+            );
         });
 
         const shown = candidates.length;
@@ -482,7 +528,24 @@ export class BotInvChatHandler {
             lines.push(`Всего найдено ${total} — уточните запрос, чтобы увидеть остальные.`);
         }
 
-        return lines.join('\n');
+        // <br> instead of \n — BaseChat renders this message with
+        // innerHTML, and plain newlines collapse to spaces in HTML.
+        return lines.join('<br>');
+    }
+
+    /**
+     * Minimal HTML escape for values interpolated into the
+     * candidate-list markup: inv_num, name, room_before, query.
+     *
+     * Escapes the four characters that matter inside element
+     * content and double-quoted attributes: & < > ".
+     */
+    _escapeHtml(str) {
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     // ========================================

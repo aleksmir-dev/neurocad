@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.27] - 2026-10-15
+- `botinv` module polish and modal fixes. Mobile layout now puts the chat in `area-center` (the table is not mounted on mobile); the table's filter row and toolbar are re-installed after every base re-render; list actions use SVG icons; the chat candidate list highlights row numbers in bordeaux and inventory numbers in blue via escaped HTML (`BaseChat.addMessage` gained an `asHtml` flag); `_mark_item` no longer prints «Каб. до: None» — it says «Находится в каб. X» when the sheet has no "before" room. `BaseModalInput` and `BaseModalDate` no longer flash unstyled on a cold cache (inline `display: none` + `_cssReady` awaited in `async open()`), and `base/modal/index.js` now appends `?v=<static_version>` to its dynamic imports. `BaseModalDate` gained the missing `_populateMonthSelect()` and `setOnCancel`.
+
 ## [1.0.26] - 2026-10-15
 - Fix: `use_botinv` was missing from `GET /core/engine/lib/base/profile/` and `POST /core/auth/login` responses, so `BaseAuth.getUser()` never carried the flag and the inventory section stayed hidden for non-superadmin users even when the DB flag was set. Also normalized `serialize_user` output to a real boolean (`bool(user.use_botinv)` instead of `or False`, which leaked `1` as an int).
 
@@ -125,6 +128,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.27]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.26...v1.0.27
+[1.0.26]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.25...v1.0.26
+[1.0.25]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.24...v1.0.25
 [1.0.24]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.23...v1.0.24
 [1.0.23]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.22...v1.0.23
 [1.0.22]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.21...v1.0.22

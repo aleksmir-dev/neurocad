@@ -702,6 +702,237 @@ text
 | Миграции | `test/migrate.sh` |
 | Медиа | `media/<nav_id>/` |
 
+
+. PROJECT.md — дополнение про botinv
+Ниже — готовые блоки для вставки в PROJECT.md. Плейсхолдеры — там, где нужно твоё уточнение по структуре (в какую именно «Часть» вставлять).
+
+Вставить в «Часть 2. Структура проекта» — после creatives/, перед word/
+text
+│ │ │ ├── botinv/ ← инвентаризация (botinv) — пер-юзер модуль
+│ │ │ │ ├── botinv.js ← оркестратор BaseBotInv (list + table + chat + resizer)
+│ │ │ │ ├── botinv.css ← общие стили (контейнер, ручки, мобильные медиа)
+│ │ │ │ ├── drawer.css ← выезжающая панель ведомостей на мобильном
+│ │ │ │ ├── api.js ← HTTP-клиент (BaseBotInvApi)
+│ │ │ │ ├── importer.py ← парсер Excel/CSV (openpyxl + csv)
+│ │ │ │ ├── exporter.py ← генератор XLSX (openpyxl)
+│ │ │ │ ├── service.py ← CoreEngineLibBotInvService
+│ │ │ │ ├── route.py ← эндпоинты (/active, /sheets, /mark, /room, /export)
+│ │ │ │ ├── schema.py ← Pydantic-схемы запросов
+│ │ │ │ ├── resizer.js ← BotInvResizer (ручки между area-left/center/right)
+│ │ │ │ │
+│ │ │ │ ├── list/ ← список ведомостей (sidebar + drawer)
+│ │ │ │ │ ├── list.js ← BotInvList
+│ │ │ │ │ └── list.css ← стили + мобильное скрытие
+│ │ │ │ │
+│ │ │ │ ├── table/ ← таблица обхода
+│ │ │ │ │ ├── table.js ← BotInvTable (обёртка над base/table + фильтры)
+│ │ │ │ └── table.css ← highlight, is-found, фильтры, тулбар
+│ │ │ │ │
+│ │ │ │ └── chat/ ← чат с ботом
+│ │ │ │ ├── handler.js ← BotInvChatHandler (обёртка над BaseChat)
+│ │ │ │ └── chat.css ← стили бургера в шапке чата
+Вставить в «Часть 3. Ключевые сущности» — новый раздел про botinv
+BotInvSheet (core/models/botinv_sheet.py)
+Ведомость. Одна строка = один загруженный Excel/CSV. После импорта иммутабельна — меняются только is_active, is_delete, счётчики и таймстемпы.
+
+Поля:
+
+id — PK.
+
+nav_id — FK на Nav. Скоуп — per-user: у каждого пользователя свой nav «Инвентаризация».
+
+name, batch_date, source_file.
+
+is_active — только одна активная ведомость на nav.
+
+is_delete — soft delete.
+
+items_count, marked_count — денормализованные счётчики для UI.
+
+created_at, updated_at.
+
+BotInvItem (core/models/botinv_item.py)
+Позиция ведомости. Одна строка на уникальный inv_num в рамках sheet.
+
+Поля:
+
+id — PK.
+
+sheet_id — FK на BotInvSheet.
+
+inv_num — номер как в файле (регистр сохранён).
+
+inv_num_norm — inv_num.upper(), только для поиска. В JSON не отдаётся.
+
+name.
+
+room_before — «Кабинет до», из файла, никогда не меняется.
+
+room_after — «Кабинет после», из первой находки, никогда не перезаписывается.
+
+found — 0 / 1.
+
+note — накопительный журнал. Пишется только при повторах: "; найден в каб. X".
+
+marked_at — время первой находки.
+
+Индексы и констрейнты:
+
+UniqueConstraint(sheet_id, inv_num_norm) — uq_botinv_sheet_invnum_norm.
+
+Индексы: sheet_id, inv_num, inv_num_norm, room_before.
+
+User.use_botinv
+Новое поле в core/models/user.py — Boolean, nullable, default False. NULL = выключено. Включается вручную в БД (позже — через lib/users):
+
+sql
+UPDATE users SET use_botinv = 1 WHERE login = 'inv';
+Вставить в «Часть 5. Схема взаимодействия» — новый поток
+Поток работы модуля botinv
+text
+Пользователь (бухгалтер) открывает
+/core/engine/admin?page=services&section=botinv
+│
+▼
+BasePages.showServices('botinv')
+│ 1. Проверка: user.use_botinv === true (или is_superadmin)
+│ 2. teardownAreas()
+│ 3. import('../botinv/botinv.js') → BaseBotInv
+│
+▼
+BaseBotInv._init()
+│ 1. Загрузка botinv.css + drawer.css
+│ 2. Чтение currentRoom из localStorage
+│ 3. Динамический импорт: api.js, list/list.js, table/table.js, chat/handler.js, resizer.js
+│ 4. Создание компонентов:
+│ │ - BotInvList → area-left
+│ │ - BotInvTable → area-center
+│ │ - BotInvChatHandler → area-right
+│ │ - BotInvResizer → ручки между панелями
+│ 5. setupMediaQuery — mobile/desktop
+│
+▼
+bindEvents()
+│ 1. Монтирование list в area-left
+│ 2. Монтирование table в _tableContainer
+│ 3. Монтирование chat через handler.mount(area-right)
+│ 4. resizer.build()
+│ 5. _loadActive() → _loadSheets()
+│
+▼
+Пользователь в чате вводит #405
+│
+▼
+BotInvChatHandler._handleRoom()
+│ → POST /botinv/room { room: "405" }
+│ → setCurrentRoom("405") в localStorage
+│ → setPlaceholder("405: инв. номер")
+│
+▼
+Пользователь вводит фрагмент "22457"
+│
+▼
+BotInvChatHandler._handleMark()
+│ → POST /botinv/mark { inv_num: "22457", current_room: "405" }
+│
+▼
+CoreEngineLibBotInvService.find_and_mark()
+│ 1. Точное совпадение по inv_num_norm? → пометить
+│ 2. Иначе LIKE '%22457%':
+│ │ 0 совпадений → not_found
+│ │ 1 совпадение → пометить
+│ │ 2+ → ambiguous + до 3 кандидатов + total_matches
+│
+▼
+Если ambiguous:
+│ - Чат рендерит нумерованный список + "Выберите номер: 1, 2 или 3"
+│ - handler._candidates = [...] сохраняется
+│ - Следующий ввод "1"|"2"|"3" → POST /mark с chosen_id
+│
+▼
+Если found/already_found:
+│ - handler.onItemFound(item) → botinv._onItemFound
+│ - BotInvTable.updateAndHighlight(item):
+│ │ 1. resetFilters()
+│ │ 2. updateRow(item.id, item)
+│ │ 3. highlight(item.id) → flash + scrollIntoView
+│
+▼
+Таблица подсвечивает строку жёлтой анимацией 2с → остаётся зелёный .is-found
+Вставить в «Часть 6. Ключевые архитектурные решения» — новые пункты
+text
+- **`botinv` — отдельный Nav на пользователя.** Открытие модуля лениво создаёт
+  Nav через `resolve_nav_id_for_botinv`. `module_id = None` — намеренно, иначе
+  `ensure_default_nav` в `utils/sqlite.py` падает с `MultipleResultsFound`
+  (он ждёт ровно один nav на `(user_id, module_id)`).
+
+- **Флаг `User.use_botinv`** — единственный маркер доступа. Проверяется в:
+  - `BasePages.showServices('botinv')` — фронт;
+  - `BaseServices._canBotInv()` — фронт, в списке сервисов;
+  - `botinv/route.py → _resolve_nav_id_for_botinv` — бэкенд, 403 если выключен.
+
+  Флаг обязан доезжать до `getUser()` — он приходит из двух эндпоинтов:
+  `POST /core/auth/login` и `GET /core/engine/lib/base/profile/`.
+
+- **`inv_num_norm`** — денормализация для case-insensitive поиска. В SQLite
+  `UPPER()` не индексируется, поэтому отдельная колонка + индекс.
+
+- **Поиск по фрагменту.** `find_and_mark` сначала пробует точное совпадение по
+  `inv_num_norm`, потом `LIKE %query%`. Если 2+ совпадений — статус `ambiguous`
+  + до `CANDIDATE_LIMIT=3` кандидатов + `total_matches`. Фронт рисует список.
+
+- **`chosen_id` в `POST /mark`.** При выборе из списка кандидатов фронт
+  отправляет `chosen_id`, бэкенд ищет по PK и игнорирует `inv_num`.
+
+- **`note` пишется только при повторах.** Первая находка — `note` не трогаем.
+  Даже если кабинет не совпадает — колонки «Каб. до» / «Каб. после» показывают
+  полную картину. Повтор — `"; найден в каб. X"` каждый раз.
+
+- **`change_room` принимает любой текст.** В реальных ИНВ-3 нет колонки кабинета,
+  валидировать не по чему. Пустая строка → `room_not_found`; иначе — `room_changed`.
+
+- **Три области одновременно.** В отличие от `backup`/`creatives` (одна панель
+  в area-center), `BaseBotInv` — оркестратор, монтирует компоненты в area-left,
+  area-center, area-right и связывает их через колбэки.
+
+- **`BotInvResizer`** — ручки между area-left↔area-center и area-center↔area-right.
+  Ширины в localStorage (`botinv:left-width`, `botinv:right-width`).
+  На мобильном ручки скрыты CSS.
+
+- **Мобильный: drawer.** `area-left` и `area-center` скрыты через `07_mobile.css`
+  (`display: none !important`). Список ведомостей — выезжающий drawer, кнопка-бургер
+  в шапке чата. `BotInvList.openDrawer()` переносит DOM в `<body>` — иначе
+  родитель с `display: none` заберёт его с собой.
+
+- **`current_room` живёт на фронте.** Бэкенд его не хранит. Передаётся в
+  `/mark` параметром, в `/room` только валидируется формат. При ошибке
+  возвращается `null` — фронт трактует как «не менять localStorage».
+
+- **Скроллбар таблицы.** `::-webkit-scrollbar` с `thumb: #94a3b8` и треком
+  `#eef2f8` — видимый. Плюс `scrollbar-width: thin; scrollbar-color: ...`
+  для Firefox. Прежний `var(--border-hover)` сливался с белым фоном.
+Вставить в «Часть 7. Что где искать» — новые строки
+Нужно	Смотри
+Botinv: роутер	botinv/route.py
+Botinv: логика find/mark	botinv/service.py → find_and_mark
+Botinv: поиск по фрагменту	botinv/service.py → CANDIDATE_LIMIT, ambiguous
+Botinv: импорт Excel/CSV	botinv/importer.py → parse_inventory
+Botinv: экспорт XLSX	botinv/exporter.py → build_workbook
+Botinv: ленивое создание nav	botinv/service.py → resolve_nav_id_for_botinv
+Botinv: флаг доступа	User.use_botinv; проверки в pages.js, services.js, route.py
+Botinv: три области	botinv/botinv.js → bindEvents
+Botinv: ручки панелей	botinv/resizer.js → BotInvResizer
+Botinv: drawer на мобильном	botinv/drawer.css + botinv/list/list.js
+Botinv: чат — обработчик	botinv/chat/handler.js → _handleSend
+Botinv: кандидаты 1/2/3	botinv/chat/handler.js → _handleCandidatePick, _formatCandidates
+Botinv: таблица + фильтры	botinv/table/table.js → applyFilters, resetFilters
+Botinv: подсветка строки	botinv/table/table.js → highlight, updateAndHighlight
+Botinv: плейсхолдер чата	botinv/chat/handler.js → _updatePlaceholder
+BaseChat.setPlaceholder	base/chat/chat.js
+BaseChat.headerExtra	base/chat/chat.js → _createDOM
+Иконки кнопок списка	base/images/export.svg, edit.svg, delete.svg
+Скроллбар таблицы	base/table/table.css → ::-webkit-scrollbar*
+
 ---
 
 *Конец документа. Дополняется по мере необходимости.*

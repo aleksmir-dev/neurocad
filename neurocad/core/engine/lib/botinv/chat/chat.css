@@ -14,6 +14,21 @@
  *   2. Chat title sizing/ellipsis in the sidebar — the title
  *      carries the active sheet name, which can be long.
  *
+ *   3. The candidate list colouring — the two spans that
+ *      BotInvChatHandler._formatCandidates emits inside the
+ *      "ambiguous" reply:
+ *
+ *          .botinv-cand-num  — the "1." / "2." / "3." prefix
+ *                              → бордовый (#9f1239)
+ *          .botinv-cand-inv  — the inventory number
+ *                              → синий (#1d4ed8), моноширинный
+ *
+ *      That reply is the ONLY message in this chat rendered as
+ *      HTML (BaseChat.addMessage is called with `html: true` —
+ *      see the class docstring there and in handler.js). Every
+ *      other message goes through textContent and cannot be
+ *      styled by CSS.
+ *
  * The burger is inserted into the chat header by BotInvChatHandler
  * via the `headerExtra` option of BaseChat (see chat/handler.js).
  * It is a plain <button class="botinv-drawer-toggle">…</button>
@@ -74,6 +89,45 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
+}
+
+/* ============================================
+   CANDIDATE LIST — numbered rows in the chat
+   ============================================
+   Rendered by BotInvChatHandler._formatCandidates via
+   addMessage(..., { html: true }). Two classes:
+
+     .botinv-cand-num — the "1." / "2." / "3." prefix
+                        → бордовый #9f1239
+     .botinv-cand-inv — the inventory number
+                        → синий #1d4ed8, моноширинный
+
+   Two different colours on purpose: the row number is what
+   the user types back ("1", "2", "3"), the inventory number
+   is what he actually reads. Making them visually different
+   helps both find what they need at a glance.
+
+   The parent message carries .chat-message-warning, whose
+   base colour (#78350f) would otherwise win by inheritance on
+   the plain text. The two rules below override that for the
+   two spans only.
+
+   Specificity: prefixing .core-engine-lib-base-chat lifts the
+   selectors from (0,1,0) to (0,2,0), which beats the base
+   .chat-message-* colour rules without !important.
+*/
+
+.core-engine-lib-base-chat .botinv-cand-num {
+    display: inline-block;
+    min-width: 1.4em;
+    font-weight: 700;
+    color: #9f1239;   /* бордовый (rose-800) */
+}
+
+.core-engine-lib-base-chat .botinv-cand-inv {
+    font-weight: 700;
+    color: #1d4ed8;   /* синий */
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 /* ============================================

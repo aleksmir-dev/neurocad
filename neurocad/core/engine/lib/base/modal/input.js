@@ -6,19 +6,29 @@ export class BaseModalInput {
     this.onOk = null;
     this.onCancel = null;
 
-    // Загружаем CSS при создании объекта
-    this._loadCSS();
+    // Загрузка CSS. Не блокирует конструктор — но promise
+    // сохраняется, и open() дожидается его перед показом.
+    // Без этого модалка может мелькнуть «голой» (FOUC) на
+    // первом показе в сессии, пока input.css ещё грузится:
+    // _createDOM вставляет контейнер в body, а CSS-правила
+    // .core-engine-lib-base-modal-input { display: none }
+    // в CSSOM ещё нет.
+    this._cssReady = this._loadCSS();
 
     this._createDOM();
     this._bindEvents();
   }
 
   /**
-   * Загрузить CSS для модалки
+   * Загрузить CSS для модалки.
+   *
+   * Возвращает Promise — open() его дожидается, чтобы гарантировать,
+   * что стили применены к моменту показа. loadCSS в coreEngine
+   * резолвится по link.onload.
    */
-  _loadCSS() {
+  async _loadCSS() {
     if (window.coreEngine && typeof window.coreEngine.loadCSS === 'function') {
-      window.coreEngine.loadCSS('core/engine/lib/base/modal/input.css');
+      await window.coreEngine.loadCSS('core/engine/lib/base/modal/input.css');
     }
   }
 
@@ -32,6 +42,17 @@ export class BaseModalInput {
 
     const container = document.createElement('div');
     container.className = 'core-engine-lib-base-modal-input';
+
+    // Inline display: none — применяется мгновенно, до того как
+    // приедет input.css. Без этого модалка на короткое время
+    // рендерится «голой» (FOUC): браузер ещё не знает правило
+    // `.core-engine-lib-base-modal-input { display: none }`, и
+    // голый <div> со всей разметкой виден в body.
+    //
+    // open() снимет этот inline-стиль только после того, как
+    // _cssReady разрешится, — то есть стили уже точно применены.
+    container.style.display = 'none';
+
     container.innerHTML = `
       <div class="window">
         <div class="title-bar">
@@ -124,18 +145,30 @@ export class BaseModalInput {
 
   // ========== Публичные методы ==========
 
-  open(text, title, placeholder, defaultValue) {
+  async open(text, title, placeholder, defaultValue) {
     this.inputText.textContent = text || '';
     this.titleBarText.textContent = title || 'Ввод';
     this.inputField.placeholder = placeholder || '';
     this.inputField.value = defaultValue || '';
 
+    // Ждём применения CSS, прежде чем показать модалку.
+    // На первом показе в сессии это 30-50 мс; дальше promise
+    // уже разрешён и ожидание мгновенное.
+    await this._cssReady;
+
+    // Снимаем inline display: none, поставленный в _createDOM
+    // как защита от FOUC. Дальше в силу вступает CSS:
+    //   .core-engine-lib-base-modal-input { display: none }
+    //   .core-engine-lib-base-modal-input.active { display: flex }
+    // — и следующий же classList.add('active') покажет модалку
+    // в правильном виде.
+    this.container.style.display = '';
+    this.container.classList.add('active');
+
     setTimeout(() => {
       this.inputField.focus();
       this.inputField.select();
     }, 100);
-
-    this.container.classList.add('active');
   }
 
   close() {

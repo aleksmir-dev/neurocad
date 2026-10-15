@@ -3,16 +3,22 @@
 /**
  * Inventory module (botinv) — shared layout styles.
  *
- * This file owns three things:
+ * This file owns four things:
  *
  *   1. The module container look (font, colour, flex column) —
  *      applied to each of the three areas (left / center / right).
  *
- *   2. The drag handles between area-left ↔ area-center and
+ *   2. The center-panel wrapper that hosts the table — it must
+ *      participate in the flex chain with min-height: 0 so that
+ *      the base table's scroll container gets a bounded height
+ *      and can actually scroll. Without this, the table grows
+ *      to the full content height and no scrollbar appears.
+ *
+ *   3. The drag handles between area-left ↔ area-center and
  *      area-center ↔ area-right. The handles are inserted by
  *      botinv/resizer.js (BotInvResizer); this file only styles them.
  *
- *   3. The mobile "handles are hidden" rule — on a phone the side
+ *   4. The mobile "handles are hidden" rule — on a phone the side
  *      panels are not resizable (they are either hidden or shown
  *      as a full-width drawer), so the handles must not appear.
  *
@@ -20,8 +26,8 @@
  *
  *   - list/list.css     — sheets sidebar + its mobile "hidden
  *                          unless drawer" rule;
- *   - table/table.css   — inventory table extras (highlight, is-found)
- *                          + its mobile "hidden" rule;
+ *   - table/table.css   — inventory table extras (highlight, is-found,
+ *                          filters, scrollbar, mobile "hidden" rule);
  *   - chat/chat.css     — inventory chat extras (burger in header)
  *                          + its mobile "show burger" rule;
  *   - drawer.css        — mobile drawer (backdrop + slide-in panel)
@@ -38,10 +44,46 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 0;
     width: 100%;
     overflow: hidden;
     font-size: 14px;
     color: #1f2937;
+}
+
+/* ============================================
+   CENTER PANEL WRAPPER — hosts the base table
+   ============================================
+   BasePages renders BaseBotInv's returned element into
+   area-center. That element (this .core-engine-lib-botinv)
+   contains a single child with class .core-engine-lib-botinv-table,
+   into which BotInvTable mounts the base Table.
+
+   The flex chain must reach all the way down to the scroll
+   container inside the base Table:
+
+       .core-engine-lib-base-main-inner   (flex row, fixed height)
+         .core-engine-lib-base-area-center  (flex column)
+           .core-engine-lib-botinv          (flex column)
+             .core-engine-lib-botinv-table  ← THIS FILE
+               .core-engine-lib-base-table-wrapper  (flex column, min-height: 0)
+                 .core-engine-lib-base-table-scroll  (overflow: auto)
+                   .core-engine-lib-base-table
+
+   Without `flex: 1; min-height: 0` on -botinv-table, the flex
+   chain stops here: the div becomes a plain block, grows to the
+   full content height (24000px for 531 rows), and the parent
+   .core-engine-lib-botinv just clips it via overflow: hidden.
+   The result: no scrollbar, wheel does nothing on the container.
+*/
+
+.core-engine-lib-botinv-table {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
 }
 
 /* ============================================

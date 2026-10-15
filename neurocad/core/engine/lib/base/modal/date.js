@@ -5,6 +5,7 @@ export class BaseModalDate {
     this.container = null;
     this.selectedDate = null;
     this.onOk = null;
+    this.onCancel = null;
 
     this.years = years || [];
     this.minYear = this.years.length > 0 ? this.years[0] : 2000;
@@ -28,21 +29,29 @@ export class BaseModalDate {
     this.currentMonth = defaultDate.getMonth();
     this.currentYear = defaultDate.getFullYear();
 
-    // Загружаем CSS при создании объекта
-    this._loadCSS();
+    // Загружаем CSS и сохраняем promise. open() дождётся его,
+    // прежде чем показать модалку, — гарантия, что стили уже
+    // применены (иначе на первом показе в сессии модалка
+    // мелькает «голой», FOUC).
+    this._cssReady = this._loadCSS();
 
     this._createDOM();
     this._populateYearSelect();
+    this._populateMonthSelect();
     this._bindEvents();
     this._render();
   }
 
   /**
-   * Загрузить CSS для модалки
+   * Загрузить CSS для модалки.
+   *
+   * async и await — чтобы _cssReady (см. конструктор) разрешался
+   * ровно тогда, когда стили применены. coreEngine.loadCSS
+   * резолвится по link.onload.
    */
-  _loadCSS() {
+  async _loadCSS() {
     if (window.coreEngine && typeof window.coreEngine.loadCSS === 'function') {
-      window.coreEngine.loadCSS('core/engine/lib/base/modal/date.css');
+      await window.coreEngine.loadCSS('core/engine/lib/base/modal/date.css');
     }
   }
 
@@ -56,6 +65,17 @@ export class BaseModalDate {
 
     const container = document.createElement('div');
     container.className = 'core-engine-lib-base-modal-date';
+
+    // Inline display: none — применяется мгновенно, до того как
+    // приедет date.css. Без этого модалка на короткое время
+    // рендерится «голой» (FOUC): браузер ещё не знает правило
+    // `.core-engine-lib-base-modal-date { display: none }`, и
+    // голый <div> со всей разметкой виден в body.
+    //
+    // open() снимет этот inline-стиль только после того, как
+    // _cssReady разрешится, — то есть стили уже точно применены.
+    container.style.display = 'none';
+
     container.innerHTML = `
       <div class="window">
         <div class="title-bar">
@@ -136,6 +156,29 @@ export class BaseModalDate {
       option.textContent = year;
       this.yearSelect.appendChild(option);
     });
+  }
+
+  /**
+   * Заполнить select месяцев.
+   *
+   * Раньше этот метод отсутствовал — селект месяцев создавался
+   * пустым и оставался пустым: _updateSelects() писал в него
+   * .value, но options не было, и значение «не прилипало».
+   * Годы заполнялись (_populateYearSelect), месяцы — нет.
+   *
+   * option.value = idx (0..11), а не имя: _updateSelects() и
+   * обработчик change в _bindEvents кладут в .value число из
+   * getMonth() — 0..11. Если бы value был строкой с именем,
+   * селект не находил бы соответствующую опцию.
+   */
+  _populateMonthSelect() {
+    this.monthSelect.innerHTML = '';
+    for (let m = 0; m < 12; m++) {
+      const option = document.createElement('option');
+      option.value = m;
+      option.textContent = this._getMonthName(m);
+      this.monthSelect.appendChild(option);
+    }
   }
 
   _getMonthName(month) {
@@ -334,6 +377,7 @@ export class BaseModalDate {
       }
       this._render();
       this.close();
+      if (this.onCancel) this.onCancel(null);
     });
 
     this.container.querySelectorAll('[data-nav]').forEach((btn) => {
@@ -408,6 +452,7 @@ export class BaseModalDate {
       }
       this._render();
       this.close();
+      if (this.onCancel) this.onCancel(null);
     });
 
     this.okBtn.addEventListener('click', () => {
@@ -419,15 +464,34 @@ export class BaseModalDate {
     });
 
     this.container.addEventListener('click', (e) => {
-      if (e.target === this.container) this.close();
+      if (e.target === this.container) {
+        this.close();
+        if (this.onCancel) this.onCancel(null);
+      }
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.container.classList.contains('active')) this.close();
+      if (e.key === 'Escape' && this.container.classList.contains('active')) {
+        this.close();
+        if (this.onCancel) this.onCancel(null);
+      }
     });
   }
 
-  open() {
+  async open() {
+    // Ждём применения CSS, прежде чем снять inline-скрытие.
+    // На первом показе в сессии это 30-50 мс; дальше promise
+    // уже разрешён и ожидание мгновенное.
+    await this._cssReady;
+
+    // Снимаем inline display: none, который _createDOM ставит
+    // для защиты от FOUC. Дальше в силу вступает CSS:
+    //   .core-engine-lib-base-modal-date { display: none }
+    //   .core-engine-lib-base-modal-date.active { display: flex }
+    // — и следующий же classList.add('active') покажет модалку
+    // в правильном виде.
+    this.container.style.display = '';
+
     this.container.classList.add('active');
     if (this.selectedDate && this._isDateInRange(this.selectedDate)) {
       this.tempDate = new Date(this.selectedDate);
@@ -453,6 +517,10 @@ export class BaseModalDate {
 
   setOnOk(callback) {
     this.onOk = callback;
+  }
+
+  setOnCancel(callback) {
+    this.onCancel = callback;
   }
 
   destroy() {

@@ -4,27 +4,42 @@
  * BotInvTable — inventory table extras.
  *
  * The table itself (structure, header, hover, mobile cards) lives
- * in base/table/table.css. This file only adds the two things
- * unique to the inventory walk:
+ * in base/table/table.css. This file adds the things unique to the
+ * inventory walk:
  *
  *   1. Row flash — when the bot marks a row, BotInvTable.highlight()
  *      adds `.is-highlighted` to the <tr>; the animation runs for
  *      ~2 seconds and fades back to normal.
  *
  *   2. Row "found" tint — after a successful mark, the row keeps
- *      a soft green background (`.is-found`). It is applied when
- *      BotInvTable.setFound() (or updateAndHighlight) is called.
+ *      a soft green background (`.is-found`). Applied by
+ *      BotInvTable.setFound() (or updateAndHighlight).
+ *
+ *   3. Filter row — a second <tr> inside <thead>, one input /
+ *      select per column. Filters run on the client (the whole
+ *      sheet is loaded at once) and toggle display: none on rows.
+ *
+ *   4. Toolbar — "Показано N из M" + "Сбросить" above the scroll
+ *      container.
+ *
+ *   5. Visible scrollbar — the base table's scrollbar (6px,
+ *      thumb = var(--border-hover)) blends into the white
+ *      background. A table with hundreds of rows must TELL the
+ *      user it scrolls; we override the scrollbar styling here,
+ *      scoped to .core-engine-lib-botinv only, so backup /
+ *      creatives / pages keep the default look.
+ *
+ *   6. Mobile: hide the table entirely — the accountant works
+ *      through the chat only.
  *
  * Selectors target the base Table's own classes
  * (.core-engine-lib-base-table, tbody, tr), so this file depends
  * on base/table/table.css being loaded — which it is, because the
  * base Table loads it in its own _loadCSS().
  *
- * The base Table renders rows as <tr data-id="...">. BotInvTable
- * finds them via querySelector(`tr[data-id="${id}"]`) and toggles
- * the two state classes above.
- *
- * No !important anywhere.
+ * No !important anywhere — overrides rely on specificity (two
+ * classes beat one) and stay scoped by the .core-engine-lib-botinv
+ * prefix.
  */
 
 /* ============================================
@@ -73,6 +88,159 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 12px;
     white-space: nowrap;
+}
+
+/* ============================================
+   FILTER ROW — second <tr> inside <thead>
+   ============================================
+   Structure (built by BotInvTable._installFilterRow):
+
+       <thead>
+           <tr>  ... column headers ...              </tr>
+           <tr class="botinv-filter-row">
+               <th class="botinv-filter-cell"><input …></th>
+               ...
+           </tr>
+       </thead>
+
+   The filter row scrolls with the base header (thead is sticky),
+   so it stays visible while the body scrolls.
+*/
+
+.core-engine-lib-base-table thead tr.botinv-filter-row th {
+    background: #f8fafc;
+    padding: 4px 6px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
+
+.botinv-filter-cell {
+    font-weight: 400;
+}
+
+.botinv-filter-input,
+.botinv-filter-select {
+    width: 100%;
+    box-sizing: border-box;
+    height: 26px;
+    padding: 2px 6px;
+    font-size: 12px;
+    font-family: inherit;
+    color: #1f2937;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.12s;
+}
+
+.botinv-filter-input:focus,
+.botinv-filter-select:focus {
+    border-color: #2563eb;
+}
+
+.botinv-filter-input::placeholder {
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.botinv-filter-select {
+    /* Keep the native arrow but make it line up. */
+    padding-right: 4px;
+    cursor: pointer;
+}
+
+/* ============================================
+   TOOLBAR — counter + reset button
+   ============================================
+   Structure (built by BotInvTable._installToolbar):
+
+       <div class="botinv-table-toolbar">
+           <span class="botinv-table-counter">Показано N из M</span>
+           <button class="botinv-table-reset">Сбросить</button>
+       </div>
+
+   Inserted between the base wrapper's top and the scroll
+   container, so it sits above the table, below any base toolbar.
+*/
+
+.botinv-table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 2px 6px;
+    font-size: 12px;
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+.botinv-table-counter {
+    font-variant-numeric: tabular-nums;
+}
+
+.botinv-table-reset {
+    border: none;
+    background: transparent;
+    color: #2563eb;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.12s, color 0.12s;
+}
+
+.botinv-table-reset:hover {
+    background: #e0e7ff;
+    color: #1e40af;
+}
+
+.botinv-table-reset:active {
+    background: #c7d2fe;
+}
+
+/* ============================================
+   SCROLLBAR — visible, always on
+   ============================================
+   The base table's scrollbar (base/table/table.css):
+       width: 6px
+       thumb: var(--border-hover)   ← almost white on white
+       no track
+   On a 531-row inventory that bar is invisible until hovered —
+   a silent dead end for the accountant. We override it here,
+   scoped to the inventory module only.
+
+   Specificity: adding `.core-engine-lib-botinv` in front of the
+   base selector lifts it to (0,2,0), which beats the base rule
+   (0,1,0) regardless of load order. No !important needed.
+
+   Firefox does not honor ::-webkit-scrollbar — the two
+   scrollbar-* properties below are the fallback for it.
+*/
+
+.core-engine-lib-botinv .core-engine-lib-base-table-scroll::-webkit-scrollbar {
+    width: 0.75rem;          /* 12px */
+    height: 0.75rem;
+}
+
+.core-engine-lib-botinv .core-engine-lib-base-table-scroll::-webkit-scrollbar-track {
+    background: #eef2f8;
+    border-radius: var(--radius-pill);
+}
+
+.core-engine-lib-botinv .core-engine-lib-base-table-scroll::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: var(--radius-pill);
+    border: 0.125rem solid #eef2f8;
+}
+
+.core-engine-lib-botinv .core-engine-lib-base-table-scroll::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+.core-engine-lib-botinv .core-engine-lib-base-table-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 #eef2f8;
 }
 
 /* ============================================

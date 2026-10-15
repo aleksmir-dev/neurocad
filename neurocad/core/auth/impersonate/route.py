@@ -159,9 +159,17 @@ async def impersonate(
     session for the target user, marked with `imp_by = admin_id`
     so downstream code can tell it apart from a normal session.
 
-    Response body is informational; the actual switch happens
-    through the Set-Cookie header. The frontend is expected to
-    reload the page after a successful call.
+    The response carries a full `data.user` object — the same
+    shape `POST /core/auth/login` returns, plus `impersonated_by`.
+    The frontend `_handleLogin` consumes `data.user` as-is and
+    caches it in sessionStorage, so every field the app expects
+    (`is_superadmin`, `use_botinv`, …) must be present here too.
+    A bare `target` object used to be returned instead — that was
+    the reason `getUser().use_botinv` came out `undefined` after
+    an impersonation start.
+
+    The frontend is expected to reload the page after a successful
+    call.
     """
     log = request.app.state.log if hasattr(request.app.state, "log") else None
 
@@ -205,18 +213,29 @@ async def impersonate(
         "imp_by": int(admin_id),
     })
 
+    # ---- 4. Return the full user object for the frontend ----
+    #
+    # Same shape as the login endpoint returns, plus the
+    # `impersonated_by` marker. The frontend caches this object
+    # in sessionStorage and reads it via BaseAuth.getUser() on
+    # every subsequent load — so every field the app checks
+    # (is_superadmin, use_botinv, email) must be present.
     response = JSONResponse(
         status_code=200,
         content={
             "success": True,
             "message": "Impersonation started",
             "data": {
-                "admin_id": int(admin_id),
-                "target": {
+                "user": {
                     "id": target["id"],
                     "login": target["login"],
                     "name": target["name"],
+                    "email": target.get("email"),
+                    "is_superadmin": bool(target.get("is_superadmin", False)),
+                    "use_botinv": bool(target.get("use_botinv", False)),
+                    "impersonated_by": int(admin_id),
                 },
+                "admin_id": int(admin_id),
             },
         },
     )
