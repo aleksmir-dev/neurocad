@@ -43,6 +43,7 @@ def serialize_user(user) -> Dict[str, Any]:
         "last_seen": serialize_datetime(user.last_seen),
         "created_at": serialize_datetime(user.created_at),
         "domain": getattr(user, "domain", None),
+        "use_botinv": user.use_botinv or False,
     }
 
 

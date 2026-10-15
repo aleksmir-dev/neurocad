@@ -1,4 +1,4 @@
-// app/core/engine/lib/base/pages.js
+// neurocad/core/engine/lib/base/pages.js
 
 /**
  * BasePages — page controllers for area-center.
@@ -9,11 +9,12 @@
  *   - showProfile(section)  — user profile (main / balance / domain)
  *   - showSetup(section)    — setup landing + sub-pages (main / llm / creatives)
  *   - showCreatives()       — creatives page (top-level, ?page=creatives)
- *   - showServices(section) — services page (SUPERADMIN, ?page=services)
+ *   - showServices(section) — services page (superadmin, or botinv for
+ *                             users with use_botinv = True)
  *   - showAuthPage()        — auth fallback page (login/register/...)
  *
  * Each show* method:
- *   1. checks the guard (authenticated / superadmin);
+ *   1. checks the guard (authenticated / superadmin / use_botinv);
  *   2. calls base.teardownAreas() — destroys the previous page, may
  *      prompt the user via confirmClose();
  *   3. dynamically imports the target component with ?v=<static_version>;
@@ -236,15 +237,23 @@ export class BasePages {
     /**
      * Open the Services page in area-center.
      *
-     * Available to SUPERADMIN ONLY — services expose system-level
-     * tools (backup, panel, metrics). Guests and regular users are
-     * stopped by the guard below; the server enforces the same rule
-     * on the API endpoints behind each service.
+     * Access is per-section:
+     *
+     *   - landing / 'backup' / 'panel' — SUPERADMIN ONLY. Services
+     *     expose system-level tools (backup, panel, metrics). Guests
+     *     and regular users are stopped by the guard below; the
+     *     server enforces the same rule on the API endpoints.
+     *
+     *   - 'botinv' — SUPERADMIN OR any user with use_botinv = True.
+     *     The inventory module is a per-user tool; the flag is set
+     *     manually in the DB (see models/user.py → use_botinv). The
+     *     server enforces the same rule via _resolve_nav_id_for_botinv
+     *     (see botinv/route.py).
      *
      * Sections, separate components:
      *   - null / 'main' → ./services/services.js  (BaseServices) — services landing / menu
      *   - 'backup'      → ../backup/backup.js     (Backup)       — backup: settings, schedules, history
-     *   - 'panel'       → ../panel/panel.js       (Panel)        — subsystems status (later)
+     *   - 'botinv'      → ../botinv/botinv.js     (BaseBotInv)   — inventory: sheets, walk, chat
      *
      * Navigation between sections is done by passing `onNavigate`
      * down to the component ONLY for sections that need it. The
@@ -253,10 +262,10 @@ export class BasePages {
      * URL (?page=services&section=X) is re-read by Base._initAuth()
      * and routed back here.
      *
-     * Same for Backup / Panel: they have internal tabs (not URL
+     * Same for Backup / BotInv: they have internal tabs (not URL
      * sections), so `onNavigate` is not passed.
      *
-     * @param {string|null} section — null (landing), 'backup' or 'panel'
+     * @param {string|null} section — null (landing), 'backup' or 'botinv'
      */
     async showServices(section = null) {
         console.log('[BasePages] showServices()', section);
@@ -268,15 +277,25 @@ export class BasePages {
             return;
         }
 
-        // Superadmin only.
         const isSuperadmin =
             user.is_superadmin === true ||
             user.is_superadmin === 1 ||
             user.is_superadmin === '1';
 
-        if (!isSuperadmin) {
-            console.warn('[BasePages] showServices: access denied (not superadmin)');
-            return;
+        const canBotInv = user.use_botinv === true;
+        const isBotInvSection = (section === 'botinv');
+
+        // Per-section access check.
+        if (isBotInvSection) {
+            if (!canBotInv && !isSuperadmin) {
+                console.warn('[BasePages] showServices: access denied (no use_botinv)');
+                return;
+            }
+        } else {
+            if (!isSuperadmin) {
+                console.warn('[BasePages] showServices: access denied (not superadmin)');
+                return;
+            }
         }
 
         const proceed = await this.base.teardownAreas();
@@ -292,12 +311,9 @@ export class BasePages {
             if (section === 'backup') {
                 const mod = await import(`../backup/backup.js?v=${version}`);
                 ComponentClass = mod.Backup;
-            } else if (section === 'panel') {
-                // Panel is not implemented yet. Fall back to the
-                // services landing so the URL does not break — the
-                // user sees the menu and can pick another service.
-                const mod = await import(`./services/services.js?v=${version}`);
-                ComponentClass = mod.BaseServices;
+            } else if (section === 'botinv') {
+                const mod = await import(`../botinv/botinv.js?v=${version}`);
+                ComponentClass = mod.BaseBotInv;
             } else {
                 const mod = await import(`./services/services.js?v=${version}`);
                 ComponentClass = mod.BaseServices;

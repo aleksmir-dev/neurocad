@@ -1,13 +1,13 @@
-# neurocad 1.0.24
+# neurocad 1.0.25
 
-Release date: 2026-10-14
+Release date: 2026-10-15
 
 ---
 
 ## English
 
-- **Backup management.** Automated backups to S3 (Selectel): five levels (hourly / daily / weekly / monthly / yearly), retention, rotation, scheduling from the UI, and a run history. Schedules are stored in the database and the system crontab is regenerated automatically on save.
+- **Inventory module (`botinv`).** A per-user walking tool for marking items by inventory number. Excel/CSV import, case-insensitive lookups, substring search with a numbered candidate list, chat and inventory table side by side, XLSX export. Enabled per user via `use_botinv`.
 
 ## Русский
 
-- **Управление бэкапами.** Автоматические бэкапы в S3 (Selectel): пять уровней (час / день / неделя / месяц / год), хранение, ротация, расписания из UI и история запусков. Расписания хранятся в базе, системный crontab перегенерируется автоматически при сохранении.
+- **Модуль инвентаризации (`botinv`).** Персональный инструмент обхода для отметки имущества по инвентарным номерам. Импорт Excel/CSV, поиск без учёта регистра, поиск по фрагменту с нумерованным списком кандидатов, чат и таблица рядом, экспорт в XLSX. Включается для пользователя флагом `use_botinv`.

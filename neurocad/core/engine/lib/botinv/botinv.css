@@ -1,0 +1,119 @@
+/* neurocad/core/engine/lib/botinv/botinv.css */
+
+/**
+ * Inventory module (botinv) — shared layout styles.
+ *
+ * This file owns three things:
+ *
+ *   1. The module container look (font, colour, flex column) —
+ *      applied to each of the three areas (left / center / right).
+ *
+ *   2. The drag handles between area-left ↔ area-center and
+ *      area-center ↔ area-right. The handles are inserted by
+ *      botinv/resizer.js (BotInvResizer); this file only styles them.
+ *
+ *   3. The mobile "handles are hidden" rule — on a phone the side
+ *      panels are not resizable (they are either hidden or shown
+ *      as a full-width drawer), so the handles must not appear.
+ *
+ * Component-specific styles live in their own files:
+ *
+ *   - list/list.css     — sheets sidebar + its mobile "hidden
+ *                          unless drawer" rule;
+ *   - table/table.css   — inventory table extras (highlight, is-found)
+ *                          + its mobile "hidden" rule;
+ *   - chat/chat.css     — inventory chat extras (burger in header)
+ *                          + its mobile "show burger" rule;
+ *   - drawer.css        — mobile drawer (backdrop + slide-in panel)
+ *                          + its desktop "never show" rule.
+ *
+ * No !important anywhere.
+ */
+
+/* ============================================
+   MODULE CONTAINER
+   ============================================ */
+
+.core-engine-lib-botinv {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+/* ============================================
+   RESIZE HANDLES
+   ============================================
+   Two thin vertical bars between the side panels and the center.
+   Inserted by BotInvResizer.build() as siblings of the areas,
+   inside .core-engine-lib-base-main-inner. They are not part of
+   the flex layout's sizing — their width (6px) is added on top of
+   whatever the panels take.
+
+   States:
+     - default  — barely visible, 1px muted line;
+     - hover    — 1px line thickens to 2px, coloured (brand blue);
+     - .active  — during a drag, a wider coloured bar.
+
+   The bar itself is only ~6px wide, but a ::before pseudo-element
+   extends the hit area to the full height of the flex row without
+   affecting the visual line.
+*/
+
+.core-engine-lib-botinv-resizer {
+    position: relative;
+    flex: 0 0 6px;
+    align-self: stretch;
+    cursor: col-resize;
+    background: transparent;
+    user-select: none;
+    z-index: 5;
+}
+
+/* The visible 1px line. */
+.core-engine-lib-botinv-resizer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: #e5e7eb;
+    transform: translateX(-50%);
+    transition: width 0.12s, background 0.12s;
+}
+
+/* Hover — the line thickens and colours. */
+.core-engine-lib-botinv-resizer:hover::before {
+    width: 2px;
+    background: #2563eb;
+}
+
+/* Active drag — a wider, more visible bar. */
+.core-engine-lib-botinv-resizer.active::before {
+    width: 2px;
+    background: #2563eb;
+}
+
+/* During a drag the browser would otherwise show the text cursor
+   anywhere over the page; the JS already sets body cursor to
+   col-resize, but ::before keeps the local hover state stable. */
+.core-engine-lib-botinv-resizer.active {
+    cursor: col-resize;
+}
+
+/* ============================================
+   MOBILE (< 1024px)
+   ============================================
+   The side panels are hidden or shown as a drawer — there is
+   nothing to resize. The handles must not appear in the flex row.
+*/
+
+@media (max-width: 1023px) {
+    .core-engine-lib-botinv-resizer {
+        display: none;
+    }
+}

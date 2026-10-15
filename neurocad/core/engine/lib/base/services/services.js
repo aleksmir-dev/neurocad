@@ -7,9 +7,10 @@
  * carries ?page=services on the current module.
  *
  * Provides navigation to service sections:
- *   - Бэкапы   — SUPERADMIN ONLY (backup config, schedules, history).
- *   - Панель   — SUPERADMIN ONLY (subsystems status). (later)
- *   - Метрики  — SUPERADMIN ONLY (metrics journal). (later)
+ *   - Бэкапы         — SUPERADMIN ONLY (backup config, schedules, history).
+ *   - Инвентаризация — SUPERADMIN OR users with use_botinv = True.
+ *   - Панель         — SUPERADMIN ONLY (subsystems status). (later)
+ *   - Метрики        — SUPERADMIN ONLY (metrics journal). (later)
  *
  * Each section is a REAL <a href="..."> link — not a JS action — so
  * the URL changes, F5 works, the browser Back button works, and a
@@ -23,15 +24,23 @@
  *
  *   <module>?page=services                       → this landing page
  *   <module>?page=services&section=backup        → Backup page
+ *   <module>?page=services&section=botinv        → Inventory page
  *
  * <module> is window.coreEngine.baseUrl — e.g. /core/engine/admin.
  *
  * Access
  * ------
- * The whole "Сервисы" page is shown to SUPERADMIN ONLY. The menu
- * item is hidden for regular users; BasePages.showServices() also
- * guards the call. The API endpoints behind each service enforce
- * the same rule server-side.
+ * The landing page is shown to:
+ *   - superadmins (they see every service);
+ *   - users with use_botinv = True (they see only the inventory).
+ *
+ * The menu item in the header is hidden for regular users;
+ * BasePages.showServices() enforces the same rule and additionally
+ * gates section=backup to superadmin-only. The API endpoints behind
+ * each service enforce the same rules server-side.
+ *
+ * The per-item visibility in _services() mirrors the server-side
+ * rules — it is a UX convenience, not the source of truth.
  *
  * Styles / FOUC
  * -------------
@@ -86,11 +95,33 @@ export class BaseServices {
     }
 
     /**
-     * Whether the current user may see the services page at all.
-     * Superadmin-only.
+     * Whether the current user may see the services landing page.
+     *
+     * True for superadmins and for users with use_botinv = True.
+     * A regular user without any flag never reaches this page —
+     * BasePages.showServices() stops them earlier, and the header
+     * menu does not render the "Сервисы" item for them.
      */
     _canSee() {
-        return this.user?.is_superadmin === true;
+        return this.user?.is_superadmin === true
+            || this.user?.use_botinv === true;
+    }
+
+    /**
+     * Whether the current user is a superadmin.
+     * Tolerates bool / int / string forms — the backend may send
+     * is_superadmin as true / 1 / "1".
+     */
+    _isSuperadmin() {
+        const v = this.user?.is_superadmin;
+        return v === true || v === 1 || v === '1';
+    }
+
+    /**
+     * Whether the current user is allowed to use the inventory.
+     */
+    _canBotInv() {
+        return this.user?.use_botinv === true;
     }
 
     /**
@@ -116,19 +147,36 @@ export class BaseServices {
     /**
      * The list of services shown on this page.
      *
-     * Add an entry here to expose a new service. Access rules are
-     * enforced server-side; hiding items here is UX only.
+     * Each item is filtered by the current user's flags:
+     *   - backup — superadmin only;
+     *   - botinv — superadmin or use_botinv = True.
+     *
+     * The same rules are enforced server-side (BasePages.showServices
+     * for the routing, botinv/route.py for the API). Hiding items
+     * here is UX only.
      */
     _services() {
-        return [
-            {
+        const items = [];
+
+        // Backup — superadmin only.
+        if (this._isSuperadmin()) {
+            items.push({
                 id: 'backup',
                 title: 'Бэкапы',
                 desc: 'Резервное копирование, расписания, история',
-            },
-            // { id: 'panel', title: 'Панель', desc: '...' },     // later
-            // { id: 'metrics', title: 'Метрики', desc: '...' },  // later
-        ];
+            });
+        }
+
+        // Inventory — superadmin or use_botinv = True.
+        if (this._isSuperadmin() || this._canBotInv()) {
+            items.push({
+                id: 'botinv',
+                title: 'Инвентаризация',
+                desc: 'Ведомости, обход по кабинетам, отчёты',
+            });
+        }
+
+        return items;
     }
 
     render() {
@@ -138,7 +186,7 @@ export class BaseServices {
             this._savedCaption = this.setCaption('Сервисы', 'Сервисы');
         }
 
-        // If no access — show a simple message.
+        // No access — deny.
         if (!this._canSee()) {
             const denied = document.createElement('div');
             denied.className = 'core-engine-lib-base-services';
@@ -151,7 +199,22 @@ export class BaseServices {
             return denied;
         }
 
-        const itemsHtml = this._services().map(s => `
+        // Access is granted, but the user has no service items
+        // visible — show an empty state instead of a blank menu.
+        const services = this._services();
+        if (services.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'core-engine-lib-base-services';
+            empty.innerHTML = `
+                <div class="services-body">
+                    <div class="services-denied">Нет доступных сервисов</div>
+                </div>
+            `;
+            this.element = empty;
+            return empty;
+        }
+
+        const itemsHtml = services.map(s => `
             <a class="services-menu-item" href="${this._sectionUrl(s.id)}">
                 <span class="services-menu-item-body">
                     <span class="services-menu-item-title">${s.title}</span>

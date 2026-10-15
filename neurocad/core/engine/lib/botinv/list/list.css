@@ -1,0 +1,230 @@
+/* neurocad/core/engine/lib/botinv/list/list.css */
+
+/**
+ * BotInvList — sheets sidebar styles.
+ *
+ * The list is rendered into area-left on desktop, and becomes the
+ * mobile drawer on small screens (see drawer.css — the drawer is
+ * the SAME DOM, just with the extra `.is-drawer` class).
+ *
+ * This file owns:
+ *   - the outer container (.core-engine-lib-botinv-sheets);
+ *   - the header row (title + add button);
+ *   - the scrollable list of sheets;
+ *   - each sheet item (name, meta, actions);
+ *   - the empty state.
+ *
+ * It does NOT own:
+ *   - the drawer positioning / backdrop (drawer.css);
+ *   - the mobile "hide the sidebar" rule — that is also a
+ *     drawer concern, and it lives in drawer.css together with
+ *     the rest of the mobile-mode logic.
+ *
+ * No !important anywhere.
+ */
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+
+.core-engine-lib-botinv-sheets {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: #f9fafb;
+    border-right: 1px solid #e5e7eb;
+}
+
+/* ============================================
+   HEADER — TITLE + ADD BUTTON
+   ============================================ */
+
+.botinv-sheets-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #ffffff;
+    flex-shrink: 0;
+}
+
+.botinv-sheets-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.botinv-sheets-add {
+    border: none;
+    background: #2563eb;
+    color: #ffffff;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.12s;
+}
+
+.botinv-sheets-add:hover {
+    background: #1d4ed8;
+}
+
+.botinv-sheets-add:active {
+    background: #1e40af;
+}
+
+/* ============================================
+   LIST
+   ============================================ */
+
+.botinv-sheets-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 0;
+    min-height: 0;
+}
+
+.botinv-sheets-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.botinv-sheets-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.botinv-sheets-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.botinv-sheets-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.botinv-sheets-empty {
+    padding: 24px 16px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* ============================================
+   SHEET ITEM
+   ============================================ */
+
+.botinv-sheet-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background 0.12s, border-color 0.12s;
+}
+
+.botinv-sheet-item:hover {
+    background: #eef2ff;
+}
+
+.botinv-sheet-item.is-active {
+    background: #e0e7ff;
+    border-left-color: #4f46e5;
+}
+
+.botinv-sheet-name {
+    font-weight: 500;
+    font-size: 13px;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.botinv-sheet-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.botinv-sheet-counter {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   ACTIONS (edit / delete)
+   ============================================
+   Hidden by default, revealed on hover of the parent item.
+   On touch devices there is no hover — so on mobile the
+   actions are always visible. That media query lives at the
+   bottom of this file.
+*/
+
+.botinv-sheet-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+
+.botinv-sheet-item:hover .botinv-sheet-actions,
+.botinv-sheet-item.is-active .botinv-sheet-actions {
+    opacity: 1;
+}
+
+.botinv-sheet-action {
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: background 0.12s, color 0.12s;
+}
+
+.botinv-sheet-action:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.botinv-sheet-action.is-danger:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* ============================================
+   MOBILE — TOUCH DEVICES HAVE NO HOVER
+   ============================================
+   Show the actions permanently on touch. That is a UI decision
+   local to this list — it does not depend on the drawer being
+   open or closed.
+*/
+
+@media (max-width: 1023px) {
+    .botinv-sheet-actions {
+        opacity: 1;
+    }
+}

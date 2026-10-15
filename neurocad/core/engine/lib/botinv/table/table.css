@@ -1,0 +1,96 @@
+/* neurocad/core/engine/lib/botinv/table/table.css */
+
+/**
+ * BotInvTable — inventory table extras.
+ *
+ * The table itself (structure, header, hover, mobile cards) lives
+ * in base/table/table.css. This file only adds the two things
+ * unique to the inventory walk:
+ *
+ *   1. Row flash — when the bot marks a row, BotInvTable.highlight()
+ *      adds `.is-highlighted` to the <tr>; the animation runs for
+ *      ~2 seconds and fades back to normal.
+ *
+ *   2. Row "found" tint — after a successful mark, the row keeps
+ *      a soft green background (`.is-found`). It is applied when
+ *      BotInvTable.setFound() (or updateAndHighlight) is called.
+ *
+ * Selectors target the base Table's own classes
+ * (.core-engine-lib-base-table, tbody, tr), so this file depends
+ * on base/table/table.css being loaded — which it is, because the
+ * base Table loads it in its own _loadCSS().
+ *
+ * The base Table renders rows as <tr data-id="...">. BotInvTable
+ * finds them via querySelector(`tr[data-id="${id}"]`) and toggles
+ * the two state classes above.
+ *
+ * No !important anywhere.
+ */
+
+/* ============================================
+   ROW FLASH — highlight after a successful mark
+   ============================================ */
+
+@keyframes botinv-row-flash {
+    0%   { background-color: #fef08a; }   /* soft yellow */
+    70%  { background-color: #fef9c3; }   /* lighter */
+    100% { background-color: transparent; }
+}
+
+.core-engine-lib-base-table tbody tr.is-highlighted {
+    animation: botinv-row-flash 2s ease-out;
+}
+
+/* ============================================
+   ROW "FOUND" TINT — kept after the flash
+   ============================================
+   Applied via .is-found on the <tr>. The base Table already has
+   its own stripe pattern (tbody tr:nth-child(even)), so we use a
+   solid background that wins on both stripes — its specificity is
+   equal to the stripe rule, but it is declared later in the
+   cascade (this file loads after base/table/table.css when the
+   base Table is initialized), so it takes precedence.
+*/
+
+.core-engine-lib-base-table tbody tr.is-found {
+    background: #dcfce7;
+}
+
+.core-engine-lib-base-table tbody tr.is-found:hover {
+    background: #bbf7d0;
+}
+
+/* ============================================
+   MONO FONT FOR THE INVENTORY NUMBER COLUMN
+   ============================================
+   The first column is inv_num. The base Table does not add a
+   class to individual <td> elements, so we target them
+   positionally: every row's first cell is the inventory number.
+   If the column order changes, update this selector accordingly.
+*/
+
+.core-engine-lib-base-table tbody tr td:first-child {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* ============================================
+   MOBILE — HIDE THE TABLE
+   ============================================
+   On phones the accountant works only through the chat. The
+   table stays in the DOM (so the controller does not have to
+   mount/unmount it on viewport changes) but is hidden.
+
+   The root wrapper class .core-engine-lib-botinv-table is applied
+   by the module controller around the base Table's container.
+   Hiding it here, in the file that owns the table, keeps the
+   mobile rule next to the component it belongs to — no cross-file
+   ordering issues.
+*/
+
+@media (max-width: 1023px) {
+    .core-engine-lib-botinv-table {
+        display: none;
+    }
+}

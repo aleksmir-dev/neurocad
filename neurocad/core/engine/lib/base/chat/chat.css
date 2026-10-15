@@ -7,11 +7,11 @@
 }
 
 .core-engine-lib-base-chat.sidebar-mode {
-    display: flex !important;
+    display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
-    background: transparent !important;
+    background: transparent;
     overflow: hidden;
 }
 
@@ -33,7 +33,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    display: flex !important;
+    display: flex;
     align-items: flex-end;
     justify-content: center;
     z-index: 9999;
@@ -97,9 +97,15 @@
     gap: 0.5rem;
 }
 
+/* Default icon. Modules can override it via the --chat-icon
+   CSS variable, or drop it entirely with .chat-title-no-icon. */
 .core-engine-lib-base-chat .chat-title::before {
-    content: '🤖';
+    content: var(--chat-icon, '🤖');
     font-size: 1.2rem;
+}
+
+.core-engine-lib-base-chat .chat-title.chat-title-no-icon::before {
+    content: none;
 }
 
 .core-engine-lib-base-chat .chat-close-btn {
@@ -153,6 +159,7 @@
     font-size: 0.9375rem;
     line-height: 1.5;
     word-wrap: break-word;
+    white-space: pre-wrap;
     animation: messageAppear 0.2s ease-out;
 }
 
@@ -179,6 +186,24 @@
     background: #f1f5f9;
     color: #1e293b;
     border-bottom-left-radius: 0.25rem;
+}
+
+/* Variant: success — the item was found and marked. */
+.core-engine-lib-base-chat .chat-message-success {
+    background: #dcfce7;
+    color: #14532d;
+}
+
+/* Variant: warning — already found, or moved to another room. */
+.core-engine-lib-base-chat .chat-message-warning {
+    background: #fef3c7;
+    color: #78350f;
+}
+
+/* Variant: error — not found, or a validation problem. */
+.core-engine-lib-base-chat .chat-message-error {
+    background: #fee2e2;
+    color: #7f1d1d;
 }
 
 .core-engine-lib-base-chat .chat-message-ai.loading {
@@ -288,6 +313,19 @@
 
 .core-engine-lib-base-chat-floating-btn:active {
     transform: scale(0.9);
+}
+
+/* Explicit hidden state.
+   Declared LAST among the top-level .core-engine-lib-base-chat
+   rules so it wins over .sidebar-mode / .modal-mode (same
+   specificity, later in the cascade). This is the ONLY reason
+   the original file used !important — no longer needed. */
+.core-engine-lib-base-chat.hidden {
+    display: none;
+}
+
+.core-engine-lib-base-chat-floating-btn.hidden {
+    display: none;
 }
 
 @media (max-width: 768px) {

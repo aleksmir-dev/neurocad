@@ -1,4 +1,4 @@
-# app/core/models/user.py
+# neurocad/core/models/user.py
 
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Index, Text
@@ -20,6 +20,28 @@ class User(Base):
     is_delete: Mapped[bool] = mapped_column(Boolean, default=False)
     last_seen: Mapped[Optional[dt]] = mapped_column(DateTime)
     created_at: Mapped[dt] = mapped_column(DateTime, default=dt.now)
+
+    # Whether this user is allowed to use the inventory module
+    # (botinv). False by default — the flag is enabled MANUALLY
+    # in the DB (or, later, via the lib/users admin UI):
+    #
+    #   UPDATE users SET use_botinv = 1 WHERE login = 'buh';
+    #
+    # When True:
+    #   - the "Инвентаризация" menu item becomes visible;
+    #   - the user's dedicated Nav for the botinv module is created
+    #     lazily on first access (see botinv/route.py →
+    #     _resolve_nav_id_for_botinv).
+    #
+    # When False (or NULL):
+    #   - the menu item is hidden;
+    #   - _resolve_nav_id_for_botinv returns 403;
+    #   - no Nav is created — 99 users out of 100 never touch the
+    #     module, so we do not pollute `nav` with empty rows.
+    #
+    # NULL is treated the same as False — so existing users do not
+    # get access by accident after the migration.
+    use_botinv: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
 
     # Second-level domain attached by the user (example.com).
     # NULL — the user has not attached a custom domain.

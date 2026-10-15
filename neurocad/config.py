@@ -42,10 +42,24 @@ class Settings(BaseSettings):
     #
     # Dev  : neurocad-dev.ru
     # Prod : neurocad.ru
+    #
+    # Also used as the per-instance identity for multi-instance
+    # installs: <APP_DOMAIN> becomes the systemd unit name, the
+    # cron file name (/etc/cron.d/<APP_DOMAIN>), and the nginx
+    # site name. Must be unique per instance on one host.
     APP_DOMAIN: str = "neurocad.ru"
 
     # Debug mode.
     DEBUG: bool = True
+
+    # System user that runs cron tasks and service commands.
+    #
+    # Used in /etc/cron.d/<APP_DOMAIN> lines:
+    #     <cron> <APP_SYSTEM_USER> <command>
+    #
+    # Default "root". Change if the service runs under a dedicated
+    # system account (e.g. "neurocad").
+    APP_SYSTEM_USER: str = "root"
 
     # ============================================
     # DATABASES

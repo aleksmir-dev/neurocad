@@ -1,0 +1,87 @@
+/* neurocad/core/engine/lib/botinv/chat/chat.css */
+
+/**
+ * Inventory chat — extras on top of base/chat/chat.css.
+ *
+ * The chat UI itself (header, messages, input, send button, mobile
+ * modal-mode) lives in base/chat/chat.css. This file only adds:
+ *
+ *   1. The burger button in the chat header
+ *      (.botinv-drawer-toggle) — used on mobile to open the
+ *      sheets drawer. Hidden on desktop, where the list is
+ *      already visible in area-left.
+ *
+ *   2. Chat title sizing/ellipsis in the sidebar — the title
+ *      carries the active sheet name, which can be long.
+ *
+ * The burger is inserted into the chat header by BotInvChatHandler
+ * via the `headerExtra` option of BaseChat (see chat/handler.js).
+ * It is a plain <button class="botinv-drawer-toggle">…</button>
+ * with no built-in behaviour — the handler binds the click.
+ *
+ * No !important anywhere.
+ */
+
+/* ============================================
+   BURGER — OPEN THE SHEETS DRAWER ON MOBILE
+   ============================================
+   Hidden by default (desktop). Shown in the mobile media query
+   at the bottom of this file.
+*/
+
+.botinv-drawer-toggle {
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    color: #374151;
+    flex-shrink: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s, color 0.12s;
+}
+
+.botinv-drawer-toggle:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.botinv-drawer-toggle:active {
+    background: #d1d5db;
+}
+
+/* ============================================
+   CHAT TITLE — LONG SHEET NAMES
+   ============================================
+   The title carries the active sheet name (e.g. "Ведомость
+   январь 2026"). It can be long. The base .chat-title already
+   has `overflow: hidden; text-overflow: ellipsis; white-space:
+   nowrap` in chat.css — but the base rule lives inside a flex
+   row and may be overridden by higher-specificity selectors in
+   the base file. We re-assert the key properties here at the
+   same specificity, and this file loads after base/chat/chat.css
+   (the handler loads it in its own _loadCSS, which runs after
+   BaseChat's constructor kicked off its own load), so our rules
+   win on cascade order.
+*/
+
+.core-engine-lib-base-chat .botinv-chat-sheet-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* ============================================
+   MOBILE — SHOW THE BURGER
+   ============================================ */
+
+@media (max-width: 1023px) {
+    .botinv-drawer-toggle {
+        display: inline-flex;
+    }
+}

@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.25] - 2026-10-15
+- Inventory module (`botinv`): per-user walking tool for marking items by inventory number. Excel/CSV import (`inv_num;name;room`), case-insensitive lookups, substring search with a numbered candidate list, chat + inventory table side by side, XLSX export. Enabled per user via the new `users.use_botinv` flag. New tables `botinv_sheets` / `botinv_items` and four migrations. `BaseChat` gained `headerExtra`, `setPlaceholder` and per-message `variant` (success / warning / error).
+
 ## [1.0.24] - 2026-10-14
 - Backup management: automated backups to S3 (Selectel) — five levels (hourly / daily / weekly / monthly / yearly), retention, rotation, UI-driven schedules, and run history. Schedules live in `panel_tasks`; the system crontab (`/etc/cron.d/neurocad`) is regenerated automatically on save and picked up by cron. The S3 secret is encrypted (Fernet). New "Сервисы" page (`?page=services`, superadmin only) hosts the Backup component.
 

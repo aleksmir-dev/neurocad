@@ -28,3 +28,5 @@ from .panel_stat import PanelStat
 from .panel_task import PanelTask
 from .panel_task_hist import PanelTaskHist
 from .backup_run import BackupRun
+from .botinv_sheet import BotInvSheet
+from .botinv_item import BotInvItem

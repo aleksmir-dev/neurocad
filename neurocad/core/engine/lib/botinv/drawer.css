@@ -1,0 +1,111 @@
+/* neurocad/core/engine/lib/botinv/drawer.css */
+
+/**
+ * Inventory module (botinv) — mobile drawer.
+ *
+ * The drawer is the sheets list rendered as an overlay on the left
+ * side of the screen. It exists ONLY on mobile (< 1024px). On
+ * desktop the list lives in area-left, always visible, and the
+ * drawer never appears.
+ *
+ * The drawer is the SAME DOM as the sidebar list — BotInvList
+ * renders its root element with the extra class `.is-drawer` when
+ * it is in drawer mode. That is why the positioning rules below
+ * apply to `.core-engine-lib-botinv-sheets.is-drawer` and not to
+ * the base list class: the base list (.core-engine-lib-botinv-sheets)
+ * stays in place inside area-left; the drawer variant is taken out
+ * of the flow and pinned to the viewport.
+ *
+ * Structure:
+ *
+ *   <div class="botinv-drawer-backdrop is-open"></div>   ← overlay
+ *   <div class="core-engine-lib-botinv-sheets is-drawer is-open">   ← panel
+ *       ...list content...
+ *   </div>
+ *
+ * The `.is-open` class is toggled by the module controller
+ * (botinv.js) when the burger in the chat header is clicked.
+ *
+ * The backdrop is a separate element — it is NOT a child of the
+ * panel. That way the slide-in transform on the panel does not
+ * move the backdrop along with it, and clicking outside the panel
+ * closes the drawer (a click target on the backdrop).
+ *
+ * No !important anywhere.
+ */
+
+/* ============================================
+   BACKDROP
+   ============================================
+   Hidden by default. JS adds `.is-open` to show it. It sits
+   underneath the panel (z-index 900) but above the rest of the
+   page (which is z-index auto / 1 / etc.).
+*/
+
+.botinv-drawer-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 900;
+}
+
+.botinv-drawer-backdrop.is-open {
+    display: block;
+}
+
+/* ============================================
+   PANEL — DRAWER VARIANT OF THE SHEETS LIST
+   ============================================
+   The panel is the SAME element as the sidebar list, just with
+   the extra `.is-drawer` class. It is taken out of the normal
+   flow (`position: fixed`) and pinned to the left edge of the
+   viewport. When closed it is pushed off-screen with
+   `transform: translateX(-100%)`. When open, the transform is
+   reset and the panel slides in.
+*/
+
+.core-engine-lib-botinv-sheets.is-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    z-index: 901;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.12);
+    transform: translateX(-100%);
+    transition: transform 0.22s ease-out;
+    /* The list is a flex column — same as in sidebar mode.
+       Overriding here so the drawer keeps the same internal
+       layout even if the base rule is in list.css. */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.core-engine-lib-botinv-sheets.is-drawer.is-open {
+    transform: translateX(0);
+}
+
+/* ============================================
+   DESKTOP (≥ 1024px) — DRAWER IS NEVER SHOWN
+   ============================================
+   On desktop the sheets list lives in area-left. The drawer is
+   mobile-only: the backdrop and the panel are hidden regardless
+   of whether the JS has added `.is-open`.
+*/
+
+@media (min-width: 1024px) {
+    .botinv-drawer-backdrop,
+    .botinv-drawer-backdrop.is-open {
+        display: none;
+    }
+
+    .core-engine-lib-botinv-sheets.is-drawer,
+    .core-engine-lib-botinv-sheets.is-drawer.is-open {
+        display: none;
+    }
+}

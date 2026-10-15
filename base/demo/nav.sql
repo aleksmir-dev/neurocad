@@ -1,5 +1,5 @@
 -- Demo data: nav
--- Rows: 8
+-- Rows: 9
 
 PRAGMA foreign_keys = OFF;
 
@@ -13,5 +13,6 @@ INSERT INTO "nav" ("id", "user_id", "parent_id", "card_type", "sort_order", "nam
 INSERT INTO "nav" ("id", "user_id", "parent_id", "card_type", "sort_order", "name", "description", "icon", "module_id", "is_delete", "created_at", "updated_at") VALUES (6, 6, NULL, 'link', 1, 'Мои проекты', NULL, NULL, 1, 0, '2026-10-03 13:05:03.300864', '2026-10-07 07:19:51.153205');
 INSERT INTO "nav" ("id", "user_id", "parent_id", "card_type", "sort_order", "name", "description", "icon", "module_id", "is_delete", "created_at", "updated_at") VALUES (7, 7, NULL, 'link', 1, 'Каталог статей', NULL, NULL, 1, 0, '2026-10-04 00:17:42.821006', '2026-10-04 00:17:42.821010');
 INSERT INTO "nav" ("id", "user_id", "parent_id", "card_type", "sort_order", "name", "description", "icon", "module_id", "is_delete", "created_at", "updated_at") VALUES (8, 8, NULL, 'link', 1, 'Каталог статей', NULL, NULL, 1, 0, '2026-10-08 04:15:24.822133', '2026-10-08 04:15:24.822136');
+INSERT INTO "nav" ("id", "user_id", "parent_id", "card_type", "sort_order", "name", "description", "icon", "module_id", "is_delete", "created_at", "updated_at") VALUES (9, 1, NULL, 'link', 1, 'Инвентаризация', NULL, NULL, NULL, 0, '2026-10-15 07:54:47.737319', '2026-10-15 07:54:47.737319');
 
 PRAGMA foreign_keys = ON;

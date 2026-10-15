@@ -9,6 +9,44 @@
  *
  * HTTP goes through window.coreEngine.fetchJson
  * (loaded once by CoreEngine.loadApi()).
+ *
+ * Visibility is controlled ENTIRELY through CSS classes — no inline
+ * `style.display` anywhere. The CSS rules live in chat.css:
+ *
+ *   .core-engine-lib-base-chat               → display: none
+ *   .core-engine-lib-base-chat.sidebar-mode  → display: flex
+ *   .core-engine-lib-base-chat.modal-mode    → display: flex
+ *   .core-engine-lib-base-chat.hidden        → display: none
+ *
+ * The `.hidden` class is declared LAST in chat.css, so it wins over
+ * `.sidebar-mode` / `.modal-mode` when both are present.
+ *
+ * Customisation (all optional, via `options`):
+ *   - title        — header text           (default: "Чат с AI")
+ *   - welcomeText  — first bot message     (default: "Привет! Я AI-ассистент…")
+ *   - placeholder  — input placeholder     (default: "Введите сообщение…")
+ *   - icon         — emoji shown before the title (default: "🤖")
+ *   - headerExtra  — raw HTML inserted into .chat-header between the
+ *                    title and the close button (default: "")
+ *   - apiUrl       — HTTP endpoint for _sendToAPI (default: /core/chat/send)
+ *   - skipHistory  — do not load /core/chat/history (default: false)
+ *   - onSend       — async (text) => reply; if set, replaces _sendToAPI
+ *
+ * Custom `onSend` takes priority over `_sendToAPI` when both are set.
+ * The reply is rendered as a bot message. If the callback returns an
+ * object `{ text, variant }`, the `variant` ("success" | "warning" |
+ * "error") is forwarded to addMessage.
+ *
+ * `headerExtra` is inserted as-is (via innerHTML) into the header.
+ * The caller is responsible for the markup and for binding any
+ * events on the injected nodes — BaseChat only places them.
+ *
+ * Runtime updates:
+ *   - setPlaceholder(text) — change the input placeholder after the
+ *     widget was created. Used by modules whose placeholder depends
+ *     on runtime state — the inventory chat flips between
+ *     "Введите #NNN, чтобы выбрать кабинет" and
+ *     "Каб. 303: инвентарный номер" as rooms are picked.
  */
 export class BaseChat {
     constructor(options = {}) {
@@ -19,9 +57,18 @@ export class BaseChat {
         this.isModalOpen = false;
         this.isSidebarMode = false;
         this.floatingBtn = null;
-        this.onSend = null;
+        this.onSend = options.onSend || null;
         this.apiUrl = options.apiUrl || '/core/chat/send';
         this.isLoading = false;
+
+        // UI texts (all overridable via options)
+        this.titleText = options.title || 'Чат с AI';
+        this.welcomeText = options.welcomeText
+            || 'Привет! Я AI-ассистент. Задайте мне вопрос.';
+        this.placeholderText = options.placeholder || 'Введите сообщение...';
+        this.iconText = options.icon !== undefined ? options.icon : '🤖';
+        this.headerExtra = options.headerExtra || '';
+        this.skipHistory = options.skipHistory === true;
 
         // Init state
         this._initialized = false;
@@ -42,8 +89,9 @@ export class BaseChat {
     async _init() {
         console.log('[Chat] _init() START');
         try {
-            // Load message history (if API is available)
-            await this._loadHistory();
+            if (!this.skipHistory) {
+                await this._loadHistory();
+            }
             this._initialized = true;
             console.log('[Chat] _init() COMPLETE, messages:', this.messages.length);
         } catch (error) {
@@ -55,6 +103,7 @@ export class BaseChat {
 
     /**
      * Load message history from the server.
+     * Skipped entirely if `options.skipHistory` is true.
      */
     async _loadHistory() {
         console.log('[Chat] _loadHistory()');
@@ -67,9 +116,9 @@ export class BaseChat {
                     id: msg.id || Date.now() + Math.random(),
                     text: msg.text || msg.message || '',
                     isUser: msg.is_user || msg.role === 'user',
+                    variant: null,
                     timestamp: msg.created_at || msg.timestamp || new Date()
                 }));
-                // Re-render messages
                 if (this.messagesContainer) {
                     this._renderMessages();
                     this._scrollToBottom();
@@ -81,9 +130,6 @@ export class BaseChat {
         }
     }
 
-    /**
-     * Load CSS for the chat.
-     */
     _loadCSS() {
         console.log('[Chat] _loadCSS()');
         if (window.coreEngine && typeof window.coreEngine.loadCSS === 'function') {
@@ -91,30 +137,28 @@ export class BaseChat {
         }
     }
 
-    /**
-     * Build the chat DOM structure.
-     */
     _createDOM() {
         console.log('[Chat] _createDOM()');
         const existing = document.querySelector('.core-engine-lib-base-chat');
         if (existing) {
             this.container = existing;
             this._cacheElements();
+            this._applyTexts();
             return;
         }
 
         const container = document.createElement('div');
-        container.className = 'core-engine-lib-base-chat';
-        container.style.display = 'none';
+        container.className = 'core-engine-lib-base-chat hidden';
         container.innerHTML = `
             <div class="chat-window">
                 <div class="chat-header">
-                    <span class="chat-title">Чат с AI</span>
+                    ${this.headerExtra}
+                    <span class="chat-title"></span>
                     <span class="chat-close-btn">✕</span>
                 </div>
                 <div class="chat-messages"></div>
                 <div class="chat-input-area">
-                    <textarea class="chat-input" placeholder="Введите сообщение..." rows="1"></textarea>
+                    <textarea class="chat-input" rows="1"></textarea>
                     <button class="chat-send-btn">➤</button>
                 </div>
             </div>
@@ -122,9 +166,24 @@ export class BaseChat {
         document.body.appendChild(container);
         this.container = container;
         this._cacheElements();
+        this._applyTexts();
+    }
 
-        // Hidden by default
-        this.container.classList.add('hidden');
+    /**
+     * Set the title and the input placeholder from `options`.
+     * Called from _createDOM, both for the fresh case and the
+     * "reuse existing container" case.
+     */
+    _applyTexts() {
+        if (this.title) {
+            this.title.textContent = this.titleText;
+            if (!this.iconText) {
+                this.title.classList.add('chat-title-no-icon');
+            }
+        }
+        if (this.inputField) {
+            this.inputField.placeholder = this.placeholderText;
+        }
     }
 
     _cacheElements() {
@@ -138,14 +197,12 @@ export class BaseChat {
     _bindEvents() {
         console.log('[Chat] _bindEvents()');
 
-        // Send on click
         if (this.sendBtn) {
             this.sendBtn.addEventListener('click', () => {
                 this._handleSend();
             });
         }
 
-        // Send on Enter (without Shift)
         if (this.inputField) {
             this.inputField.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -154,21 +211,18 @@ export class BaseChat {
                 }
             });
 
-            // Auto-height for textarea
             this.inputField.addEventListener('input', () => {
                 this.inputField.style.height = 'auto';
                 this.inputField.style.height = this.inputField.scrollHeight + 'px';
             });
         }
 
-        // Close on ×
         if (this.closeBtn) {
             this.closeBtn.addEventListener('click', () => {
                 this.close();
             });
         }
 
-        // Close on overlay click (modal mode only)
         if (this.container) {
             this.container.addEventListener('click', (e) => {
                 if (e.target === this.container && this.isModalOpen) {
@@ -177,14 +231,12 @@ export class BaseChat {
             });
         }
 
-        // Close on Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isModalOpen) {
                 this.close();
             }
         });
 
-        // Floating button click
         if (this.floatingBtn) {
             this.floatingBtn.addEventListener('click', () => {
                 if (this.isModalOpen || this.isSidebarMode) {
@@ -196,9 +248,6 @@ export class BaseChat {
         }
     }
 
-    /**
-     * Create the floating button (for mobile).
-     */
     _createFloatingButton() {
         console.log('[Chat] _createFloatingButton()');
         const existing = document.querySelector('.core-engine-lib-base-chat-floating-btn');
@@ -217,6 +266,11 @@ export class BaseChat {
 
     /**
      * Handle message send.
+     *
+     * If `onSend` is set, it replaces `_sendToAPI`. Its return value
+     * is rendered as a bot message. It may be:
+     *   - a string                → rendered as plain bot text;
+     *   - { text, variant }       → rendered with the given variant.
      */
     async _handleSend() {
         if (!this.inputField) return;
@@ -229,30 +283,43 @@ export class BaseChat {
         this.inputField.value = '';
         this.inputField.style.height = 'auto';
 
-        // Show loading indicator
         const loadingId = this._addLoadingIndicator();
         this.isLoading = true;
 
         try {
-            // Send request to API
-            const response = await this._sendToAPI(text);
+            let response;
+            if (typeof this.onSend === 'function') {
+                response = await this.onSend(text);
+            } else {
+                response = await this._sendToAPI(text);
+            }
 
-            // Remove loading indicator
             this._removeLoadingIndicator(loadingId);
-            // Add AI response
-            this.addMessage(response, false);
+
+            // Response may be a string or { text, variant }.
+            let replyText = '';
+            let variant = null;
+            if (response && typeof response === 'object') {
+                replyText = response.text || '';
+                variant = response.variant || null;
+            } else {
+                replyText = String(response ?? '');
+            }
+
+            this.addMessage(replyText, false, variant);
         } catch (error) {
             this._removeLoadingIndicator(loadingId);
-            this.addMessage('❌ Ошибка: ' + (error.message || 'Не удалось получить ответ'), false);
-            console.error('[Chat] API error:', error);
+            this.addMessage(
+                '❌ Ошибка: ' + (error.message || 'Не удалось получить ответ'),
+                false,
+                'error',
+            );
+            console.error('[Chat] send handler error:', error);
         } finally {
             this.isLoading = false;
         }
     }
 
-    /**
-     * Send request to the API.
-     */
     async _sendToAPI(message) {
         console.log('[Chat] _sendToAPI()', message);
 
@@ -274,13 +341,18 @@ export class BaseChat {
 
     /**
      * Add a message to the history.
+     *
+     * @param {string} text
+     * @param {boolean} isUser
+     * @param {string|null} variant — "success" | "warning" | "error" | null
      */
-    addMessage(text, isUser) {
-        console.log('[Chat] addMessage()', text, isUser);
+    addMessage(text, isUser, variant = null) {
+        console.log('[Chat] addMessage()', text, isUser, variant);
         const msg = {
             id: Date.now() + Math.random(),
             text: text,
             isUser: isUser,
+            variant: variant,
             timestamp: new Date()
         };
         this.messages.push(msg);
@@ -288,9 +360,6 @@ export class BaseChat {
         this._scrollToBottom();
     }
 
-    /**
-     * Add loading indicator.
-     */
     _addLoadingIndicator() {
         const id = 'loading-' + Date.now();
         const div = document.createElement('div');
@@ -304,9 +373,6 @@ export class BaseChat {
         return id;
     }
 
-    /**
-     * Remove loading indicator.
-     */
     _removeLoadingIndicator(id) {
         const el = document.getElementById(id);
         if (el) {
@@ -314,24 +380,22 @@ export class BaseChat {
         }
     }
 
-    /**
-     * Render all messages.
-     */
     _renderMessages() {
         if (!this.messagesContainer) return;
 
         this.messagesContainer.innerHTML = '';
         this.messages.forEach(msg => {
             const div = document.createElement('div');
-            div.className = `chat-message chat-message-${msg.isUser ? 'user' : 'ai'}`;
+            let cls = `chat-message chat-message-${msg.isUser ? 'user' : 'ai'}`;
+            if (!msg.isUser && msg.variant) {
+                cls += ` chat-message-${msg.variant}`;
+            }
+            div.className = cls;
             div.textContent = msg.text;
             this.messagesContainer.appendChild(div);
         });
     }
 
-    /**
-     * Scroll to bottom.
-     */
     _scrollToBottom() {
         setTimeout(() => {
             if (this.messagesContainer) {
@@ -344,26 +408,30 @@ export class BaseChat {
 
     /**
      * Attach the chat into a sidebar container (desktop).
+     *
+     * Visibility is toggled by class names only:
+     *   - remove `.hidden` (so it stops being display: none);
+     *   - add `.sidebar-mode` (so chat.css switches it to flex).
+     * The `!important`-free cascade in chat.css handles the rest.
      */
     attach(container) {
         console.log('[Chat] attach()');
         if (!container || !this.container) return;
 
         this.isSidebarMode = true;
-        this.container.classList.add('sidebar-mode');
+
+        // Leave modal-mode if it was set; drop hidden; switch to sidebar.
         this.container.classList.remove('modal-mode', 'hidden');
-        this.container.style.display = 'flex';
+        this.container.classList.add('sidebar-mode');
 
         container.appendChild(this.container);
 
-        // Hide the floating button in desktop mode
         if (this.floatingBtn) {
-            this.floatingBtn.style.display = 'none';
+            this.floatingBtn.classList.add('hidden');
         }
 
-        // Show welcome message if empty
         if (this.messages.length === 0) {
-            this.addMessage('Привет! Я AI-ассистент. Задайте мне вопрос.', false);
+            this.addMessage(this.welcomeText, false);
         }
 
         console.log('[Chat] Attached to sidebar');
@@ -377,17 +445,18 @@ export class BaseChat {
         if (!this.container) return;
 
         this.isModalOpen = true;
-        this.container.classList.remove('hidden');
-        this.container.classList.add('modal-mode');
-        this.container.classList.remove('sidebar-mode');
-        this.container.style.display = 'flex';
 
-        setTimeout(() => {
+        // Leave sidebar-mode if it was set; drop hidden; switch to modal.
+        this.container.classList.remove('sidebar-mode', 'hidden');
+        this.container.classList.add('modal-mode');
+
+        // Defer the `.active` class for the CSS transition to work.
+        requestAnimationFrame(() => {
             this.container.classList.add('active');
-        }, 10);
+        });
 
         if (this.messages.length === 0) {
-            this.addMessage('Привет! Я AI-ассистент. Задайте мне вопрос.', false);
+            this.addMessage(this.welcomeText, false);
         }
 
         setTimeout(() => {
@@ -409,9 +478,11 @@ export class BaseChat {
         this.isModalOpen = false;
         this.container.classList.remove('active');
 
+        // Let the CSS transition finish, then add `.hidden`.
         setTimeout(() => {
-            this.container.classList.add('hidden');
-            this.container.style.display = 'none';
+            if (this.container) {
+                this.container.classList.add('hidden');
+            }
         }, 300);
 
         console.log('[Chat] Closed');
@@ -419,9 +490,26 @@ export class BaseChat {
 
     /**
      * Set a custom send handler.
+     * Prefer passing `options.onSend` to the constructor.
      */
     setOnSend(callback) {
         this.onSend = callback;
+    }
+
+    /**
+     * Update the input placeholder after the widget was created.
+     *
+     * Used by modules whose placeholder depends on runtime state —
+     * the inventory chat flips between
+     *   "Введите #NNN, чтобы выбрать кабинет"  (no room selected)
+     *   "Каб. 303: инвентарный номер"          (room 303 selected)
+     * as the accountant picks rooms.
+     */
+    setPlaceholder(text) {
+        this.placeholderText = text || '';
+        if (this.inputField) {
+            this.inputField.placeholder = this.placeholderText;
+        }
     }
 
     /**
@@ -433,16 +521,10 @@ export class BaseChat {
         this._renderMessages();
     }
 
-    /**
-     * Whether the component is initialized.
-     */
     isInitialized() {
         return this._initialized;
     }
 
-    /**
-     * Wait for init to complete.
-     */
     async waitForInit() {
         if (this._initPromise) {
             await this._initPromise;
@@ -450,9 +532,6 @@ export class BaseChat {
         return this._initialized;
     }
 
-    /**
-     * Destroy the component.
-     */
     destroy() {
         console.log('[Chat] destroy()');
         if (this.floatingBtn) {
