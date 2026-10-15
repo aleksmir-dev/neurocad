@@ -43,8 +43,10 @@
 .core-engine-lib-base-chat.modal-mode .chat-window {
     width: 100%;
     max-width: 600px;
-    max-height: 90vh;
-    height: 90vh;
+    max-height: 90vh;   /* fallback: старые браузеры без dvh */
+    max-height: 90dvh;  /* modern: реальная видимая высота (учитывает системную панель и адресную строку) */
+    height: 90vh;       /* fallback */
+    height: 90dvh;      /* modern */
     margin: 0 0.75rem 0.75rem;
     border-radius: 1rem;
     box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);
@@ -330,8 +332,10 @@
 
 @media (max-width: 768px) {
     .core-engine-lib-base-chat.modal-mode .chat-window {
-        max-height: 95vh;
-        height: 95vh;
+        max-height: 95vh;   /* fallback */
+        max-height: 95dvh;  /* modern */
+        height: 95vh;       /* fallback */
+        height: 95dvh;      /* modern */
         margin: 0.5rem;
         border-radius: 0.75rem;
     }
@@ -369,8 +373,10 @@
 
 @media (max-width: 480px) {
     .core-engine-lib-base-chat.modal-mode .chat-window {
-        max-height: 98vh;
-        height: 98vh;
+        max-height: 98vh;   /* fallback */
+        max-height: 98dvh;  /* modern */
+        height: 98vh;       /* fallback */
+        height: 98dvh;      /* modern */
         margin: 0.25rem;
         border-radius: 0.5rem;
     }

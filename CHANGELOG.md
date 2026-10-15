@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.28] - 2026-10-15
+- Fix: mobile chat input no longer hides behind the system navigation bar in portrait mode. `03_layout.css` now uses `100dvh` (with a `100vh` fallback) for the `body` height, and `chat.css` uses `dvh` for the modal-window sizing, so the visible viewport accounts for the browser and system bars.
+
 ## [1.0.27] - 2026-10-15
 - `botinv` module polish and modal fixes. Mobile layout now puts the chat in `area-center` (the table is not mounted on mobile); the table's filter row and toolbar are re-installed after every base re-render; list actions use SVG icons; the chat candidate list highlights row numbers in bordeaux and inventory numbers in blue via escaped HTML (`BaseChat.addMessage` gained an `asHtml` flag); `_mark_item` no longer prints «Каб. до: None» — it says «Находится в каб. X» when the sheet has no "before" room. `BaseModalInput` and `BaseModalDate` no longer flash unstyled on a cold cache (inline `display: none` + `_cssReady` awaited in `async open()`), and `base/modal/index.js` now appends `?v=<static_version>` to its dynamic imports. `BaseModalDate` gained the missing `_populateMonthSelect()` and `setOnCancel`.
 
@@ -128,6 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.28]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.27...v1.0.28
 [1.0.27]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.26...v1.0.27
 [1.0.26]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.25...v1.0.26
 [1.0.25]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.24...v1.0.25

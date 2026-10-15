@@ -3,7 +3,8 @@
 body {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 1rem);
+    height: calc(100vh - 1rem);    /* fallback: старые браузеры без dvh */
+    height: calc(100dvh - 1rem);   /* modern: учитывает системную панель и адресную строку браузера в портрете */
     overflow: hidden;
     font-family: var(--font-family);
     font-size: var(--font-size-base);
