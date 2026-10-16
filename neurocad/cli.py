@@ -176,6 +176,63 @@ def cmd_backup(args):
 
 
 # ============================================
+# install — install systemd unit + nginx config
+# ============================================
+
+def cmd_install(args):
+    """
+    Install systemd unit and nginx config for this project.
+
+    Reads templates from the installed package
+    (neurocad/etc/system.conf, neurocad/etc/nginx.conf),
+    substitutes placeholders, writes to /etc.
+
+    The service name defaults to APP_DOMAIN, and the listen port
+    to APP_PORT. Both can be overridden with --domain / --port.
+
+    Requires root (writes to /etc/systemd/system and /etc/nginx).
+
+    Existing files are NOT overwritten unless --force is passed —
+    this preserves manual edits (custom nginx rules, custom unit
+    tweaks) across reinstalls.
+
+    After install:
+        systemctl enable --now <name>.service
+        certbot --nginx -d <name>       # if using Let's Encrypt
+
+    Multi-instance: run this once per project directory. Each
+    project gets its own unit, nginx site, cron file, and port —
+    no collisions between instances on the same host.
+    """
+    import sys
+    from .utils.paths import install_service_files
+
+    if sys.platform != "linux":
+        print("install: only supported on Linux (systemd + nginx)")
+        raise SystemExit(1)
+
+    try:
+        install_service_files(
+            name=args.domain,
+            port=args.port,
+            force=args.force,
+            install_systemd=not args.no_systemd,
+            install_nginx=not args.no_nginx,
+        )
+    except PermissionError as e:
+        print(f"Ошибка прав: {e}")
+        print("Запустите с sudo: sudo neurocad install")
+        raise SystemExit(1)
+    except FileNotFoundError as e:
+        print(f"Не найдено: {e}")
+        print("Проверьте, что шаблоны есть в пакете: neurocad/etc/")
+        raise SystemExit(1)
+    except Exception as e:
+        print(f"Ошибка установки: {type(e).__name__}: {e}")
+        raise SystemExit(1)
+
+
+# ============================================
 # main
 # ============================================
 
@@ -224,6 +281,33 @@ def main(argv=None):
         help="Backup level",
     )
     p_bk.set_defaults(func=cmd_backup)
+
+    # ---- install ----
+    p_inst = sub.add_parser(
+        "install",
+        help="Install systemd unit + nginx config for this project",
+    )
+    p_inst.add_argument(
+        "--domain", default=None,
+        help="Service name / domain (default: APP_DOMAIN from .env)",
+    )
+    p_inst.add_argument(
+        "--port", type=int, default=None,
+        help="Listen port (default: APP_PORT from .env)",
+    )
+    p_inst.add_argument(
+        "--force", action="store_true",
+        help="Overwrite existing unit / nginx files",
+    )
+    p_inst.add_argument(
+        "--no-systemd", action="store_true",
+        help="Skip systemd unit installation",
+    )
+    p_inst.add_argument(
+        "--no-nginx", action="store_true",
+        help="Skip nginx config installation",
+    )
+    p_inst.set_defaults(func=cmd_install)
 
     args = parser.parse_args(argv)
     args.func(args)

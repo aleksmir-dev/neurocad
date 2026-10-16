@@ -19,7 +19,8 @@ Endpoints:
       POST /backup/s3/test          — verify S3 credentials
       GET  /backup/schedules        — backup_* rows from panel_tasks
       PUT  /backup/schedules/{id}   — update cron / active (also
-                                       regenerates /etc/cron.d/neurocad)
+                                       regenerates the per-instance
+                                       crontab file)
       GET  /backup/list             — recent backup runs
 
 The /backup prefix is added by this router itself; the parent
@@ -28,6 +29,8 @@ router (core/engine/lib/route.py) just includes it. Full URL:
 """
 
 import asyncio
+import os
+import shutil
 import tempfile
 from pathlib import Path
 from typing import Optional
@@ -216,27 +219,87 @@ async def put_settings(
 # S3 TEST — verify credentials
 # ============================================
 
-async def _run_rclone_lsd(config_path: Path) -> tuple[bool, str, list[str]]:
+def _rclone_bin() -> str:
+    """
+    Absolute path to the rclone binary.
+
+    Prefers PATH (shutil.which), falls back to /usr/bin/rclone.
+    Under systemd PATH is often only the venv bin dir, so which()
+    returns None — the fallback saves us.
+    """
+    return shutil.which("rclone") or "/usr/bin/rclone"
+
+
+def _rclone_env() -> dict:
+    """
+    Environment for the rclone subprocess.
+
+    Guarantees:
+      - PATH contains the standard system dirs, so rclone can find
+        getent / bash / git even when systemd trims PATH.
+      - HOME is set, so rclone reads ~/.config/rclone/rclone.conf
+        instead of falling back to CWD.
+    """
+    env = dict(os.environ)
+    system_path = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+    parts = [p for p in env.get("PATH", "").split(":") if p]
+    for p in system_path.split(":"):
+        if p not in parts:
+            parts.append(p)
+    env["PATH"] = ":".join(parts)
+
+    if not env.get("HOME"):
+        env["HOME"] = "/root"
+    return env
+
+
+async def _run_rclone_lsd(config_path: Path, remote: str) -> tuple[bool, str, list[str]]:
     """
     Run `rclone lsd <remote>:` with the given config file.
 
-    Returns (success, message, buckets).
-    Never raises.
+    Returns (success, message, buckets). Never raises — all errors
+    are converted to (False, message, []).
     """
-    proc = await asyncio.create_subprocess_exec(
-        "rclone",
-        "lsd",
-        "--config", str(config_path),
-        "selectel:",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await proc.communicate()
+    cmd = [_rclone_bin(), "lsd", "--config", str(config_path), f"{remote}:"]
+
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=_rclone_env(),
+        )
+    except FileNotFoundError as e:
+        return (
+            False,
+            f"rclone не найден: попробовали {cmd[0]!r}. "
+            f"Установите rclone или добавьте его в PATH. [{e}]",
+            [],
+        )
+    except PermissionError as e:
+        return (
+            False,
+            f"rclone не исполняется: {cmd[0]!r}. Проверьте права. [{e}]",
+            [],
+        )
+
+    try:
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=30)
+    except asyncio.TimeoutError:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+        return False, "rclone timeout (30s)", []
 
     out = stdout.decode("utf-8", errors="replace")
     err = stderr.decode("utf-8", errors="replace").strip()
 
     if proc.returncode != 0:
+        # Truncate very long stderr for the UI.
+        if len(err) > 500:
+            err = err[:497] + "..."
         return False, err or "rclone вернул ошибку", []
 
     # Each line: "<size> <date> <time> <name>". Parse names.
@@ -261,6 +324,10 @@ async def test_s3(
     If s3_secret_key is empty in the request — the stored (encrypted)
     secret is used. This lets the user click "Проверить подключение"
     without re-entering the secret every time.
+
+    Never returns 500 — any error is wrapped into success=False
+    with a human-readable message. This makes UI diagnostics easy
+    without digging into server logs.
     """
     secret_key = data.s3_secret_key
 
@@ -284,15 +351,30 @@ async def test_s3(
             "buckets": [],
         })
 
+    # Normalize: strip whitespace and surrounding quotes on all
+    # credentials — users often paste with leading/trailing spaces.
+    access_key = (data.s3_access_key or "").strip().strip("'\"")
+    secret_key = secret_key.strip().strip("'\"")
+    endpoint = (data.s3_endpoint or "").strip().strip("'\"")
+    region = (data.s3_region or "").strip().strip("'\"")
+    remote = (data.rclone_remote or "").strip().strip("'\"")
+
+    if not access_key or not secret_key or not remote:
+        return JSONResponse({
+            "success": False,
+            "message": "Не хватает обязательных полей (access_key / secret_key / remote)",
+            "buckets": [],
+        })
+
     # Write a temporary rclone.conf.
     config_content = (
-        f"[{data.rclone_remote}]\n"
+        f"[{remote}]\n"
         f"type = s3\n"
         f"provider = Other\n"
-        f"access_key_id = {data.s3_access_key}\n"
+        f"access_key_id = {access_key}\n"
         f"secret_access_key = {secret_key}\n"
-        f"region = {data.s3_region}\n"
-        f"endpoint = {data.s3_endpoint}\n"
+        f"region = {region}\n"
+        f"endpoint = {endpoint}\n"
     )
 
     with tempfile.NamedTemporaryFile(
@@ -302,11 +384,18 @@ async def test_s3(
         tmp_path = Path(f.name)
 
     try:
-        ok, message, buckets = await _run_rclone_lsd(tmp_path)
+        ok, message, buckets = await _run_rclone_lsd(tmp_path, remote)
         return JSONResponse({
             "success": ok,
             "message": message,
             "buckets": buckets,
+        })
+    except Exception as e:
+        # Last-ditch safety net — never let the endpoint 500.
+        return JSONResponse({
+            "success": False,
+            "message": f"{type(e).__name__}: {e}",
+            "buckets": [],
         })
     finally:
         try:
@@ -342,8 +431,8 @@ async def update_schedule(
     Validates the cron expression via croniter. Returns the updated
     task on success, 404 if not found, 400 if cron is invalid.
 
-    After the DB row is saved, the system crontab file
-    /etc/cron.d/neurocad is regenerated from all active backup_*
+    After the DB row is saved, the per-instance system crontab file
+    /etc/cron.d/<APP_DOMAIN> is regenerated from all active backup_*
     tasks. The system cron daemon picks up the new file
     automatically — no `crontab -e` and no reload required.
     """
@@ -359,7 +448,7 @@ async def update_schedule(
     if task is None:
         raise HTTPException(status_code=404, detail="Задача не найдена")
 
-    # Regenerate /etc/cron.d/neurocad from panel_tasks.
+    # Regenerate the per-instance crontab file from panel_tasks.
     # If this fails (e.g. permissions), the DB row is still saved;
     # the user just won't see the change applied to the system cron.
     applied = await CoreEngineLibBackupService.apply_crontab()
@@ -403,6 +492,9 @@ async def run_now(
     Returns immediately; the actual run happens via BackgroundTasks.
     Before starting, the rclone.conf is regenerated from the current
     settings so the run uses fresh credentials.
+
+    Request body:
+        {"level": "hourly" | "daily" | "weekly" | "monthly" | "yearly"}
     """
     if data.level not in LEVELS:
         raise HTTPException(

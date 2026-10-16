@@ -1,6 +1,6 @@
 [project]
 name = "neurocad"
-version = "1.0.28"
+version = "1.0.29"
 description = "NeuroCad — core engine + CMS + visual editor for FastAPI"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -55,8 +55,8 @@ dependencies = [
     "black",
     "markdown-it-py",
     "croniter",
-    "psutil",  
-    "openpyxl",  
+    "psutil",
+    "openpyxl",
 ]
 
 [project.optional-dependencies]
@@ -99,13 +99,24 @@ exclude = [
 # Files that live OUTSIDE `neurocad/` (in the repo root) are added
 # via force-include:
 #
-#   .env.example  → neurocad/.env.example   (used by paths.py
-#                                            when creating .env)
-#   base/demo     → neurocad/base/demo      (SQL dumps + manifest
-#                                            for the first run;
-#                                            copied to
-#                                            cwd/base/demo by
-#                                            ensure_workdirs)
+#   .env.example    → neurocad/.env.example    (used by paths.py
+#                                               when creating .env)
+#   base/demo       → neurocad/base/demo       (SQL dumps + manifest
+#                                               for the first run;
+#                                               copied to
+#                                               cwd/base/demo by
+#                                               ensure_workdirs)
+#   etc/system.conf → neurocad/etc/system.conf (systemd unit template;
+#                                               read by
+#                                               paths.py →
+#                                               install_service_files,
+#                                               installed to
+#                                               /etc/systemd/system/
+#                                               <name>.service)
+#   etc/nginx.conf  → neurocad/etc/nginx.conf  (nginx site template;
+#                                               installed to
+#                                               /etc/nginx/
+#                                               sites-available/<name>)
 
 [tool.hatch.build.targets.wheel.force-include]
 "neurocad/static/libs"  = "neurocad/static/libs"
@@ -113,6 +124,8 @@ exclude = [
 "neurocad/.gitignore"   = "neurocad/.gitignore"
 ".env.example"          = "neurocad/.env.example"
 "base/demo"             = "neurocad/base/demo"
+"etc/system.conf"       = "neurocad/etc/system.conf"
+"etc/nginx.conf"        = "neurocad/etc/nginx.conf"
 
 # ============================================
 # SDIST
@@ -122,6 +135,7 @@ exclude = [
 include = [
     "neurocad/",
     "base/demo/",
+    "etc/",
     ".env.example",
     "README.md",
     "LICENSE",

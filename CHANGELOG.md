@@ -5,59 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.29] - 2026-10-16
+- Backup: all hardcoded paths/URLs/user replaced by `APP_DOMAIN` / `APP_HOST` / `APP_PORT` / `APP_SYSTEM_USER` (per-instance `/etc/cron.d/<APP_DOMAIN>`, `level` now sent in the cron body instead of `-d '{}'`), `rclone` resolved via `shutil.which()` with explicit `PATH`/`HOME` env, `/backup/s3/test` never 500s (always `{"success": false, "message": "..."}`), S3 credentials stripped of whitespace/quotes, and new `neurocad install` CLI writing systemd + nginx from `neurocad/etc/*.conf` templates.
+
 ## [1.0.28] - 2026-10-15
-- Fix: mobile chat input no longer hides behind the system navigation bar in portrait mode. `03_layout.css` now uses `100dvh` (with a `100vh` fallback) for the `body` height, and `chat.css` uses `dvh` for the modal-window sizing, so the visible viewport accounts for the browser and system bars.
+- Mobile chat input no longer hides behind the system navigation bar (`100dvh` in `03_layout.css`, `dvh` in `chat.css`).
 
 ## [1.0.27] - 2026-10-15
-- `botinv` module polish and modal fixes. Mobile layout now puts the chat in `area-center` (the table is not mounted on mobile); the table's filter row and toolbar are re-installed after every base re-render; list actions use SVG icons; the chat candidate list highlights row numbers in bordeaux and inventory numbers in blue via escaped HTML (`BaseChat.addMessage` gained an `asHtml` flag); `_mark_item` no longer prints «Каб. до: None» — it says «Находится в каб. X» when the sheet has no "before" room. `BaseModalInput` and `BaseModalDate` no longer flash unstyled on a cold cache (inline `display: none` + `_cssReady` awaited in `async open()`), and `base/modal/index.js` now appends `?v=<static_version>` to its dynamic imports. `BaseModalDate` gained the missing `_populateMonthSelect()` and `setOnCancel`.
+- `botinv` polish: chat in `area-center` on mobile, table filter row re-installed after every base re-render, SVG icons in list actions, bordeaux/blue row-number and inventory-number highlighting in the candidate list, no more «Каб. до: None», and `BaseModalInput` / `BaseModalDate` no longer flash unstyled on a cold cache (`_cssReady` awaited in `open()`, `?v=<static_version>` on modal imports, restored `_populateMonthSelect()` and `setOnCancel` on `BaseModalDate`).
 
 ## [1.0.26] - 2026-10-15
-- Fix: `use_botinv` was missing from `GET /core/engine/lib/base/profile/` and `POST /core/auth/login` responses, so `BaseAuth.getUser()` never carried the flag and the inventory section stayed hidden for non-superadmin users even when the DB flag was set. Also normalized `serialize_user` output to a real boolean (`bool(user.use_botinv)` instead of `or False`, which leaked `1` as an int).
+- `use_botinv` added to `GET /core/engine/lib/base/profile/` and `POST /core/auth/login` responses and normalized to a real boolean in `serialize_user`, so the inventory section appears for non-superadmins when the DB flag is set.
 
 ## [1.0.25] - 2026-10-15
-- Inventory module (`botinv`): per-user walking tool for marking items by inventory number. Excel/CSV import (`inv_num;name;room`), case-insensitive lookups, substring search with a numbered candidate list, chat + inventory table side by side, XLSX export. Enabled per user via the new `users.use_botinv` flag. New tables `botinv_sheets` / `botinv_items` and four migrations. `BaseChat` gained `headerExtra`, `setPlaceholder` and per-message `variant` (success / warning / error).
+- Inventory module (`botinv`): per-user walking tool with Excel/CSV import (`inv_num;name;room`), case-insensitive lookups, substring search with numbered candidates, side-by-side chat and table, XLSX export, new `botinv_sheets` / `botinv_items` tables plus four migrations, new `users.use_botinv` flag, and `BaseChat.headerExtra` / `setPlaceholder` / per-message `variant`.
 
 ## [1.0.24] - 2026-10-14
-- Backup management: automated backups to S3 (Selectel) — five levels (hourly / daily / weekly / monthly / yearly), retention, rotation, UI-driven schedules, and run history. Schedules live in `panel_tasks`; the system crontab (`/etc/cron.d/neurocad`) is regenerated automatically on save and picked up by cron. The S3 secret is encrypted (Fernet). New "Сервисы" page (`?page=services`, superadmin only) hosts the Backup component.
+- Backup management: automated S3 backups (Selectel) on five levels (hourly/daily/weekly/monthly/yearly) with retention, rotation, UI-driven schedules stored in `panel_tasks`, auto-regenerated `/etc/cron.d/neurocad`, encrypted (Fernet) S3 secret, run history, and a new superadmin "Сервисы" page (`?page=services`).
 
 ## [1.0.23] - 2026-10-12
-- "Главная" in the header menu now links to the module root (`/core/engine/admin`) instead of `/` — the menu renderer treats a bare "/" or empty href as "current module root" and substitutes `window.coreEngine.baseUrl`. Fixes the header link leading out of the admin shell to the public landing page configured in `.env`. Fixed 500 on `GET /creatives/stats`: `_public_base_for_nav` in `creatives/service.py` used `from ....base…` (four dots) instead of `from ..base…` (two dots, same as `word/url.py`), raising `ImportError: attempted relative import beyond top-level package` on the first request and breaking the "Отчёт" tab.
+- "Главная" in the header links to the module root (`/core/engine/admin`) via `window.coreEngine.baseUrl` instead of `/`, and `GET /creatives/stats` no longer 500s — `_public_base_for_nav` in `creatives/service.py` uses `from ..base…` (two dots) instead of `from ....base…`.
 
 ## [1.0.22] - 2026-10-12
-- Placement tracking works end to end: `creatives/public/block.js` sends `show` / `click` hits to `POST /creatives/hit` via `navigator.sendBeacon`, and the admin "Отчёт" tab now shows real counts. Report "Страница" column shows the destination page's title as a clickable link to its public URL (`https://<owner-host>/page/…`), with `#<page_id>` fallback; numeric columns center-aligned in header and body. Footer links in Word view rebased onto `pageData.public_host` so admin preview matches the public page. No more FOUC on `?page=setup` / `?page=profile` / `?page=creatives`: `coreEngine.loadCSS()` now returns a Promise resolved on `link.onload`, and the affected components await it in `_init()`. `pages/public/route.py` split into six modules (route / render / cookies / html / hosts / paths) — no behaviour change.
+- Placement tracking end to end: `creatives/public/block.js` sends `show`/`click` hits via `navigator.sendBeacon`, the "Отчёт" tab shows real counts with a clickable page-title column, footer links in Word view rebase onto `pageData.public_host`, FOUC is gone on `?page=setup`/`profile`/`creatives` (`coreEngine.loadCSS()` returns a Promise awaited in `_init()`), and `pages/public/route.py` is split into six modules (route / render / cookies / html / hosts / paths).
 
 ## [1.0.21] - 2026-10-11
-- Contacts page for every user's site: new `users.contacts` TEXT column (migration `0943e8bd752c`), served at `/contacts` on the user's host alongside `/policy` and `/rules`, with a universal fallback from `modal/legal/contacts.md` when the field is empty. Legal card in Profile → Domains now has a third row (Contacts), the shared `LegalModal` was generalised from two targets to three via `LEGAL_WHICH` / `LEGAL_META`, and `core-footer` ships with a `/contacts` link. LLM generation is disabled for contacts on both sides — the frontend disables the "✨ Сгенерировать" button, `POST /domain/legal/generate` returns 400 for `which="contacts"` — since a phone number or an address cannot be inferred from the home-page text.
+- Contacts page for every user's site: new `users.contacts` TEXT column (migration `0943e8bd752c`), served at `/contacts` alongside `/policy` and `/rules` with a universal fallback from `modal/legal/contacts.md`, generalised `LegalModal` (three `LEGAL_WHICH` targets), `/contacts` link in `core-footer`, and LLM generation disabled for contacts on both frontend and backend.
 
 ## [1.0.20] - 2026-10-11
-- Creative model extended with `text`, `button_text`, `brand`, `inn`; admin modal now has eight fields, placements tab is read-only. New `core-creative` block in the library ("Секции") renders an advertising insert with legal markers (Реклама / advertiser / INN / ERID) and auto-fills on drop from the creative already attached to the page. Fixes `BaseModalForm._createDOM()` reusing a stale container — old listeners fired alongside the new one and emptied the fields the user just filled.
+- Creative model gains `text` / `button_text` / `brand` / `inn`, admin modal has eight fields, placements tab is read-only, new `core-creative` block renders the ad insert with legal markers and auto-fills on drop, and `BaseModalForm._createDOM()` no longer reuses a stale container that emptied freshly filled fields.
 
 ## [1.0.19] - 2026-10-11
-- Article catalog managed by the "Администратор" agent (always asks a clarifying question first). New "Копировать" / "Переместить" toolbar buttons, new `BaseModalList` picker, new "Публиковать" checkbox (templates hidden from the public catalog). Page render extracted to `card.js`. `create_page` runs its own dialog before generating — one question at a time, per genre, stops on "вперёд"; reworked prompt asks about colours, effects and block count, plus a fallback in `_parse_dialog_response` so a bare-text question is still recognised.
+- Article catalog managed by the "Администратор" agent (always asks one clarifying question first), plus "Копировать" / "Переместить" toolbar buttons, `BaseModalList` picker, "Публиковать" checkbox, and a reworked `create_page` dialog prompt with `_parse_dialog_response` fallback for bare-text questions.
 
 ## [1.0.18] - 2026-10-08
-- Folders in the article catalog: pages can be grouped into folders, admin and public; unlimited nesting; SEO-friendly URL `/pages/<id>`; breadcrumbs; "Вернуться" card.
-- New `?root=1` flag on `/pages` — explicit "show the root, forget the cookie".
-- New `renderUpCard` hook on `BaseCards` for the ".." pseudo-card.
-- `parent_id` declared in the Pages form fields so it reaches the API; hidden via CSS.
-- `BaseCardsEdit` tags `.edit-body` with `edit-body--folder` / `edit-body--page`.
-- Folder cards use the neutral palette; content top-aligned.
-- `pages.css` hidden-field rules scoped by entity type.
-- Fixed `InvalidCharacterError` in `BaseCardsCard` when `customClass` contained a space.
-- Fixed the open folder appearing inside itself — `Pages._loadFromServer()` now carries `parent_id`.
-- Removed the duplicate `↩` glyph on the ".." card.
+- Folders in the article catalog (admin and public, unlimited nesting, `/pages/<id>` URLs, breadcrumbs, "Вернуться" card) with `?root=1` escape hatch, `renderUpCard` hook on `BaseCards`, `parent_id` reaching the API, `edit-body--folder`/`edit-body--page` tags, neutral folder palette, and fixes for `InvalidCharacterError` on spaced `customClass` and for the open folder appearing inside itself.
 
 ## [1.0.17] - 2026-10-07
-- AI generation of Policy and Rules via a new "✨ Сгенерировать" button in the legal modal and a new `POST /domain/legal/generate` endpoint; the LLM reads the user's home page (title, description, visible text, site host) and returns a fresh markdown document without saving it. Adds `generate_legal` agent + prompt, `LegalMixin.load_home_context()`, explicit today's date in the prompt (no more "01.01.2026"), a ban on inventing brands and data categories, and token charge on the Balance.
+- AI generation of Policy and Rules via a new "✨ Сгенерировать" button and `POST /domain/legal/generate` — the LLM reads the user's home page and returns fresh markdown without saving, with explicit today's date, a ban on inventing brands/data categories, and token charge on Balance.
 
 ## [1.0.16] - 2026-10-07
-- Pages have an optional external `url` (`pages.url`): when set, catalog cards — admin and public — open that URL in the current tab instead of the internal `/page/<date>/<time>` target; the editor is still reachable, `url` only changes where a card click goes. Adds the `url` field to the create/edit form, a `↗` badge on cards in the admin catalog, and surfaces `url` across all page APIs and the `page-link` trait.
+- Pages gain an optional external `url` that catalog cards open in the current tab instead of `/page/<date>/<time>`, with a `↗` badge in the admin catalog and `url` surfaced across page APIs and the `page-link` trait.
 
 ## [1.0.14] - 2026-10-06
-- Fixed `word/service.py` importing the domain service from the old module path after the 1.0.13 package split — admin page viewer returned 500 ("страница не найдена").
+- Fixed `word/service.py` importing the domain service from the old module path after the 1.0.13 package split (admin page viewer 500).
 
 ## [1.0.13] - 2026-10-06
-- Per-user policy / rules markdown pages served at `/policy` и `/rules` on the user's host, with universal fallback texts, a new `domain/public.py` router, `domain/service.py` split into a package, and async DNS checks.
+- Per-user `/policy` and `/rules` markdown pages with universal fallback texts, new `domain/public.py` router, `domain/service.py` split into a package, and async DNS checks.
 
 ## [1.0.12] - 2026-10-05
 - Page-link trait inserts public URLs without `nav_id`; test root domain bound to the first superadmin.
@@ -131,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.29]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.28...v1.0.29
 [1.0.28]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.27...v1.0.28
 [1.0.27]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.26...v1.0.27
 [1.0.26]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.25...v1.0.26

@@ -18,11 +18,42 @@ Schemas:
   - BackupScheduleItem / BackupScheduleListResponse — panel_tasks
                            rows for backup_*.
   - BackupScheduleUpdate — request for PUT /backup/schedules/{id}.
+
+Note on input normalization:
+    Users often paste S3 credentials with leading/trailing spaces
+    or surrounded by quotes (from JSON, .env, or console output).
+    All S3 string fields are normalized via `@field_validator`:
+        value.strip().strip("'\"")
+    This is defense in depth — service.save_settings() also strips,
+    but starting clean at the schema boundary avoids surprises in
+    any downstream code that forgets to do it.
 """
 
 from datetime import datetime
 from typing import Dict, List, Optional
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel, Field, field_validator
+
+
+# ============================================
+# HELPERS
+# ============================================
+
+def _clean_str(v: Optional[str]) -> Optional[str]:
+    """
+    Strip whitespace and surrounding single/double quotes from a
+    string. Returns None for None — so Optional fields stay None.
+
+    Rationale: users paste keys with a leading space (" f5...") or
+    wrap them in quotes ('"f5..."'). rclone then sends the wrong
+    value and S3 rejects it with an auth error. We saw this exact
+    bug on production — this is the fix at the input boundary.
+    """
+    if v is None:
+        return None
+    if not isinstance(v, str):
+        return v
+    return v.strip().strip("'\"")
 
 
 # ============================================
@@ -74,6 +105,9 @@ class BackupSettingsSchema(BaseModel):
     neurocad.utils.crypto.encrypt(). The response schema blanks it
     and sets s3_secret_key_set to let the UI know whether a secret
     is already stored.
+
+    All S3 string fields are normalized on input:
+    strip whitespace and surrounding quotes. See _clean_str() above.
     """
     # ---- Common ----
     project_dir: str = Field(
@@ -128,6 +162,24 @@ class BackupSettingsSchema(BaseModel):
         ],
         description="Что включать в архив: папки и файлы относительно project_dir",
     )
+
+    # ---- Normalization ----
+    @field_validator(
+        "rclone_remote", "rclone_bucket",
+        "s3_endpoint", "s3_region",
+        "s3_access_key", "s3_secret_key",
+        mode="after",
+    )
+    @classmethod
+    def _strip_s3_fields(cls, v: str) -> str:
+        """Strip whitespace / quotes from all S3-related string fields."""
+        return _clean_str(v) or ""
+
+    @field_validator("project_dir", "local_dir", mode="after")
+    @classmethod
+    def _strip_paths(cls, v: str) -> str:
+        """Strip whitespace from path fields (quotes are valid in paths)."""
+        return v.strip() if isinstance(v, str) else v
 
 
 class BackupSettingsResponse(BaseModel):
@@ -209,6 +261,17 @@ class S3TestRequest(BaseModel):
         "neurocad-backups",
         description="Бакет, который нужно проверить",
     )
+
+    @field_validator(
+        "s3_endpoint", "s3_region",
+        "s3_access_key", "s3_secret_key",
+        "rclone_remote", "rclone_bucket",
+        mode="after",
+    )
+    @classmethod
+    def _strip_fields(cls, v: str) -> str:
+        """Strip whitespace / quotes — see _clean_str() for rationale."""
+        return _clean_str(v) or ""
 
 
 class S3TestResponse(BaseModel):

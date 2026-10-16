@@ -29,9 +29,11 @@ fails and the run is recorded as "failed". The archive stays
 in the local dir for manual inspection.
 """
 
+import logging
 import shutil
 import sqlite3
 import tarfile
+import traceback
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -41,6 +43,9 @@ from croniter import croniter
 
 from . import s3
 from .service import CoreEngineLibBackupService
+
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================
@@ -68,6 +73,10 @@ _DEFAULTS: Dict[str, Any] = {
         "requirements.txt", "pyproject.toml", ".env", "README.md",
     ],
 }
+
+#: Max length of the error string stored in backup_runs.error.
+#: The DB column is small; full traceback goes to the log instead.
+_ERROR_MAX_LEN = 500
 
 
 # ============================================
@@ -185,6 +194,43 @@ async def _rotate(
             pass
 
 
+def _format_error(exc: BaseException) -> str:
+    """
+    Short, human-readable error for the DB and the UI.
+
+    Rules:
+      - FileNotFoundError with a filename → "FileNotFoundError: <file>"
+        (much clearer than the bare "No such file or directory").
+      - Other exceptions → "{Type}: {msg}".
+      - Truncated to _ERROR_MAX_LEN.
+
+    Full traceback goes to the log via _log_exception().
+    """
+    if isinstance(exc, FileNotFoundError):
+        # `filename` may be the executable, config, or any other path.
+        fname = getattr(exc, "filename", None) or getattr(exc, "filename2", None)
+        if fname:
+            msg = f"FileNotFoundError: {fname}"
+        else:
+            msg = f"FileNotFoundError: {exc}"
+    else:
+        msg = f"{type(exc).__name__}: {exc}"
+
+    if len(msg) > _ERROR_MAX_LEN:
+        msg = msg[: _ERROR_MAX_LEN - 3] + "..."
+    return msg
+
+
+def _log_exception(level: str, exc: BaseException) -> None:
+    """Log the full traceback once, at ERROR level."""
+    logger.error(
+        "Backup run failed (level=%s): %s",
+        level,
+        exc,
+        exc_info=True,
+    )
+
+
 async def _update_panel_task_after_run(
     level: str,
     result: BackupResult,
@@ -230,7 +276,8 @@ async def _update_panel_task_after_run(
         )
     except Exception:
         # Never propagate — the backup result is what matters.
-        pass
+        # Log at debug — panel_tasks update failure is not critical.
+        logger.debug("Failed to update panel_tasks after run", exc_info=True)
 
 
 # ============================================
@@ -305,10 +352,18 @@ async def run_backup(level: str) -> BackupResult:
             archive_name=archive_name,
             size_bytes=size_bytes,
         )
+        logger.info(
+            "Backup %s succeeded: %s (%s bytes)",
+            level,
+            archive_name,
+            size_bytes,
+        )
         return result
 
     except Exception as e:
-        error = f"{type(e).__name__}: {e}"
+        # Log full traceback once, store short message in DB / UI.
+        _log_exception(level, e)
+        error = _format_error(e)
         result = BackupResult(
             level=level,
             success=False,
@@ -343,7 +398,7 @@ async def run_backup(level: str) -> BackupResult:
             )
         except Exception:
             # Recording failure must not mask the actual result.
-            pass
+            logger.exception("Failed to record backup run in backup_runs")
 
         # 7. Update panel_tasks (last_run_at / next_run_at / status).
         if result is not None:

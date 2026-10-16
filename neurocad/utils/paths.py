@@ -374,3 +374,206 @@ def _copy_builtin_app(app_dir: Path):
             shutil.copytree(item, dst)
         else:
             shutil.copy(item, dst)
+
+
+# ============================================
+# SERVICE INSTALL (systemd + nginx)
+# ============================================
+
+def _package_etc_dir() -> Path:
+    """
+    Package `etc/` dir — where the systemd / nginx templates live.
+
+    Injected into the wheel from `etc/` in the repo via
+    pyproject.toml → [tool.hatch.build.targets.wheel.force-include]:
+        "etc/system.conf" = "neurocad/etc/system.conf"
+        "etc/nginx.conf"  = "neurocad/etc/nginx.conf"
+    """
+    return package_dir() / "etc"
+
+
+def _render_template(template: str, subs: dict) -> str:
+    """
+    Substitute {placeholders} in a template.
+
+    Uses str.format_map with a dict that returns the placeholder
+    text unchanged for unknown keys — so a stray {foo} does not
+    crash the install, it just stays literal.
+    """
+    class _SafeDict(dict):
+        def __missing__(self, key):
+            return "{" + key + "}"
+
+    return template.format_map(_SafeDict(subs))
+
+
+def install_service_files(
+    name: str | None = None,
+    port: int | None = None,
+    force: bool = False,
+    install_systemd: bool = True,
+    install_nginx: bool = True,
+) -> None:
+    """
+    Install systemd unit and nginx config for this project.
+
+    Reads templates from the installed package
+    (neurocad/etc/system.conf, neurocad/etc/nginx.conf),
+    substitutes placeholders, writes to /etc.
+
+    Skips files that already exist unless force=True. This is
+    intentional: users may have custom edits (extra nginx rules,
+    unit tweaks) that should survive reinstalls.
+
+    Requires root — writes to /etc/systemd/system and /etc/nginx.
+    Caller (CLI `neurocad install`) should check permission and
+    tell the user to run with sudo.
+
+    Placeholders substituted in both templates:
+        {name}         — service name / domain (e.g. "neurocad.ru")
+        {project_dir}  — absolute path to the project (cwd)
+        {venv_bin}     — absolute path to the venv bin dir
+        {user}         — system user running the service
+        {group}        — system group
+        {home}         — HOME env var for the process
+        {app_host}     — bind host (default 127.0.0.1)
+        {app_port}     — bind port
+        {log_dir}      — project log/ dir
+        {static_dir}   — project static/ dir
+        {media_dir}    — project media/ dir
+
+    Side effects:
+        - writes /etc/systemd/system/<name>.service
+        - writes /etc/nginx/sites-available/<name>
+        - creates symlink /etc/nginx/sites-enabled/<name>
+        - creates /etc/neurocad/ and /etc/neurocad/<name>.env
+          (0600, empty — for per-instance secrets)
+        - runs `systemctl daemon-reload`
+        - runs `nginx -t` and `systemctl reload nginx`
+
+    Multi-instance: each project dir gets its own unit, nginx
+    site, cron file, and port. No collisions between instances
+    on the same host.
+    """
+    import getpass
+    import grp
+    import os
+    import subprocess
+    import sys
+
+    from ..config import settings
+
+    # ---- Resolve values ----
+    name = (name or settings.APP_DOMAIN or Path.cwd().name).strip()
+    if not name:
+        raise ValueError(
+            "Cannot determine service name: set APP_DOMAIN in .env "
+            "or pass --domain"
+        )
+
+    if port is None:
+        port = int(settings.APP_PORT or 8012)
+
+    project_dir = Path.cwd().resolve()
+    venv_bin = Path(sys.executable).parent.resolve()
+
+    try:
+        user = getpass.getuser()
+    except Exception:
+        user = "root"
+    try:
+        group = grp.getgrgid(os.getgid()).gr_name
+    except Exception:
+        group = user
+
+    home = os.environ.get("HOME") or str(Path.home())
+
+    subs = {
+        "name": name,
+        "project_dir": str(project_dir),
+        "venv_bin": str(venv_bin),
+        "user": user,
+        "group": group,
+        "home": home,
+        "app_host": settings.APP_HOST or "127.0.0.1",
+        "app_port": str(port),
+        "log_dir": str(project_dir / "log"),
+        "static_dir": str(project_dir / "static"),
+        "media_dir": str(project_dir / "media"),
+    }
+
+    etc_dir = _package_etc_dir()
+
+    # ---- Sanity check: templates present? ----
+    if install_systemd and not (etc_dir / "system.conf").is_file():
+        raise FileNotFoundError(
+            f"systemd template not found: {etc_dir / 'system.conf'}"
+        )
+    if install_nginx and not (etc_dir / "nginx.conf").is_file():
+        raise FileNotFoundError(
+            f"nginx template not found: {etc_dir / 'nginx.conf'}"
+        )
+
+    # ---- 1. systemd unit ----
+    if install_systemd:
+        unit_dst = Path(f"/etc/systemd/system/{name}.service")
+        if force or not unit_dst.exists():
+            tpl = (etc_dir / "system.conf").read_text(encoding="utf-8")
+            content = _render_template(tpl, subs)
+            unit_dst.write_text(content, encoding="utf-8")
+            unit_dst.chmod(0o644)
+            subprocess.run(["systemctl", "daemon-reload"], check=True)
+            print(f"[neurocad] installed: {unit_dst}")
+        else:
+            print(f"[neurocad] skip (exists): {unit_dst}")
+
+    # ---- 2. nginx config ----
+    if install_nginx:
+        nginx_dst = Path(f"/etc/nginx/sites-available/{name}")
+        nginx_link = Path(f"/etc/nginx/sites-enabled/{name}")
+
+        if force or not nginx_dst.exists():
+            tpl = (etc_dir / "nginx.conf").read_text(encoding="utf-8")
+            content = _render_template(tpl, subs)
+            nginx_dst.write_text(content, encoding="utf-8")
+            nginx_dst.chmod(0o644)
+
+            # Symlink into sites-enabled/ (only if not already there).
+            if not nginx_link.exists():
+                nginx_link.symlink_to(nginx_dst)
+
+            # Verify and reload nginx.
+            subprocess.run(["nginx", "-t"], check=True)
+            subprocess.run(["systemctl", "reload", "nginx"], check=True)
+            print(f"[neurocad] installed: {nginx_dst}")
+        else:
+            print(f"[neurocad] skip (exists): {nginx_dst}")
+
+    # ---- 3. /etc/neurocad/<name>.env — empty, for secrets ----
+    env_dir = Path("/etc/neurocad")
+    env_dir.mkdir(parents=True, exist_ok=True)
+    env_dst = env_dir / f"{name}.env"
+    if force or not env_dst.exists():
+        env_dst.write_text(
+            "# NeuroCad secrets / overrides for this instance.\n"
+            f"# Loaded by {name}.service via EnvironmentFile.\n"
+            "#\n"
+            "# Example:\n"
+            "#   PANEL_TOKEN=<openssl rand -hex 32>\n"
+            "#   NEUROCAD_SECRET_KEY=<fernet key>\n",
+            encoding="utf-8",
+        )
+        env_dst.chmod(0o600)
+        print(f"[neurocad] created: {env_dst}")
+
+    # ---- 4. Done — print next steps ----
+    print()
+    print("[neurocad] done.")
+    print()
+    print("[neurocad] next steps:")
+    print(f"    1. Add secrets to /etc/neurocad/{name}.env (chmod 600)")
+    print(f"    2. systemctl enable --now {name}.service")
+    print(f"    3. systemctl status {name}.service")
+    if install_nginx:
+        print(f"    4. certbot --nginx -d {name}    # HTTPS (Let's Encrypt)")
+    print()

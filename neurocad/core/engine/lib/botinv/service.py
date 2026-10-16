@@ -376,7 +376,7 @@ class CoreEngineLibBotInvService:
             stmt = (
                 select(BotInvItem)
                 .where(BotInvItem.sheet_id == sheet_id)
-                .order_by(BotInvItem.room_before.asc(), BotInvItem.inv_num.asc())
+                .order_by(BotInvItem.id.asc())
             )
             rows = (await session.execute(stmt)).scalars().all()
             return [CoreEngineLibBotInvService._item_to_dict(i) for i in rows]
