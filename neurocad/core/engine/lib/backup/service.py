@@ -24,8 +24,16 @@ Three concerns:
 
   3. schedules — backup tasks live in the shared `panel_tasks`
      table (names starting with "backup_"). This module reads them,
-     updates cron / active, and regenerates the system crontab file
-     /etc/cron.d/neurocad whenever something changes.
+     updates cron / active, and regenerates the per-instance
+     crontab file /etc/cron.d/<APP_DOMAIN> whenever something
+     changes.
+
+     Multi-instance: the crontab path, its base URL, and the
+     run-as user are derived from APP_DOMAIN / APP_HOST /
+     APP_PORT / APP_SYSTEM_USER (see _crontab_path /
+     _crontab_base_url / _crontab_user below), so 10–20
+     instances on one host do not overwrite each other's
+     schedules.
 """
 
 import json
@@ -53,22 +61,64 @@ _SETTINGS_KEY = "backup"
 _SETTINGS_CAPTION = "Настройки бэкапа"
 _SETTINGS_DESCRIPTION = "Параметры резервного копирования проекта"
 
-#: Where rclone reads its config by default.
-_RCLONE_CONFIG_PATH = Path.home() / ".config" / "rclone" / "rclone.conf"
-
 #: Prefix of panel_tasks names that belong to the backup module.
 _TASK_PREFIX = "backup_"
 
-#: System crontab file generated from panel_tasks.
-_CRONTAB_PATH = Path("/etc/cron.d/neurocad")
 
-#: Base URL the cron jobs hit. Local only — the scheduler and the
-#: app run on the same host.
-_CRONTAB_BASE_URL = "http://127.0.0.1:8012"
+# ============================================
+# DERIVED PATHS / URLS (multi-instance)
+# ============================================
 
-#: Cron user for the generated lines. In /etc/cron.d/* the user
-#: field is mandatory.
-_CRONTAB_USER = "root"
+def _crontab_path() -> Path:
+    """
+    Per-instance system crontab file.
+
+    Default: /etc/cron.d/<APP_DOMAIN>  (e.g. /etc/cron.d/neurocad.ru).
+    Derived from APP_DOMAIN so multiple instances on one host do not
+    overwrite each other's schedules.
+
+    Escape hatch: set NEUROCAD_CRONTAB_PATH in env to override.
+    """
+    override = os.environ.get("NEUROCAD_CRONTAB_PATH")
+    if override:
+        return Path(override)
+    from .....config import settings
+    name = (settings.APP_DOMAIN or "neurocad").strip() or "neurocad"
+    return Path(f"/etc/cron.d/{name}")
+
+
+def _crontab_base_url() -> str:
+    """
+    Base URL that cron uses to call the local app endpoint.
+
+    Derived from APP_HOST + APP_PORT so each instance hits its own
+    port. Escape hatch: NEUROCAD_CRONTAB_BASE_URL.
+    """
+    override = os.environ.get("NEUROCAD_CRONTAB_BASE_URL")
+    if override:
+        return override
+    from .....config import settings
+    host = settings.APP_HOST or "127.0.0.1"
+    port = settings.APP_PORT or 8000
+    return f"http://{host}:{port}"
+
+
+def _crontab_user() -> str:
+    """System user for cron lines. Sourced from APP_SYSTEM_USER."""
+    from .....config import settings
+    return settings.APP_SYSTEM_USER or "root"
+
+
+def _rclone_config_path() -> Path:
+    """
+    Where rclone reads its config.
+
+    Uses HOME from env, falling back to Path.home(). Under systemd
+    the HOME env may be unset — rclone then can't find its config
+    and silently uses CWD.
+    """
+    home = os.environ.get("HOME") or str(Path.home())
+    return Path(home) / ".config" / "rclone" / "rclone.conf"
 
 
 # ============================================
@@ -218,6 +268,17 @@ class CoreEngineLibBackupService:
         they just left the field blank).
         """
         payload_data = dict(data)
+
+        # Sanitize S3 credentials — strip whitespace and surrounding
+        # quotes. Users often paste keys with a leading space or wrap
+        # them in quotes; rclone then sends the wrong value and S3
+        # rejects the request.
+        for field in (
+            "s3_access_key", "s3_secret_key", "s3_endpoint",
+            "s3_region", "rclone_remote", "rclone_bucket",
+        ):
+            if field in payload_data and isinstance(payload_data[field], str):
+                payload_data[field] = payload_data[field].strip().strip("'\"")
 
         # Preserve the existing secret if the caller sent an empty one.
         if not payload_data.get("s3_secret_key"):
@@ -410,8 +471,9 @@ class CoreEngineLibBackupService:
     @staticmethod
     async def apply_crontab() -> bool:
         """
-        Regenerate /etc/cron.d/neurocad from panel_tasks.
+        Regenerate the per-instance crontab file from panel_tasks.
 
+        Path: /etc/cron.d/<APP_DOMAIN> (see _crontab_path).
         Only active backup_* tasks are included. The file is
         written atomically (tmp + rename). Header contains a
         warning that the file is generated — manual edits will be
@@ -442,12 +504,13 @@ class CoreEngineLibBackupService:
         content = "".join(lines)
 
         # Atomic write: tmp file in the same directory, then rename.
+        path = _crontab_path()
         try:
-            _CRONTAB_PATH.parent.mkdir(parents=True, exist_ok=True)
-            tmp = _CRONTAB_PATH.with_suffix(".tmp")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_suffix(".tmp")
             tmp.write_text(content, encoding="utf-8")
             os.chmod(tmp, 0o644)   # cron requires mode 0644 for /etc/cron.d/*
-            os.replace(tmp, _CRONTAB_PATH)
+            os.replace(tmp, path)
             return True
         except Exception:
             return False
@@ -455,15 +518,18 @@ class CoreEngineLibBackupService:
     @staticmethod
     def _render_crontab_line(task: Dict[str, Any]) -> str:
         """
-        Render one line for /etc/cron.d/neurocad.
+        Render one line for the per-instance crontab file.
 
         Format (system crontab with user field):
             <cron> <user> <command>
 
         The command is a curl POST to the local app endpoint. The
-        endpoint is derived from task["url"] — it is stored as
-        "/backup/run?level=hourly" and prefixed with the app's base
-        URL. Output is discarded — the real status is recorded in
+        URL and level come from task["url"]:
+            "/backup/run?level=hourly"
+        →  POST http://127.0.0.1:<port>/core/engine/lib/backup/run
+            body {"level": "hourly"}
+
+        Output is discarded — the real status is recorded in
         backup_runs by the endpoint itself.
 
         The static PANEL_TOKEN is passed in X-Panel-Token so the
@@ -486,7 +552,21 @@ class CoreEngineLibBackupService:
         if "\n" in cron or "\r" in cron or "\n" in url or "\r" in url:
             return ""
 
-        full_url = f"{_CRONTAB_BASE_URL}/core/engine/lib{url}"
+        # Split url into path and query: "/backup/run?level=hourly"
+        #   path  = "/backup/run"
+        #   level = "hourly"
+        if "?" in url:
+            path, query = url.split("?", 1)
+        else:
+            path, query = url, ""
+
+        level = ""
+        for part in query.split("&"):
+            if part.startswith("level="):
+                level = part[len("level="):]
+                break
+
+        full_url = f"{_crontab_base_url()}/core/engine/lib{path}"
 
         # Build the curl command. If PANEL_TOKEN is set, include it
         # as X-Panel-Token so /backup/run accepts the call without
@@ -496,16 +576,22 @@ class CoreEngineLibBackupService:
         if token:
             token_header = f"-H 'X-Panel-Token: {token}' "
 
+        # JSON body carries the level — the endpoint expects it there.
+        if level:
+            body_arg = f"-d '{{\"level\":\"{level}\"}}' "
+        else:
+            body_arg = "-d '{}' "
+
         command = (
             f"/usr/bin/curl -s -X POST "
             f"'{full_url}' "
             f"-H 'Content-Type: application/json' "
             f"{token_header}"
-            f"-d '{{}}' "
+            f"{body_arg}"
             f"> /dev/null 2>&1"
         )
 
-        return f"{cron} {_CRONTAB_USER} {command}\n"
+        return f"{cron} {_crontab_user()} {command}\n"
 
     # ============================================
     # RCLONE CONFIG
@@ -558,10 +644,11 @@ class CoreEngineLibBackupService:
             return False
 
         try:
-            _RCLONE_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-            _RCLONE_CONFIG_PATH.write_text(content, encoding="utf-8")
+            cfg = _rclone_config_path()
+            cfg.parent.mkdir(parents=True, exist_ok=True)
+            cfg.write_text(content, encoding="utf-8")
             # Only the owner should read the credentials.
-            _RCLONE_CONFIG_PATH.chmod(0o600)
+            cfg.chmod(0o600)
             return True
         except Exception:
             return False
