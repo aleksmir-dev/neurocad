@@ -32,10 +32,40 @@ Every HTTPException carries a human-readable Russian `detail`
 string. The frontend displays it verbatim. Structural problems
 in the uploaded file (bad headers, unreadable file, empty data)
 become 400 with the message from parse_inventory.
+
+MAX bot webhook
+---------------
+POST /botinv/max/webhook receives Update objects from the MAX
+platform for the inventory chat-bot. It is NOT authenticated with
+a JWT — instead it verifies the X-Max-Bot-Api-Secret header
+against MAX_WEBHOOK_SECRET from .env. The bot operates on behalf
+of one user (the accountant walking the rooms); the mapping from
+MAX user_id to the internal user is done via the
+MAX_ALLOWED_USER_ID list in .env plus a "first enabled user"
+lookup (see _resolve_max_user below).
+
+The bot mirrors the web-chat flow:
+
+    "#405"    → change_room
+    "22457"   → find_and_mark
+    tap a candidate button → find_and_mark with the chosen inv_num
+
+Every reply is sent back via platform-api2.max.ru/messages.
 """
 
+import logging
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from typing import Any, Dict, Optional
+
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Request,
+    UploadFile,
+    File,
+    Form,
+)
 from fastapi.responses import JSONResponse, Response
 
 from neurocad.core.auth.dependencies import get_current_user
@@ -46,6 +76,9 @@ from .schema import (
     CoreEngineLibBotInvRoomRequest,
     CoreEngineLibBotInvSheetUpdateRequest,
 )
+from . import max as max_bot
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/botinv", tags=["core/engine/lib/botinv"])
 
@@ -300,7 +333,7 @@ async def list_items(
     current_user: dict = Depends(get_current_user),
 ) -> JSONResponse:
     """
-    All items of a sheet, ordered by room_before then inv_num.
+    All items of a sheet, in import order.
 
     Used by the frontend when switching to a non-active sheet
     (to preview its contents without activating it).
@@ -463,3 +496,310 @@ async def export_sheet(
             "Content-Disposition": f'attachment; filename="{filename}"',
         },
     )
+
+
+# ========================================
+# MAX BOT — WEBHOOK
+# ========================================
+#
+# The MAX bot is a second "client" of the same inventory logic
+# that the web UI uses. It has no JWT — MAX identifies the user by
+# their platform user_id, which arrives in every Update.
+#
+# Flow:
+#
+#   user: "#405"
+#     → change_room(nav_id, "405")   → reply "Каб. 405 выбран"
+#
+#   user: "22457"
+#     → find_and_mark(nav_id, "22457", room)
+#       • found          → reply "✅ ..."
+#       • already_found  → reply "⚠️ ..."
+#       • not_found      → reply "❌ ..."
+#       • ambiguous      → reply with buttons, one per candidate
+#
+#   user taps a button (button text = full inv_num)
+#     → find_and_mark(nav_id, inv_num, room, chosen_id=None)
+#       • same outcomes as above
+#
+# Current room is kept per-user in a module-level dict — the bot
+# runs in a single process, and the state is tiny. If the server
+# restarts the room is lost; the user re-sends "#405" once. This
+# mirrors the web UI where the room lives in localStorage.
+#
+# Mapping MAX user_id → internal user
+# -----------------------------------
+# Two-layer check:
+#
+#   1. MAX_ALLOWED_USER_ID in .env — a comma-separated list of
+#      allowed MAX user_ids. Fail-closed: if empty, the bot
+#      rejects everyone.
+#
+#   2. The internal user is resolved as the FIRST active user
+#      with use_botinv = 1 (ordered by id). The accountant is
+#      the only such user, so this is deterministic enough.
+#
+#      If more users need the bot later, replace the second step
+#      with a proper botinv_max_users table and a one-time link
+#      code.
+
+#: Per-user current room. Keyed by MAX user_id.
+#: Not persisted — see the module docstring.
+_max_rooms: Dict[int, Optional[str]] = {}
+
+
+async def _resolve_max_user(max_user_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Map a MAX user_id to the internal User.
+
+    Step 1: MAX_ALLOWED_USER_ID in .env must contain this
+            max_user_id (comma-separated list). If not — reject.
+
+    Step 2: find the first active internal user with
+            use_botinv = 1. This is the "accountant account".
+            If no such user exists — reject.
+
+    Returns {"id": <internal user id>, "login": <login>} or None.
+    """
+    from .....config import settings
+
+    allowed_raw = getattr(settings, "MAX_ALLOWED_USER_ID", None)
+    if not allowed_raw:
+        log.warning("[MAX bot] MAX_ALLOWED_USER_ID is not set — rejecting")
+        return None
+
+    allowed = {
+        s.strip() for s in str(allowed_raw).split(",") if s.strip()
+    }
+
+    if str(max_user_id) not in allowed:
+        log.warning(
+            "[MAX bot] user_id=%s is not in MAX_ALLOWED_USER_ID", max_user_id
+        )
+        return None
+
+    # Look up the internal user. The bot is single-accountant:
+    # we take the FIRST active user with use_botinv = 1.
+    from .....core.models.user import User
+    from .....utils.sqlite import get_db_sqlite
+    from sqlalchemy import select
+
+    async for session in get_db_sqlite():
+        row = (await session.execute(
+            select(User)
+            .where(
+                User.use_botinv == 1,
+                User.is_active == 1,
+                User.is_delete == 0,
+            )
+            .order_by(User.id.asc())
+            .limit(1)
+        )).scalar_one_or_none()
+
+        if row is None:
+            log.warning("[MAX bot] no active user with use_botinv=1")
+            return None
+
+        return {"id": row.id, "login": row.login}
+
+    return None
+
+
+async def _bot_reply(user_id: int, text: str, keyboard=None) -> None:
+    """
+    Send a message from the bot to the MAX user. Swallows the
+    exception if MAX refuses — the webhook must always return 200
+    to MAX, otherwise MAX retries (and eventually disables the
+    subscription).
+    """
+    try:
+        await max_bot.send_message(user_id=user_id, text=text, keyboard=keyboard)
+    except Exception as e:
+        log.error("[MAX bot] send_message failed: %s: %s", type(e).__name__, e)
+
+
+def _format_mark_reply(result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Convert a find_and_mark result into a (text, keyboard) pair
+    for MAX.
+
+    Statuses:
+      - found           → plain text reply
+      - already_found   → plain text reply
+      - not_found       → plain text reply
+      - no_room         → plain text reply asking for a room
+      - no_active_sheet → plain text reply
+      - ambiguous       → text with the candidate list + buttons
+
+    Buttons use MAX's `message` type: tapping one sends its text
+    back to the bot as a regular message. That text is the FULL
+    inventory number, so the next `find_and_mark` finds an exact
+    match — no callback plumbing, no `payload`, works everywhere.
+    """
+    status = result.get("status")
+    message = result.get("message") or ""
+
+    if status == "ambiguous":
+        candidates = result.get("candidates") or []
+        total = result.get("total_matches") or len(candidates)
+
+        lines = [message or f"Найдено {total} позиций:"]
+        for i, c in enumerate(candidates, start=1):
+            inv = c.get("inv_num") or ""
+            name = (c.get("name") or "").strip()
+            room = c.get("room_before")
+            suffix = f" (каб. {room})" if room else ""
+            lines.append(f"{i}. {inv} — {name}{suffix}")
+        lines.append("Выберите позицию кнопкой ниже:")
+
+        # One button per row. Type "message" — tap sends the text
+        # back to the bot as a normal user message.
+        buttons = []
+        for c in candidates:
+            inv = c.get("inv_num") or ""
+            if not inv:
+                continue
+            buttons.append([{
+                "type": "message",
+                "text": inv,
+            }])
+
+        return {
+            "text": "\n".join(lines),
+            "keyboard": buttons or None,
+        }
+
+    # All other statuses: plain text.
+    return {"text": message, "keyboard": None}
+
+
+@router.post("/max/webhook")
+async def max_webhook(request: Request) -> JSONResponse:
+    """
+    Webhook endpoint for the MAX bot.
+
+    No JWT — MAX authenticates by sending the shared secret in
+    the X-Max-Bot-Api-Secret header, which we compare against
+    MAX_WEBHOOK_SECRET from .env.
+
+    Always returns 200 (except for a bad secret). Any error
+    inside the handler is logged; MAX must not retry on our
+    internal errors — the reply to the user is best-effort.
+    """
+    # 1. Secret check.
+    if not max_bot.verify_webhook_secret(dict(request.headers)):
+        log.warning("[MAX webhook] secret mismatch or missing")
+        raise HTTPException(status_code=401, detail="invalid secret")
+
+    # 2. Parse the Update.
+    try:
+        update = await request.json()
+    except Exception as e:
+        log.warning("[MAX webhook] bad JSON: %s", e)
+        return JSONResponse({"ok": True})
+
+    parsed = max_bot.parse_update(update)
+    if parsed is None:
+        return JSONResponse({"ok": True})
+
+    user_id = parsed.get("user_id")
+    if not user_id:
+        return JSONResponse({"ok": True})
+
+    # 3. Resolve the internal user (single-accountant setup).
+    internal_user = await _resolve_max_user(user_id)
+    if internal_user is None:
+        await _bot_reply(
+            user_id,
+            "Извините, у вас нет доступа к боту инвентаризации. "
+            "Обратитесь к администратору.",
+        )
+        return JSONResponse({"ok": True})
+
+    # 4. Resolve nav (creates one on the first call).
+    nav_id = await CoreEngineLibBotInvService.resolve_nav_id_for_botinv(
+        internal_user["id"]
+    )
+    if nav_id is None:
+        await _bot_reply(user_id, "Модуль инвентаризации не подключён.")
+        return JSONResponse({"ok": True})
+
+    # 5. Dispatch.
+    ptype = parsed.get("type")
+
+    if ptype == "message":
+        await _handle_bot_message(user_id, nav_id, parsed.get("text") or "")
+    elif ptype == "bot_started":
+        # Нажатие «Начать» в MAX. Отвечаем приветствием.
+        await _bot_reply(
+            user_id,
+            "Здравствуйте! Я бот инвентаризации.\n"
+            "Выберите кабинет командой #405, затем вводите инвентарные номера.\n"
+            "Найденные вещи отмечаются автоматически.",
+        )
+    # `callback` больше не используется: кнопки имеют тип
+    # "message" и приходят как обычные message-события.
+
+    return JSONResponse({"ok": True})
+
+
+async def _handle_bot_message(user_id: int, nav_id: int, text: str) -> None:
+    """
+    Handle a plain text message from the accountant.
+
+    Two shapes are recognised:
+
+        "#405"    — set the current room;
+        "22457"   — an inventory number (possibly a fragment).
+
+    A tap on a candidate button also arrives here: the button is
+    of type "message" and its text is the full inv_num, so it is
+    indistinguishable from a typed inventory number — which is
+    exactly what we want.
+    """
+    text = (text or "").strip()
+    if not text:
+        return
+
+    # Room change.
+    if text.startswith("#"):
+        room = text[1:].strip()
+        if not room:
+            await _bot_reply(user_id, "Укажите кабинет: #405")
+            return
+
+        result = await CoreEngineLibBotInvService.change_room(nav_id, room)
+        status = result.get("status")
+
+        if status == "room_changed":
+            new_room = result.get("current_room") or room
+            _max_rooms[user_id] = new_room
+            await _bot_reply(
+                user_id,
+                f"Кабинет {new_room} выбран. Введите инвентарный номер.",
+            )
+        else:
+            # room_not_found | no_active_sheet — both come with a
+            # ready-made Russian message from the service.
+            await _bot_reply(user_id, result.get("message") or "Ошибка")
+
+        return
+
+    # Inventory number lookup.
+    current_room = _max_rooms.get(user_id)
+    if not current_room:
+        await _bot_reply(
+            user_id,
+            "Сначала выберите кабинет командой #NNN, например #405.",
+        )
+        return
+
+    result = await CoreEngineLibBotInvService.find_and_mark(
+        nav_id=nav_id,
+        inv_num=text,
+        current_room=current_room,
+        chosen_id=None,
+    )
+
+    reply = _format_mark_reply(result)
+    await _bot_reply(user_id, reply["text"], reply.get("keyboard"))

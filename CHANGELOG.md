@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.31] - 2026-10-16
+- **Inventory (`botinv`) fixes and MAX bot.** Mobile layout puts the chat in `area-center`, the table's filter row and toolbar survive every re-render, list actions use SVG icons, the chat candidate list highlights row numbers in bordeaux and inventory numbers in blue via escaped HTML, `BaseModalInput` / `BaseModalDate` no longer flash unstyled on a cold cache, and the module now ships a MAX chat-bot (`botinv/max.py` + `POST /botinv/max/webhook`) where the accountant picks a room with `#405`, types an inventory number, and taps a candidate button — the bot marks the item in the same active sheet the web UI shows, enabled per-user via `MAX_ALLOWED_USER_ID` in `.env` plus a `use_botinv = 1` lookup, with TLS trusting the system CA bundle so the Russian Trusted Root CA is honoured.
+
 ## [1.0.30] - 2026-10-16
 - Backup fixes (per-instance cron isolation, `{"level": "..."}` body, `rclone` PATH/HOME env + fallback, `/backup/s3/test` never 500s, S3 credential stripping, `neurocad install` CLI), plus `botinv` follow-up changes.
 

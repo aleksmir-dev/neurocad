@@ -119,6 +119,41 @@ class Settings(BaseSettings):
     USER_AUTO_CREATE_NAV: bool = True
 
     # ============================================
+    # MAX (мессенджер)
+    # ============================================
+
+    # Токен чат-бота MAX. Выдаётся на платформе MAX для партнёров
+    # (https://partners.max.ru) после создания и модерации бота.
+    #
+    # Используется модулем botinv (botinv/max.py) для отправки
+    # сообщений и ответов на inline-кнопки через API MAX:
+    #   https://platform-api2.max.ru/messages
+    #
+    # Заголовок авторизации: Authorization: <MAX_BOT_TOKEN>  (без "Bearer")
+    #
+    # Пусто = бот отключён, эндпоинт /botinv/max/webhook отклоняет все
+    # запросы (fail closed). Set in .env: MAX_BOT_TOKEN=...
+    MAX_BOT_TOKEN: Optional[str] = None
+
+    # Секрет для проверки подписи Webhook-запросов от MAX.
+    # Если MAX его присылает, проверяем заголовок
+    # X-Max-Bot-Api-Secret. Если MAX не шлёт подпись — оставляем
+    # пустым, и проверка пропускается.
+    MAX_WEBHOOK_SECRET: Optional[str] = None
+
+    # Разрешённые пользователи MAX (по их user_id в платформе).
+    # Через запятую, если несколько:
+    #   MAX_ALLOWED_USER_ID=1234567890
+    #   MAX_ALLOWED_USER_ID=1234567890,9876543210
+    #
+    # Любой MAX-user_id, не входящий в этот список, получит от
+    # бота ответ «нет доступа» и его сообщения дальше не пойдут.
+    #
+    # Пусто = бот отклоняет всех (fail closed). Заполни user_id
+    # бухгалтера, чтобы включить бота.
+    MAX_ALLOWED_USER_ID: Optional[str] = None
+
+    # ============================================
     # PATHS (relative to cwd)
     # ============================================
 
