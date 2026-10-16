@@ -382,9 +382,10 @@ def parse_update(update: Dict[str, Any]) -> Optional[Dict[str, Any]]:
           }
         }
 
-    `bot_started` and anything else: returns the raw type and the
-    user_id from `update.user`, so route.py can react to the
-    "Начать" button (send a welcome message).
+    `bot_started` and anything else: returns the raw type plus the
+    fields the "Начать" button carries in MAX — user_id, username,
+    name, and (optionally) the deep-link payload. That lets
+    route.py log a readable identifier and send a welcome message.
     """
     utype = update.get("update_type")
 
@@ -401,6 +402,8 @@ def parse_update(update: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         return {
             "type": "message",
             "user_id": user_id,
+            "username": sender.get("username"),
+            "name": sender.get("name"),
             "chat_id": recipient.get("chat_id"),
             "text": (body.get("text") or "").strip(),
             "mid": body.get("mid"),
@@ -420,6 +423,8 @@ def parse_update(update: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         return {
             "type": "callback",
             "user_id": user_id,
+            "username": sender.get("username"),
+            "name": sender.get("name"),
             "chat_id": recipient.get("chat_id"),
             "callback_id": cb.get("callback_id"),
             "payload": cb.get("payload"),
@@ -429,9 +434,17 @@ def parse_update(update: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     # bot_started, and anything else — the handler can ignore or
     # handle separately. Returning the raw type lets route.py
     # decide.
+    #
+    # The `user` object is present in bot_started events (MAX
+    # sends {user_id, name, username}) and may be absent from
+    # other types. We surface all three fields so callers can log
+    # a readable identifier instead of just a numeric id.
+    user_obj = update.get("user") or {}
     return {
         "type": utype or "unknown",
-        "user_id": (update.get("user") or {}).get("user_id"),
+        "user_id": user_obj.get("user_id"),
+        "username": user_obj.get("username"),
+        "name": user_obj.get("name"),
         "payload": update.get("payload"),
         "raw": update,
     }

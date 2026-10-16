@@ -47,10 +47,18 @@ lookup (see _resolve_max_user below).
 The bot mirrors the web-chat flow:
 
     "#405"    → change_room
-    "22457"   → find_and_mark
-    tap a candidate button → find_and_mark with the chosen inv_num
+    "22457"   → find_and_mark (lookup only)
+    tap a candidate button → the button text is the full inv_num,
+                             which is sent back as a regular
+                             message; the next find_and_mark
+                             finds an exact match
 
-Every reply is sent back via platform-api2.max.ru/messages.
+Note on "confirmation": find_and_mark NEVER marks on the string
+lookup path, even when the fragment matches a single item — the
+service always returns `ambiguous` (with 1..CANDIDATE_LIMIT
+candidates) and only marks when called with an explicit
+`chosen_id`. This is why the bot always shows a list of buttons,
+even for a one-row list.
 """
 
 import logging
@@ -395,12 +403,14 @@ async def mark(
 
     Two ways to identify the item (see schema.py):
 
-      - inv_num   — a string; the service tries an exact
-                    case-insensitive match, then a substring
-                    search;
+      - inv_num   — a string; the service does an exact match,
+                    then a substring search. This path NEVER
+                    marks anything — it returns "ambiguous" with
+                    a list of 1..CANDIDATE_LIMIT candidates, or
+                    "not_found";
       - chosen_id — the id of a candidate the user picked from a
-                    previous "ambiguous" response. When set,
-                    inv_num is ignored.
+                    previous "ambiguous" response. This is the
+                    ONLY path that marks.
 
     current_room is passed by the frontend (localStorage). The
     backend uses it to fill "Кабинет после" and to append to note.
@@ -421,7 +431,7 @@ async def mark(
         already_found               → warning
         not_found / no_room /
             no_active_sheet         → error
-        ambiguous                   → warning + numbered list
+        ambiguous                   → warning + list of buttons
 
     and uses `item.id` to flash the corresponding table row.
     """
@@ -512,15 +522,24 @@ async def export_sheet(
 #     → change_room(nav_id, "405")   → reply "Каб. 405 выбран"
 #
 #   user: "22457"
-#     → find_and_mark(nav_id, "22457", room)
-#       • found          → reply "✅ ..."
-#       • already_found  → reply "⚠️ ..."
+#     → find_and_mark(nav_id, "22457", room, chosen_id=None)
 #       • not_found      → reply "❌ ..."
-#       • ambiguous      → reply with buttons, one per candidate
+#       • ambiguous      → reply with the list of candidates
+#                          and one "message" button per row
+#                          (the button text is the FULL inv_num)
 #
-#   user taps a button (button text = full inv_num)
-#     → find_and_mark(nav_id, inv_num, room, chosen_id=None)
-#       • same outcomes as above
+#   user taps a button
+#     → the button text (the full inv_num) arrives as a regular
+#       message; the bot runs find_and_mark again — this time
+#       the query is the full number, so it returns a single
+#       ambiguous candidate, or a small list, and the user
+#       confirms with one more tap. (In practice the full number
+#       matches exactly one row, so it is one tap → one button.)
+#
+#   The button uses MAX's `message` type — not `callback` — so
+#   there is no callback_id round-trip and no payload field to
+#   negotiate. It also works identically in the desktop client
+#   and in the mobile app.
 #
 # Current room is kept per-user in a module-level dict — the bot
 # runs in a single process, and the state is tiny. If the server
@@ -631,6 +650,14 @@ def _format_mark_reply(result: Dict[str, Any]) -> Dict[str, Any]:
       - no_active_sheet → plain text reply
       - ambiguous       → text with the candidate list + buttons
 
+    Layout of the "ambiguous" reply (no header, no hint — the
+    list and the buttons speak for themselves):
+
+        • БП-00022455 — Тонер-картридж Retech 106R03745
+        • БП-00022456 — Тонер-картридж Retech 106R03746
+        [ БП-00022455 ]
+        [ БП-00022456 ]
+
     Buttons use MAX's `message` type: tapping one sends its text
     back to the bot as a regular message. That text is the FULL
     inventory number, so the next `find_and_mark` finds an exact
@@ -641,19 +668,18 @@ def _format_mark_reply(result: Dict[str, Any]) -> Dict[str, Any]:
 
     if status == "ambiguous":
         candidates = result.get("candidates") or []
-        total = result.get("total_matches") or len(candidates)
 
-        lines = [message or f"Найдено {total} позиций:"]
-        for i, c in enumerate(candidates, start=1):
+        lines = []
+        for c in candidates:
             inv = c.get("inv_num") or ""
             name = (c.get("name") or "").strip()
             room = c.get("room_before")
             suffix = f" (каб. {room})" if room else ""
-            lines.append(f"{i}. {inv} — {name}{suffix}")
-        lines.append("Выберите позицию кнопкой ниже:")
+            lines.append(f"• {inv} — {name}{suffix}")
 
-        # One button per row. Type "message" — tap sends the text
-        # back to the bot as a normal user message.
+        # Одна кнопка на кандидата. Тип "message" — тап отправляет
+        # текст кнопки (полный инвентарный номер) обратно боту как
+        # обычное сообщение.
         buttons = []
         for c in candidates:
             inv = c.get("inv_num") or ""
@@ -706,6 +732,17 @@ async def max_webhook(request: Request) -> JSONResponse:
     if not user_id:
         return JSONResponse({"ok": True})
 
+    # Log every bot_started with the sender's identity — one line
+    # in the journald log, enough to identify the accountant on
+    # first contact. On INFO for other event types we stay silent.
+    if parsed.get("type") == "bot_started":
+        log.warning(
+            "[MAX bot] /start: user_id=%s, username=%r, name=%r",
+            user_id,
+            parsed.get("username"),
+            parsed.get("name"),
+        )
+
     # 3. Resolve the internal user (single-accountant setup).
     internal_user = await _resolve_max_user(user_id)
     if internal_user is None:
@@ -755,7 +792,10 @@ async def _handle_bot_message(user_id: int, nav_id: int, text: str) -> None:
     A tap on a candidate button also arrives here: the button is
     of type "message" and its text is the full inv_num, so it is
     indistinguishable from a typed inventory number — which is
-    exactly what we want.
+    exactly what we want. The next `find_and_mark` runs on the
+    full number: it returns a single ambiguous candidate, the bot
+    shows one button, the user taps once more — and the item is
+    marked.
     """
     text = (text or "").strip()
     if not text:

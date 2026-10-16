@@ -7,11 +7,11 @@
  * static imports) and wires it to the inventory API:
  *
  *   - user types "#405"        → api.changeRoom("405")
- *   - user types "0001380176"  → api.mark("0001380176", currentRoom)
  *   - user types "22457"       → api.mark("22457", currentRoom)
- *                                (substring; may return candidates)
- *   - user types "1" / "2" / "3" while a candidate list is open
- *                              → api.mark(..., chosenId)
+ *                                (lookup only; never marks on its own)
+ *   - user taps a candidate button
+ *                              → api.mark(query, room, chosenId)
+ *                                (this is the ONLY path that marks)
  *
  * The handler knows NOTHING about the drawer, the table or the list.
  * It gets callbacks via options and calls them at the right
@@ -28,42 +28,30 @@
  *
  * Candidate list ("ambiguous")
  * ----------------------------
- * When a substring query matches more than one item, the backend
- * returns status "ambiguous" with up to 3 candidates and the total
- * number of matches. The handler prints them as a numbered list,
- * stores them in `this._candidates`, and expects the next user
- * message to be "1", "2" or "3":
+ * The service NEVER marks on the string-lookup path — even when a
+ * fragment matches a single item, it returns status "ambiguous"
+ * with 1..CANDIDATE_LIMIT candidates. The handler renders them as
+ * a compact list of rows plus one button per row; the tap carries
+ * the chosen item's id back to the API.
+ *
+ * Example:
  *
  *   Каб. 405: 22457
- *   Бот: Найдено 3 позиции по запросу «22457»:
- *        1. БП-00022457 — Тонер-картридж … (каб. 405)
- *        2. БП-00022457-1 — Тонер-картридж … (каб. 303)
- *        3. БП-00022457-2 — Тонер-картридж … (каб. 201)
- *        Выберите номер: 1, 2 или 3.
+ *   Бот: • БП-00022457 — Тонер-картридж … (каб. 405)
+ *        • БП-00022457-1 — Тонер-картридж … (каб. 303)
+ *        • БП-00022457-2 — Тонер-картридж … (каб. 201)
+  *        [ БП-00022457 ]
+ *        [ БП-00022457-1 ]
+ *        [ БП-00022457-2 ]
  *
- *   Каб. 405: 1
- *   Бот: ✅ Тонер-картридж … Найдена. …
+ *   (пользователь тапает кнопку)
+ *   Бот: ✅ Тонер-картридж … Отмечено в каб. 405.
  *
- * If the user answers with anything other than 1/2/3, the candidate
- * list is discarded and the input is treated as a fresh query.
- *
- * HTML in the candidate list
- * --------------------------
- * Every other bot message in the inventory chat is plain text —
- * it is rendered via BaseChat.addMessage(..., asHtml = false) and
- * lands in the bubble through textContent. The numbered candidate
- * list is the ONLY exception: its three rows must visually stand
- * out (the accountant picks one by number, and the inventory
- * number is the thing he actually cares about). So the list is
- * built as HTML and passed with `html: true` in the reply object;
- * BaseChat then renders that one message via innerHTML.
- *
- * The markup is fixed (a span for the number, a span for the
- * inventory number, the rest is plain text), and every value that
- * comes from the sheet — inv_num, name, room_before, and the
- * query — is HTML-escaped by _escapeHtml before interpolation.
- * The colour itself lives in botinv/chat/chat.css
- * (.botinv-cand-num / .botinv-cand-inv).
+ * The candidate rows are built as HTML and passed with `html: true`;
+ * the buttons are passed as a plain array of {text, payload}
+ * descriptors and rendered by BaseChat as real <button> elements.
+ * The tap handler is wired once in _init() via
+ * chat.setOnButtonClick(...).
  *
  * Placeholder
  * -----------
@@ -119,7 +107,7 @@ export class BotInvChatHandler {
         console.log('[BotInvChatHandler] _init() START');
         try {
             // 1. Load our own CSS (burger, title tweaks, candidate
-            //    list colours).
+            //    list colours, inline buttons).
             await this._loadCSS();
 
             // 2. Dynamically import BaseChat.
@@ -174,6 +162,17 @@ export class BotInvChatHandler {
                 });
             }
 
+            // 5b. Wire inline-button taps. When a user taps a
+            //     candidate button, BaseChat calls this handler with
+            //     the button's payload (the candidate id, as a
+            //     string). The handler marks the item and posts the
+            //     result as a new bot message.
+            if (typeof this.chat.setOnButtonClick === 'function') {
+                this.chat.setOnButtonClick((payload) =>
+                    this._handleButtonTap(payload)
+                );
+            }
+
             // Wait for BaseChat's own init (history load, though we
             // skip it — the promise still resolves).
             if (this.chat.waitForInit) {
@@ -216,6 +215,95 @@ export class BotInvChatHandler {
     }
 
     // ========================================
+    // BUTTON TAP HANDLER
+    // ========================================
+
+    /**
+     * Called by BaseChat when a candidate button is tapped.
+     *
+     * `payload` is the item id (string) attached to the button.
+     * We look the candidate up in `this._candidates`, mark it via
+     * the API, and post the result as a regular bot message.
+     *
+     * If the candidate list is no longer present (page reloaded,
+     * sheet switched), the tap is a no-op with a short warning.
+     */
+    async _handleButtonTap(payload) {
+        console.log('[BotInvChatHandler] _handleButtonTap()', payload);
+
+        const list = this._candidates || [];
+        const id = parseInt(payload, 10);
+        const picked = list.find(c => c.id === id);
+
+        if (!picked) {
+            this.chat?.addMessage(
+                'Список устарел. Введите номер заново.',
+                false,
+                'warning',
+            );
+            return;
+        }
+
+        const currentRoom = this.getCurrentRoom() || null;
+        const query = this._candidateQuery || picked.inv_num || '';
+
+        // Clear before the request — an error must not leave the
+        // old list hanging around.
+        this._candidates = null;
+        this._candidateQuery = '';
+
+        let res;
+        try {
+            res = await this.api.mark(query, currentRoom, picked.id);
+        } catch (err) {
+            this.chat?.addMessage(
+                `❌ ${err.message || 'Не удалось отметить'}`,
+                false,
+                'error',
+            );
+            return;
+        }
+
+        if (!res || typeof res !== 'object') {
+            this.chat?.addMessage('❌ Пустой ответ сервера', false, 'error');
+            return;
+        }
+
+        this._postMarkResult(res);
+    }
+
+    /**
+     * Post a mark result to the chat as a new bot message.
+     *
+     * Shared by _handleSend (indirect paths) and _handleButtonTap.
+     */
+    _postMarkResult(res) {
+        // Status → variant mapping.
+        let variant = 'warning';
+        if (res.status === 'found') variant = 'success';
+        else if (res.status === 'not_found') variant = 'error';
+        else if (res.status === 'no_room') variant = 'error';
+        else if (res.status === 'no_active_sheet') variant = 'error';
+
+        // Highlight the row in the table.
+        if (res.item && (res.status === 'found' || res.status === 'already_found')) {
+            if (this.onItemFound) {
+                try {
+                    this.onItemFound(res.item);
+                } catch (e) {
+                    console.warn('[BotInvChatHandler] onItemFound error:', e);
+                }
+            }
+        }
+
+        this.chat?.addMessage(
+            res.message || 'Нет ответа',
+            false,
+            variant,
+        );
+    }
+
+    // ========================================
     // SEND HANDLER
     // ========================================
 
@@ -223,14 +311,12 @@ export class BotInvChatHandler {
      * Handle one user message.
      *
      * Order of checks:
-     *   1. If a candidate list is open AND the message is exactly
-     *      "1", "2" or "3" — treat it as a candidate pick.
-     *   2. If the message starts with "#" — a room change.
-     *   3. Otherwise — an inventory-number lookup.
+     *   1. If the message starts with "#" — a room change.
+     *   2. Otherwise — an inventory-number lookup (which may return
+     *      a candidate list to pick from).
      *
-     * Any message that does not match rule 1 clears the candidate
-     * list, so the next "1" is treated as a fresh query, not as a
-     * late answer to a stale list.
+     * There is NO "type 1/2/3" branch: candidate picks arrive via
+     * button taps (handled by _handleButtonTap, not here).
      */
     async _handleSend(text) {
         console.log('[BotInvChatHandler] _handleSend()', text);
@@ -242,21 +328,17 @@ export class BotInvChatHandler {
         const trimmed = (text || '').trim();
         if (!trimmed) return { text: '', variant: null };
 
-        // ---- 1. Candidate pick: "1", "2" or "3" ----
-        if (this._candidates && /^[123]$/.test(trimmed)) {
-            return await this._handleCandidatePick(trimmed);
-        }
-
-        // Any other message — drop the stale candidate list.
+        // Any message clears the previous candidate list — a
+        // new query must not be treated as a stale answer.
         this._candidates = null;
         this._candidateQuery = '';
 
-        // ---- 2. Room change: "#405" ----
+        // ---- 1. Room change: "#405" ----
         if (trimmed.startsWith('#')) {
             return await this._handleRoom(trimmed);
         }
 
-        // ---- 3. Inventory number ----
+        // ---- 2. Inventory number ----
         return await this._handleMark(trimmed);
     }
 
@@ -315,13 +397,16 @@ export class BotInvChatHandler {
      * reads it from localStorage. If it is empty, the service will
      * refuse with "no_room" and we show that message.
      *
-     * On a successful mark, onItemFound(item) is called so the
-     * controller can highlight the row in the table.
+     * The service NEVER marks on this path — it returns either:
      *
-     * On "ambiguous", the candidate list is stored and printed —
-     * the user then answers with 1, 2 or 3. That reply is the ONLY
-     * one in this module that carries `html: true`: see the class
-     * docstring ("HTML in the candidate list").
+     *   - "ambiguous" with 1..CANDIDATE_LIMIT candidates; the
+     *     handler renders the list and one button per candidate;
+     *   - "not_found" — no match;
+     *   - "no_room" / "no_active_sheet" — the guard at the top of
+     *     the service.
+     *
+     * The ONLY path that marks is the button tap
+     * (_handleButtonTap), which calls the API with chosen_id.
      */
     async _handleMark(invNum) {
         const currentRoom = this.getCurrentRoom() || null;
@@ -340,109 +425,30 @@ export class BotInvChatHandler {
             return { text: '❌ Пустой ответ сервера', variant: 'error' };
         }
 
-        // ---- Ambiguous: several matches, print a numbered list ----
+        // ---- Ambiguous: candidate list (1..CANDIDATE_LIMIT).
+        //     Store them for later button taps and render the list
+        //     with one button per candidate. ----
         if (res.status === 'ambiguous') {
             this._candidates = Array.isArray(res.candidates)
                 ? res.candidates
                 : [];
             this._candidateQuery = invNum;
 
+            const formatted = this._formatCandidates(this._candidates);
+
             return {
-                text: this._formatCandidates(
-                    invNum,
-                    this._candidates,
-                    res.total_matches,
-                ),
+                text: formatted.text,
                 variant: 'warning',
                 html: true,
+                buttons: formatted.buttons,
             };
         }
 
-        // ---- Single outcome: found / already_found / not_found / … ----
-        return this._renderMarkResult(res);
-    }
-
-    /**
-     * "1" | "2" | "3" → api.mark(query, room, chosenId).
-     *
-     * Called only when this._candidates is non-empty and the input
-     * is exactly one of 1/2/3. The selected candidate's id is
-     * passed as chosen_id; the backend looks it up directly.
-     */
-    async _handleCandidatePick(choice) {
-        const idx = parseInt(choice, 10) - 1;
-        const list = this._candidates || [];
-        const picked = list[idx];
-
-        // Defence in depth — _handleSend already validated 1/2/3,
-        // but the list may be shorter than 3.
-        if (!picked) {
-            this._candidates = null;
-            this._candidateQuery = '';
-            return {
-                text: `В списке нет варианта ${choice}.`,
-                variant: 'error',
-            };
-        }
-
-        const currentRoom = this.getCurrentRoom() || null;
-        const query = this._candidateQuery || picked.inv_num || '';
-
-        // Clear before the request — an error must not leave the
-        // old list hanging around.
-        this._candidates = null;
-        this._candidateQuery = '';
-
-        let res;
-        try {
-            res = await this.api.mark(query, currentRoom, picked.id);
-        } catch (err) {
-            return {
-                text: `❌ ${err.message || 'Не удалось отметить'}`,
-                variant: 'error',
-            };
-        }
-
-        if (!res || typeof res !== 'object') {
-            return { text: '❌ Пустой ответ сервера', variant: 'error' };
-        }
-
-        return this._renderMarkResult(res);
-    }
-
-    // ========================================
-    // RENDER HELPERS
-    // ========================================
-
-    /**
-     * Render the final /mark result as { text, variant } and fire
-     * onItemFound when an item was actually marked.
-     *
-     * Used by both the direct path (_handleMark) and the candidate
-     * path (_handleCandidatePick).
-     *
-     * Note: the returned object never sets `html: true`. The
-     * server's message is plain text; it is rendered through
-     * textContent by BaseChat.
-     */
-    _renderMarkResult(res) {
-        // Status → variant mapping.
+        // ---- Single outcome: not_found / no_room / no_active_sheet / … ----
         let variant = 'warning';
-        if (res.status === 'found') variant = 'success';
-        else if (res.status === 'not_found') variant = 'error';
+        if (res.status === 'not_found') variant = 'error';
         else if (res.status === 'no_room') variant = 'error';
         else if (res.status === 'no_active_sheet') variant = 'error';
-
-        // Highlight the row in the table.
-        if (res.item && (res.status === 'found' || res.status === 'already_found')) {
-            if (this.onItemFound) {
-                try {
-                    this.onItemFound(res.item);
-                } catch (e) {
-                    console.warn('[BotInvChatHandler] onItemFound error:', e);
-                }
-            }
-        }
 
         return {
             text: res.message || 'Нет ответа',
@@ -450,87 +456,67 @@ export class BotInvChatHandler {
         };
     }
 
+    // ========================================
+    // RENDER HELPERS
+    // ========================================
+
     /**
      * Format the candidate list for the chat.
      *
-     * Returns an HTML string — the caller (_handleMark) marks the
-     * reply with `html: true`, so BaseChat renders it with
-     * innerHTML. Two styled spans per row:
+     * Returns { text, buttons }:
      *
-     *   .botinv-cand-num — the "1." / "2." / "3." prefix
-     *   .botinv-cand-inv — the inventory number
+     *   text    — an HTML string, one row per candidate, built as:
+     *             "• ИНВ — Название (каб. X)"
+     *             followed by a single short line "Выберите позицию:".
+     *             Values from the sheet are HTML-escaped.
      *
-     * Both are tinted in botinv/chat/chat.css. Values that come
-     * from the sheet (inv_num, name, room_before) and the query
-     * itself are HTML-escaped — the markup is built here, the data
-     * is never trusted as markup.
+     *   buttons — an array of { text, payload } descriptors, one
+     *             per candidate. `text` is the full inventory
+     *             number; `payload` is the item id (as a string),
+     *             which BaseChat returns to the tap handler.
      *
-     * The final line tells a first-time user what to type next:
-     * "Выберите номер: 1, 2 или 3." — listing only the numbers
-     * that are actually present (when the list is shorter than 3,
-     * or when the total exceeds 3 and we truncate).
+     * The caller (_handleMark) passes both to BaseChat via the
+     * reply object: `text` with `html: true`, `buttons` as-is.
      *
-     * Example:
-     *     Найдено 3 позиции по запросу «22457»:
-     *     1. БП-00022457 — Тонер-картридж … (каб. 405)
-     *     2. БП-00022457-1 — Тонер-картридж … (каб. 303)
-     *     3. БП-00022457-2 — Тонер-картридж … (каб. 201)
-     *     Выберите номер: 1, 2 или 3.
+     * No header, no "Найдено N позиций", no "Всего найдено" —
+     * the list speaks for itself, and every extra line clutters
+     * the chat.
      */
-    _formatCandidates(query, candidates, totalMatches) {
+    _formatCandidates(candidates) {
         const lines = [];
 
-        const total = Number.isFinite(totalMatches)
-            ? totalMatches
-            : candidates.length;
-
-        const q = this._escapeHtml(query);
-        const header = (total === 1)
-            ? `Найдена 1 позиция по запросу «${q}»:`
-            : `Найдено ${total} позиций по запросу «${q}»:`;
-        lines.push(header);
-
-        candidates.forEach((c, i) => {
-            const num = i + 1;
+        candidates.forEach((c) => {
             const inv = this._escapeHtml(c.inv_num || '');
             const name = this._escapeHtml((c.name || '').trim());
             const room = c.room_before
                 ? ` (каб. ${this._escapeHtml(c.room_before)})`
                 : '';
             const foundMark = c.found ? ' ✓' : '';
-            lines.push(
-                `<span class="botinv-cand-num">${num}.</span> ` +
-                `<span class="botinv-cand-inv">${inv}</span>` +
-                ` — ${name}${room}${foundMark}`
-            );
+            lines.push(`• ${inv} — ${name}${room}${foundMark}`);
         });
 
-        const shown = candidates.length;
+        // Одна короткая подсказка — что делать дальше. Без неё
+        // кнопки не всегда очевидны для первого тапа.
+        // lines.push('Выберите позицию:');
 
-        // Hint telling the user what to type next. Only list the
-        // numbers that actually exist in the list — when the total
-        // exceeds CANDIDATE_LIMIT, the list is truncated and the
-        // numbers above are still 1..shown.
-        if (shown === 1) {
-            lines.push('Напишите 1, чтобы отметить эту позицию.');
-        } else {
-            const nums = [];
-            for (let i = 1; i <= shown; i++) nums.push(String(i));
-            const last = nums.pop();
-            const list = nums.length ? `${nums.join(', ')} или ${last}` : last;
-            lines.push(`Выберите номер: ${list}.`);
+        // Buttons: one per candidate, text = full inv_num,
+        // payload = item id as a string.
+        const buttons = [];
+        for (const c of candidates) {
+            const inv = c.inv_num || '';
+            if (!inv || c.id == null) continue;
+            buttons.push({
+                text: inv,
+                payload: String(c.id),
+            });
         }
 
-        // If there are more matches than we can show, tell the user
-        // the query is too broad — right after the pick-hint, so
-        // both "how to pick" and "how to refine" are on screen.
-        if (total > shown) {
-            lines.push(`Всего найдено ${total} — уточните запрос, чтобы увидеть остальные.`);
-        }
-
-        // <br> instead of \n — BaseChat renders this message with
-        // innerHTML, and plain newlines collapse to spaces in HTML.
-        return lines.join('<br>');
+        return {
+            // <br> instead of \n — the message is rendered with
+            // innerHTML, and plain newlines collapse to spaces.
+            text: lines.join('<br>'),
+            buttons,
+        };
     }
 
     /**

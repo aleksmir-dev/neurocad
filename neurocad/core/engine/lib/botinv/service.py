@@ -47,18 +47,25 @@ Inventory numbers in real sheets are long ("БП-00022457"), and the
 accountant will not type them in full. When an exact match fails,
 the service falls back to a substring search:
 
-  - exactly one hit  → that item is marked, as if the exact match
-                       had succeeded;
-  - several hits     → the item is NOT marked; the response has
+  - one or more hits → the item is NOT marked; the response has
                        status "ambiguous" and carries the first
                        CANDIDATE_LIMIT candidates (3) plus the
-                       total count, so the frontend can render a
-                       numbered list;
-  - no hits          → "not_found", as before.
+                       total count, so the caller can render the
+                       list and ask the user to confirm;
+  - no hits          → "not_found".
 
-The frontend then re-sends the request with `chosen_id` set to the
+A single substring hit is deliberately returned as "ambiguous"
+too — with one candidate. The user must confirm it, exactly like
+a row in a longer list. This avoids the surprise of an item
+being marked merely because the fragment happened to be unique,
+and it keeps the interaction uniform (always "confirm the item",
+never "sometimes it marks itself").
+
+The caller then re-sends the request with `chosen_id` set to the
 id of the picked candidate. With chosen_id present, the service
 looks the item up by primary key and skips the string search.
+The ONLY path that marks anything is chosen_id; the string search
+never marks on its own.
 
 Note ("Примечание")
 -------------------
@@ -80,9 +87,9 @@ The message is assembled from pieces so that missing rooms
 simply do not appear in the text:
 
   - room_before missing, room_after present:
-        "Находится в каб. <room_after>."
+        "Отмечено в каб. <room_after>."
     (the item was not recorded in any room; we are not "finding"
-    it — we are saying where it is now);
+    it — we are marking where it is now);
   - both present:
         "Каб. до: <room_before>. Каб. после: <room_after>."
   - only room_before present (a degenerate case — a first find
@@ -105,8 +112,9 @@ from .importer import parse_inventory
 
 
 #: How many candidates to return when a substring search matches
-#: more than one item. The frontend prints them as a numbered list;
-#: the user answers with 1, 2 or 3.
+#: more than one item. The caller renders them as a numbered list
+#: of buttons; the user picks one, and the caller re-sends the
+#: request with `chosen_id` set.
 CANDIDATE_LIMIT = 3
 
 
@@ -366,11 +374,18 @@ class CoreEngineLibBotInvService:
     @staticmethod
     async def list_items(sheet_id: int) -> List[Dict[str, Any]]:
         """
-        All items of a sheet, ordered by room_before, then inv_num.
+        All items of a sheet, in import order.
 
-        room_before may be NULL for some rows (a sheet without a
-        room column). SQLite sorts NULLs first in ASC order — that
-        is fine, those rows appear at the top of the table.
+        The order is by primary key (`id`), which is an
+        auto-increment column — the importer inserts rows in the
+        order it reads them from the Excel/CSV file, so ascending
+        id gives back the file's original order.
+
+        Earlier this was sorted by (room_before, inv_num) — that
+        looked reasonable for a printed walk list, but for the
+        chat + filter UI it was wrong: the accountant expects to
+        see the items exactly as they appear in the sheet he
+        uploaded, not reshuffled by room or number.
         """
         async for session in get_db_sqlite():
             stmt = (
@@ -471,24 +486,31 @@ class CoreEngineLibBotInvService:
         chosen_id: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
-        Find an item by inv_num and mark it.
+        Find an item by inv_num and mark it — but only via chosen_id.
 
         Two lookup paths:
 
           1. chosen_id is set — the user picked a candidate from a
              previously returned list. The item is looked up by
              primary key; inv_num is ignored. If the id does not
-             belong to the active sheet — "not_found".
+             belong to the active sheet — "not_found". This is the
+             ONLY path that marks anything.
 
-          2. chosen_id is None — the inv_num string is used:
+          2. chosen_id is None — the inv_num string is used for a
+             LOOKUP ONLY; nothing is marked:
              a) an exact (case-insensitive) match is tried first;
              b) if it fails, a substring search is done:
-                  - 1 hit   → that item is marked, as if exact;
-                  - 2+ hits → "ambiguous": the first CANDIDATE_LIMIT
+                  - 1+ hits → "ambiguous": the first CANDIDATE_LIMIT
                               items are returned; nothing is marked;
                   - 0 hits  → "not_found".
 
-        Behaviours of the mark itself (both paths), in order:
+        A single substring hit is also returned as "ambiguous"
+        (with one candidate), so the caller always shows the same
+        confirm step. This avoids the surprise of a unique fragment
+        being marked without confirmation, and keeps the flow
+        uniform.
+
+        Behaviours of the mark itself (path 1 only), in order:
 
           1. No current_room — refuse with "no_room".
           2. No active sheet — refuse with "no_active_sheet".
@@ -545,6 +567,7 @@ class CoreEngineLibBotInvService:
         async for session in get_db_sqlite():
             # ========================================
             # PATH 1 — the user picked a candidate by id.
+            # This is the ONLY path that marks.
             # ========================================
             if chosen_id is not None:
                 item = (await session.execute(
@@ -570,6 +593,8 @@ class CoreEngineLibBotInvService:
 
             # ========================================
             # PATH 2 — lookup by the typed string.
+            # Does NOT mark; returns either "ambiguous" with a list
+            # of candidates (1..CANDIDATE_LIMIT) or "not_found".
             # ========================================
             inv_num = (inv_num or "").strip()
             if not inv_num:
@@ -584,7 +609,8 @@ class CoreEngineLibBotInvService:
 
             inv_num_norm = inv_num.upper()
 
-            # --- 2a. Exact match. ---
+            # --- 2a. Exact match. Return it as a single candidate,
+            #     do NOT mark. ---
             item = (await session.execute(
                 select(BotInvItem).where(
                     BotInvItem.sheet_id == sheet["id"],
@@ -593,14 +619,23 @@ class CoreEngineLibBotInvService:
             )).scalar_one_or_none()
 
             if item is not None:
-                return await CoreEngineLibBotInvService._mark_item(
-                    session, sheet, item, current_room,
-                )
+                candidates = [
+                    CoreEngineLibBotInvService._candidate_to_dict(item)
+                ]
+                return {
+                    "status": "ambiguous",
+                    "message": f"Найдена 1 позиция по запросу «{inv_num}».",
+                    "item": None,
+                    "current_room": current_room,
+                    "candidates": candidates,
+                    "total_matches": 1,
+                }
 
             # --- 2b. Substring search. ---
             like_pattern = f"%{inv_num_norm}%"
 
-            # Count the total — needed for "и ещё N — уточните запрос".
+            # Count the total — needed for the header and the
+            # "уточните запрос" hint.
             total = (await session.execute(
                 select(func.count()).select_from(BotInvItem).where(
                     BotInvItem.sheet_id == sheet["id"],
@@ -618,34 +653,33 @@ class CoreEngineLibBotInvService:
                     "total_matches": None,
                 }
 
-            # Fetch up to CANDIDATE_LIMIT to print the numbered list.
+            # Fetch up to CANDIDATE_LIMIT to build the list.
             candidates_rows = (await session.execute(
                 select(BotInvItem)
                 .where(
                     BotInvItem.sheet_id == sheet["id"],
                     BotInvItem.inv_num_norm.like(like_pattern),
                 )
-                .order_by(BotInvItem.inv_num.asc())
+                .order_by(BotInvItem.id.asc())
                 .limit(CANDIDATE_LIMIT)
             )).scalars().all()
 
-            # --- Single hit: mark it, as if it were an exact match. ---
-            if total == 1:
-                return await CoreEngineLibBotInvService._mark_item(
-                    session, sheet, candidates_rows[0], current_room,
-                )
-
-            # --- Multiple hits: return the list, mark nothing. ---
+            # --- 1 or more hits: return the list, mark nothing.
+            #     The caller shows the candidates and waits for a
+            #     pick. ---
             candidates = [
                 CoreEngineLibBotInvService._candidate_to_dict(c)
                 for c in candidates_rows
             ]
 
+            if total == 1:
+                message = f"Найдена 1 позиция по запросу «{inv_num}»."
+            else:
+                message = f"Найдено {total} позиций по запросу «{inv_num}»."
+
             return {
                 "status": "ambiguous",
-                "message": (
-                    f"Найдено {total} позиций по запросу «{inv_num}»."
-                ),
+                "message": message,
                 "item": None,
                 "current_room": current_room,
                 "candidates": candidates,
@@ -675,9 +709,9 @@ class CoreEngineLibBotInvService:
         """
         Apply the mark to a concrete BotInvItem (already loaded).
 
-        Shared by both lookup paths in find_and_mark. Handles the
-        already_found / first-find branches and the sheet counter.
-        Commits the session before returning.
+        Called only from the chosen_id path in find_and_mark.
+        Handles the already_found / first-find branches and the
+        sheet counter. Commits the session before returning.
 
         Message assembly is done by _build_mark_message — see its
         docstring for the format. The two rooms (before / after)
@@ -689,8 +723,11 @@ class CoreEngineLibBotInvService:
         # --- Already found: append to journal, keep first-find
         #     data (room_after, marked_at) intact. ---
         if item.found:
-            extra = f"; найден в каб. {current_room}"
-            item.note = (item.note or "") + extra
+            extra = f"найден в каб. {current_room}"
+            if item.note:
+                item.note = f"{item.note}; {extra}"
+            else:
+                item.note = extra
             await session.commit()
             await session.refresh(item)
 
@@ -759,7 +796,7 @@ class CoreEngineLibBotInvService:
 
             "Каб. до: <before>. Каб. после: <after>."
                 — both rooms known (the normal case);
-            "Находится в каб. <after>."
+            "Отмечена в каб. <after>."
                 — no room_before; we do not say "найдена",
                   because the item was not lost — we are just
                   saying where it is now;
@@ -793,7 +830,7 @@ class CoreEngineLibBotInvService:
         if before and after:
             room_line = f"Каб. до: {before}. Каб. после: {after}."
         elif after:
-            room_line = f"Находится в каб. {after}."
+            room_line = f"Отмечено в каб. {after}."
         elif before:
             room_line = f"Каб. до: {before}."
         else:
@@ -942,10 +979,10 @@ class CoreEngineLibBotInvService:
         Serialize a BotInvItem as a candidate entry for the
         "ambiguous" response.
 
-        The frontend renders these as a numbered list, so the
-        payload is intentionally short: id, inv_num, name,
-        room_before, found. No note, no timestamps — the user only
-        needs enough to tell the candidates apart.
+        The caller renders these as a list of buttons (one per
+        candidate). The payload is intentionally short: id,
+        inv_num, name, room_before, found. No note, no timestamps
+        — the user only needs enough to tell the candidates apart.
         """
         return {
             "id": item.id,

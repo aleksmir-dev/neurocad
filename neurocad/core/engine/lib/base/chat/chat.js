@@ -34,21 +34,31 @@
  *
  * Custom `onSend` takes priority over `_sendToAPI` when both are set.
  * The reply is rendered as a bot message. If the callback returns an
- * object `{ text, variant }`, the `variant` ("success" | "warning" |
- * "error") is forwarded to addMessage.
+ * object `{ text, variant, html, buttons }`, all four are honoured:
+ * `variant` ("success" | "warning" | "error") is forwarded to
+ * addMessage, `html: true` switches the bubble to innerHTML, and
+ * `buttons` is rendered as an inline button bar under the bubble.
  *
  * HTML in messages
  * ----------------
  * addMessage() takes an optional fourth argument `asHtml` (default
  * false). When it is true, the message body is injected with
  * innerHTML; otherwise it is set with textContent. This is used by
- * the inventory chat to colour the numbered candidate list
- * (`.botinv-cand-num` / `.botinv-cand-inv`), while every other
- * message in the app stays plain text.
+ * the inventory chat to colour the candidate list, while every
+ * other message in the app stays plain text.
  *
  * SECURITY: pass `asHtml: true` ONLY with strings built by the
  * caller itself — never with raw user input or raw API output.
  * The caller is responsible for escaping interpolated values.
+ *
+ * Inline buttons
+ * --------------
+ * addMessage() takes an optional fifth argument `buttons` — an
+ * array of { text, payload } descriptors. When present, one
+ * <button class="chat-inline-btn"> is rendered per entry, under
+ * the message bubble. Tapping a button calls the handler set via
+ * setOnButtonClick(callback) with (payload, messageId). The
+ * handler is up to the caller.
  *
  * `headerExtra` is inserted as-is (via innerHTML) into the header.
  * The caller is responsible for the markup and for binding any
@@ -56,10 +66,7 @@
  *
  * Runtime updates:
  *   - setPlaceholder(text) — change the input placeholder after the
- *     widget was created. Used by modules whose placeholder depends
- *     on runtime state — the inventory chat flips between
- *     "Введите #NNN, чтобы выбрать кабинет" and
- *     "Каб. 303: инвентарный номер" as rooms are picked.
+ *     widget was created.
  */
 export class BaseChat {
     constructor(options = {}) {
@@ -73,6 +80,11 @@ export class BaseChat {
         this.onSend = options.onSend || null;
         this.apiUrl = options.apiUrl || '/core/chat/send';
         this.isLoading = false;
+
+        // Callback invoked when a user taps an inline button
+        // attached to a bot message. Set via setOnButtonClick().
+        // Called with (payload, messageId).
+        this.onButtonClick = null;
 
         // UI texts (all overridable via options)
         this.titleText = options.title || 'Чат с AI';
@@ -133,6 +145,9 @@ export class BaseChat {
                     // History always renders as plain text — the
                     // server does not know about our HTML messages.
                     asHtml: false,
+                    // History never carries buttons — buttons are a
+                    // per-reply construct and are not persisted.
+                    buttons: null,
                     timestamp: msg.created_at || msg.timestamp || new Date()
                 }));
                 if (this.messagesContainer) {
@@ -253,6 +268,20 @@ export class BaseChat {
             }
         });
 
+        // Inline-button taps — delegated on the messages container.
+        // One listener handles every button, present and future.
+        if (this.messagesContainer) {
+            this.messagesContainer.addEventListener('click', (e) => {
+                const btn = e.target.closest('.chat-inline-btn');
+                if (!btn) return;
+                const payload = btn.dataset.payload || '';
+                const messageId = parseFloat(btn.dataset.messageId) || null;
+                if (typeof this.onButtonClick === 'function') {
+                    this.onButtonClick(payload, messageId);
+                }
+            });
+        }
+
         if (this.floatingBtn) {
             this.floatingBtn.addEventListener('click', () => {
                 if (this.isModalOpen || this.isSidebarMode) {
@@ -285,9 +314,11 @@ export class BaseChat {
      *
      * If `onSend` is set, it replaces `_sendToAPI`. Its return value
      * is rendered as a bot message. It may be:
-     *   - a string                     → plain bot text;
-     *   - { text, variant }            → rendered with the variant;
-     *   - { text, variant, html: true } → rendered as HTML.
+     *   - a string                          → plain bot text;
+     *   - { text, variant }                 → rendered with the variant;
+     *   - { text, variant, html: true }     → rendered as HTML;
+     *   - { text, variant, html, buttons }  → rendered with inline
+     *                                          buttons.
      */
     async _handleSend() {
         if (!this.inputField) return;
@@ -313,19 +344,23 @@ export class BaseChat {
 
             this._removeLoadingIndicator(loadingId);
 
-            // Response may be a string or { text, variant, html }.
+            // Response may be a string or { text, variant, html, buttons }.
             let replyText = '';
             let variant = null;
             let asHtml = false;
+            let buttons = null;
             if (response && typeof response === 'object') {
                 replyText = response.text || '';
                 variant = response.variant || null;
                 asHtml = response.html === true;
+                buttons = Array.isArray(response.buttons) && response.buttons.length
+                    ? response.buttons
+                    : null;
             } else {
                 replyText = String(response ?? '');
             }
 
-            this.addMessage(replyText, false, variant, asHtml);
+            this.addMessage(replyText, false, variant, asHtml, buttons);
         } catch (error) {
             this._removeLoadingIndicator(loadingId);
             this.addMessage(
@@ -367,20 +402,25 @@ export class BaseChat {
      * @param {boolean} asHtml  — if true, `text` is injected with
      *                            innerHTML; otherwise with textContent.
      *                            Default: false.
+     * @param {Array<{text: string, payload: string}>|null} buttons
+     *        — optional inline buttons. Each entry becomes one
+     *        <button> under the message; tapping it calls
+     *        onButtonClick(payload, msg.id). Default: null.
      *
      * SECURITY: pass `asHtml: true` ONLY with strings that the
      * caller built itself — never with raw user input or raw API
      * output. The inventory chat uses it for a fixed markup
-     * template (numbered candidate list) with escaped values.
+     * template with escaped values.
      */
-    addMessage(text, isUser, variant = null, asHtml = false) {
-        console.log('[Chat] addMessage()', text, isUser, variant, asHtml);
+    addMessage(text, isUser, variant = null, asHtml = false, buttons = null) {
+        console.log('[Chat] addMessage()', text, isUser, variant, asHtml, buttons?.length || 0);
         const msg = {
             id: Date.now() + Math.random(),
             text: text,
             isUser: isUser,
             variant: variant,
             asHtml: asHtml === true,
+            buttons: Array.isArray(buttons) && buttons.length ? buttons : null,
             timestamp: new Date()
         };
         this.messages.push(msg);
@@ -413,6 +453,9 @@ export class BaseChat {
 
         this.messagesContainer.innerHTML = '';
         this.messages.forEach(msg => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'chat-message-wrapper';
+
             const div = document.createElement('div');
             let cls = `chat-message chat-message-${msg.isUser ? 'user' : 'ai'}`;
             if (!msg.isUser && msg.variant) {
@@ -426,7 +469,29 @@ export class BaseChat {
             } else {
                 div.textContent = msg.text;
             }
-            this.messagesContainer.appendChild(div);
+            wrapper.appendChild(div);
+
+            // Inline buttons, if any. One per row — the same layout
+            // as MAX, so the accounting flow looks identical in
+            // both channels.
+            if (Array.isArray(msg.buttons) && msg.buttons.length) {
+                const bar = document.createElement('div');
+                bar.className = 'chat-inline-buttons';
+
+                msg.buttons.forEach(b => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'chat-inline-btn';
+                    btn.textContent = b.text || '';
+                    btn.dataset.payload = b.payload != null ? String(b.payload) : '';
+                    btn.dataset.messageId = String(msg.id);
+                    bar.appendChild(btn);
+                });
+
+                wrapper.appendChild(bar);
+            }
+
+            this.messagesContainer.appendChild(wrapper);
         });
     }
 
@@ -528,6 +593,24 @@ export class BaseChat {
      */
     setOnSend(callback) {
         this.onSend = callback;
+    }
+
+    /**
+     * Set the handler for inline-button taps.
+     *
+     * The handler receives (payload, messageId), where payload is
+     * whatever the caller passed in the button descriptor:
+     *
+     *     chat.addMessage(text, false, variant, false, [
+     *         { text: "БП-00022455", payload: "12" },
+     *         { text: "БП-00022456", payload: "13" },
+     *     ]);
+     *
+     * and messageId is the id of the message the buttons are
+     * attached to. Multiple calls overwrite the previous handler.
+     */
+    setOnButtonClick(callback) {
+        this.onButtonClick = callback;
     }
 
     /**

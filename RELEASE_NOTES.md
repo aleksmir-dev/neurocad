@@ -1,6 +1,6 @@
 # RELEASE-NOTES.md
 
-## neurocad 1.0.31
+## neurocad 1.0.32
 
 Release date: 2026-10-16
 
@@ -8,8 +8,8 @@ Release date: 2026-10-16
 
 ### English
 
-- **Inventory (`botinv`) fixes and MAX bot.** Mobile layout puts the chat in `area-center`, the table's filter row and toolbar survive every re-render, list actions use SVG icons, the chat candidate list highlights row numbers in bordeaux and inventory numbers in blue via escaped HTML, `BaseModalInput` / `BaseModalDate` no longer flash unstyled on a cold cache, and the module now ships a MAX chat-bot (`botinv/max.py` + `POST /botinv/max/webhook`) where the accountant picks a room with `#405`, types an inventory number, and taps a candidate button — the bot marks the item in the same active sheet the web UI shows, enabled per-user via `MAX_ALLOWED_USER_ID` in `.env` plus a `use_botinv = 1` lookup, with TLS trusting the system CA bundle so the Russian Trusted Root CA is honoured.
+- **`botinv`: chat and MAX-bot cleanup.** The candidate list in both channels (web chat and MAX bot) is now just the rows and buttons — no header, no plural hint, no "Всего найдено N". Inline buttons in the web chat are the primary blue gradient with white bold text and a raised shadow, sized for touch on mobile; the same layout is used by the MAX bot. Single substring hits are no longer marked automatically — the service always returns `ambiguous` (1..CANDIDATE_LIMIT candidates) and only marks when called with `chosen_id`, so the user confirms by tapping a button in both channels. `_mark_item` writes «Отмечено в каб. X» instead of «Отмечена», and a repeat no longer starts the note with a stray `;`. The MAX webhook logs `user_id`, `username` and `name` on every `/start`.
 
 ### Русский
 
-- **Исправления инвентаризации (`botinv`) и бот MAX.** На мобильном чат занимает `area-center`, строка фильтров и тулбар таблицы переживают каждую перерисовку, кнопки действий в списке используют SVG-иконки, список кандидатов в чате выделяет номера бордовым и инвентарные номера синим через экранированный HTML, `BaseModalInput` / `BaseModalDate` больше не мелькают без стилей на холодном кэше, и у модуля появился чат-бот MAX (`botinv/max.py` + `POST /botinv/max/webhook`), где бухгалтер выбирает кабинет командой `#405`, вводит инвентарный номер и тапает кнопку с кандидатом — бот отмечает позицию в той же активной ведомости, что показывает веб-интерфейс, включается per-user через `MAX_ALLOWED_USER_ID` в `.env` плюс поиск пользователя с `use_botinv = 1`, а TLS доверяет системному CA-бандлу, поэтому Russian Trusted Root CA распознаётся корректно.
+- **`botinv`: чистка чата и MAX-бота.** Список кандидатов в обоих каналах (веб-чат и MAX-бот) теперь состоит только из строк и кнопок — без заголовка, без подсказки, без «Всего найдено N». Inline-кнопки в веб-чате — основной синий градиент с белым жирным текстом и лёгкой тенью, размер подобран для тапа на мобильном; тот же layout использует MAX-бот. Одиночное совпадение по подстроке больше не отмечается автоматически — сервис всегда возвращает `ambiguous` (1..CANDIDATE_LIMIT кандидатов) и отмечает только при вызове с `chosen_id`, поэтому пользователь подтверждает тапом кнопки в обоих каналах. `_mark_item` пишет «Отмечено в каб. X» вместо «Отмечена», и повтор больше не начинает примечание с висящей `;`. Webhook MAX логирует `user_id`, `username` и `name` на каждом `/start`.

@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.32] - 2026-10-16
+- **`botinv`: chat and MAX-bot cleanup.** Candidate list in both channels (web chat and MAX bot) is now only rows and buttons — no header, no plural hint, no "Всего найдено N". Inline buttons in the web chat use the primary blue gradient with white bold text and a raised shadow, sized for touch on mobile; the MAX bot uses the same layout. Single substring hits are no longer marked automatically — the service always returns `ambiguous` (1..CANDIDATE_LIMIT candidates) and only marks when called with `chosen_id`, so the user confirms by tapping a button in both channels. `_mark_item` writes «Отмечено в каб. X» instead of «Отмечена», and a repeat no longer starts the note with a stray `;`. The MAX webhook logs `user_id`, `username` and `name` on every `/start`.
+
 ## [1.0.31] - 2026-10-16
 - **Inventory (`botinv`) fixes and MAX bot.** Mobile layout puts the chat in `area-center`, the table's filter row and toolbar survive every re-render, list actions use SVG icons, the chat candidate list highlights row numbers in bordeaux and inventory numbers in blue via escaped HTML, `BaseModalInput` / `BaseModalDate` no longer flash unstyled on a cold cache, and the module now ships a MAX chat-bot (`botinv/max.py` + `POST /botinv/max/webhook`) where the accountant picks a room with `#405`, types an inventory number, and taps a candidate button — the bot marks the item in the same active sheet the web UI shows, enabled per-user via `MAX_ALLOWED_USER_ID` in `.env` plus a `use_botinv = 1` lookup, with TLS trusting the system CA bundle so the Russian Trusted Root CA is honoured.
 
@@ -131,6 +134,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.32]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.31...v1.0.32
+[1.0.31]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.30...v1.0.31
+[1.0.30]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.29...v1.0.30
 [1.0.29]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.28...v1.0.29
 [1.0.28]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.27...v1.0.28
 [1.0.27]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.26...v1.0.27
@@ -164,7 +170,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.28]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.27...v0.1.28
 [0.1.27]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.26...v0.1.27
 [0.1.26]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.25...v0.1.26
-[0.1.25]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.24...v0.1.25
+[0.1.25]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.24...v1.0.25
+[1.0.24]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.23...v1.0.24
 [0.1.24]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.23...v0.1.24
 [0.1.23]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.22...v0.1.23
 [0.1.21]: https://github.com/aleksmir-dev/neurocad/compare/v0.1.20...v0.1.21
