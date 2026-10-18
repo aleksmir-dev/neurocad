@@ -44,26 +44,29 @@ MAX user_id to the internal user is done via the
 MAX_ALLOWED_USER_ID list in .env plus a "first enabled user"
 lookup (see _resolve_max_user below).
 
-The bot mirrors the web-chat flow:
+Confirmation flow in the bot
+----------------------------
+The service (find_and_mark) NEVER marks on the string-lookup
+path — it always returns "ambiguous" with 1..CANDIDATE_LIMIT
+candidates, and marks only when called with an explicit
+chosen_id. The web chat passes chosen_id from the button's
+payload; MAX's `message` buttons cannot carry a payload, so the
+bot has to reconstruct the confirmation from the button text.
 
-    "#405"    → change_room
-    "22457"   → find_and_mark (lookup only)
-    tap a candidate button → the button text is the full inv_num,
-                             which is sent back as a regular
-                             message; the next find_and_mark
-                             finds an exact match
+The bot therefore keeps a per-user list of the candidates it
+last showed (_max_candidates[user_id]). When the next message
+text exactly matches one of those candidates' inv_num, the bot
+treats it as a tap on that candidate and calls find_and_mark
+with the corresponding chosen_id. Any other message, or a room
+change, or a successful mark, clears that list.
 
-Note on "confirmation": find_and_mark NEVER marks on the string
-lookup path, even when the fragment matches a single item — the
-service always returns `ambiguous` (with 1..CANDIDATE_LIMIT
-candidates) and only marks when called with an explicit
-`chosen_id`. This is why the bot always shows a list of buttons,
-even for a one-row list.
+This is why the accountant always has to confirm by tapping —
+the bot cannot mark anything on the first "lookup only" pass.
 """
 
 import logging
 from datetime import date
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import (
     APIRouter,
@@ -524,47 +527,38 @@ async def export_sheet(
 #   user: "22457"
 #     → find_and_mark(nav_id, "22457", room, chosen_id=None)
 #       • not_found      → reply "❌ ..."
-#       • ambiguous      → reply with the list of candidates
-#                          and one "message" button per row
-#                          (the button text is the FULL inv_num)
+#       • ambiguous      → reply with the list of candidates and
+#                          one "message" button per row; the
+#                          candidate list is remembered per user
 #
 #   user taps a button
-#     → the button text (the full inv_num) arrives as a regular
-#       message; the bot runs find_and_mark again — this time
-#       the query is the full number, so it returns a single
-#       ambiguous candidate, or a small list, and the user
-#       confirms with one more tap. (In practice the full number
-#       matches exactly one row, so it is one tap → one button.)
+#     → MAX sends the button text back as a regular message. The
+#       bot checks: does this text match one of the remembered
+#       candidates' inv_num? If yes, treat it as a tap — call
+#       find_and_mark with the corresponding chosen_id. If no,
+#       treat it as a fresh lookup (and drop the remembered list).
 #
-#   The button uses MAX's `message` type — not `callback` — so
-#   there is no callback_id round-trip and no payload field to
-#   negotiate. It also works identically in the desktop client
-#   and in the mobile app.
+# Confirmation state
+# ------------------
+# _max_candidates[user_id] holds the list of candidates the bot
+# last showed this user. Cleared:
 #
-# Current room is kept per-user in a module-level dict — the bot
-# runs in a single process, and the state is tiny. If the server
-# restarts the room is lost; the user re-sends "#405" once. This
-# mirrors the web UI where the room lives in localStorage.
+#   - on any successful mark (the list has served its purpose);
+#   - on a room change;
+#   - on any message that does not exactly match a candidate's
+#     inv_num (the user has moved on to a different query).
 #
-# Mapping MAX user_id → internal user
-# -----------------------------------
-# Two-layer check:
-#
-#   1. MAX_ALLOWED_USER_ID in .env — a comma-separated list of
-#      allowed MAX user_ids. Fail-closed: if empty, the bot
-#      rejects everyone.
-#
-#   2. The internal user is resolved as the FIRST active user
-#      with use_botinv = 1 (ordered by id). The accountant is
-#      the only such user, so this is deterministic enough.
-#
-#      If more users need the bot later, replace the second step
-#      with a proper botinv_max_users table and a one-time link
-#      code.
+# The state lives in memory only — it is tiny, and it is fine to
+# lose it on restart: the accountant can just search again.
 
 #: Per-user current room. Keyed by MAX user_id.
 #: Not persisted — see the module docstring.
 _max_rooms: Dict[int, Optional[str]] = {}
+
+#: Per-user list of candidates from the last "ambiguous" reply.
+#: Each entry is a dict with at least {id, inv_num}. Keyed by MAX
+#: user_id. Cleared as described above.
+_max_candidates: Dict[int, List[Dict[str, Any]]] = {}
 
 
 async def _resolve_max_user(max_user_id: int) -> Optional[Dict[str, Any]]:
@@ -660,8 +654,8 @@ def _format_mark_reply(result: Dict[str, Any]) -> Dict[str, Any]:
 
     Buttons use MAX's `message` type: tapping one sends its text
     back to the bot as a regular message. That text is the FULL
-    inventory number, so the next `find_and_mark` finds an exact
-    match — no callback plumbing, no `payload`, works everywhere.
+    inventory number; the bot matches it against its remembered
+    candidate list and calls find_and_mark with chosen_id.
     """
     status = result.get("status")
     message = result.get("message") or ""
@@ -784,25 +778,27 @@ async def _handle_bot_message(user_id: int, nav_id: int, text: str) -> None:
     """
     Handle a plain text message from the accountant.
 
-    Two shapes are recognised:
+    Three shapes are recognised:
 
-        "#405"    — set the current room;
-        "22457"   — an inventory number (possibly a fragment).
+        "#405"     — set the current room (drops the candidate list);
+        <candidate> — text exactly matching one of the candidates
+                      from the last "ambiguous" reply — treated as
+                      a button tap: the item is marked with
+                      chosen_id, the list is cleared;
+        <other>     — an inventory-number lookup; the previous
+                      candidate list is dropped, find_and_mark runs
+                      as a fresh query.
 
-    A tap on a candidate button also arrives here: the button is
-    of type "message" and its text is the full inv_num, so it is
-    indistinguishable from a typed inventory number — which is
-    exactly what we want. The next `find_and_mark` runs on the
-    full number: it returns a single ambiguous candidate, the bot
-    shows one button, the user taps once more — and the item is
-    marked.
+    The candidate list is _max_candidates[user_id].
     """
     text = (text or "").strip()
     if not text:
         return
 
-    # Room change.
+    # ---- 1. Room change (also clears the candidate list). ----
     if text.startswith("#"):
+        _max_candidates.pop(user_id, None)
+
         room = text[1:].strip()
         if not room:
             await _bot_reply(user_id, "Укажите кабинет: #405")
@@ -825,21 +821,64 @@ async def _handle_bot_message(user_id: int, nav_id: int, text: str) -> None:
 
         return
 
-    # Inventory number lookup.
+    # ---- 2. Room required for any lookup / mark. ----
     current_room = _max_rooms.get(user_id)
     if not current_room:
+        _max_candidates.pop(user_id, None)
         await _bot_reply(
             user_id,
             "Сначала выберите кабинет командой #NNN, например #405.",
         )
         return
 
+    # ---- 3. Candidate confirmation (a tap on a button). ----
+    #     The button's text is the FULL inv_num of one of the
+    #     candidates the bot last showed. If the incoming text
+    #     matches one of them exactly, we treat it as a tap and
+    #     mark the item by its id.
+    remembered = _max_candidates.get(user_id)
+    if remembered:
+        picked = None
+        for c in remembered:
+            if (c.get("inv_num") or "") == text:
+                picked = c
+                break
+
+        if picked is not None:
+            _max_candidates.pop(user_id, None)
+
+            result = await CoreEngineLibBotInvService.find_and_mark(
+                nav_id=nav_id,
+                inv_num=text,
+                current_room=current_room,
+                chosen_id=picked["id"],
+            )
+            reply = _format_mark_reply(result)
+            await _bot_reply(user_id, reply["text"], reply.get("keyboard"))
+            return
+
+        # Text did not match any candidate — the user typed a new
+        # query. Fall through to the fresh lookup, dropping the
+        # stale list.
+        _max_candidates.pop(user_id, None)
+
+    # ---- 4. Fresh lookup. ----
     result = await CoreEngineLibBotInvService.find_and_mark(
         nav_id=nav_id,
         inv_num=text,
         current_room=current_room,
         chosen_id=None,
     )
+
+    # If the lookup returned candidates, remember them so a
+    # subsequent message with the exact inv_num can be treated
+    # as a button tap.
+    if result.get("status") == "ambiguous":
+        candidates = result.get("candidates") or []
+        if candidates:
+            _max_candidates[user_id] = candidates
+        else:
+            _max_candidates.pop(user_id, None)
 
     reply = _format_mark_reply(result)
     await _bot_reply(user_id, reply["text"], reply.get("keyboard"))

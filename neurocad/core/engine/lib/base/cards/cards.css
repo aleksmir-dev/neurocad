@@ -33,6 +33,15 @@
     gap: 8px;
 }
 
+/* Titlebar text — the folder name (or nav name at the root).
+   The toggle button sits to the right; space-between on the
+   parent already handles the split. */
+.core-engine-lib-base-widget-title-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text, #1e293b);
+}
+
 .core-engine-lib-base-cards .cards-title {
     font-size: 18px;
     font-weight: 600;
@@ -259,11 +268,24 @@
 /* ПОДВАЛ */
 /* ============================================ */
 
+/*
+ * Statusbar layout:
+ *   - left:  breadcrumbs slot (may be empty) + status text;
+ *   - right: counters (count + selected).
+ *
+ * The statusbar is a flex row; the breadcrumbs slot is a normal
+ * inline element so an empty slot collapses to zero width and the
+ * status text moves to the left edge. When Pages fills the slot
+ * with a path, the path sits to the left of the status text.
+ *
+ * Counters keep `margin-left: auto` so they always pin to the
+ * right edge regardless of how much text is on the left.
+ */
 .core-engine-lib-base-cards .cards-footer,
 .core-engine-lib-base-widget-statusbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     padding: 8px 16px;
     background: var(--color-white, #ffffff);
     border-top: 1px solid var(--color-border, #e2e8f0);
@@ -272,6 +294,7 @@
     flex-shrink: 0;
     min-height: 40px;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .core-engine-lib-base-cards .cards-selected,
@@ -283,6 +306,59 @@
 .core-engine-lib-base-cards .cards-selected:not(:empty),
 .core-engine-lib-base-cards-selected:not(:empty) {
     display: inline;
+}
+
+/* Breadcrumbs slot — filled by the consumer (Pages) with a path
+   like "Каталог статей / Агенты NeuroCad / Вежливый отказ".
+   Empty by default — collapses to zero width, does not shift the
+   layout. See Pages._renderChrome(). */
+.core-engine-lib-base-widget-breadcrumbs {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin-right: auto;   /* pin counters to the right */
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* One crumb — the title of a folder on the path. Muted gray so
+   the path reads as a navigation aid, not as content. */
+.core-engine-lib-base-widget-breadcrumbs .pages-breadcrumb {
+    color: var(--color-text, #1e293b);
+    font-weight: 500;
+}
+
+/* The last crumb is the current level — slightly darker. */
+.core-engine-lib-base-widget-breadcrumbs .pages-breadcrumb:last-child {
+    color: var(--color-text, #1e293b);
+    font-weight: 600;
+}
+
+/* Separator between crumbs — muted, not selectable. */
+.core-engine-lib-base-widget-breadcrumbs .pages-breadcrumb-sep {
+    color: var(--color-text-light, #94a3b8);
+    user-select: none;
+}
+
+/* Status text — the "N статей" or "Выбрано: N" string. */
+.core-engine-lib-base-widget-status-text {
+    color: var(--color-text-light, #64748b);
+}
+
+/* Counter — "N элементов" chip on the right. */
+.core-engine-lib-base-cards-count {
+    margin-left: auto;
+    color: var(--color-text-light, #64748b);
+}
+
+/* Selected counter — "Выбрано: N". */
+.core-engine-lib-base-cards-selected {
+    margin-left: 8px;
+    color: #3b82f6;
+    font-weight: 500;
 }
 
 /* ============================================ */
@@ -306,6 +382,11 @@
         flex-direction: column;
         align-items: stretch;
         gap: 6px;
+    }
+
+    .core-engine-lib-base-widget-title-text {
+        font-size: 15px;
+        text-align: center;
     }
 
     .core-engine-lib-base-cards .cards-title {
@@ -350,6 +431,16 @@
         justify-content: center;
     }
 
+    .core-engine-lib-base-widget-breadcrumbs {
+        margin-right: 0;
+        justify-content: center;
+    }
+
+    .core-engine-lib-base-cards-count,
+    .core-engine-lib-base-cards-selected {
+        margin-left: 0;
+    }
+
     .core-engine-lib-base-cards .cards-empty,
     .core-engine-lib-base-cards-empty {
         padding: 40px 16px;
@@ -377,6 +468,10 @@
     .core-engine-lib-base-cards .cards-header,
     .core-engine-lib-base-widget-titlebar {
         padding: 6px 8px;
+    }
+
+    .core-engine-lib-base-widget-title-text {
+        font-size: 14px;
     }
 
     .core-engine-lib-base-cards .cards-title {

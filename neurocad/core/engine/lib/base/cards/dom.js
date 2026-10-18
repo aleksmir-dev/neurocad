@@ -6,6 +6,31 @@
 
 /**
  * Создать структуру widget'а внутри контейнера.
+ *
+ * Titlebar и statusbar по умолчанию скрыты (inline display: none).
+ * Consumer может запросить их отображение через props:
+ *
+ *     showTitlebar: true   → снять display: none с titlebar
+ *     showStatusbar: true  → снять display: none с statusbar
+ *
+ * По умолчанию оба false — виджеты без обвязки выглядят как
+ * раньше (только контент + тулбар). Это сохраняет обратную
+ * совместимость со всеми существующими consumers, которые не
+ * передают эти props.
+ *
+ * Кроме самих баров, здесь же создаются два якорных узла,
+ * которые consumer (например, Pages) использует для своего
+ * контента:
+ *
+ *   - titleTextEl — span с классом .core-engine-lib-base-widget-title-text
+ *     и data-js="widget-title-text". Его текст обновляется через
+ *     BaseCards.updateProps({ widgetTitle }). Надёжнее, чем
+ *     querySelector(':first-child') — не завязан на порядок.
+ *
+ *   - breadcrumbsEl — пустой span с классом
+ *     .core-engine-lib-base-widget-breadcrumbs. Всегда первым
+ *     в statusbar, чтобы consumer мог наполнять его путём
+ *     (или чем угодно ещё) без поиска по DOM.
  */
 export function createDOM(cards) {
     console.log('[BaseCards] _createDOM() START');
@@ -14,9 +39,15 @@ export function createDOM(cards) {
         const widget = document.createElement('div');
         widget.className = 'core-engine-lib-base-widget';
         widget.id = 'cards-widget-' + Date.now();
+
+        // По умолчанию оба бара скрыты. Consumer может попросить
+        // показать их через props (см. docstring выше).
+        const titlebarDisplay = cards.showTitlebar ? '' : 'display: none;';
+        const statusbarDisplay = cards.showStatusbar ? '' : 'display: none;';
+
         widget.innerHTML = `
-            <div class="core-engine-lib-base-widget-titlebar" style="display: none;">
-                <span>${cards.widgetTitle}</span>
+            <div class="core-engine-lib-base-widget-titlebar" style="${titlebarDisplay}">
+                <span class="core-engine-lib-base-widget-title-text" data-js="widget-title-text">${cards.widgetTitle}</span>
                 <span class="core-engine-lib-base-widget-toggle" title="Скрыть/Показать">👁️</span>
             </div>
             <div class="core-engine-lib-base-widget-toolbar" data-js="widget-toolbar">
@@ -25,7 +56,7 @@ export function createDOM(cards) {
             <div class="core-engine-lib-base-widget-content" data-js="widget-content">
                 <div class="core-engine-lib-base-cards-grid" data-js="cards-grid"></div>
             </div>
-            <div class="core-engine-lib-base-widget-statusbar" data-js="widget-statusbar" style="display: none;">
+            <div class="core-engine-lib-base-widget-statusbar" data-js="widget-statusbar" style="${statusbarDisplay}">
                 ${cards.widgetStatus}
             </div>
         `;
@@ -38,6 +69,7 @@ export function createDOM(cards) {
         cards.widgetStatusbar = widget.querySelector('[data-js="widget-statusbar"]');
         cards.grid = widget.querySelector('[data-js="cards-grid"]');
         cards.toggleBtn = widget.querySelector('.core-engine-lib-base-widget-toggle');
+        cards.titleTextEl = widget.querySelector('[data-js="widget-title-text"]');
 
         if (cards.widgetContent) {
             cards.widgetContent.style.flex = '1';
@@ -73,8 +105,15 @@ export function createDOM(cards) {
         cards.statusTextEl.className = 'core-engine-lib-base-widget-status-text';
         cards.statusTextEl.textContent = cards.widgetStatus;
 
+        // Слот для пути (breadcrumbs) — заполняется consumer'ом
+        // (например, Pages). Пустой span, чтобы якорь всегда был
+        // в DOM. Всегда первым ребёнком statusbar.
+        cards.breadcrumbsEl = document.createElement('span');
+        cards.breadcrumbsEl.className = 'core-engine-lib-base-widget-breadcrumbs';
+
         if (cards.widgetStatusbar) {
             cards.widgetStatusbar.innerHTML = '';
+            cards.widgetStatusbar.appendChild(cards.breadcrumbsEl);
             cards.widgetStatusbar.appendChild(cards.statusTextEl);
             cards.widgetStatusbar.appendChild(cards.countEl);
             cards.widgetStatusbar.appendChild(cards.selectedEl);

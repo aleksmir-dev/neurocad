@@ -24,6 +24,20 @@
  * The helper does not touch BaseCards, does not render any DOM of its
  * own, and does not know anything about the toolbar. It only knows
  * how to talk to the nav-name API and how to open the input modal.
+ *
+ * Two separate saved values
+ * -------------------------
+ * The Base caption helper works like a stack: setCaption() returns
+ * an opaque snapshot of the PREVIOUS document.title / header text,
+ * which restoreCaption() must receive when the page goes away. That
+ * snapshot is an OBJECT — we keep it in this._savedRestore and hand
+ * it back on restoreCaption().
+ *
+ * Separately, we keep this._savedCaption as a STRING — the nav name
+ * itself — so consumers (PagesStatusbar) can use it as the root
+ * crumb and the titlebar text at the root. These are two different
+ * things that used to be conflated, which produced "[object Object]"
+ * in the statusbar. Do not merge them again.
  */
 export class PagesTitle {
     constructor({ navId = null, getApiUrl } = {}) {
@@ -43,6 +57,13 @@ export class PagesTitle {
         // without a round-trip through Pages.
         this._setCaption = null;
         this._restoreCaption = null;
+
+        // Opaque snapshot from setCaption() — returned to
+        // restoreCaption() on destroy. Object, not a string.
+        this._savedRestore = null;
+
+        // The nav name itself — the string we use as the root crumb
+        // and root titlebar text. Set by loadCaption() / save().
         this._savedCaption = null;
     }
 
@@ -69,6 +90,11 @@ export class PagesTitle {
      * Falls back to "Каталог статей" if the request fails or the name
      * is empty. Never throws — a failed caption is not worth blocking
      * the whole catalog.
+     *
+     * The return value of setCaption() is an OPAQUE snapshot (an
+     * object) used by restoreCaption() — it is stored separately in
+     * this._savedRestore, never in this._savedCaption. The latter
+     * holds the caption STRING, which is what getNavName() returns.
      */
     async loadCaption() {
         if (!this._setCaption) return;
@@ -87,18 +113,42 @@ export class PagesTitle {
             console.warn('[PagesTitle] nav-name caption load failed:', err);
         }
 
-        this._savedCaption = this._setCaption(caption, caption);
+        // String first — that is what consumers read.
+        this._savedCaption = caption;
+
+        // Opaque snapshot — needed later by restoreCaption().
+        this._savedRestore = this._setCaption(caption, caption);
     }
 
     /**
      * Restore the caption that was on screen before Pages mounted.
      * Called from Pages.destroy().
+     *
+     * Passes the OPAQUE snapshot returned by setCaption() back to
+     * restoreCaption(). Never touches this._savedCaption here — the
+     * string lives and dies with the PagesTitle instance.
      */
     restoreCaption() {
         if (this._restoreCaption) {
-            this._restoreCaption(this._savedCaption);
+            this._restoreCaption(this._savedRestore);
         }
+        this._savedRestore = null;
         this._savedCaption = null;
+    }
+
+    /**
+     * Return the nav name that was last set as the caption, or null
+     * if loadCaption() has not run yet (or ran without a caption
+     * helper attached).
+     *
+     * Used by PagesStatusbar as the root title in the breadcrumb
+     * trail and as the titlebar text at the root. Reading it here
+     * keeps the caption shown in the header and the root crumb in
+     * the statusbar in sync — there is exactly one source of truth
+     * for "the name of this catalog".
+     */
+    getNavName() {
+        return this._savedCaption || null;
     }
 
     // ============================================
@@ -199,8 +249,8 @@ export class PagesTitle {
             // new name without a page reload.
             if (this._setCaption) {
                 this._setCaption(trimmed, trimmed);
-                this._savedCaption = trimmed;
             }
+            this._savedCaption = trimmed;
 
             console.log('[PagesTitle] nav name saved:', trimmed);
         } catch (err) {

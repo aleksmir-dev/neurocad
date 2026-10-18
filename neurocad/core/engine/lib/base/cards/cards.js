@@ -97,6 +97,26 @@
  * Non-folder mode (default) is completely unaffected: no "..",
  * no grouping, no parent-history, no behaviour change.
  *
+ * Widget chrome (titlebar / statusbar)
+ * ------------------------------------
+ * The widget is built from three vertical bands: titlebar (top),
+ * toolbar + content (middle), statusbar (bottom). Both titlebar
+ * and statusbar are HIDDEN by default (see dom.js) — this keeps
+ * the default look unchanged for every consumer that just wants
+ * the grid + toolbar.
+ *
+ * A consumer that wants the chrome turns it on via props:
+ *
+ *     showTitlebar: true   — show the top bar (widgetTitle text)
+ *     showStatusbar: true  — show the bottom bar (status text +
+ *                            counters + breadcrumbs slot)
+ *
+ * Both default to false. The flags are read once in the
+ * constructor and passed through to dom.js → createDOM, which
+ * decides whether to include the inline `display: none` on each
+ * bar. There is no runtime toggling — if a consumer needs to
+ * change its mind later, it re-instantiates BaseCards.
+ *
  * User-facing strings (button labels, prompts, error messages)
  * are in Russian. Code comments, docstrings and identifiers are
  * in English.
@@ -141,6 +161,14 @@ export class BaseCards {
 
         this.widgetTitle = props.widgetTitle || this.title;
         this.widgetStatus = props.widgetStatus || 'Готово';
+
+        // ---- Widget chrome flags ----
+        // Both titlebar and statusbar are hidden by default (see
+        // dom.js). A consumer can request them via props. Defaults
+        // are false, so the look of every existing consumer stays
+        // exactly as it was before this flag existed.
+        this.showTitlebar = props.showTitlebar === true;
+        this.showStatusbar = props.showStatusbar === true;
 
         this.section = props.section || null;
         this.parentId = props.parentId || null;

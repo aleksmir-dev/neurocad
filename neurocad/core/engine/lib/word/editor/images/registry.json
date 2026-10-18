@@ -1248,6 +1248,22 @@
       "source": "logo",
       "builtin": false,
       "order": 1580
+    },
+    {
+      "id": "img-20f75c41",
+      "alt": "Нейрокад",
+      "file": "files/img-20f75c41.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1590
+    },
+    {
+      "id": "img-e08a1b64",
+      "alt": "Кошки и котята",
+      "file": "files/img-e08a1b64.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1600
     }
   ]
 }

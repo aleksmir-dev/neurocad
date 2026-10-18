@@ -188,9 +188,6 @@
     color: #475569;
 }
 
-/* External link badge — shown on cards whose page has a `url`
-   set (link cards). Blue tint to signal "leads to another site";
-   the glyph itself is added by pages.js. */
 .pages-card-badge-external {
     background: rgba(59, 130, 246, 0.12);
     color: #2563eb;
@@ -200,30 +197,29 @@
    FOLDER MODE — folder cards
    ============================================ */
 /*
- * A folder is rendered by pages.js → _renderArticleCard when
- * item.card_type === 'folder'. It looks different from a page:
+ * Folder card layout:
+ *   - folder icon on top (large, centered);
+ *   - folder name below, centered;
+ *   - optional description below, centered;
+ *   - counter chip in the top-right corner.
  *
- *   - a big folder icon on the left;
- *   - the folder name and (optional) description on the right;
- *   - a small counter chip in the top-right corner, showing how
- *     many items the folder contains (only if the backend sends
- *     `children_count`).
+ * Centering inside the card is done by a class modifier on the
+ * parent .card-content-custom (see card.css → .card-content-custom--centered),
+ * which is added by the card renderer in card.js.
  *
- * No logo, no date, no badges — folders are not pages.
- *
- * The visual language stays close to `.pages-card` (same radius,
- * same shadow family, same soft background) so folders and pages
- * do not look like two different apps.
- *
- * Content is aligned to the TOP of the card (align-items: flex-start),
- * matching the page card's top-down flow.
+ * The .pages-folder block itself is a vertical flex column that
+ * stretches to fill the parent and centers its own children
+ * (icon on top, body below). This works in every modern browser
+ * and does not rely on :has().
  */
 
 .pages-folder {
     position: relative;
     display: flex;
-    align-items: flex-start;
-    gap: 16px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 
     padding: 20px;
     box-sizing: border-box;
@@ -242,6 +238,7 @@
 
     overflow: hidden;
     cursor: pointer;
+    text-align: center;
 
     transition:
         transform 0.3s ease,
@@ -256,20 +253,20 @@
         0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
-/* Folder icon — big emoji, not a picture. */
 .pages-folder-icon {
     flex-shrink: 0;
     font-size: 40px;
     line-height: 1;
     user-select: none;
+    display: block;
 }
 
-/* Folder body — name + description. */
 .pages-folder-body {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 4px;
 }
 
@@ -280,9 +277,11 @@
     line-height: 1.25;
     color: #0f172a;
     letter-spacing: -0.01em;
+    text-align: center;
+    overflow-wrap: anywhere;
 
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -292,14 +291,14 @@
     font-size: 14px;
     line-height: 1.4;
     color: #64748b;
+    text-align: center;
 
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-/* Counter chip — top-right corner. */
 .pages-folder-count {
     position: absolute;
     top: 12px;
@@ -326,23 +325,21 @@
    UP CARD — "вернуться на уровень выше"
    ============================================ */
 /*
- * The ".." pseudo-card. Rendered by pages.js → _renderUpCard
- * when BaseCards renders an item with is_up === true. Same visual
- * shell as .pages-folder and .pages-card, so the navigation node
- * does not look like a foreign element in the grid.
+ * The ".." pseudo-card. Same vertical layout as a folder card:
+ * a centered arrow on top, a label beneath — all centered
+ * horizontally and vertically.
  *
- * The icon is the typographic arrow U+2934 (⤴), mirrored
- * horizontally via transform: scaleX(-1) so it points to the
- * upper-left — the conventional "back" direction in Russian UI.
- * It is not an emoji: it inherits color and weight, so it stays
- * thin and neutral, with no colored plate behind it.
+ * The icon is U+2934 (⤴), mirrored via scaleX(-1) so it points
+ * up-left — the conventional "back" direction in Russian UI.
  */
 
 .pages-up {
     position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 16px;
+    justify-content: center;
+    gap: 10px;
 
     padding: 20px;
     box-sizing: border-box;
@@ -361,6 +358,7 @@
 
     overflow: hidden;
     cursor: pointer;
+    text-align: center;
 
     transition:
         transform 0.3s ease,
@@ -377,13 +375,14 @@
 
 .pages-up-icon {
     flex-shrink: 0;
-    font-size: 22px;
+    font-size: 32px;
     font-weight: 400;
     line-height: 1;
     color: #94a3b8;
     user-select: none;
-    transform: scaleX(-1);                /* ⤴ → смотрит влево-вверх */
+    transform: scaleX(-1);
     transition: color 0.3s ease;
+    display: block;
 }
 
 .core-engine-lib-base-cards-card.pages-card-wrapper:hover .pages-up-icon {
@@ -391,10 +390,11 @@
 }
 
 .pages-up-body {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 4px;
 }
 
@@ -405,6 +405,7 @@
     line-height: 1.25;
     color: #0f172a;
     letter-spacing: -0.01em;
+    text-align: center;
 }
 
 .pages-up-desc {
@@ -412,6 +413,39 @@
     font-size: 14px;
     line-height: 1.4;
     color: #64748b;
+    text-align: center;
+}
+
+/* ============================================
+   WIDGET CHROME — Pages overrides
+   ============================================ */
+/*
+ * Pages uses BaseCards with showTitlebar + showStatusbar enabled.
+ * The default chrome of BaseCards ships with two things Pages does
+ * not want:
+ *
+ *   1. The titlebar toggle button ("👁️" — collapse / expand the
+ *      content). In the article catalog the titlebar is purely
+ *      informational (it shows the current folder name), so the
+ *      toggle only adds noise.
+ *
+ *   2. The status text ("N статей") and the element counter
+ *      ("N элементов"). The statusbar is used for the breadcrumb
+ *      trail only, so the two counters are redundant.
+ *
+ * Both are hidden via a marker class — .pages-widget — that
+ * PagesStatusbar.init() adds to the BaseCards widget element.
+ * The marker scopes these rules to Pages: any other consumer of
+ * BaseCards keeps the default chrome untouched.
+ */
+
+.pages-widget .core-engine-lib-base-widget-toggle {
+    display: none;
+}
+
+.pages-widget .core-engine-lib-base-widget-status-text,
+.pages-widget .core-engine-lib-base-cards-count {
+    display: none;
 }
 
 /* ============================================
@@ -446,19 +480,6 @@
  * On a PAGE form these four are visible — they are normal page
  * properties. The `edit-body--page` / `edit-body--folder` marker
  * is set by edit.js → _renderForm, based on `values.card_type`.
- *
- * Why `.edit-group:has(...)`, not `field.className`
- * -------------------------------------------------
- * BaseCardsEdit always renders the wrapper as `.edit-group` and
- * never reads `field.className`, so a className-based hook would
- * be dead on arrival. What IS stable is the `data-field` attribute
- * that edit.js puts on every input. We match the wrapper via
- * `.edit-group:has([data-field="..."])`.
- *
- * Specificity of `.edit-group:has([data-field="x"])` is (0,2,0) —
- * the same as edit.css's `.core-engine-lib-base-cards-edit
- * .edit-group`. Since pages.css is loaded AFTER edit.css, the
- * cascade resolves in our favour. No !important needed.
  */
 
 /* Always hidden — technical fields, both forms */
@@ -506,12 +527,12 @@
 
     /* Folder mode */
     .pages-folder {
-        padding: 18px;
-        gap: 14px;
+        padding: 20px 16px;
+        gap: 10px;
     }
 
     .pages-folder-icon {
-        font-size: 36px;
+        font-size: 34px;
     }
 
     .pages-folder-title {
@@ -524,12 +545,12 @@
 
     /* Up card */
     .pages-up {
-        padding: 18px;
-        gap: 14px;
+        padding: 20px 16px;
+        gap: 10px;
     }
 
     .pages-up-icon {
-        font-size: 20px;
+        font-size: 28px;
     }
 
     .pages-up-title {
@@ -570,13 +591,13 @@
 
     /* Folder mode */
     .pages-folder {
-        padding: 16px;
-        gap: 12px;
+        padding: 18px 14px;
+        gap: 8px;
         border-radius: 14px;
     }
 
     .pages-folder-icon {
-        font-size: 32px;
+        font-size: 30px;
     }
 
     .pages-folder-title {
@@ -599,13 +620,13 @@
 
     /* Up card */
     .pages-up {
-        padding: 16px;
-        gap: 12px;
+        padding: 18px 14px;
+        gap: 8px;
         border-radius: 14px;
     }
 
     .pages-up-icon {
-        font-size: 18px;
+        font-size: 24px;
     }
 
     .pages-up-title {

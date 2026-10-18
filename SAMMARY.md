@@ -187,4 +187,212 @@
   `ensure_default_nav` падает.
 - `change_room` принимает **любой текст** — валидировать не по чему.
 
+# lib/llm — итог сессии
+
+## Цель
+
+Вынести LLM-агентов из `word/llm/` в самостоятельный компонент
+`lib/llm/`. Агент не должен знать, кто его вызывает (HTTP, WS,
+CLI, тест). Пока делаем **только одного агента** —
+`generate_logo` — по одному шагу, без слома работающего кода.
+
+## Согласованные принципы
+
+1. **По одному агенту.** Сначала `_01_generate_logo`. Остальные
+   (`_02_admin`, `_03_none`, `_04_create_page` и т.д.) — потом,
+   отдельными сессиями.
+2. **Никаких общих `prompts/` и `steps/`.** Всё, что относится к
+   агенту, живёт в его папке. Если что-то нужно двум агентам —
+   один импортирует у другого (или дублируется). Общих
+   модулей нет.
+3. **Никаких `__init__.py`.** Проект использует namespace-пакеты
+   (PEP 420). Все папки — без `__init__.py`.
+4. **Никаких глобальных функций и констант.** Всё — на классе.
+   Иначе коллизии имён при тысячах файлов в проекте.
+5. **Имена классов по конвенции проекта:**
+   `CoreEngine<путь><Entity>`. Пример:
+   - `core/engine/lib/llm/agents/_01_generate_logo/service.py`
+     → `CoreEngineLibLlmAgentsGenerateLogoService`
+   - `core/engine/lib/llm/agents/_01_generate_logo/prompt.py`
+     → `CoreEngineLibLlmAgentsGenerateLogoPrompt`
+6. **Порядок папок = порядок агентов.** Префикс `_01_`, `_02_` и
+   т.д. Реестр (`registry.py`, когда дойдём) собирает агентов
+   обходом `_??_*` по алфавиту.
+7. **Транспорт (WS/HTTP) — не в `llm/`.** `chat/backend/` или
+   `word/` — отдельно. Агент не знает про WS, HTTP, dispatch.
+8. **Не трогаем работающий `route.py`** старого
+   `/word/editor/images/generate`. Новый эндпоинт — отдельный,
+   в `lib/llm/`. Когда обкатается — старый удалим.
+
+## Структура (пока только один агент)
+
+```
+core/engine/lib/llm/
+├── route.py                                  ← prefix="/llm", включает agents/route.py
+├── agents/
+│   ├── route.py                              ← prefix="/agents", включает всех агентов
+│   └── _01_generate_logo/
+│       ├── prompt.py                         ← CoreEngineLibLlmAgentsGenerateLogoPrompt
+│       ├── service.py                        ← CoreEngineLibLlmAgentsGenerateLogoService
+│       ├── schema.py                         ← Pydantic: Request / Data / Response
+│       ├── route.py                          ← POST /generate
+│       └── README.md
+```
+
+**Итоговый URL нового эндпоинта:**
+
+```
+POST /core/engine/lib/llm/agents/_01_generate_logo/generate
+```
+
+Собирается так:
+- `core/engine/lib/route.py` → `prefix="/lib"` → `include_router(llm_router)`
+- `llm/route.py` → `prefix="/llm"` → `include_router(agents_router)`
+- `llm/agents/route.py` → `prefix="/agents"` → `include_router(generate_logo_router)`
+- `llm/agents/_01_generate_logo/route.py` → `prefix="/_01_generate_logo"` → `@router.post("/generate")`
+
+## Распределение ответственности
+
+| Слой | Что | Где |
+|---|---|---|
+| Промпт | Системный промпт агента | `prompt.py` → `...Prompt.build()` |
+| LLM-логика | Вызов модели, ретраи, парсинг, валидация SVG | `service.py` → `...Service.generate(...)` |
+| Контракт | Pydantic Request / Data / Response | `schema.py` |
+| HTTP | Баланс, провайдер, вызов сервиса, сохранение SVG, списание токенов, публичный URL | `route.py` |
+
+**Ключевое:**
+- **`service.py`** — только LLM. Никакой БД, HTTP, баланса.
+- **`route.py`** — обвязка: всё, что вокруг LLM.
+
+## Что уже сделано (код готов)
+
+1. **`prompt.py`** — класс `CoreEngineLibLlmAgentsGenerateLogoPrompt`
+   с методом `build()`, возвращает системный промпт.
+2. **`service.py`** — класс `CoreEngineLibLlmAgentsGenerateLogoService`
+   с методом `generate(*, provider, user_message, alt)`.
+   Внутри:
+   - `MAX_ATTEMPTS = 3`, `BASE_DELAY = 2.0`, `MAX_TOKENS = 2048`,
+     `RETRY_MARKERS` — атрибуты класса;
+   - `_log`, `_build_messages`, `_extract_json`, `_extract_svg`,
+     `_validate_svg` — приватные методы класса;
+   - возврат: `{"svg": "..."} ` или `{"svg": None, "error": "..."}`.
+3. **`schema.py`** — три Pydantic-класса:
+   - `CoreEngineLibLlmAgentsGenerateLogoRequest`
+     (`prompt`, `alt`, `source`);
+   - `CoreEngineLibLlmAgentsGenerateLogoData`
+     (`id`, `file`, `url`, `bytes`);
+   - `CoreEngineLibLlmAgentsGenerateLogoResponse`
+     (`success`, `data`, `error`).
+4. **`route.py`** — эндпоинт `POST /generate`:
+   - `prefix="/_01_generate_logo"`;
+   - шаги: `BalanceChecked.logo_allowed` → `get_provider` →
+     `Service().generate(...)` → `CoreEngineLibWordImagesService.create_image(...)`
+     → `_charge_logo(...)` → ответ `{id, file, url, bytes}`;
+   - `_charge_logo` — приватная функция модуля (одна, не класс —
+     можно перенести в `route.py` как метод или оставить).
+5. **`route.py` агрегаторы:**
+   - `llm/route.py` — `prefix="/llm"`, включает `agents_router`;
+   - `llm/agents/route.py` — `prefix="/agents"`, включает
+     `generate_logo_router`.
+6. **`core/engine/lib/route.py`** — добавлены две строки:
+   ```python
+   from .llm.route import router as llm_router
+   router.include_router(llm_router)
+   ```
+
+## Что удалено
+
+- **`agent.py`** — удалён. Его содержимое целиком переехало в
+  `service.py` (с переименованием класса `Agent → Service` и
+  метода `run → generate`).
+- **`__pycache__/`** — снесён, чтобы не подхватывался старый
+  `.pyc` от удалённого `agent.py`.
+
+## Текущее состояние
+
+- ✅ `Service` импортируется.
+- ✅ `schema.py` перезаписан — импортируется.
+- ✅ `route.py` — импортируется.
+- ✅ `llm/route.py` — импортируется.
+- ✅ `llm/agents/route.py` — импортируется.
+- ✅ `core/engine/lib/route.py` — обновлён.
+- ❓ **Финальная проверка реестра маршрутов** и **тест эндпоинта
+  через curl / TestClient / Swagger** — ещё не сделано.
+
+## Следующие шаги
+
+1. Проверить, что маршрут виден:
+   ```bash
+   .venvtest/bin/python -c "
+   from neurocad.core.engine.lib.llm.route import router
+   for r in router.routes:
+       print(r.path, getattr(r, 'methods', ''))
+   "
+   ```
+   Ожидается:
+   ```
+   /llm/agents/_01_generate_logo/generate {'POST'}
+   ```
+
+2. Проверить эндпоинт через TestClient или curl:
+   ```python
+   from fastapi.testclient import TestClient
+   from neurocad import NeuroCad
+   client = TestClient(NeuroCad())
+   resp = client.post(
+       "/core/engine/lib/llm/agents/_01_generate_logo/generate",
+       json={"prompt": "Нейрокад — CMS нового поколения", "alt": "Нейрокад"},
+   )
+   print(resp.status_code, resp.json())
+   ```
+   Нужен authenticated user (cookie / Bearer). Если 401 — сначала
+   логин через `/core/auth/login`.
+
+3. Сравнить ответ с **легаси-эндпоинтом**
+   `POST /word/editor/images/generate` — должен совпадать по
+   структуре: `{id, file, url, bytes}`.
+
+4. Когда новый эндпоинт заработает:
+   - переключить UI (`pages/logo.js`) на новый URL — **одной
+     строкой**;
+   - убедиться, что кнопка «Генерировать» в форме карточки
+     по-прежнему работает;
+   - удалить легаси `route.py` из `word/editor/images/`, если он
+     больше нигде не нужен.
+
+## Что **не** делаем в этой итерации
+
+- **Роутер (`router.py`)** — не трогаем. `generate_logo` — не
+  агент чата, он вызывается по кнопке. Роутер не должен знать
+  про него.
+- **WS, dispatch, provider** — не трогаем. `get_provider` пока
+  остаётся в `utils/llm/factory.py`. Перенос провайдеров в
+  `llm/providers/` — отдельная сессия.
+- **`chat/`** — не трогаем. Чат живёт в `word/chat/`, WS — в
+  `word/llm/websocket/`. Переезд чата — отдельная сессия.
+- **Остальные 14 агентов** — не трогаем. По одному, потом.
+- **`registry.py`** — не нужен, пока один агент.
+- **`service.py`** — не переделываем в `agent.py` обратно. Сервис
+  — это и есть агент (LLM-логика).
+
+## Ключевые файлы (для справки)
+
+- `core/engine/lib/llm/agents/_01_generate_logo/prompt.py`
+- `core/engine/lib/llm/agents/_01_generate_logo/service.py`
+- `core/engine/lib/llm/agents/_01_generate_logo/schema.py`
+- `core/engine/lib/llm/agents/_01_generate_logo/route.py`
+- `core/engine/lib/llm/agents/_01_generate_logo/README.md`
+- `core/engine/lib/llm/agents/route.py`
+- `core/engine/lib/llm/route.py`
+- `core/engine/lib/route.py`
+
+## Известные проблемы и решения по ходу
+
+| Проблема | Причина | Решение |
+|---|---|---|
+| `ModuleNotFoundError: ...llm.agents.base` | не было `base.py` | удалили `base.py` вообще — агент без родителя |
+| `ImportError: cannot import name 'router'` | внутри `route.py` падал импорт `Service` | переименовали класс в `service.py`, починили импорт |
+| `ImportError: cannot import name '...Service'` | `service.py` содержал класс `...Agent` | `sed 's/Agent/Service/g'` + ручная проверка |
+| `schema.py` пустой | при копировании потерялось содержимое | перезаписали полным файлом |
+
 *Конец документа. Обновляется в конце каждой сессии.*

@@ -11,7 +11,7 @@
  * The button:
  *   1. reads the current "title" and "description" from the form
  *      (through getAllValues);
- *   2. POSTs to /core/engine/lib/word/editor/images/generate;
+ *   2. POSTs to /core/engine/lib/llm/agents/_01_generate_logo/generate;
  *   3. on success — writes the returned URL into the media field
  *      (setValue) so the hidden input and the preview update;
  *   4. on failure — shows the error under the field (showError).
@@ -48,7 +48,7 @@ export function makeLogoGeneratorButton() {
 
             try {
                 const res = await fetch(
-                    '/core/engine/lib/word/editor/images/generate',
+                    '/core/engine/lib/llm/agents/_01_generate_logo/generate',
                     {
                         method: 'POST',
                         credentials: 'same-origin',

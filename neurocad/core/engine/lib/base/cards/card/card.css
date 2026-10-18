@@ -115,12 +115,19 @@
  * data attribute carries no real id — so it is not selectable, not
  * deletable, and its only action is "go one level up".
  *
- * Visually it reads as a control, not as content:
- *   - muted / soft background;
- *   - dashed border instead of solid;
- *   - an "up arrow" glyph on the left;
- *   - no hover lift — it slides left slightly instead, hinting
- *     at "go up".
+ * Layout: centered. The inner content (.pages-up) is a vertical
+ * flex column with the icon on top and the label beneath it, and
+ * it is centered both horizontally and vertically inside the card.
+ *
+ * The centering is done in two steps:
+ *   - this card itself uses justify-content: center so the
+ *     .card-content-custom wrapper fills the height;
+ *   - .card-content-custom (below) is centered as well, so the
+ *     .pages-up block — which is its only child — lands in the
+ *     middle of the card.
+ *
+ * No hover lift — the card slides left slightly instead, hinting
+ * at "go up".
  *
  * The class is added in render.js (see renderItem → cardOptions.customClass).
  */
@@ -131,8 +138,12 @@
     border-color: #cbd5e1;
     color: #64748b;
     justify-content: center;
-    align-items: flex-start;
-    text-align: left;
+    align-items: stretch;
+}
+
+.core-engine-lib-base-cards-card.card-up .card-content-custom {
+    justify-content: center;
+    align-items: center;
 }
 
 .core-engine-lib-base-cards-card.card-up:hover {
@@ -208,6 +219,18 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
+}
+
+/* Centered variant — for custom renders whose content is a single
+   "tile" block: folder icon + label, up-card arrow + label, and
+   similar. Centers the tile horizontally and vertically inside
+   the card. Ordinary content (article card with logo + text)
+   does NOT get this modifier and keeps its top-down flow.
+   The class is added by card.js → _buildContent() when the caller
+   passes options.contentClass = 'card-content-custom--centered'. */
+.core-engine-lib-base-cards-card .card-content-custom--centered {
+    justify-content: center;
+    align-items: center;
 }
 
 /* Nav: Папка */
@@ -342,18 +365,18 @@
 @media print {
     .core-engine-lib-base-cards-card {
         border-color: #999;
-        box-shadow: none !important;
-        transform: none !important;
+        box-shadow: none;
+        transform: none;
         min-height: 60px;
         break-inside: avoid;
-        background: white !important;
+        background: white;
         border-width: 1px;
     }
 
     .core-engine-lib-base-cards-card.selected {
         outline: 2px solid #000;
-        box-shadow: none !important;
-        transform: none !important;
+        box-shadow: none;
+        transform: none;
     }
 
     .core-engine-lib-base-cards-card.selected::before {

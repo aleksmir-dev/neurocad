@@ -21,6 +21,17 @@ export class BaseCardsCard {
         this.renderIcon = options.renderIcon || null;
         this.customClass = options.customClass || null;
 
+        // Additional class(es) applied to the .card-content wrapper
+        // (the inner container that holds the custom render output).
+        // Used by callers whose content is a single centered "tile"
+        // (folder icon + label, up-card arrow + label) to request
+        // horizontal + vertical centering — the actual centering
+        // rules live in card.css → .card-content-custom--centered.
+        //
+        // Default is null → no extra class → ordinary top-down
+        // layout, unchanged for all existing callers.
+        this.contentClass = options.contentClass || null;
+
         this.element = null;
         this.isSelected = false;
 
@@ -138,10 +149,31 @@ export class BaseCardsCard {
         return this.element;
     }
 
+    /**
+     * Build the wrapper that holds either the custom render output
+     * (renderContent) or the default field list.
+     *
+     * When a custom render is used, the wrapper gets the base class
+     * `card-content card-content-custom` plus whatever extra classes
+     * the caller passed via `options.contentClass`.
+     *
+     * Callers whose content is a single centered tile pass
+     * `contentClass: 'card-content-custom--centered'`; the actual
+     * centering rules live in card.css. This keeps the JS free of
+     * layout decisions and lets plain article cards (logo + text)
+     * keep their top-down flow untouched.
+     */
     _buildContent() {
         if (typeof this.renderContent === 'function') {
             const wrapper = document.createElement('div');
             wrapper.className = 'card-content card-content-custom';
+
+            if (this.contentClass) {
+                String(this.contentClass)
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .forEach(cls => wrapper.classList.add(cls));
+            }
 
             try {
                 const html = this.renderContent(this.item);

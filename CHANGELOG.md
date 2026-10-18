@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.33] - 2026-10-17
+- New `lib/llm` layer: the `generate_logo` agent moved out of `word/llm/` into a self-contained package `core/engine/lib/llm/agents/_01_generate_logo/` (`prompt.py` + `service.py` + `schema.py` + `route.py` + `README.md`), exposed via a drop-in HTTP endpoint `POST /core/engine/lib/llm/agents/_01_generate_logo/generate` that replaces the legacy `/word/editor/images/generate` for the logo button in the page form; legacy endpoint and the old `word/llm/agent/generate_logo.py` are kept until the new one is verified in production.
+
 ## [1.0.32] - 2026-10-16
 - **`botinv`: chat and MAX-bot cleanup.** Candidate list in both channels (web chat and MAX bot) is now only rows and buttons — no header, no plural hint, no "Всего найдено N". Inline buttons in the web chat use the primary blue gradient with white bold text and a raised shadow, sized for touch on mobile; the MAX bot uses the same layout. Single substring hits are no longer marked automatically — the service always returns `ambiguous` (1..CANDIDATE_LIMIT candidates) and only marks when called with `chosen_id`, so the user confirms by tapping a button in both channels. `_mark_item` writes «Отмечено в каб. X» instead of «Отмечена», and a repeat no longer starts the note with a stray `;`. The MAX webhook logs `user_id`, `username` and `name` on every `/start`.
 
@@ -134,6 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.33]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.32...v1.0.33
 [1.0.32]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.31...v1.0.32
 [1.0.31]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.30...v1.0.31
 [1.0.30]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.29...v1.0.30
