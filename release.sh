@@ -9,8 +9,9 @@
 # Ничего не удаляется автоматически.
 
 set -e  # stop on any error
+trap '' PIPE
 
-VERSION="1.0.33"
+VERSION="1.0.34"
 TAG="v${VERSION}"
 
 # Папки, которые не должны лежать в корне проекта.

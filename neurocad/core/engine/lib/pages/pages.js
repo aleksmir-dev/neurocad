@@ -335,8 +335,8 @@ export class Pages {
                 // dropdowns (template_id, creative_id) to the arrays
                 // loaded above.
                 fields: buildFields({
-                    templates: this._templates,
-                    creatives: this._creatives,
+                    templates: () => this._templates,
+                    creatives: () => this._creatives,
                     makeLogoGeneratorButton,
                 }),
 

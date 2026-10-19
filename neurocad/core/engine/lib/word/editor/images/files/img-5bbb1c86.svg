@@ -1,0 +1,1 @@
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><path d="M64 20 L74 50 L104 50 L80 68 L90 98 L64 80 L38 98 L48 68 L24 50 L54 50 Z" fill="var(--theme-accent, #3b82f6)"/><circle cx="64" cy="64" r="10" fill="var(--theme-bg-soft, #f1f5f9)"/><path d="M64 54 L64 74 M54 64 L74 64" stroke="var(--theme-text, #1e293b)" stroke-width="4" stroke-linecap="round"/></svg>

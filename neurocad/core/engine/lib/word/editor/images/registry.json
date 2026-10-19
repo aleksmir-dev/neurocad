@@ -1264,6 +1264,134 @@
       "source": "logo",
       "builtin": false,
       "order": 1600
+    },
+    {
+      "id": "img-80c6f121",
+      "alt": "Первые шаги",
+      "file": "files/img-80c6f121.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1610
+    },
+    {
+      "id": "img-5864f021",
+      "alt": "Первые шаги",
+      "file": "files/img-5864f021.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1620
+    },
+    {
+      "id": "img-92b9e95d",
+      "alt": "Первые шаги",
+      "file": "files/img-92b9e95d.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1630
+    },
+    {
+      "id": "img-9ac010d5",
+      "alt": "Первые шаги",
+      "file": "files/img-9ac010d5.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1640
+    },
+    {
+      "id": "img-5bbb1c86",
+      "alt": "Первые шаги",
+      "file": "files/img-5bbb1c86.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1650
+    },
+    {
+      "id": "img-c0035a13",
+      "alt": "Первые шаги",
+      "file": "files/img-c0035a13.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1660
+    },
+    {
+      "id": "img-e44c840f",
+      "alt": "Первые шаги",
+      "file": "files/img-e44c840f.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1670
+    },
+    {
+      "id": "img-47bd6a3c",
+      "alt": "Первые шаги",
+      "file": "files/img-47bd6a3c.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1680
+    },
+    {
+      "id": "img-e448d708",
+      "alt": "Первые шаги",
+      "file": "files/img-e448d708.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1690
+    },
+    {
+      "id": "img-e82a5ae0",
+      "alt": "Первые шаги",
+      "file": "files/img-e82a5ae0.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1700
+    },
+    {
+      "id": "img-7a00b01b",
+      "alt": "Первые шаги",
+      "file": "files/img-7a00b01b.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1710
+    },
+    {
+      "id": "img-36c9dd26",
+      "alt": "Первые шаги",
+      "file": "files/img-36c9dd26.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1720
+    },
+    {
+      "id": "img-fc7d50c7",
+      "alt": "Первые шаги",
+      "file": "files/img-fc7d50c7.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1730
+    },
+    {
+      "id": "img-d2a49d60",
+      "alt": "Первые шаги",
+      "file": "files/img-d2a49d60.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1740
+    },
+    {
+      "id": "img-8b1d440b",
+      "alt": "Первые шаги",
+      "file": "files/img-8b1d440b.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1750
+    },
+    {
+      "id": "img-d4af4d69",
+      "alt": "Первые шаги",
+      "file": "files/img-d4af4d69.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1760
     }
   ]
 }

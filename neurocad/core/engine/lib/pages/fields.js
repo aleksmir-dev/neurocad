@@ -100,10 +100,13 @@ export function buildFields({ templates, creatives, makeLogoGeneratorButton }) {
             label: 'Наследовать от',
             type: 'select',
             valueType: 'number',
-            options: () => templates.map(t => ({
-                value: t.id,
-                label: t.title,
-            })),
+            options: () => {
+                const list = typeof templates === 'function' ? templates() : templates;
+                return list.map(t => ({
+                    value: t.id,
+                    label: t.title,
+                }));
+            },
             placeholder: '— Без шаблона —',
         },
 
@@ -132,12 +135,15 @@ export function buildFields({ templates, creatives, makeLogoGeneratorButton }) {
             label: 'Креатив',
             type: 'select',
             valueType: 'number',
-            options: () => creatives.map(c => ({
-                value: c.id,
-                label: c.is_active
-                    ? c.name
-                    : `${c.name} (неактивен)`,
-            })),
+            options: () => {
+                const list = typeof creatives === 'function' ? creatives() : creatives;
+                return list.map(c => ({
+                    value: c.id,
+                    label: c.is_active
+                        ? c.name
+                        : `${c.name} (неактивен)`,
+                }));
+            },
             placeholder: '— Без креатива —',
         },
 

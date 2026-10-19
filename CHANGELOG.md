@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.34] - 2026-10-19
+- Fixed template selection in the page editor: the "Наследовать от" dropdown now always shows the current list of templates (previously it could show a stale or empty list if templates were loaded after the form was initialized).
+
 ## [1.0.33] - 2026-10-17
 - New `lib/llm` layer: the `generate_logo` agent moved out of `word/llm/` into a self-contained package `core/engine/lib/llm/agents/_01_generate_logo/` (`prompt.py` + `service.py` + `schema.py` + `route.py` + `README.md`), exposed via a drop-in HTTP endpoint `POST /core/engine/lib/llm/agents/_01_generate_logo/generate` that replaces the legacy `/word/editor/images/generate` for the logo button in the page form; legacy endpoint and the old `word/llm/agent/generate_logo.py` are kept until the new one is verified in production.
 
@@ -137,6 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.34]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.33...v1.0.34
 [1.0.33]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.32...v1.0.33
 [1.0.32]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.31...v1.0.32
 [1.0.31]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.30...v1.0.31
