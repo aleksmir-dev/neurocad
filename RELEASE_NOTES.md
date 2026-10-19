@@ -1,6 +1,6 @@
 # RELEASE-NOTES.md
 
-## neurocad 1.0.34
+## neurocad 1.0.35
 
 Release date: 2026-10-19
 
@@ -8,8 +8,8 @@ Release date: 2026-10-19
 
 ### English
 
-- **Fixed template selection in the page editor.** The "Inherit from" dropdown now always shows the current list of templates, resolving an issue where it could display a stale or empty list.
+- **Persisted folder navigation in the article catalog.** The catalog now remembers the last opened folder and restores it after a page reload or navigating back from an article, instead of always returning to the root.
 
 ### Русский
 
-- **Исправлен выбор шаблона в редакторе страницы.** Выпадающий список «Наследовать от» теперь всегда показывает актуальный список шаблонов, устраняя проблему, когда он мог отображать устаревший или пустой список.
+- **Сохранена навигация по папкам в каталоге статей.** Каталог теперь запоминает последнюю открытую папку и восстанавливает её после перезагрузки страницы или возврата из статьи, вместо того чтобы всегда возвращаться в корень.

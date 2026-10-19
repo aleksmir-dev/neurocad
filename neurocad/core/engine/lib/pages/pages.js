@@ -182,6 +182,13 @@ export class Pages {
         // Absolute URL of the public catalog for the CURRENT user.
         this._publicPagesUrl = '/pages';
 
+        // Storage key for the currently open folder.
+        // Using navId ensures different sites (navs) don't share
+        // folder state.
+        this._parentStorageKey = this.navId
+            ? `pages_parent_${this.navId}`
+            : 'pages_parent_default';
+
         // Sub-modules (loaded in _init).
         this._utils  = null;   // utils.js
         this._loader = null;   // loader.js
@@ -303,10 +310,19 @@ export class Pages {
             // Set header/tab title from Nav.name.
             await this._title.loadCaption();
 
+            // Restore the last opened folder from localStorage.
+            const storedParentId = localStorage.getItem(this._parentStorageKey);
+            const initialParentId = storedParentId
+                ? parseInt(storedParentId, 10)
+                : null;
+
             this.cardsInstance = new BaseCards(this.container, {
                 items: this.props.items || [],
                 isLoading: this.props.isLoading || false,
                 error: this.props.error || null,
+
+                // Restore folder state
+                parentId: initialParentId,
 
                 // ===== WIDGET CHROME =====
                 // Both bars are hidden by default on BaseCards.
@@ -610,11 +626,12 @@ export class Pages {
      * from props.items — the new list is its own children.
      *
      * Order:
-     *   1. statusbar.sync(parentId, old items) — push/truncate trail;
-     *   2. loadFromServer() — fetch new items for parentId;
-     *   3. loadTemplates() / loadCreatives() — refresh dropdowns;
-     *   4. updateProps() — re-render the grid with the new items;
-     *   5. statusbar.render() — paint titlebar + trail with the
+     *   1. Save current folder to localStorage
+     *   2. statusbar.sync(parentId, old items) — push/truncate trail;
+     *   3. loadFromServer() — fetch new items for parentId;
+     *   4. loadTemplates() / loadCreatives() — refresh dropdowns;
+     *   5. updateProps() — re-render the grid with the new items;
+     *   6. statusbar.render() — paint titlebar + trail with the
      *      updated state (titlebar shows the last crumb, which is
      *      the folder we just entered).
      */
@@ -625,7 +642,17 @@ export class Pages {
                         || this.props.items
                         || []).length;
 
-        // ---- 1. Chrome FIRST: sync trail against the OLD items.
+        // ---- 1. Save current folder state to localStorage.
+        if (this.cardsInstance) {
+            const currentFolder = this.cardsInstance.parentId;
+            if (currentFolder) {
+                localStorage.setItem(this._parentStorageKey, currentFolder);
+            } else {
+                localStorage.removeItem(this._parentStorageKey);
+            }
+        }
+
+        // ---- 2. Chrome FIRST: sync trail against the OLD items.
         // The folder the user just opened is in props.items (it was
         // rendered as a card one level up). After the next line it
         // will be replaced by the folder's own children, and the
@@ -635,16 +662,16 @@ export class Pages {
             this._statusbar.sync(this.cardsInstance?.parentId, this.props.items);
         }
 
-        // ---- 2. Fetch the new items for the current parentId.
+        // ---- 3. Fetch the new items for the current parentId.
         await this._loader.loadFromServer(this);
 
-        // ---- 3. Refresh the dropdown sources.
+        // ---- 4. Refresh the dropdown sources.
         if (this._utils.canEdit()) {
             await this._loader.loadTemplates(this);
             await this._loader.loadCreatives(this);
         }
 
-        // ---- 4. Push the new items into the grid.
+        // ---- 5. Push the new items into the grid.
         if (this.cardsInstance) {
             await this.cardsInstance.updateProps({
                 items: this.props.items,
@@ -654,7 +681,7 @@ export class Pages {
             });
         }
 
-        // ---- 5. Paint the chrome with the freshly-synced trail.
+        // ---- 6. Paint the chrome with the freshly-synced trail.
         if (this._statusbar) {
             this._statusbar.render();
         }
