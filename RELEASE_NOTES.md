@@ -1,6 +1,6 @@
 # RELEASE-NOTES.md
 
-## neurocad 1.0.35
+## neurocad 1.0.36
 
 Release date: 2026-10-19
 
@@ -8,8 +8,8 @@ Release date: 2026-10-19
 
 ### English
 
-- **Persisted folder navigation in the article catalog.** The catalog now remembers the last opened folder and restores it after a page reload or navigating back from an article, instead of always returning to the root.
+- **Fixed HTML import and code injection in template mode.** Resolved an issue where importing a page or applying HTML via the `<>` modal would break the base template (the iframe would detach from its slot). The editor now correctly repositions the rendered content back into the template's slot, preserving the layout.
 
 ### Русский
 
-- **Сохранена навигация по папкам в каталоге статей.** Каталог теперь запоминает последнюю открытую папку и восстанавливает её после перезагрузки страницы или возврата из статьи, вместо того чтобы всегда возвращаться в корень.
+- **Исправлен импорт HTML и вставка кода в режиме шаблона.** Устранена проблема, из-за которой при импорте страницы или применении HTML через модалку `<>` ломался базовый шаблон (iframe «отвязывался» от своего слота). Теперь редактор корректно возвращает отрендеренный контент на место в слот шаблона, сохраняя вёрстку.

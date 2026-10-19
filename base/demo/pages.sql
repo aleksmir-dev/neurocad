@@ -1,5 +1,5 @@
 -- Demo data: pages
--- Rows: 84
+-- Rows: 85
 
 PRAGMA foreign_keys = OFF;
 
@@ -45481,7 +45481,1231 @@ INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo",
 }
 
 * { box-sizing: border-box; } body {margin: 0;}', NULL, 'page', NULL, 0);
-INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url", "card_type", "parent_id", "sort_order") VALUES (84, 8, '2026-10-18 18:06:43.266679', 'Работа в конструкторе', '', '', NULL, NULL, 1, 0, '2026-10-18 18:06:43.266710', '2026-10-18 18:10:09.730058', NULL, 1, NULL, NULL, NULL, 'page', 75, 0);
+INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url", "card_type", "parent_id", "sort_order") VALUES (84, 8, '2026-10-18 18:06:43.266679', 'Работа в конструкторе', '', '', '<body><input type="checkbox" id="doc-sidebar-toggle" hidden class="doc-sidebar-toggle"/><!-- ============================================ --><!-- NAV — шапка документации                     --><!-- ============================================ --><header class="doc-nav"><div class="doc-nav__inner"><a href="/" class="doc-nav__brand"><span class="doc-nav__brand-mark"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span><span class="doc-nav__brand-text">Документация</span></a><label for="doc-sidebar-toggle" aria-label="Открыть меню" id="i7081" class="doc-nav__burger"><span class="doc-nav__burger-line"></span><span id="izf8d" class="doc-nav__burger-line"></span><span id="ivdwx" class="doc-nav__burger-line"></span></label></div></header><!-- ============================================ --><!-- LAYOUT — sidebar + контент                   --><!-- ============================================ --><div id="iymyi" class="doc-layout"><!-- Подложка (затемнение) — клик закрывает меню --><label for="doc-sidebar-toggle" aria-hidden="true" class="doc-sidebar-backdrop"></label><!-- ============================================ --><!-- SIDEBAR — боковая навигация                  --><!-- ============================================ --><aside class="doc-sidebar"><div class="doc-sidebar__inner"><div class="doc-sidebar__head"><span class="doc-sidebar__title">Разделы</span><label for="doc-sidebar-toggle" aria-label="Закрыть меню" class="doc-sidebar__close"><span></span><span></span></label></div><nav aria-label="Разделы документации" class="doc-sidebar__nav"><ul class="doc-sidebar__list"><li class="doc-sidebar__group"><span class="doc-sidebar__group-title">Агенты</span><ul class="doc-sidebar__sublist"><li><a href="/page/20261008/182629" id="i2oan" class="doc-sidebar__link doc-sidebar__link--active">Работа в конструкторе</a></li><li><a href="/page/20261009/060326" id="io5q5" class="doc-sidebar__link">Первые шаги</a></li><li></li></ul></li></ul></nav></div></aside><!-- ============================================ --><!-- CONTENT — сюда конструктор вставит статью    --><!-- ============================================ --><main data-slot="content" class="doc-content"><!-- PLACEHOLDER: здесь будет статья --></main></div><!-- ============================================ --><!-- FOOTER — готовый блок конструктора           --><!-- ============================================ --><footer data-block="core-footer" class="section footer"><div class="container footer__inner"><div data-footer-brand="" class="footer__brand">© 2026 doc.neurocad.ru</div><nav class="footer__nav"><a href="/policy" class="footer__link">Политика</a><a href="/rules" class="footer__link">Правила</a></nav></div></footer></body>', '{"assets":[],"styles":[{"selectors":["core-engine-lib-word-blocks"],"style":{"--theme-bg":"#ffffff","--theme-bg-subtle":"#f8fafc","--theme-bg-dark":"#0f172a","--theme-bg-hover":"#f1f5f9","--theme-text":"#1e293b","--theme-text-muted":"#64748b","--theme-text-invert":"#ffffff","--theme-accent":"#246eaa","--theme-accent-hover":"#1e5a8a","--theme-accent-soft":"#e0edf7","--theme-border":"#e2e8f0","--theme-border-strong":"#cbd5e1","--theme-success":"#16a34a","--theme-warning":"#d97706","--theme-danger":"#dc2626","--theme-shadow-sm":"0 1px 3px rgba(15, 23, 42, 0.06)","--theme-shadow-md":"0 4px 12px rgba(15, 23, 42, 0.08)","--theme-shadow-lg":"0 12px 32px rgba(15, 23, 42, 0.12)","--theme-font-family":"''Inter'', ''Golos Text'', sans-serif","--theme-font-size-xs":"0.75rem","--theme-font-size-sm":"0.875rem","--theme-font-size-base":"1rem","--theme-font-size-lg":"1.125rem","--theme-font-size-xl":"1.25rem","--theme-font-size-2xl":"1.5rem","--theme-font-size-3xl":"2rem","--theme-font-size-4xl":"2.5rem","--theme-font-weight-regular":"400","--theme-font-weight-medium":"500","--theme-font-weight-semibold":"600","--theme-font-weight-bold":"700","--theme-line-height-tight":"1.25","--theme-line-height-base":"1.6","--theme-line-height-loose":"1.8","--theme-radius-sm":"0.25rem","--theme-radius-md":"0.5rem","--theme-radius-lg":"0.75rem","--theme-radius-xl":"1rem","--theme-radius-pill":"9999px","--theme-space-1":"0.25rem","--theme-space-2":"0.5rem","--theme-space-3":"0.75rem","--theme-space-4":"1rem","--theme-space-5":"1.25rem","--theme-space-6":"1.5rem","--theme-space-8":"2rem","--theme-space-10":"2.5rem","--theme-space-12":"3rem","--theme-space-16":"4rem","--theme-space-20":"5rem","--theme-space-section":"4rem","--theme-space-gutter":"1rem","--theme-space-grid":"1rem","--theme-container-max":"75rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h1","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-4xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.02em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h2","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-3xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.01em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h3","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-2xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--muted","style":{"color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--center","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .lead","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","padding-left":"var(--theme-space-6)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li","style":{"margin-bottom":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li::marker","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","padding-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li","style":{"position":"relative","padding-left":"var(--theme-space-6)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li::before","style":{"content":"\"✓\"","position":"absolute","left":"0px","top":"0px","color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-bold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"decimal"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num li::marker","style":{"color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-semibold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn","style":{"display":"inline-flex","align-items":"center","justify-content":"center","row-gap":"","column-gap":"","padding-top":"","padding-right":"","padding-bottom":"","padding-left":"","border-top-width":"2px","border-right-width":"2px","border-bottom-width":"2px","border-left-width":"2px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-image-source":"none","border-image-slice":"100%","border-image-width":"1","border-image-outset":"0","border-image-repeat":"stretch","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-semibold)","line-height":"1.2","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","text-align":"center","white-space-collapse":"collapse","text-wrap-mode":"nowrap","cursor":"pointer","background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":"","color":"var(--theme-text-invert)","border-top-color":"","border-right-color":"","border-bottom-color":"","border-left-color":"","transition-behavior":"normal, normal, normal","transition-duration":"0.15s, 0.15s, 0.1s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"background, border-color, transform"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:hover","style":{"background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":"","border-top-color":"","border-right-color":"","border-bottom-color":"","border-left-color":"","color":"var(--theme-text-invert)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:active","style":{"transform":"translateY(1px)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost","style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"transparent","color":"var(--theme-accent)","border-top-color":"","border-right-color":"","border-bottom-color":"","border-left-color":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost:hover","style":{"background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":"","color":"var(--theme-accent)","border-top-color":"","border-right-color":"","border-bottom-color":"","border-left-color":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card","style":{"padding-top":"","padding-right":"","padding-bottom":"","padding-left":"","background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":"","border-top-color":"","border-top-style":"","border-top-width":"","border-right-color":"","border-right-style":"","border-right-width":"","border-bottom-color":"","border-bottom-style":"","border-bottom-width":"","border-left-color":"","border-left-style":"","border-left-width":"","border-image-source":"","border-image-slice":"","border-image-width":"","border-image-outset":"","border-image-repeat":"","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":"","box-shadow":"var(--theme-shadow-sm)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__title","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__text","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .badge","style":{"display":"inline-block","padding-top":"","padding-right":"","padding-bottom":"","padding-left":"","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":"","background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":"","color":"var(--theme-accent)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","font-weight":"var(--theme-font-weight-medium)","line-height":"1.4"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .quote","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","padding-top":"","padding-right":"","padding-bottom":"","padding-left":"","border-left-width":"","border-left-style":"","border-left-color":"","background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":"","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-style":"italic","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image","style":{"display":"block","max-width":"100%","height":"auto","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":"","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .icon","style":{"display":"inline-block","width":"1.5em","height":"1.5em","vertical-align":"middle","color":"var(--theme-accent)","flex-shrink":"0"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .divider","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","border-top-width":"medium","border-right-width":"medium","border-bottom-width":"medium","border-left-width":"medium","border-top-style":"none","border-right-style":"none","border-bottom-style":"none","border-left-style":"none","border-top-color":"currentcolor","border-right-color":"currentcolor","border-bottom-color":"currentcolor","border-left-color":"currentcolor","border-image-source":"none","border-image-slice":"100%","border-image-width":"1","border-image-outset":"0","border-image-repeat":"stretch","height":"1px","background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .section","style":{"padding-top":"var(--theme-space-section)","padding-bottom":"var(--theme-space-section)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .container","style":{"width":"100%","max-width":"var(--theme-container-max)","margin-left":"auto","margin-right":"auto","padding-left":"var(--theme-space-gutter)","padding-right":"var(--theme-space-gutter)","box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid","style":{"display":"grid","row-gap":"","column-gap":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2","style":{"grid-template-columns":"repeat(2, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--3","style":{"grid-template-columns":"repeat(3, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"repeat(4, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--auto","style":{"grid-template-columns":"repeat(auto-fit, minmax(15rem, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .col","style":{"min-width":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"minmax(0px, 1fr)"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .hero__inner","style":{"display":"flex","flex-direction":"column","align-items":"center","text-align":"center","row-gap":"","column-gap":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .hero__title","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","max-width":"48rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .hero__lead","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","max-width":"40rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .hero__btn","style":{"margin-top":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .features__title","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .features__item","style":{"height":"100%"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .steps__title","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .steps__item","style":{"display":"flex","flex-direction":"column","row-gap":"","column-gap":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .steps__num","style":{"display":"inline-flex","align-items":"center","justify-content":"center","width":"2.5rem","height":"2.5rem","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":"","background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":"","color":"var(--theme-accent)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-bold)","margin-bottom":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .steps__item-title","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text-image__grid","style":{"align-items":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text-image__text","style":{"display":"flex","flex-direction":"column","row-gap":"","column-gap":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text-image__media","style":{"display":"flex","align-items":"center","justify-content":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text-image__media .image","style":{"width":"100%"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image-text__grid","style":{"align-items":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image-text__text","style":{"display":"flex","flex-direction":"column","row-gap":"","column-gap":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image-text__media","style":{"display":"flex","align-items":"center","justify-content":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image-text__media .image","style":{"width":"100%"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .gallery__title","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .gallery__item","style":{"width":"100%","aspect-ratio":"4 / 3","object-fit":"cover"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__title","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__list","style":{"display":"flex","flex-direction":"column","row-gap":"","column-gap":"","max-width":"48rem","margin-left":"auto","margin-right":"auto"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__item","style":{"padding-bottom":"var(--theme-space-5)","border-bottom-width":"","border-bottom-style":"","border-bottom-color":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__item:last-child","style":{"padding-bottom":"0px","border-bottom-width":"medium","border-bottom-style":"none","border-bottom-color":"currentcolor"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__question","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__answer","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .cta","style":{"background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":"","color":"var(--theme-text, #1e293b)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .cta__inner","style":{"display":"flex","flex-direction":"column","align-items":"center","text-align":"center","row-gap":"","column-gap":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .cta__title","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","color":"var(--theme-text, #1e293b)","max-width":"48rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .cta__text","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","color":"var(--theme-text-muted, #64748b)","max-width":"40rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .cta__btn","style":{"margin-top":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .contacts__title","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .contacts__item","style":{"display":"flex","flex-direction":"column","row-gap":"","column-gap":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .contacts__label","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","font-weight":"var(--theme-font-weight-medium)","text-transform":"uppercase","letter-spacing":"0.05em","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .contacts__value","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-medium)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer","style":{"background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":"","color":"var(--theme-text, #1e293b)","padding-top":"var(--theme-space-6)","padding-bottom":"var(--theme-space-6)","border-top-width":"","border-top-style":"","border-top-color":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__inner","style":{"display":"flex","flex-wrap":"wrap","align-items":"center","justify-content":"space-between","row-gap":"","column-gap":""}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__brand","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","color":"var(--theme-text, #1e293b)","opacity":"0.75","min-width":"0px","overflow-x":"hidden","overflow-y":"hidden","text-overflow":"ellipsis","white-space-collapse":"collapse","text-wrap-mode":"nowrap"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__nav","style":{"display":"inline-flex","flex-wrap":"wrap","align-items":"center","row-gap":"","column-gap":"","flex-shrink":"0"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__link","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","color":"var(--theme-text, #1e293b)","opacity":"0.75","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","border-bottom-width":"medium","border-bottom-style":"none","border-bottom-color":"currentcolor","white-space-collapse":"collapse","text-wrap-mode":"nowrap","transition-behavior":"normal, normal","transition-duration":"0.15s, 0.15s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"opacity, color"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__link:hover","style":{"opacity":"1","color":"var(--theme-accent, #3b82f6)","text-decoration-line":"underline","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","text-underline-offset":"2px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__inner","style":{"flex-direction":"column","align-items":"center","text-align":"center","row-gap":"","column-gap":""},"mediaText":"(max-width: 560px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__brand","style":{"white-space-collapse":"collapse","text-wrap-mode":"wrap","text-align":"center","overflow-x":"visible","overflow-y":"visible","text-overflow":"clip"},"mediaText":"(max-width: 560px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__nav","style":{"justify-content":"center"},"mediaText":"(max-width: 560px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__heading","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog","style":{"display":"grid","grid-template-columns":"repeat(auto-fill, minmax(320px, 1fr))","row-gap":"","column-gap":"","align-content":"start"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card","style":{"position":"relative","display":"grid","grid-template-columns":"104px 1fr","row-gap":"","column-gap":"","align-items":"start","padding-top":"","padding-right":"","padding-bottom":"","padding-left":"","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":"","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgba(255, 255, 255, 0.72)","backdrop-filter":"blur(20px)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(255, 255, 255, 0.6)","border-right-color":"rgba(255, 255, 255, 0.6)","border-bottom-color":"rgba(255, 255, 255, 0.6)","border-left-color":"rgba(255, 255, 255, 0.6)","border-image-source":"none","border-image-slice":"100%","border-image-width":"1","border-image-outset":"0","border-image-repeat":"stretch","box-shadow":"rgba(15, 23, 42, 0.04) 0px 4px 16px, rgba(15, 23, 42, 0.06) 0px 1px 3px","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","color":"inherit","overflow-x":"hidden","overflow-y":"hidden","transition-behavior":"normal, normal, normal","transition-duration":"0.3s, 0.3s, 0.3s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"transform, box-shadow, background"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card:hover","style":{"transform":"translateY(-4px)","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgba(255, 255, 255, 0.95)","box-shadow":"rgba(59, 130, 246, 0.12) 0px 12px 32px, rgba(15, 23, 42, 0.08) 0px 4px 12px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card:active","style":{"transform":"translateY(-2px) scale(0.99)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__glow","style":{"position":"absolute","top":"0px","right":"0px","bottom":"0px","left":"0px","border-top-left-radius":"inherit","border-top-right-radius":"inherit","border-bottom-right-radius":"inherit","border-bottom-left-radius":"inherit","opacity":"0","background-image":"","background-position-x":"","background-position-y":"","background-size":"","background-repeat":"","background-attachment":"","background-origin":"","background-clip":"","background-color":"","transition-behavior":"normal","transition-duration":"0.4s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"opacity","pointer-events":"none","z-index":"0"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__glow","style":{"opacity":"1"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__logo","style":{"position":"relative","width":"104px","height":"104px","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":"","overflow-x":"hidden","overflow-y":"hidden","background-image":"linear-gradient(135deg, rgb(224, 231, 255) 0%, rgb(243, 232, 255) 100%)","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","z-index":"1"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__logo img","style":{"width":"100%","height":"100%","object-fit":"cover","display":"block","transition-behavior":"normal","transition-duration":"0.5s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"transform"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__logo img","style":{"transform":"scale(1.05)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__body","style":{"position":"relative","z-index":"1","min-width":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__title","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"1.25","color":"var(--theme-text, #0f172a)","letter-spacing":"-0.01em","display":"-webkit-box","-webkit-line-clamp":"3","-webkit-box-orient":"vertical","overflow-x":"hidden","overflow-y":"hidden"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__title","style":{"color":"var(--theme-accent, #3b82f6)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__desc","style":{"margin-top":"","margin-right":"","margin-bottom":"","margin-left":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","line-height":"1.5","color":"var(--theme-text-muted, #64748b)","display":"-webkit-box","-webkit-line-clamp":"4","-webkit-box-orient":"vertical","overflow-x":"hidden","overflow-y":"hidden"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__date","style":{"display":"block","margin-top":"var(--theme-space-2)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","font-weight":"var(--theme-font-weight-medium)","color":"var(--theme-text-muted, #94a3b8)","letter-spacing":"0.02em","text-transform":"uppercase","white-space-collapse":"collapse","text-wrap-mode":"nowrap","overflow-x":"hidden","overflow-y":"hidden","text-overflow":"ellipsis"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog","style":{"grid-template-columns":"1fr","row-gap":"","column-gap":""},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card","style":{"padding-top":"","padding-right":"","padding-bottom":"","padding-left":"","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":"","grid-template-columns":"100px 1fr","row-gap":"","column-gap":""},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__logo","style":{"width":"100px","height":"100px","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":""},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card","style":{"padding-top":"","padding-right":"","padding-bottom":"","padding-left":"","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":"","grid-template-columns":"88px 1fr","row-gap":"","column-gap":""},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__logo","style":{"width":"88px","height":"88px","border-top-left-radius":"","border-top-right-radius":"","border-bottom-right-radius":"","border-bottom-left-radius":""},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__title","style":{"font-size":"var(--theme-font-size-lg)"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__desc","style":{"font-size":"var(--theme-font-size-base)"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__date","style":{"font-size":"var(--theme-font-size-sm)"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card, .core-engine-lib-word-blocks .article-catalog__logo img, .core-engine-lib-word-blocks .article-catalog__glow","style":{"transition-behavior":"normal","transition-duration":"0s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"none"},"mediaText":"(prefers-reduced-motion: reduce)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__inner","style":{"display":"flex","flex-direction":"column","align-items":"flex-start","row-gap":"","column-gap":"","border-left-width":"","border-left-style":"","border-left-color":"","padding-left":"var(--theme-space-4)","max-width":"48rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__text","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","line-height":"1.5","color":"var(--theme-text, #0f172a)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__link","style":{"display":"inline-flex","align-items":"center","row-gap":"","column-gap":"","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-medium)","line-height":"1.4","color":"var(--theme-accent, #3b82f6)","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","border-bottom-width":"1px","border-bottom-style":"solid","border-bottom-color":"currentcolor","padding-bottom":"1px","transition-behavior":"normal, normal","transition-duration":"0.15s, 0.15s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"color, border-color"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__link:hover","style":{"color":"var(--theme-accent-hover, #2563eb)","border-bottom-color":"currentcolor"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__arrow","style":{"font-size":"1.15em","line-height":"1","transition-behavior":"normal","transition-duration":"0.15s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"transform"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__link:hover .creative-block__arrow","style":{"transform":"translateX(3px)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__legal","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-xs, 0.75rem)","line-height":"1.4","color":"var(--theme-text-muted, #64748b)","opacity":"0.85"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__inner","style":{"padding-left":"var(--theme-space-3)","row-gap":"","column-gap":""},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__text, .core-engine-lib-word-blocks .creative-block__link","style":{"font-size":"var(--theme-font-size-base)"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__legal","style":{"font-size":"0.6875rem"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__link, .core-engine-lib-word-blocks .creative-block__arrow","style":{"transition-behavior":"normal","transition-duration":"0s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"none"},"mediaText":"(prefers-reduced-motion: reduce)","atRuleType":"media"},{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h1","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-4xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.02em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h2","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-3xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.01em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h3","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-2xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--muted","style":{"color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--center","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .lead","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list","style":{"padding-left":"var(--theme-space-6)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li","style":{"margin-bottom":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li::marker","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","padding-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li","style":{"position":"relative","padding-left":"var(--theme-space-6)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li::before","style":{"content":"\"✓\"","position":"absolute","left":"0px","top":"0px","color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-bold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"decimal"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num li::marker","style":{"color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-semibold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn","style":{"display":"inline-flex","align-items":"center","justify-content":"center","border-top-width":"2px","border-right-width":"2px","border-bottom-width":"2px","border-left-width":"2px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-semibold)","line-height":"1.2","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","text-align":"center","white-space-collapse":"collapse","text-wrap-mode":"nowrap","text-wrap-style":"initial","cursor":"pointer","color":"var(--theme-text-invert)","transition-behavior":"normal, normal, normal","transition-duration":"0.15s, 0.15s, 0.1s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"background, border-color, transform"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:hover","style":{"color":"var(--theme-text-invert)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:active","style":{"transform":"translateY(1px)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost","style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"transparent","color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost:hover","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card","style":{"box-shadow":"var(--theme-shadow-sm)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__title","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__text","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .badge","style":{"display":"inline-block","color":"var(--theme-accent)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","font-weight":"var(--theme-font-weight-medium)","line-height":"1.4"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .quote","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-style":"italic","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image","style":{"display":"block","max-width":"100%","height":"auto","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .icon","style":{"display":"inline-block","width":"1.5em","height":"1.5em","vertical-align":"middle","color":"var(--theme-accent)","flex-shrink":"0"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .divider","style":{"border-top-width":"initial","border-right-width":"initial","border-bottom-width":"initial","border-left-width":"initial","border-top-style":"none","border-right-style":"none","border-bottom-style":"none","border-left-style":"none","border-top-color":"initial","border-right-color":"initial","border-bottom-color":"initial","border-left-color":"initial","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","height":"1px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .section","style":{"padding-top":"var(--theme-space-section)","padding-bottom":"var(--theme-space-section)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .container","style":{"width":"100%","max-width":"var(--theme-container-max)","margin-left":"auto","margin-right":"auto","padding-left":"var(--theme-space-gutter)","padding-right":"var(--theme-space-gutter)","box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid","style":{"display":"grid"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2","style":{"grid-template-columns":"repeat(2, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--3","style":{"grid-template-columns":"repeat(3, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"repeat(4, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--auto","style":{"grid-template-columns":"repeat(auto-fit, minmax(15rem, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .col","style":{"min-width":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .hero__inner","style":{"display":"flex","flex-direction":"column","align-items":"center","text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .hero__title","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","max-width":"48rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .hero__lead","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","max-width":"40rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .hero__btn","style":{"margin-top":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .features__title","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .features__item","style":{"height":"100%"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .steps__title","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .steps__item","style":{"display":"flex","flex-direction":"column"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .steps__num","style":{"display":"inline-flex","align-items":"center","justify-content":"center","width":"2.5rem","height":"2.5rem","color":"var(--theme-accent)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-bold)","margin-bottom":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .steps__item-title","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text-image__grid","style":{"align-items":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text-image__text","style":{"display":"flex","flex-direction":"column"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text-image__media","style":{"display":"flex","align-items":"center","justify-content":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text-image__media .image","style":{"width":"100%"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image-text__grid","style":{"align-items":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image-text__text","style":{"display":"flex","flex-direction":"column"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image-text__media","style":{"display":"flex","align-items":"center","justify-content":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image-text__media .image","style":{"width":"100%"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .gallery__title","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .gallery__item","style":{"width":"100%","aspect-ratio":"4 / 3","object-fit":"cover"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__title","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__list","style":{"display":"flex","flex-direction":"column","max-width":"48rem","margin-left":"auto","margin-right":"auto"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__item","style":{"padding-bottom":"var(--theme-space-5)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__item:last-child","style":{"padding-bottom":"0px","border-bottom-width":"initial","border-bottom-style":"none","border-bottom-color":"initial"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .faq__answer","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .cta","style":{"color":"var(--theme-text, #1e293b)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .cta__inner","style":{"display":"flex","flex-direction":"column","align-items":"center","text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .cta__title","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","color":"var(--theme-text, #1e293b)","max-width":"48rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .cta__text","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","color":"var(--theme-text-muted, #64748b)","max-width":"40rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .cta__btn","style":{"margin-top":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .contacts__title","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .contacts__item","style":{"display":"flex","flex-direction":"column"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .contacts__label","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","font-weight":"var(--theme-font-weight-medium)","text-transform":"uppercase","letter-spacing":"0.05em","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .contacts__value","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-medium)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer","style":{"color":"var(--theme-text, #1e293b)","padding-top":"var(--theme-space-6)","padding-bottom":"var(--theme-space-6)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__inner","style":{"display":"flex","flex-wrap":"wrap","align-items":"center","justify-content":"space-between"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__brand","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","color":"var(--theme-text, #1e293b)","opacity":"0.75","min-width":"0px","overflow-x":"hidden","overflow-y":"hidden","text-overflow":"ellipsis","white-space-collapse":"collapse","text-wrap-mode":"nowrap","text-wrap-style":"initial"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__nav","style":{"display":"inline-flex","flex-wrap":"wrap","align-items":"center","flex-shrink":"0"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__link","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","color":"var(--theme-text, #1e293b)","opacity":"0.75","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","border-bottom-width":"initial","border-bottom-style":"none","border-bottom-color":"initial","white-space-collapse":"collapse","text-wrap-mode":"nowrap","text-wrap-style":"initial","transition-behavior":"normal, normal","transition-duration":"0.15s, 0.15s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"opacity, color"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__link:hover","style":{"opacity":"1","color":"var(--theme-accent, #3b82f6)","text-decoration-line":"underline","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","text-underline-offset":"2px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__heading","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog","style":{"display":"grid","grid-template-columns":"repeat(auto-fill, minmax(320px, 1fr))","align-content":"start"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card","style":{"position":"relative","display":"grid","grid-template-columns":"104px 1fr","align-items":"start","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgba(255, 255, 255, 0.72)","backdrop-filter":"blur(20px)","border-top-width":"1px","border-right-width":"1px","border-bottom-width":"1px","border-left-width":"1px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-top-color":"rgba(255, 255, 255, 0.6)","border-right-color":"rgba(255, 255, 255, 0.6)","border-bottom-color":"rgba(255, 255, 255, 0.6)","border-left-color":"rgba(255, 255, 255, 0.6)","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","box-shadow":"rgba(15, 23, 42, 0.04) 0px 4px 16px, rgba(15, 23, 42, 0.06) 0px 1px 3px","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","color":"inherit","overflow-x":"hidden","overflow-y":"hidden","transition-behavior":"normal, normal, normal","transition-duration":"0.3s, 0.3s, 0.3s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"transform, box-shadow, background"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card:hover","style":{"transform":"translateY(-4px)","background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"rgba(255, 255, 255, 0.95)","box-shadow":"rgba(59, 130, 246, 0.12) 0px 12px 32px, rgba(15, 23, 42, 0.08) 0px 4px 12px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card:active","style":{"transform":"translateY(-2px) scale(0.99)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__glow","style":{"position":"absolute","top":"0px","right":"0px","bottom":"0px","left":"0px","border-top-left-radius":"inherit","border-top-right-radius":"inherit","border-bottom-right-radius":"inherit","border-bottom-left-radius":"inherit","opacity":"0","transition-behavior":"normal","transition-duration":"0.4s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"opacity","pointer-events":"none","z-index":"0"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__glow","style":{"opacity":"1"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__logo","style":{"position":"relative","width":"104px","height":"104px","overflow-x":"hidden","overflow-y":"hidden","background-image":"linear-gradient(135deg, rgb(224, 231, 255) 0%, rgb(243, 232, 255) 100%)","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","z-index":"1"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__logo img","style":{"width":"100%","height":"100%","object-fit":"cover","display":"block","transition-behavior":"normal","transition-duration":"0.5s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"transform"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__logo img","style":{"transform":"scale(1.05)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__body","style":{"position":"relative","z-index":"1","min-width":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__title","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"1.25","color":"var(--theme-text, #0f172a)","letter-spacing":"-0.01em","display":"-webkit-box","-webkit-line-clamp":"3","-webkit-box-orient":"vertical","overflow-x":"hidden","overflow-y":"hidden"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__title","style":{"color":"var(--theme-accent, #3b82f6)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__desc","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","line-height":"1.5","color":"var(--theme-text-muted, #64748b)","display":"-webkit-box","-webkit-line-clamp":"4","-webkit-box-orient":"vertical","overflow-x":"hidden","overflow-y":"hidden"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__date","style":{"display":"block","margin-top":"var(--theme-space-2)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","font-weight":"var(--theme-font-weight-medium)","color":"var(--theme-text-muted, #94a3b8)","letter-spacing":"0.02em","text-transform":"uppercase","white-space-collapse":"collapse","text-wrap-mode":"nowrap","text-wrap-style":"initial","overflow-x":"hidden","overflow-y":"hidden","text-overflow":"ellipsis"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__inner","style":{"display":"flex","flex-direction":"column","align-items":"flex-start","padding-left":"var(--theme-space-4)","max-width":"48rem"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__text","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","line-height":"1.5","color":"var(--theme-text, #0f172a)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__link","style":{"display":"inline-flex","align-items":"center","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-medium)","line-height":"1.4","color":"var(--theme-accent, #3b82f6)","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","border-bottom-width":"1px","border-bottom-style":"solid","border-bottom-color":"currentcolor","padding-bottom":"1px","transition-behavior":"normal, normal","transition-duration":"0.15s, 0.15s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"color, border-color"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__link:hover","style":{"color":"var(--theme-accent-hover, #2563eb)","border-bottom-color":"currentcolor"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__arrow","style":{"font-size":"1.15em","line-height":"1","transition-behavior":"normal","transition-duration":"0.15s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"transform"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__link:hover .creative-block__arrow","style":{"transform":"translateX(3px)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__legal","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-xs, 0.75rem)","line-height":"1.4","color":"var(--theme-text-muted, #64748b)","opacity":"0.85"}},{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":":root","style":{"--doc-sidebar-width":"260px","--doc-nav-height":"66px","--doc-heading":"#1e4d8c","--doc-accent":"#2a6db8","--doc-accent-soft":"rgba(42, 109, 184, 0.08)","--doc-border":"#d6e2f0","--doc-bg":"#ffffff"}},{"selectors":["doc-nav"],"style":{"position":"sticky","top":"0px","z-index":"100","background-color":"rgba(255, 255, 255, 0.85)","backdrop-filter":"blur(12px)"}},{"selectors":["doc-nav__inner"],"style":{"display":"flex","align-items":"center","justify-content":"space-between","row-gap":"16px","column-gap":"16px","max-width":"1400px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","padding-top":"12px","padding-right":"24px","padding-bottom":"12px","padding-left":"24px"}},{"selectors":["doc-nav__brand"],"style":{"display":"inline-flex","align-items":"center","row-gap":"10px","column-gap":"10px","text-decoration-line":"none","color":"var(--doc-heading)","font-weight":"700","font-size":"17px","letter-spacing":"-0.01em","transition-behavior":"normal","transition-duration":"0.2s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"color"}},{"selectors":["doc-nav__brand"],"style":{"color":"var(--doc-accent)"},"state":"hover"},{"selectors":["doc-nav__brand-mark"],"style":{"display":"inline-flex","align-items":"center","justify-content":"center","width":"34px","height":"34px","border-top-left-radius":"10px","border-top-right-radius":"10px","border-bottom-right-radius":"10px","border-bottom-left-radius":"10px","background-image":"linear-gradient(135deg, rgb(219, 234, 254) 0%, rgb(239, 246, 255) 100%)","color":"var(--doc-accent)"}},{"selectors":["doc-nav__burger"],"style":{"display":"none","flex-direction":"column","justify-content":"center","row-gap":"5px","column-gap":"5px","width":"42px","height":"42px","padding-top":"0px","padding-right":"10px","padding-bottom":"0px","padding-left":"10px","border-top-left-radius":"10px","border-top-right-radius":"10px","border-bottom-right-radius":"10px","border-bottom-left-radius":"10px","background-color":"rgba(255, 255, 255, 0.6)","cursor":"pointer","transition-behavior":"normal, normal","transition-duration":"0.2s, 0.2s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"background, border-color"}},{"selectors":["doc-nav__burger"],"style":{"background-color":"var(--doc-accent-soft)"},"state":"hover"},{"selectors":["doc-nav__burger-line"],"style":{"display":"block","width":"100%","height":"2px","border-top-left-radius":"2px","border-top-right-radius":"2px","border-bottom-right-radius":"2px","border-bottom-left-radius":"2px","background-color":"var(--doc-heading)"}},{"selectors":["doc-layout"],"style":{"display":"flex","align-items":"flex-start","max-width":"1400px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto","padding-top":"0px","padding-right":"24px","padding-bottom":"0px","padding-left":"24px","row-gap":"32px","column-gap":"32px","min-height":"calc(100vh - var(--doc-nav-height) - 80px)"}},{"selectors":["doc-sidebar"],"style":{"flex-shrink":"0","width":"var(--doc-sidebar-width)","position":"sticky","top":"calc(var(--doc-nav-height) + 16px)","max-height":"calc(100vh - var(--doc-nav-height) - 32px)","overflow-y":"auto","padding-top":"16px","padding-right":"0px","padding-bottom":"16px","padding-left":"0px"}},{"selectors":["doc-sidebar__inner"],"style":{"display":"flex","flex-direction":"column","row-gap":"8px","column-gap":"8px"}},{"selectors":["doc-sidebar__head"],"style":{"display":"none"}},{"selectors":["doc-sidebar__nav"],"style":{"display":"flex","flex-direction":"column"}},{"selectors":["doc-sidebar__list"],"style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","padding-top":"0px","padding-right":"0px","padding-bottom":"0px","padding-left":"0px"}},{"selectors":["doc-sidebar__group"],"style":{"margin-bottom":"16px"}},{"selectors":["doc-sidebar__group-title"],"style":{"display":"block","padding-top":"6px","padding-right":"12px","padding-bottom":"6px","padding-left":"12px","font-size":"12px","font-weight":"700","letter-spacing":"0.08em","text-transform":"uppercase","color":"var(--doc-heading)"}},{"selectors":["doc-sidebar__sublist"],"style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","padding-top":"0px","padding-right":"0px","padding-bottom":"0px","padding-left":"0px"}},{"selectors":["doc-sidebar__link"],"style":{"display":"block","padding-top":"8px","padding-right":"12px","padding-bottom":"8px","padding-left":"12px","border-top-left-radius":"8px","border-top-right-radius":"8px","border-bottom-right-radius":"8px","border-bottom-left-radius":"8px","font-size":"15px","line-height":"1.4","color":"var(--doc-heading)","text-decoration-line":"none","transition-behavior":"normal, normal","transition-duration":"0.15s, 0.15s","transition-timing-function":"ease, ease","transition-delay":"0s, 0s","transition-property":"background, color"}},{"selectors":["doc-sidebar__link"],"style":{"color":"var(--doc-accent)"},"state":"hover"},{"selectors":["doc-sidebar__link--active"],"style":{"color":"var(--doc-accent)","font-weight":"600"}},{"selectors":["doc-content"],"style":{"flex-grow":"1","flex-shrink":"1","flex-basis":"auto","min-width":"0px","padding-top":"24px","padding-right":"0px","padding-bottom":"48px","padding-left":"0px"}},{"selectors":["doc-sidebar-backdrop"],"style":{"display":"none"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card, .core-engine-lib-word-blocks .article-catalog__logo img, .core-engine-lib-word-blocks .article-catalog__glow","style":{"transition-behavior":"normal","transition-duration":"0s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"none"},"mediaText":"(prefers-reduced-motion: reduce)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__link, .core-engine-lib-word-blocks .creative-block__arrow","style":{"transition-behavior":"normal","transition-duration":"0s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"none"},"mediaText":"(prefers-reduced-motion: reduce)","atRuleType":"media"},{"selectors":["doc-nav__burger"],"style":{"display":"flex"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":["doc-layout"],"style":{"padding-top":"0px","padding-right":"16px","padding-bottom":"0px","padding-left":"16px","row-gap":"0px","column-gap":"0px"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":["doc-sidebar"],"style":{"position":"fixed","top":"0px","left":"0px","bottom":"0px","width":"280px","max-height":"100vh","z-index":"200","background-color":"var(--doc-bg)","box-shadow":"rgba(15, 23, 42, 0.15) 0px 0px 32px","transform":"translateX(-100%)","transition-behavior":"normal","transition-duration":"0.3s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"transform","padding-top":"20px","padding-right":"16px","padding-bottom":"20px","padding-left":"16px","overflow-y":"auto"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":["doc-sidebar-backdrop"],"style":{"display":"block","position":"fixed","top":"0px","right":"0px","bottom":"0px","left":"0px","background-color":"rgba(15, 23, 42, 0.5)","opacity":"0","pointer-events":"none","transition-behavior":"normal","transition-duration":"0.3s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"opacity","z-index":"150"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":["doc-sidebar__head"],"style":{"display":"flex","align-items":"center","justify-content":"space-between","margin-bottom":"16px","padding-bottom":"16px"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":["doc-sidebar__title"],"style":{"font-size":"13px","font-weight":"700","letter-spacing":"0.08em","text-transform":"uppercase","color":"var(--doc-heading)"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":["doc-sidebar__close"],"style":{"display":"inline-flex","align-items":"center","justify-content":"center","width":"36px","height":"36px","border-top-left-radius":"8px","border-top-right-radius":"8px","border-bottom-right-radius":"8px","border-bottom-left-radius":"8px","cursor":"pointer","position":"relative","transition-behavior":"normal","transition-duration":"0.15s","transition-timing-function":"ease","transition-delay":"0s","transition-property":"background"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":["doc-sidebar__close"],"style":{"background-color":"var(--doc-accent-soft)"},"mediaText":"(max-width: 900px)","state":"hover","atRuleType":"media"},{"selectors":[],"selectorsAdd":".doc-sidebar__close span","style":{"position":"absolute","width":"18px","height":"2px","border-top-left-radius":"2px","border-top-right-radius":"2px","border-bottom-right-radius":"2px","border-bottom-left-radius":"2px","background-color":"var(--doc-heading)"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".doc-sidebar__close span:nth-child(1)","style":{"transform":"rotate(45deg)"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".doc-sidebar__close span:nth-child(2)","style":{"transform":"rotate(-45deg)"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":["doc-content"],"style":{"padding-top":"20px","padding-right":"0px","padding-bottom":"40px","padding-left":"0px"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".doc-sidebar-toggle:checked ~ .doc-layout .doc-sidebar","style":{"transform":"translateX(0px)"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".doc-sidebar-toggle:checked ~ .doc-layout .doc-sidebar-backdrop","style":{"opacity":"1","pointer-events":"auto"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".doc-sidebar-toggle:checked ~ .doc-layout","style":{"overflow-x":"hidden","overflow-y":"hidden"},"mediaText":"(max-width: 900px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"minmax(0px, 1fr)"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog","style":{"grid-template-columns":"1fr"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card","style":{"grid-template-columns":"100px 1fr"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__logo","style":{"width":"100px","height":"100px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__inner","style":{"flex-direction":"column","align-items":"center","text-align":"center"},"mediaText":"(max-width: 560px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__brand","style":{"white-space-collapse":"collapse","text-wrap-mode":"wrap","text-wrap-style":"initial","text-align":"center","overflow-x":"visible","overflow-y":"visible","text-overflow":"clip"},"mediaText":"(max-width: 560px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .footer__nav","style":{"justify-content":"center"},"mediaText":"(max-width: 560px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__card","style":{"grid-template-columns":"88px 1fr"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__logo","style":{"width":"88px","height":"88px"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__title","style":{"font-size":"var(--theme-font-size-lg)"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__desc","style":{"font-size":"var(--theme-font-size-base)"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .article-catalog__date","style":{"font-size":"var(--theme-font-size-sm)"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__inner","style":{"padding-left":"var(--theme-space-3)"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__text, .core-engine-lib-word-blocks .creative-block__link","style":{"font-size":"var(--theme-font-size-base)"},"mediaText":"(max-width: 480px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .creative-block__legal","style":{"font-size":"0.6875rem"},"mediaText":"(max-width: 480px)","atRuleType":"media"}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"tagName":"input","void":true,"classes":["doc-sidebar-toggle"],"attributes":{"type":"checkbox","id":"doc-sidebar-toggle","hidden":true}},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" NAV — шапка документации                     "},{"type":"comment","content":" ============================================ "},{"tagName":"header","classes":["doc-nav"],"components":[{"classes":["doc-nav__inner"],"components":[{"type":"link","classes":["doc-nav__brand"],"attributes":{"href":"/"},"components":[{"tagName":"span","classes":["doc-nav__brand-mark"],"components":[{"type":"svg","resizable":{"ratioDefault":true},"attributes":{"viewBox":"0 0 24 24","width":"22","height":"22","fill":"none","stroke":"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round"},"components":[{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M4 19.5A2.5 2.5 0 0 1 6.5 17H20"}},{"tagName":"path","type":"svg-in","resizable":{"ratioDefault":true},"attributes":{"d":"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"}}]}]},{"tagName":"span","type":"text","classes":["doc-nav__brand-text"],"components":[{"type":"textnode","content":"Документация"}]}]},{"type":"label","classes":["doc-nav__burger"],"attributes":{"for":"doc-sidebar-toggle","aria-label":"Открыть меню","id":"i7081"},"components":[{"tagName":"span","classes":["doc-nav__burger-line"]},{"tagName":"span","classes":["doc-nav__burger-line"],"attributes":{"id":"izf8d"}},{"tagName":"span","classes":["doc-nav__burger-line"],"attributes":{"id":"ivdwx"}}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" LAYOUT — sidebar + контент                   "},{"type":"comment","content":" ============================================ "},{"classes":["doc-layout"],"attributes":{"id":"iymyi"},"components":[{"type":"comment","content":" Подложка (затемнение) — клик закрывает меню "},{"type":"label","classes":["doc-sidebar-backdrop"],"attributes":{"for":"doc-sidebar-toggle","aria-hidden":"true"}},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" SIDEBAR — боковая навигация                  "},{"type":"comment","content":" ============================================ "},{"tagName":"aside","classes":["doc-sidebar"],"components":[{"classes":["doc-sidebar__inner"],"components":[{"classes":["doc-sidebar__head"],"components":[{"tagName":"span","type":"text","classes":["doc-sidebar__title"],"components":[{"type":"textnode","content":"Разделы"}]},{"type":"label","classes":["doc-sidebar__close"],"attributes":{"for":"doc-sidebar-toggle","aria-label":"Закрыть меню"},"components":[{"tagName":"span"},{"tagName":"span"}]}]},{"tagName":"nav","classes":["doc-sidebar__nav"],"attributes":{"aria-label":"Разделы документации"},"components":[{"tagName":"ul","classes":["doc-sidebar__list"],"components":[{"tagName":"li","classes":["doc-sidebar__group"],"components":[{"tagName":"span","type":"text","classes":["doc-sidebar__group-title"],"components":[{"type":"textnode","content":"Агенты"}]},{"tagName":"ul","classes":["doc-sidebar__sublist"],"components":[{"tagName":"li","components":[{"type":"link","classes":["doc-sidebar__link","doc-sidebar__link--active"],"attributes":{"href":"/page/20261008/182629","id":"i2oan"},"components":[{"type":"textnode","content":"Работа в конструкторе"}]}]},{"tagName":"li","components":[{"type":"link","classes":["doc-sidebar__link"],"attributes":{"href":"/page/20261009/060326","id":"io5q5"},"components":[{"type":"textnode","content":"Первые шаги"}]}]},{"tagName":"li"}]}]}]}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" CONTENT — сюда конструктор вставит статью    "},{"type":"comment","content":" ============================================ "},{"tagName":"main","classes":["doc-content"],"attributes":{"data-slot":"content"},"components":[{"type":"comment","content":" PLACEHOLDER: здесь будет статья "}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" FOOTER — готовый блок конструктора           "},{"type":"comment","content":" ============================================ "},{"tagName":"footer","classes":["section","footer"],"attributes":{"data-block":"core-footer"},"components":[{"classes":["container","footer__inner"],"components":[{"type":"text","classes":["footer__brand"],"attributes":{"data-footer-brand":""},"components":[{"type":"textnode","content":"© 2026 doc.neurocad.ru"}]},{"tagName":"nav","classes":["footer__nav"],"components":[{"type":"link","classes":["footer__link"],"attributes":{"href":"/policy"},"components":[{"type":"textnode","content":"Политика"}]},{"type":"link","classes":["footer__link"],"attributes":{"href":"/rules"},"components":[{"type":"textnode","content":"Правила"}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"J80z42WINd6uSeK0"}],"id":"YjynCwd9MnT9TXFa"}],"symbols":[]}', 1, 0, '2026-10-18 18:06:43.266710', '2026-10-19 05:13:39.614381', NULL, 1, NULL, '/* app/core/engine/lib/word/editor/css/content.css */
+
+/**
+ * Content — theme variables + shared atoms + layout for CONTENT pages.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Uses ONLY --theme-* variables, defined at the top of this file.
+ * Completely independent from base/css/00_variables.css (admin UI):
+ * admin theme changes do NOT affect page content.
+ *
+ * Contents:
+ *   THEME VARIABLES
+ *     --theme-*                 all colors, fonts, radii, spacing
+ *
+ *   ATOMS
+ *     .h1, .h2, .h3             headings
+ *     .text, .text--muted, .text--center
+ *     .lead                     intro paragraph
+ *     .list, .list--check, .list--num
+ *     .btn, .btn--ghost         buttons
+ *     .card, .card__title, .card__text
+ *     .badge, .quote, .image, .icon, .divider
+ *
+ *   LAYOUT
+ *     .section                  vertical rhythm wrapper
+ *     .container                centered max-width wrapper
+ *     .grid, .grid--2/3/4/auto  base grids
+ *     .col                      grid cell
+ *
+ * .flex-shell* lives in blocks/layout.css — it is block-specific
+ * (only used by the flex-shell block).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   THEME VARIABLES — content
+   ============================================ */
+
+/*
+ * Completely independent from base/css/00_variables.css (admin UI).
+ * Admin theme changes do NOT affect these values.
+ *
+ * Scoped under .core-engine-lib-word-blocks — the same class sits
+ * on the canvas <body> in the editor and on the article wrapper
+ * on the public page.
+ */
+.core-engine-lib-word-blocks {
+
+    /* ===== COLORS ===== */
+
+    --theme-bg:             #ffffff;
+    --theme-bg-subtle:      #f8fafc;
+    --theme-bg-dark:        #0f172a;
+    --theme-bg-hover:       #f1f5f9;
+
+    --theme-text:           #1e293b;
+    --theme-text-muted:     #64748b;
+    --theme-text-invert:    #ffffff;
+
+    --theme-accent:         #246eaa;
+    --theme-accent-hover:   #1e5a8a;
+    --theme-accent-soft:    #e0edf7;
+
+    --theme-border:         #e2e8f0;
+    --theme-border-strong:  #cbd5e1;
+
+    --theme-success:        #16a34a;
+    --theme-warning:        #d97706;
+    --theme-danger:         #dc2626;
+
+    /* ===== SHADOWS ===== */
+
+    --theme-shadow-sm:  0 1px 3px rgba(15, 23, 42, 0.06);
+    --theme-shadow-md:  0 4px 12px rgba(15, 23, 42, 0.08);
+    --theme-shadow-lg:  0 12px 32px rgba(15, 23, 42, 0.12);
+
+    /* ===== FONTS ===== */
+
+    --theme-font-family:    ''Inter'', ''Golos Text'', sans-serif;
+    --theme-font-size-xs:   0.75rem;
+    --theme-font-size-sm:   0.875rem;
+    --theme-font-size-base: 1rem;
+    --theme-font-size-lg:   1.125rem;
+    --theme-font-size-xl:   1.25rem;
+    --theme-font-size-2xl:  1.5rem;
+    --theme-font-size-3xl:  2rem;
+    --theme-font-size-4xl:  2.5rem;
+
+    --theme-font-weight-regular:  400;
+    --theme-font-weight-medium:   500;
+    --theme-font-weight-semibold: 600;
+    --theme-font-weight-bold:     700;
+
+    --theme-line-height-tight:  1.25;
+    --theme-line-height-base:   1.6;
+    --theme-line-height-loose:  1.8;
+
+    /* ===== RADII ===== */
+
+    --theme-radius-sm:   0.25rem;
+    --theme-radius-md:   0.5rem;
+    --theme-radius-lg:   0.75rem;
+    --theme-radius-xl:   1rem;
+    --theme-radius-pill: 9999px;
+
+    /* ===== SPACING ===== */
+
+    --theme-space-1:   0.25rem;
+    --theme-space-2:   0.5rem;
+    --theme-space-3:   0.75rem;
+    --theme-space-4:   1rem;
+    --theme-space-5:   1.25rem;
+    --theme-space-6:   1.5rem;
+    --theme-space-8:   2rem;
+    --theme-space-10:  2.5rem;
+    --theme-space-12:  3rem;
+    --theme-space-16:  4rem;
+    --theme-space-20:  5rem;
+
+    --theme-space-section:  4rem;
+    --theme-space-gutter:   1rem;
+    --theme-space-grid:     1rem;
+
+    /* ===== LAYOUT ===== */
+
+    --theme-container-max:  75rem;
+}
+
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+
+.core-engine-lib-word-blocks .h1 {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-4xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.02em;
+}
+
+.core-engine-lib-word-blocks .h2 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-3xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.01em;
+}
+
+.core-engine-lib-word-blocks .h3 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-2xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   TEXT
+   ============================================ */
+
+.core-engine-lib-word-blocks .text {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .text--muted {
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .text--center {
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .text:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================
+   LEAD
+   ============================================ */
+
+.core-engine-lib-word-blocks .lead {
+    margin: 0 0 var(--theme-space-5);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   LISTS
+   ============================================ */
+
+.core-engine-lib-word-blocks .list {
+    margin: 0 0 var(--theme-space-4);
+    padding-left: var(--theme-space-6);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .list li {
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .list li:last-child {
+    margin-bottom: 0;
+}
+
+.core-engine-lib-word-blocks .list li::marker {
+    color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .list--check {
+    list-style: none;
+    padding-left: 0;
+}
+
+.core-engine-lib-word-blocks .list--check li {
+    position: relative;
+    padding-left: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .list--check li::before {
+    content: ''✓'';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-bold);
+}
+
+.core-engine-lib-word-blocks .list--num {
+    list-style: decimal;
+}
+
+.core-engine-lib-word-blocks .list--num li::marker {
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-semibold);
+}
+
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.core-engine-lib-word-blocks .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--theme-space-2);
+    padding: var(--theme-space-3) var(--theme-space-6);
+    border: 2px solid transparent;
+    border-radius: var(--theme-radius-md);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: 1.2;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--theme-accent);
+    color: var(--theme-text-invert);
+    border-color: var(--theme-accent);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.core-engine-lib-word-blocks .btn:hover {
+    background: var(--theme-accent-hover);
+    border-color: var(--theme-accent-hover);
+    color: var(--theme-text-invert);
+}
+
+.core-engine-lib-word-blocks .btn:active {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-word-blocks .btn--ghost {
+    background: transparent;
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .btn--ghost:hover {
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+
+/* ============================================
+   CARD
+   ============================================ */
+
+.core-engine-lib-word-blocks .card {
+    padding: var(--theme-space-6);
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    border-radius: var(--theme-radius-lg);
+    box-shadow: var(--theme-shadow-sm);
+}
+
+.core-engine-lib-word-blocks .card__title {
+    margin: 0 0 var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .card__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   BADGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .badge {
+    display: inline-block;
+    padding: var(--theme-space-1) var(--theme-space-3);
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+}
+
+
+/* ============================================
+   QUOTE
+   ============================================ */
+
+.core-engine-lib-word-blocks .quote {
+    margin: var(--theme-space-6) 0;
+    padding: var(--theme-space-4) var(--theme-space-5);
+    border-left: 4px solid var(--theme-accent);
+    background: var(--theme-bg-subtle);
+    border-radius: 0 var(--theme-radius-md) var(--theme-radius-md) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-style: italic;
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   IMAGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--theme-radius-md);
+    margin: 0;
+}
+
+
+/* ============================================
+   ICON
+   ============================================ */
+
+.core-engine-lib-word-blocks .icon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    color: var(--theme-accent);
+    flex-shrink: 0;
+}
+
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+
+.core-engine-lib-word-blocks .divider {
+    margin: var(--theme-space-8) 0;
+    border: none;
+    height: 1px;
+    background: var(--theme-border);
+}
+
+
+/* ============================================
+   SECTION — vertical rhythm wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .section {
+    padding-top: var(--theme-space-section);
+    padding-bottom: var(--theme-space-section);
+}
+
+
+/* ============================================
+   CONTAINER — centered max-width wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .container {
+    width: 100%;
+    max-width: var(--theme-container-max);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--theme-space-gutter);
+    padding-right: var(--theme-space-gutter);
+    box-sizing: border-box;
+}
+
+
+/* ============================================
+   GRID — base
+   ============================================ */
+
+.core-engine-lib-word-blocks .grid {
+    display: grid;
+    gap: var(--theme-space-grid);
+}
+
+.core-engine-lib-word-blocks .grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--auto {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+
+/* ============================================
+   COLUMN — grid cell
+   ============================================ */
+
+/*
+ * Minimal cell: only prevents overflow. Padding, background, border
+ * are set per block (e.g. .card, .col--tile were removed on purpose).
+ */
+.core-engine-lib-word-blocks .col {
+    min-width: 0;
+}
+
+
+/* ============================================
+   GRID — responsive fallback
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .grid--2,
+    .core-engine-lib-word-blocks .grid--3,
+    .core-engine-lib-word-blocks .grid--4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* app/core/engine/lib/word/editor/blocks/ready.css */
+
+/**
+ * Ready — styles for the "Секции" (sections) blocks.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Covers section-specific classes from blocks/ready.js:
+ *   - .hero, .hero__inner, .hero__title, .hero__lead, .hero__btn
+ *   - .features, .features__title, .features__grid, .features__item
+ *   - .steps, .steps__title, .steps__grid, .steps__item, .steps__num
+ *   - .text-image, .text-image__grid, .text-image__text, .text-image__media
+ *   - .image-text, .image-text__grid, .image-text__text, .image-text__media
+ *   - .gallery, .gallery__title, .gallery__grid, .gallery__item
+ *   - .faq, .faq__title, .faq__list, .faq__item, .faq__question, .faq__answer
+ *   - .cta, .cta__inner, .cta__title, .cta__text, .cta__btn
+ *   - .contacts, .contacts__title, .contacts__grid, .contacts__item,
+ *     .contacts__label, .contacts__value
+ *   - .footer, .footer__inner, .footer__brand, .footer__nav, .footer__link
+ *   - .article-catalog, .article-catalog__heading, .article-catalog__card,
+ *     .article-catalog__glow, .article-catalog__logo, .article-catalog__body,
+ *     .article-catalog__title, .article-catalog__desc, .article-catalog__date
+ *   - .creative-block, .creative-block__inner, .creative-block__text,
+ *     .creative-block__link, .creative-block__btn-text,
+ *     .creative-block__arrow, .creative-block__legal,
+ *     .creative-block__brand, .creative-block__inn, .creative-block__erid
+ *
+ * Shared atom classes (.h1, .h2, .text, .lead, .btn, .card, .image)
+ * and layout classes (.section, .container, .grid) live in
+ * editor/css/content.css — they are loaded globally.
+ *
+ * Uses ONLY --theme-* variables (see theme.css).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   HERO — .hero
+   ============================================ */
+
+.core-engine-lib-word-blocks .hero__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .hero__title {
+    margin: 0;
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .hero__lead {
+    margin: 0;
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .hero__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   FEATURES — .features
+   ============================================ */
+
+.core-engine-lib-word-blocks .features__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .features__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .features__item {
+    /* uses .card from content.css */
+    height: 100%;
+}
+
+
+/* ============================================
+   STEPS — .steps
+   ============================================ */
+
+.core-engine-lib-word-blocks .steps__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .steps__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .steps__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-bold);
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .steps__item-title {
+    margin: 0;
+}
+
+
+/* ============================================
+   TEXT + IMAGE — .text-image
+   ============================================ */
+
+.core-engine-lib-word-blocks .text-image__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .text-image__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .text-image__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .text-image__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   IMAGE + TEXT — .image-text
+   ============================================ */
+
+.core-engine-lib-word-blocks .image-text__grid {
+    align-items: center;
+}
+
+.core-engine-lib-word-blocks .image-text__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-3);
+}
+
+.core-engine-lib-word-blocks .image-text__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-engine-lib-word-blocks .image-text__media .image {
+    width: 100%;
+}
+
+
+/* ============================================
+   GALLERY — .gallery
+   ============================================ */
+
+.core-engine-lib-word-blocks .gallery__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .gallery__grid {
+    /* uses .grid.grid--auto from content.css */
+}
+
+.core-engine-lib-word-blocks .gallery__item {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+
+/* ============================================
+   FAQ — .faq
+   ============================================ */
+
+.core-engine-lib-word-blocks .faq__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-6);
+    max-width: 48rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.core-engine-lib-word-blocks .faq__item {
+    padding-bottom: var(--theme-space-5);
+    border-bottom: 1px solid var(--theme-border);
+}
+
+.core-engine-lib-word-blocks .faq__item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.core-engine-lib-word-blocks .faq__question {
+    margin: 0 0 var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .faq__answer {
+    margin: 0;
+}
+
+
+/* ============================================
+   CTA — .cta
+   ============================================ */
+
+.core-engine-lib-word-blocks .cta {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+}
+
+.core-engine-lib-word-blocks .cta__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .cta__title {
+    margin: 0;
+    color: var(--theme-text, #1e293b);
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .cta__text {
+    margin: 0;
+    color: var(--theme-text-muted, #64748b);
+    max-width: 40rem;
+}
+
+.core-engine-lib-word-blocks .cta__btn {
+    margin-top: var(--theme-space-2);
+}
+
+
+/* ============================================
+   CONTACTS — .contacts
+   ============================================ */
+
+.core-engine-lib-word-blocks .contacts__title {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .contacts__grid {
+    /* uses .grid.grid--3 from content.css */
+}
+
+.core-engine-lib-word-blocks .contacts__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--theme-space-1);
+}
+
+.core-engine-lib-word-blocks .contacts__label {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .contacts__value {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   FOOTER — .footer
+   ============================================ */
+
+.core-engine-lib-word-blocks .footer {
+    background: var(--theme-bg-soft, #f1f5f9);
+    color: var(--theme-text, #1e293b);
+    padding-top: var(--theme-space-6);
+    padding-bottom: var(--theme-space-6);
+    border-top: 1px solid var(--theme-border, #e2e8f0);
+}
+
+.core-engine-lib-word-blocks .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--theme-space-4);
+}
+
+.core-engine-lib-word-blocks .footer__brand {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.core-engine-lib-word-blocks .footer__nav {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--theme-space-5);
+    flex-shrink: 0;
+}
+
+.core-engine-lib-word-blocks .footer__link {
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    color: var(--theme-text, #1e293b);
+    opacity: 0.75;
+    text-decoration: none;
+    border-bottom: none;
+    white-space: nowrap;
+    transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .footer__link:hover {
+    opacity: 1;
+    color: var(--theme-accent, #3b82f6);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* Narrow screens: brand on top, links below, both centered. */
+
+@media (max-width: 560px) {
+    .core-engine-lib-word-blocks .footer__inner {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: var(--theme-space-3);
+    }
+
+    .core-engine-lib-word-blocks .footer__brand {
+        white-space: normal;
+        text-align: center;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .core-engine-lib-word-blocks .footer__nav {
+        justify-content: center;
+    }
+}
+
+
+/* ============================================
+   ARTICLE CATALOG — .article-catalog
+   ============================================ */
+
+.core-engine-lib-word-blocks .article-catalog__heading {
+    margin: 0 0 var(--theme-space-8);
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .article-catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--theme-space-5);
+    align-content: start;
+}
+
+/* --- Ссылка-карточка --- */
+
+.core-engine-lib-word-blocks .article-catalog__card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 104px 1fr;   /* логотип | текст */
+    gap: var(--theme-space-4);
+    align-items: start;
+    padding: var(--theme-space-5);
+    border-radius: var(--theme-radius-lg);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 4px 16px rgba(15, 23, 42, 0.04),
+        0 1px 3px rgba(15, 23, 42, 0.06);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 12px 32px rgba(59, 130, 246, 0.12),
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:active {
+    transform: translateY(-2px) scale(0.99);
+}
+
+/* --- Свечение (при наведении) --- */
+
+.core-engine-lib-word-blocks .article-catalog__glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    background: radial-gradient(
+        600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(59, 130, 246, 0.15),
+        rgba(139, 92, 246, 0.08) 40%,
+        transparent 60%
+    );
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__glow {
+    opacity: 1;
+}
+
+/* --- Логотип — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__logo {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    border-radius: var(--theme-radius-lg);
+    overflow: hidden;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+    z-index: 1;
+}
+
+.core-engine-lib-word-blocks .article-catalog__logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__logo img {
+    transform: scale(1.05);
+}
+
+/* --- Тело — grid-ячейка --- */
+
+.core-engine-lib-word-blocks .article-catalog__body {
+    position: relative;
+    z-index: 1;
+    min-width: 0;   /* важно: обрезка текста внутри grid работает */
+}
+
+.core-engine-lib-word-blocks .article-catalog__title {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: 1.25;
+    color: var(--theme-text, #0f172a);
+    letter-spacing: -0.01em;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__title {
+    color: var(--theme-accent, #3b82f6);
+}
+
+.core-engine-lib-word-blocks .article-catalog__desc {
+    margin: 0 0 var(--theme-space-2) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    line-height: 1.5;
+    color: var(--theme-text-muted, #64748b);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.core-engine-lib-word-blocks .article-catalog__date {
+    display: block;
+    margin-top: var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    color: var(--theme-text-muted, #94a3b8);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Адаптив --- */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .article-catalog {
+        grid-template-columns: 1fr;
+        gap: var(--theme-space-4);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-4);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 100px 1fr;
+        gap: var(--theme-space-3);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 100px;
+        height: 100px;
+        border-radius: var(--theme-radius-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .core-engine-lib-word-blocks .article-catalog__card {
+        padding: var(--theme-space-3);
+        border-radius: var(--theme-radius-md);
+        grid-template-columns: 88px 1fr;
+        gap: var(--theme-space-2);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__logo {
+        width: 88px;
+        height: 88px;
+        border-radius: var(--theme-radius-md);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__title {
+        font-size: var(--theme-font-size-lg);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__desc {
+        font-size: var(--theme-font-size-base);
+    }
+
+    .core-engine-lib-word-blocks .article-catalog__date {
+        font-size: var(--theme-font-size-sm);
+    }
+}
+
+/* --- prefers-reduced-motion --- */
+
+@media (prefers-reduced-motion: reduce) {
+    .core-engine-lib-word-blocks .article-catalog__card,
+    .core-engine-lib-word-blocks .article-catalog__logo img,
+    .core-engine-lib-word-blocks .article-catalog__glow {
+        transition: none;
+    }
+}
+
+
+/* ============================================
+   CREATIVE BLOCK — .creative-block
+   ============================================ */
+/*
+ * Рекламная вставка. Умышленно скромная: без фона, без рамки,
+ * без акцентных кнопок. Реклама в статье не должна выпячиваться
+ * и ломать чтение. Всё, что нужно для идентификации — тонкая
+ * левая граница + серый юридический текст.
+ *
+ * По закону о рекламе маркируется:
+ *   - словом «Реклама»;
+ *   - наименованием рекламодателя (brand);
+ *   - ИНН рекламодателя (inn);
+ *   - ERID (erid).
+ *
+ * Ссылка помечена rel="... sponsored" — это обязательно для
+ * поисковых систем. Стилистически ведёт себя как обычная ссылка
+ * в тексте: тонкая, подчёркнутая, не «кнопка».
+ *
+ * Layout:
+ *   .creative-block__inner — flex-колонка, левое выравнивание.
+ *   Текст / ссылка / юр.строка идут друг под другом с gap.
+ *
+ * Если понадобится другой дизайн (плашка с фоном, карточка,
+ * акцентная кнопка) — правится только этот блок, HTML не
+ * меняется.
+ */
+
+.core-engine-lib-word-blocks .creative-block__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--theme-space-3);
+
+    /* Левая акцентная линия — единственный визуальный маркер,
+       что это реклама, а не часть статьи. */
+    border-left: 3px solid var(--theme-border, #e2e8f0);
+    padding-left: var(--theme-space-4);
+
+    /* Ограничиваем ширину, чтобы длинный рекламный текст не
+       растягивался на всю ширину статьи. */
+    max-width: 48rem;
+}
+
+.core-engine-lib-word-blocks .creative-block__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    line-height: 1.5;
+    color: var(--theme-text, #0f172a);
+}
+
+/* Ссылка — тонкая, подчёркнутая, того же размера, что и текст
+   вокруг. Это не «кнопка» — это встроенная ссылка. */
+.core-engine-lib-word-blocks .creative-block__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--theme-space-2);
+
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+
+    color: var(--theme-accent, #3b82f6);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+
+    transition:
+        color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .creative-block__link:hover {
+    color: var(--theme-accent-hover, #2563eb);
+    border-bottom-color: currentColor;
+}
+
+/* Стрелка → чуть крупнее текста и чуть отодвигается на hover.
+   Это единственный «игровой» элемент блока — мягкий сигнал
+   интерактивности. */
+.core-engine-lib-word-blocks .creative-block__arrow {
+    font-size: 1.15em;
+    line-height: 1;
+    transition: transform 0.15s ease;
+}
+
+.core-engine-lib-word-blocks .creative-block__link:hover .creative-block__arrow {
+    transform: translateX(3px);
+}
+
+/* Юридическая строка — мелкая, серая, не отвлекает, но всегда
+   на месте. Без неё блок нельзя публиковать (маркировка
+   рекламы). */
+.core-engine-lib-word-blocks .creative-block__legal {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xs, 0.75rem);
+    line-height: 1.4;
+    color: var(--theme-text-muted, #64748b);
+    opacity: 0.85;
+}
+
+/* ============================================
+   CREATIVE BLOCK — АДАПТИВ
+   ============================================ */
+
+@media (max-width: 480px) {
+    .core-engine-lib-word-blocks .creative-block__inner {
+        padding-left: var(--theme-space-3);
+        gap: var(--theme-space-2);
+    }
+
+    .core-engine-lib-word-blocks .creative-block__text,
+    .core-engine-lib-word-blocks .creative-block__link {
+        font-size: var(--theme-font-size-base);
+    }
+
+    .core-engine-lib-word-blocks .creative-block__legal {
+        font-size: 0.6875rem;   /* 11px */
+    }
+}
+
+/* ============================================
+   CREATIVE BLOCK — prefers-reduced-motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .core-engine-lib-word-blocks .creative-block__link,
+    .core-engine-lib-word-blocks .creative-block__arrow {
+        transition: none;
+    }
+}
+
+* { box-sizing: border-box; } body {margin: 0;}.core-engine-lib-word-blocks .h1{font-family:var(--theme-font-family);font-size:var(--theme-font-size-4xl);font-weight:var(--theme-font-weight-bold);line-height:var(--theme-line-height-tight);color:var(--theme-text);letter-spacing:-0.02em;}.core-engine-lib-word-blocks .h2{font-family:var(--theme-font-family);font-size:var(--theme-font-size-3xl);font-weight:var(--theme-font-weight-bold);line-height:var(--theme-line-height-tight);color:var(--theme-text);letter-spacing:-0.01em;}.core-engine-lib-word-blocks .h3{font-family:var(--theme-font-family);font-size:var(--theme-font-size-2xl);font-weight:var(--theme-font-weight-semibold);line-height:var(--theme-line-height-tight);color:var(--theme-text);}.core-engine-lib-word-blocks .text{font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);font-weight:var(--theme-font-weight-regular);line-height:var(--theme-line-height-base);color:var(--theme-text);}.core-engine-lib-word-blocks .text--muted{color:var(--theme-text-muted);}.core-engine-lib-word-blocks .text--center{text-align:center;}.core-engine-lib-word-blocks .text:last-child{margin-bottom:0px;}.core-engine-lib-word-blocks .lead{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-regular);line-height:var(--theme-line-height-loose);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .list{padding-left:var(--theme-space-6);font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);line-height:var(--theme-line-height-base);color:var(--theme-text);}.core-engine-lib-word-blocks .list li{margin-bottom:var(--theme-space-2);}.core-engine-lib-word-blocks .list li:last-child{margin-bottom:0px;}.core-engine-lib-word-blocks .list li::marker{color:var(--theme-accent);}.core-engine-lib-word-blocks .list--check{list-style-position:initial;list-style-image:initial;list-style-type:none;padding-left:0px;}.core-engine-lib-word-blocks .list--check li{position:relative;padding-left:var(--theme-space-6);}.core-engine-lib-word-blocks .list--check li::before{content:"✓";position:absolute;left:0px;top:0px;color:var(--theme-accent);font-weight:var(--theme-font-weight-bold);}.core-engine-lib-word-blocks .list--num{list-style-position:initial;list-style-image:initial;list-style-type:decimal;}.core-engine-lib-word-blocks .list--num li::marker{color:var(--theme-accent);font-weight:var(--theme-font-weight-semibold);}.core-engine-lib-word-blocks .btn{display:inline-flex;align-items:center;justify-content:center;border-top-width:2px;border-right-width:2px;border-bottom-width:2px;border-left-width:2px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-image-source:none;border-image-slice:100%;border-image-width:1;border-image-outset:0;border-image-repeat:stretch;font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);font-weight:var(--theme-font-weight-semibold);line-height:1.2;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:center;white-space-collapse:collapse;text-wrap-mode:nowrap;cursor:pointer;color:var(--theme-text-invert);transition-behavior:normal, normal, normal;transition-duration:0.15s, 0.15s, 0.1s;transition-timing-function:ease, ease, ease;transition-delay:0s, 0s, 0s;transition-property:background, border-color, transform;}.core-engine-lib-word-blocks .btn:hover{color:var(--theme-text-invert);}.core-engine-lib-word-blocks .btn:active{transform:translateY(1px);}.core-engine-lib-word-blocks .btn--ghost{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:transparent;color:var(--theme-accent);}.core-engine-lib-word-blocks .btn--ghost:hover{color:var(--theme-accent);}.core-engine-lib-word-blocks .card{box-shadow:var(--theme-shadow-sm);}.core-engine-lib-word-blocks .card__title{font-family:var(--theme-font-family);font-size:var(--theme-font-size-xl);font-weight:var(--theme-font-weight-semibold);line-height:var(--theme-line-height-tight);color:var(--theme-text);}.core-engine-lib-word-blocks .card__text{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);line-height:var(--theme-line-height-base);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .badge{display:inline-block;color:var(--theme-accent);font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);font-weight:var(--theme-font-weight-medium);line-height:1.4;}.core-engine-lib-word-blocks .quote{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-style:italic;line-height:var(--theme-line-height-loose);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .image{display:block;max-width:100%;height:auto;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .icon{display:inline-block;width:1.5em;height:1.5em;vertical-align:middle;color:var(--theme-accent);flex-shrink:0;}.core-engine-lib-word-blocks .divider{border-top-width:medium;border-right-width:medium;border-bottom-width:medium;border-left-width:medium;border-top-style:none;border-right-style:none;border-bottom-style:none;border-left-style:none;border-top-color:currentcolor;border-right-color:currentcolor;border-bottom-color:currentcolor;border-left-color:currentcolor;border-image-source:none;border-image-slice:100%;border-image-width:1;border-image-outset:0;border-image-repeat:stretch;height:1px;}.core-engine-lib-word-blocks .section{padding-top:var(--theme-space-section);padding-bottom:var(--theme-space-section);}.core-engine-lib-word-blocks .container{width:100%;max-width:var(--theme-container-max);margin-left:auto;margin-right:auto;padding-left:var(--theme-space-gutter);padding-right:var(--theme-space-gutter);box-sizing:border-box;}.core-engine-lib-word-blocks .grid{display:grid;}.core-engine-lib-word-blocks .grid--2{grid-template-columns:repeat(2, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--3{grid-template-columns:repeat(3, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--4{grid-template-columns:repeat(4, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--auto{grid-template-columns:repeat(auto-fit, minmax(15rem, 1fr));}.core-engine-lib-word-blocks .col{min-width:0px;}.core-engine-lib-word-blocks .hero__inner{display:flex;flex-direction:column;align-items:center;text-align:center;}.core-engine-lib-word-blocks .hero__title{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;max-width:48rem;}.core-engine-lib-word-blocks .hero__lead{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;max-width:40rem;}.core-engine-lib-word-blocks .hero__btn{margin-top:var(--theme-space-2);}.core-engine-lib-word-blocks .features__title{text-align:center;}.core-engine-lib-word-blocks .features__item{height:100%;}.core-engine-lib-word-blocks .steps__title{text-align:center;}.core-engine-lib-word-blocks .steps__item{display:flex;flex-direction:column;}.core-engine-lib-word-blocks .steps__num{display:inline-flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;color:var(--theme-accent);font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-bold);margin-bottom:var(--theme-space-2);}.core-engine-lib-word-blocks .steps__item-title{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .text-image__grid{align-items:center;}.core-engine-lib-word-blocks .text-image__text{display:flex;flex-direction:column;}.core-engine-lib-word-blocks .text-image__media{display:flex;align-items:center;justify-content:center;}.core-engine-lib-word-blocks .text-image__media .image{width:100%;}.core-engine-lib-word-blocks .image-text__grid{align-items:center;}.core-engine-lib-word-blocks .image-text__text{display:flex;flex-direction:column;}.core-engine-lib-word-blocks .image-text__media{display:flex;align-items:center;justify-content:center;}.core-engine-lib-word-blocks .image-text__media .image{width:100%;}.core-engine-lib-word-blocks .gallery__title{text-align:center;}.core-engine-lib-word-blocks .gallery__item{width:100%;aspect-ratio:4 / 3;object-fit:cover;}.core-engine-lib-word-blocks .faq__title{text-align:center;}.core-engine-lib-word-blocks .faq__list{display:flex;flex-direction:column;max-width:48rem;margin-left:auto;margin-right:auto;}.core-engine-lib-word-blocks .faq__item{padding-bottom:var(--theme-space-5);}.core-engine-lib-word-blocks .faq__item:last-child{padding-bottom:0px;border-bottom-width:medium;border-bottom-style:none;border-bottom-color:currentcolor;}.core-engine-lib-word-blocks .faq__answer{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .cta{color:var(--theme-text, #1e293b);}.core-engine-lib-word-blocks .cta__inner{display:flex;flex-direction:column;align-items:center;text-align:center;}.core-engine-lib-word-blocks .cta__title{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;color:var(--theme-text, #1e293b);max-width:48rem;}.core-engine-lib-word-blocks .cta__text{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;color:var(--theme-text-muted, #64748b);max-width:40rem;}.core-engine-lib-word-blocks .cta__btn{margin-top:var(--theme-space-2);}.core-engine-lib-word-blocks .contacts__title{text-align:center;}.core-engine-lib-word-blocks .contacts__item{display:flex;flex-direction:column;}.core-engine-lib-word-blocks .contacts__label{font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);font-weight:var(--theme-font-weight-medium);text-transform:uppercase;letter-spacing:0.05em;color:var(--theme-text-muted);}.core-engine-lib-word-blocks .contacts__value{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-medium);color:var(--theme-text);}.core-engine-lib-word-blocks .footer{color:var(--theme-text, #1e293b);padding-top:var(--theme-space-6);padding-bottom:var(--theme-space-6);}.core-engine-lib-word-blocks .footer__inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;}.core-engine-lib-word-blocks .footer__brand{font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);color:var(--theme-text, #1e293b);opacity:0.75;min-width:0px;overflow-x:hidden;overflow-y:hidden;text-overflow:ellipsis;white-space-collapse:collapse;text-wrap-mode:nowrap;}.core-engine-lib-word-blocks .footer__nav{display:inline-flex;flex-wrap:wrap;align-items:center;flex-shrink:0;}.core-engine-lib-word-blocks .footer__link{font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);color:var(--theme-text, #1e293b);opacity:0.75;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;border-bottom-width:medium;border-bottom-style:none;border-bottom-color:currentcolor;white-space-collapse:collapse;text-wrap-mode:nowrap;transition-behavior:normal, normal;transition-duration:0.15s, 0.15s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:opacity, color;}.core-engine-lib-word-blocks .footer__link:hover{opacity:1;color:var(--theme-accent, #3b82f6);text-decoration-line:underline;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-underline-offset:2px;}.core-engine-lib-word-blocks .article-catalog__heading{text-align:center;}.core-engine-lib-word-blocks .article-catalog{display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));align-content:start;}.core-engine-lib-word-blocks .article-catalog__card{position:relative;display:grid;grid-template-columns:104px 1fr;align-items:start;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgba(255, 255, 255, 0.72);backdrop-filter:blur(20px);border-top-width:1px;border-right-width:1px;border-bottom-width:1px;border-left-width:1px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(255, 255, 255, 0.6);border-right-color:rgba(255, 255, 255, 0.6);border-bottom-color:rgba(255, 255, 255, 0.6);border-left-color:rgba(255, 255, 255, 0.6);border-image-source:none;border-image-slice:100%;border-image-width:1;border-image-outset:0;border-image-repeat:stretch;box-shadow:rgba(15, 23, 42, 0.04) 0px 4px 16px, rgba(15, 23, 42, 0.06) 0px 1px 3px;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;color:inherit;overflow-x:hidden;overflow-y:hidden;transition-behavior:normal, normal, normal;transition-duration:0.3s, 0.3s, 0.3s;transition-timing-function:ease, ease, ease;transition-delay:0s, 0s, 0s;transition-property:transform, box-shadow, background;}.core-engine-lib-word-blocks .article-catalog__card:hover{transform:translateY(-4px);background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgba(255, 255, 255, 0.95);box-shadow:rgba(59, 130, 246, 0.12) 0px 12px 32px, rgba(15, 23, 42, 0.08) 0px 4px 12px;}.core-engine-lib-word-blocks .article-catalog__card:active{transform:translateY(-2px) scale(0.99);}.core-engine-lib-word-blocks .article-catalog__glow{position:absolute;top:0px;right:0px;bottom:0px;left:0px;border-top-left-radius:inherit;border-top-right-radius:inherit;border-bottom-right-radius:inherit;border-bottom-left-radius:inherit;opacity:0;transition-behavior:normal;transition-duration:0.4s;transition-timing-function:ease;transition-delay:0s;transition-property:opacity;pointer-events:none;z-index:0;}.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__glow{opacity:1;}.core-engine-lib-word-blocks .article-catalog__logo{position:relative;width:104px;height:104px;overflow-x:hidden;overflow-y:hidden;background-image:linear-gradient(135deg, rgb(224, 231, 255) 0%, rgb(243, 232, 255) 100%);background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;z-index:1;}.core-engine-lib-word-blocks .article-catalog__logo img{width:100%;height:100%;object-fit:cover;display:block;transition-behavior:normal;transition-duration:0.5s;transition-timing-function:ease;transition-delay:0s;transition-property:transform;}.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__logo img{transform:scale(1.05);}.core-engine-lib-word-blocks .article-catalog__body{position:relative;z-index:1;min-width:0px;}.core-engine-lib-word-blocks .article-catalog__title{font-family:var(--theme-font-family);font-size:var(--theme-font-size-xl);font-weight:var(--theme-font-weight-bold);line-height:1.25;color:var(--theme-text, #0f172a);letter-spacing:-0.01em;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow-x:hidden;overflow-y:hidden;}.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__title{color:var(--theme-accent, #3b82f6);}.core-engine-lib-word-blocks .article-catalog__desc{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);line-height:1.5;color:var(--theme-text-muted, #64748b);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow-x:hidden;overflow-y:hidden;}.core-engine-lib-word-blocks .article-catalog__date{display:block;margin-top:var(--theme-space-2);font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);font-weight:var(--theme-font-weight-medium);color:var(--theme-text-muted, #94a3b8);letter-spacing:0.02em;text-transform:uppercase;white-space-collapse:collapse;text-wrap-mode:nowrap;overflow-x:hidden;overflow-y:hidden;text-overflow:ellipsis;}.core-engine-lib-word-blocks .creative-block__inner{display:flex;flex-direction:column;align-items:flex-start;padding-left:var(--theme-space-4);max-width:48rem;}.core-engine-lib-word-blocks .creative-block__text{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);line-height:1.5;color:var(--theme-text, #0f172a);}.core-engine-lib-word-blocks .creative-block__link{display:inline-flex;align-items:center;font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-medium);line-height:1.4;color:var(--theme-accent, #3b82f6);text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:currentcolor;padding-bottom:1px;transition-behavior:normal, normal;transition-duration:0.15s, 0.15s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:color, border-color;}.core-engine-lib-word-blocks .creative-block__link:hover{color:var(--theme-accent-hover, #2563eb);border-bottom-color:currentcolor;}.core-engine-lib-word-blocks .creative-block__arrow{font-size:1.15em;line-height:1;transition-behavior:normal;transition-duration:0.15s;transition-timing-function:ease;transition-delay:0s;transition-property:transform;}.core-engine-lib-word-blocks .creative-block__link:hover .creative-block__arrow{transform:translateX(3px);}.core-engine-lib-word-blocks .creative-block__legal{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;font-family:var(--theme-font-family);font-size:var(--theme-font-size-xs, 0.75rem);line-height:1.4;color:var(--theme-text-muted, #64748b);opacity:0.85;}*{box-sizing:border-box;}body{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .h1{font-family:var(--theme-font-family);font-size:var(--theme-font-size-4xl);font-weight:var(--theme-font-weight-bold);line-height:var(--theme-line-height-tight);color:var(--theme-text);letter-spacing:-0.02em;}.core-engine-lib-word-blocks .h2{font-family:var(--theme-font-family);font-size:var(--theme-font-size-3xl);font-weight:var(--theme-font-weight-bold);line-height:var(--theme-line-height-tight);color:var(--theme-text);letter-spacing:-0.01em;}.core-engine-lib-word-blocks .h3{font-family:var(--theme-font-family);font-size:var(--theme-font-size-2xl);font-weight:var(--theme-font-weight-semibold);line-height:var(--theme-line-height-tight);color:var(--theme-text);}.core-engine-lib-word-blocks .text{font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);font-weight:var(--theme-font-weight-regular);line-height:var(--theme-line-height-base);color:var(--theme-text);}.core-engine-lib-word-blocks .text--muted{color:var(--theme-text-muted);}.core-engine-lib-word-blocks .text--center{text-align:center;}.core-engine-lib-word-blocks .text:last-child{margin-bottom:0px;}.core-engine-lib-word-blocks .lead{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-regular);line-height:var(--theme-line-height-loose);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .list{padding-left:var(--theme-space-6);font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);line-height:var(--theme-line-height-base);color:var(--theme-text);}.core-engine-lib-word-blocks .list li{margin-bottom:var(--theme-space-2);}.core-engine-lib-word-blocks .list li:last-child{margin-bottom:0px;}.core-engine-lib-word-blocks .list li::marker{color:var(--theme-accent);}.core-engine-lib-word-blocks .list--check{list-style-position:initial;list-style-image:initial;list-style-type:none;padding-left:0px;}.core-engine-lib-word-blocks .list--check li{position:relative;padding-left:var(--theme-space-6);}.core-engine-lib-word-blocks .list--check li::before{content:"✓";position:absolute;left:0px;top:0px;color:var(--theme-accent);font-weight:var(--theme-font-weight-bold);}.core-engine-lib-word-blocks .list--num{list-style-position:initial;list-style-image:initial;list-style-type:decimal;}.core-engine-lib-word-blocks .list--num li::marker{color:var(--theme-accent);font-weight:var(--theme-font-weight-semibold);}.core-engine-lib-word-blocks .btn{display:inline-flex;align-items:center;justify-content:center;border-top-width:2px;border-right-width:2px;border-bottom-width:2px;border-left-width:2px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);font-weight:var(--theme-font-weight-semibold);line-height:1.2;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:center;white-space-collapse:collapse;text-wrap-mode:nowrap;text-wrap-style:initial;cursor:pointer;color:var(--theme-text-invert);transition-behavior:normal, normal, normal;transition-duration:0.15s, 0.15s, 0.1s;transition-timing-function:ease, ease, ease;transition-delay:0s, 0s, 0s;transition-property:background, border-color, transform;}.core-engine-lib-word-blocks .btn:hover{color:var(--theme-text-invert);}.core-engine-lib-word-blocks .btn:active{transform:translateY(1px);}.core-engine-lib-word-blocks .btn--ghost{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:transparent;color:var(--theme-accent);}.core-engine-lib-word-blocks .btn--ghost:hover{color:var(--theme-accent);}.core-engine-lib-word-blocks .card{box-shadow:var(--theme-shadow-sm);}.core-engine-lib-word-blocks .card__title{font-family:var(--theme-font-family);font-size:var(--theme-font-size-xl);font-weight:var(--theme-font-weight-semibold);line-height:var(--theme-line-height-tight);color:var(--theme-text);}.core-engine-lib-word-blocks .card__text{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);line-height:var(--theme-line-height-base);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .badge{display:inline-block;color:var(--theme-accent);font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);font-weight:var(--theme-font-weight-medium);line-height:1.4;}.core-engine-lib-word-blocks .quote{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-style:italic;line-height:var(--theme-line-height-loose);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .image{display:block;max-width:100%;height:auto;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .icon{display:inline-block;width:1.5em;height:1.5em;vertical-align:middle;color:var(--theme-accent);flex-shrink:0;}.core-engine-lib-word-blocks .divider{border-top-width:initial;border-right-width:initial;border-bottom-width:initial;border-left-width:initial;border-top-style:none;border-right-style:none;border-bottom-style:none;border-left-style:none;border-top-color:initial;border-right-color:initial;border-bottom-color:initial;border-left-color:initial;border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;height:1px;}.core-engine-lib-word-blocks .section{padding-top:var(--theme-space-section);padding-bottom:var(--theme-space-section);}.core-engine-lib-word-blocks .container{width:100%;max-width:var(--theme-container-max);margin-left:auto;margin-right:auto;padding-left:var(--theme-space-gutter);padding-right:var(--theme-space-gutter);box-sizing:border-box;}.core-engine-lib-word-blocks .grid{display:grid;}.core-engine-lib-word-blocks .grid--2{grid-template-columns:repeat(2, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--3{grid-template-columns:repeat(3, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--4{grid-template-columns:repeat(4, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--auto{grid-template-columns:repeat(auto-fit, minmax(15rem, 1fr));}.core-engine-lib-word-blocks .col{min-width:0px;}.core-engine-lib-word-blocks .hero__inner{display:flex;flex-direction:column;align-items:center;text-align:center;}.core-engine-lib-word-blocks .hero__title{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;max-width:48rem;}.core-engine-lib-word-blocks .hero__lead{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;max-width:40rem;}.core-engine-lib-word-blocks .hero__btn{margin-top:var(--theme-space-2);}.core-engine-lib-word-blocks .features__title{text-align:center;}.core-engine-lib-word-blocks .features__item{height:100%;}.core-engine-lib-word-blocks .steps__title{text-align:center;}.core-engine-lib-word-blocks .steps__item{display:flex;flex-direction:column;}.core-engine-lib-word-blocks .steps__num{display:inline-flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;color:var(--theme-accent);font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-bold);margin-bottom:var(--theme-space-2);}.core-engine-lib-word-blocks .steps__item-title{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .text-image__grid{align-items:center;}.core-engine-lib-word-blocks .text-image__text{display:flex;flex-direction:column;}.core-engine-lib-word-blocks .text-image__media{display:flex;align-items:center;justify-content:center;}.core-engine-lib-word-blocks .text-image__media .image{width:100%;}.core-engine-lib-word-blocks .image-text__grid{align-items:center;}.core-engine-lib-word-blocks .image-text__text{display:flex;flex-direction:column;}.core-engine-lib-word-blocks .image-text__media{display:flex;align-items:center;justify-content:center;}.core-engine-lib-word-blocks .image-text__media .image{width:100%;}.core-engine-lib-word-blocks .gallery__title{text-align:center;}.core-engine-lib-word-blocks .gallery__item{width:100%;aspect-ratio:4 / 3;object-fit:cover;}.core-engine-lib-word-blocks .faq__title{text-align:center;}.core-engine-lib-word-blocks .faq__list{display:flex;flex-direction:column;max-width:48rem;margin-left:auto;margin-right:auto;}.core-engine-lib-word-blocks .faq__item{padding-bottom:var(--theme-space-5);}.core-engine-lib-word-blocks .faq__item:last-child{padding-bottom:0px;border-bottom-width:initial;border-bottom-style:none;border-bottom-color:initial;}.core-engine-lib-word-blocks .faq__answer{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .cta{color:var(--theme-text, #1e293b);}.core-engine-lib-word-blocks .cta__inner{display:flex;flex-direction:column;align-items:center;text-align:center;}.core-engine-lib-word-blocks .cta__title{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;color:var(--theme-text, #1e293b);max-width:48rem;}.core-engine-lib-word-blocks .cta__text{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;color:var(--theme-text-muted, #64748b);max-width:40rem;}.core-engine-lib-word-blocks .cta__btn{margin-top:var(--theme-space-2);}.core-engine-lib-word-blocks .contacts__title{text-align:center;}.core-engine-lib-word-blocks .contacts__item{display:flex;flex-direction:column;}.core-engine-lib-word-blocks .contacts__label{font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);font-weight:var(--theme-font-weight-medium);text-transform:uppercase;letter-spacing:0.05em;color:var(--theme-text-muted);}.core-engine-lib-word-blocks .contacts__value{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-medium);color:var(--theme-text);}.core-engine-lib-word-blocks .footer{color:var(--theme-text, #1e293b);padding-top:var(--theme-space-6);padding-bottom:var(--theme-space-6);}.core-engine-lib-word-blocks .footer__inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;}.core-engine-lib-word-blocks .footer__brand{font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);color:var(--theme-text, #1e293b);opacity:0.75;min-width:0px;overflow-x:hidden;overflow-y:hidden;text-overflow:ellipsis;white-space-collapse:collapse;text-wrap-mode:nowrap;text-wrap-style:initial;}.core-engine-lib-word-blocks .footer__nav{display:inline-flex;flex-wrap:wrap;align-items:center;flex-shrink:0;}.core-engine-lib-word-blocks .footer__link{font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);color:var(--theme-text, #1e293b);opacity:0.75;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;border-bottom-width:initial;border-bottom-style:none;border-bottom-color:initial;white-space-collapse:collapse;text-wrap-mode:nowrap;text-wrap-style:initial;transition-behavior:normal, normal;transition-duration:0.15s, 0.15s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:opacity, color;}.core-engine-lib-word-blocks .footer__link:hover{opacity:1;color:var(--theme-accent, #3b82f6);text-decoration-line:underline;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-underline-offset:2px;}.core-engine-lib-word-blocks .article-catalog__heading{text-align:center;}.core-engine-lib-word-blocks .article-catalog{display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));align-content:start;}.core-engine-lib-word-blocks .article-catalog__card{position:relative;display:grid;grid-template-columns:104px 1fr;align-items:start;background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgba(255, 255, 255, 0.72);backdrop-filter:blur(20px);border-top-width:1px;border-right-width:1px;border-bottom-width:1px;border-left-width:1px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgba(255, 255, 255, 0.6);border-right-color:rgba(255, 255, 255, 0.6);border-bottom-color:rgba(255, 255, 255, 0.6);border-left-color:rgba(255, 255, 255, 0.6);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;box-shadow:rgba(15, 23, 42, 0.04) 0px 4px 16px, rgba(15, 23, 42, 0.06) 0px 1px 3px;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;color:inherit;overflow-x:hidden;overflow-y:hidden;transition-behavior:normal, normal, normal;transition-duration:0.3s, 0.3s, 0.3s;transition-timing-function:ease, ease, ease;transition-delay:0s, 0s, 0s;transition-property:transform, box-shadow, background;}.core-engine-lib-word-blocks .article-catalog__card:hover{transform:translateY(-4px);background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:rgba(255, 255, 255, 0.95);box-shadow:rgba(59, 130, 246, 0.12) 0px 12px 32px, rgba(15, 23, 42, 0.08) 0px 4px 12px;}.core-engine-lib-word-blocks .article-catalog__card:active{transform:translateY(-2px) scale(0.99);}.core-engine-lib-word-blocks .article-catalog__glow{position:absolute;top:0px;right:0px;bottom:0px;left:0px;border-top-left-radius:inherit;border-top-right-radius:inherit;border-bottom-right-radius:inherit;border-bottom-left-radius:inherit;opacity:0;transition-behavior:normal;transition-duration:0.4s;transition-timing-function:ease;transition-delay:0s;transition-property:opacity;pointer-events:none;z-index:0;}.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__glow{opacity:1;}.core-engine-lib-word-blocks .article-catalog__logo{position:relative;width:104px;height:104px;overflow-x:hidden;overflow-y:hidden;background-image:linear-gradient(135deg, rgb(224, 231, 255) 0%, rgb(243, 232, 255) 100%);background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;z-index:1;}.core-engine-lib-word-blocks .article-catalog__logo img{width:100%;height:100%;object-fit:cover;display:block;transition-behavior:normal;transition-duration:0.5s;transition-timing-function:ease;transition-delay:0s;transition-property:transform;}.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__logo img{transform:scale(1.05);}.core-engine-lib-word-blocks .article-catalog__body{position:relative;z-index:1;min-width:0px;}.core-engine-lib-word-blocks .article-catalog__title{font-family:var(--theme-font-family);font-size:var(--theme-font-size-xl);font-weight:var(--theme-font-weight-bold);line-height:1.25;color:var(--theme-text, #0f172a);letter-spacing:-0.01em;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow-x:hidden;overflow-y:hidden;}.core-engine-lib-word-blocks .article-catalog__card:hover .article-catalog__title{color:var(--theme-accent, #3b82f6);}.core-engine-lib-word-blocks .article-catalog__desc{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);line-height:1.5;color:var(--theme-text-muted, #64748b);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow-x:hidden;overflow-y:hidden;}.core-engine-lib-word-blocks .article-catalog__date{display:block;margin-top:var(--theme-space-2);font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);font-weight:var(--theme-font-weight-medium);color:var(--theme-text-muted, #94a3b8);letter-spacing:0.02em;text-transform:uppercase;white-space-collapse:collapse;text-wrap-mode:nowrap;text-wrap-style:initial;overflow-x:hidden;overflow-y:hidden;text-overflow:ellipsis;}.core-engine-lib-word-blocks .creative-block__inner{display:flex;flex-direction:column;align-items:flex-start;padding-left:var(--theme-space-4);max-width:48rem;}.core-engine-lib-word-blocks .creative-block__text{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);line-height:1.5;color:var(--theme-text, #0f172a);}.core-engine-lib-word-blocks .creative-block__link{display:inline-flex;align-items:center;font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-medium);line-height:1.4;color:var(--theme-accent, #3b82f6);text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:currentcolor;padding-bottom:1px;transition-behavior:normal, normal;transition-duration:0.15s, 0.15s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:color, border-color;}.core-engine-lib-word-blocks .creative-block__link:hover{color:var(--theme-accent-hover, #2563eb);border-bottom-color:currentcolor;}.core-engine-lib-word-blocks .creative-block__arrow{font-size:1.15em;line-height:1;transition-behavior:normal;transition-duration:0.15s;transition-timing-function:ease;transition-delay:0s;transition-property:transform;}.core-engine-lib-word-blocks .creative-block__link:hover .creative-block__arrow{transform:translateX(3px);}.core-engine-lib-word-blocks .creative-block__legal{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;font-family:var(--theme-font-family);font-size:var(--theme-font-size-xs, 0.75rem);line-height:1.4;color:var(--theme-text-muted, #64748b);opacity:0.85;}*{box-sizing:border-box;}body{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}*{box-sizing:border-box;}body{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}:root{--doc-sidebar-width:260px;--doc-nav-height:66px;--doc-heading:#1e4d8c;--doc-accent:#2a6db8;--doc-accent-soft:rgba(42, 109, 184, 0.08);--doc-border:#d6e2f0;--doc-bg:#ffffff;}.doc-nav{position:sticky;top:0px;z-index:100;background-color:rgba(255, 255, 255, 0.85);backdrop-filter:blur(12px);}.doc-nav__inner{display:flex;align-items:center;justify-content:space-between;row-gap:16px;column-gap:16px;max-width:1400px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;padding-top:12px;padding-right:24px;padding-bottom:12px;padding-left:24px;}.doc-nav__brand{display:inline-flex;align-items:center;row-gap:10px;column-gap:10px;text-decoration-line:none;color:var(--doc-heading);font-weight:700;font-size:17px;letter-spacing:-0.01em;transition-behavior:normal;transition-duration:0.2s;transition-timing-function:ease;transition-delay:0s;transition-property:color;}.doc-nav__brand:hover{color:var(--doc-accent);}.doc-nav__brand-mark{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-top-left-radius:10px;border-top-right-radius:10px;border-bottom-right-radius:10px;border-bottom-left-radius:10px;background-image:linear-gradient(135deg, rgb(219, 234, 254) 0%, rgb(239, 246, 255) 100%);color:var(--doc-accent);}.doc-nav__burger{display:none;flex-direction:column;justify-content:center;row-gap:5px;column-gap:5px;width:42px;height:42px;padding-top:0px;padding-right:10px;padding-bottom:0px;padding-left:10px;border-top-left-radius:10px;border-top-right-radius:10px;border-bottom-right-radius:10px;border-bottom-left-radius:10px;background-color:rgba(255, 255, 255, 0.6);cursor:pointer;transition-behavior:normal, normal;transition-duration:0.2s, 0.2s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:background, border-color;}.doc-nav__burger:hover{background-color:var(--doc-accent-soft);}.doc-nav__burger-line{display:block;width:100%;height:2px;border-top-left-radius:2px;border-top-right-radius:2px;border-bottom-right-radius:2px;border-bottom-left-radius:2px;background-color:var(--doc-heading);}.doc-layout{display:flex;align-items:flex-start;max-width:1400px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;padding-top:0px;padding-right:24px;padding-bottom:0px;padding-left:24px;row-gap:32px;column-gap:32px;min-height:calc(100vh - var(--doc-nav-height) - 80px);}.doc-sidebar{flex-shrink:0;width:var(--doc-sidebar-width);position:sticky;top:calc(var(--doc-nav-height) + 16px);max-height:calc(100vh - var(--doc-nav-height) - 32px);overflow-y:auto;padding-top:16px;padding-right:0px;padding-bottom:16px;padding-left:0px;}.doc-sidebar__inner{display:flex;flex-direction:column;row-gap:8px;column-gap:8px;}.doc-sidebar__head{display:none;}.doc-sidebar__nav{display:flex;flex-direction:column;}.doc-sidebar__list{list-style-position:initial;list-style-image:initial;list-style-type:none;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;}.doc-sidebar__group{margin-bottom:16px;}.doc-sidebar__group-title{display:block;padding-top:6px;padding-right:12px;padding-bottom:6px;padding-left:12px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--doc-heading);}.doc-sidebar__sublist{list-style-position:initial;list-style-image:initial;list-style-type:none;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;}.doc-sidebar__link{display:block;padding-top:8px;padding-right:12px;padding-bottom:8px;padding-left:12px;border-top-left-radius:8px;border-top-right-radius:8px;border-bottom-right-radius:8px;border-bottom-left-radius:8px;font-size:15px;line-height:1.4;color:var(--doc-heading);text-decoration-line:none;transition-behavior:normal, normal;transition-duration:0.15s, 0.15s;transition-timing-function:ease, ease;transition-delay:0s, 0s;transition-property:background, color;}.doc-sidebar__link:hover{color:var(--doc-accent);}.doc-sidebar__link--active{color:var(--doc-accent);font-weight:600;}.doc-content{flex-grow:1;flex-shrink:1;flex-basis:auto;min-width:0px;padding-top:24px;padding-right:0px;padding-bottom:48px;padding-left:0px;}.doc-sidebar-backdrop{display:none;}@media (prefers-reduced-motion: reduce){.core-engine-lib-word-blocks .article-catalog__card, .core-engine-lib-word-blocks .article-catalog__logo img, .core-engine-lib-word-blocks .article-catalog__glow{transition-behavior:normal;transition-duration:0s;transition-timing-function:ease;transition-delay:0s;transition-property:none;}.core-engine-lib-word-blocks .creative-block__link, .core-engine-lib-word-blocks .creative-block__arrow{transition-behavior:normal;transition-duration:0s;transition-timing-function:ease;transition-delay:0s;transition-property:none;}.core-engine-lib-word-blocks .article-catalog__card, .core-engine-lib-word-blocks .article-catalog__logo img, .core-engine-lib-word-blocks .article-catalog__glow{transition-behavior:normal;transition-duration:0s;transition-timing-function:ease;transition-delay:0s;transition-property:none;}.core-engine-lib-word-blocks .creative-block__link, .core-engine-lib-word-blocks .creative-block__arrow{transition-behavior:normal;transition-duration:0s;transition-timing-function:ease;transition-delay:0s;transition-property:none;}}@media (max-width: 900px){.doc-nav__burger{display:flex;}.doc-layout{padding-top:0px;padding-right:16px;padding-bottom:0px;padding-left:16px;row-gap:0px;column-gap:0px;}.doc-sidebar{position:fixed;top:0px;left:0px;bottom:0px;width:280px;max-height:100vh;z-index:200;background-color:var(--doc-bg);box-shadow:rgba(15, 23, 42, 0.15) 0px 0px 32px;transform:translateX(-100%);transition-behavior:normal;transition-duration:0.3s;transition-timing-function:ease;transition-delay:0s;transition-property:transform;padding-top:20px;padding-right:16px;padding-bottom:20px;padding-left:16px;overflow-y:auto;}.doc-sidebar-backdrop{display:block;position:fixed;top:0px;right:0px;bottom:0px;left:0px;background-color:rgba(15, 23, 42, 0.5);opacity:0;pointer-events:none;transition-behavior:normal;transition-duration:0.3s;transition-timing-function:ease;transition-delay:0s;transition-property:opacity;z-index:150;}.doc-sidebar__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:16px;}.doc-sidebar__title{font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--doc-heading);}.doc-sidebar__close{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-top-left-radius:8px;border-top-right-radius:8px;border-bottom-right-radius:8px;border-bottom-left-radius:8px;cursor:pointer;position:relative;transition-behavior:normal;transition-duration:0.15s;transition-timing-function:ease;transition-delay:0s;transition-property:background;}.doc-sidebar__close:hover{background-color:var(--doc-accent-soft);}.doc-sidebar__close span{position:absolute;width:18px;height:2px;border-top-left-radius:2px;border-top-right-radius:2px;border-bottom-right-radius:2px;border-bottom-left-radius:2px;background-color:var(--doc-heading);}.doc-sidebar__close span:nth-child(1){transform:rotate(45deg);}.doc-sidebar__close span:nth-child(2){transform:rotate(-45deg);}.doc-content{padding-top:20px;padding-right:0px;padding-bottom:40px;padding-left:0px;}.doc-sidebar-toggle:checked ~ .doc-layout .doc-sidebar{transform:translateX(0px);}.doc-sidebar-toggle:checked ~ .doc-layout .doc-sidebar-backdrop{opacity:1;pointer-events:auto;}.doc-sidebar-toggle:checked ~ .doc-layout{overflow-x:hidden;overflow-y:hidden;}}@media (max-width: 768px){.core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4{grid-template-columns:minmax(0px, 1fr);}.core-engine-lib-word-blocks .article-catalog{grid-template-columns:1fr;}.core-engine-lib-word-blocks .article-catalog__card{grid-template-columns:100px 1fr;}.core-engine-lib-word-blocks .article-catalog__logo{width:100px;height:100px;}.core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4{grid-template-columns:minmax(0px, 1fr);}.core-engine-lib-word-blocks .article-catalog{grid-template-columns:1fr;}.core-engine-lib-word-blocks .article-catalog__card{grid-template-columns:100px 1fr;}.core-engine-lib-word-blocks .article-catalog__logo{width:100px;height:100px;}}@media (max-width: 560px){.core-engine-lib-word-blocks .footer__inner{flex-direction:column;align-items:center;text-align:center;}.core-engine-lib-word-blocks .footer__brand{white-space-collapse:collapse;text-wrap-mode:wrap;text-align:center;overflow-x:visible;overflow-y:visible;text-overflow:clip;}.core-engine-lib-word-blocks .footer__nav{justify-content:center;}.core-engine-lib-word-blocks .footer__inner{flex-direction:column;align-items:center;text-align:center;}.core-engine-lib-word-blocks .footer__brand{white-space-collapse:collapse;text-wrap-mode:wrap;text-wrap-style:initial;text-align:center;overflow-x:visible;overflow-y:visible;text-overflow:clip;}.core-engine-lib-word-blocks .footer__nav{justify-content:center;}}@media (max-width: 480px){.core-engine-lib-word-blocks .article-catalog__card{grid-template-columns:88px 1fr;}.core-engine-lib-word-blocks .article-catalog__logo{width:88px;height:88px;}.core-engine-lib-word-blocks .article-catalog__title{font-size:var(--theme-font-size-lg);}.core-engine-lib-word-blocks .article-catalog__desc{font-size:var(--theme-font-size-base);}.core-engine-lib-word-blocks .article-catalog__date{font-size:var(--theme-font-size-sm);}.core-engine-lib-word-blocks .creative-block__inner{padding-left:var(--theme-space-3);}.core-engine-lib-word-blocks .creative-block__text, .core-engine-lib-word-blocks .creative-block__link{font-size:var(--theme-font-size-base);}.core-engine-lib-word-blocks .creative-block__legal{font-size:0.6875rem;}.core-engine-lib-word-blocks .article-catalog__card{grid-template-columns:88px 1fr;}.core-engine-lib-word-blocks .article-catalog__logo{width:88px;height:88px;}.core-engine-lib-word-blocks .article-catalog__title{font-size:var(--theme-font-size-lg);}.core-engine-lib-word-blocks .article-catalog__desc{font-size:var(--theme-font-size-base);}.core-engine-lib-word-blocks .article-catalog__date{font-size:var(--theme-font-size-sm);}.core-engine-lib-word-blocks .creative-block__inner{padding-left:var(--theme-space-3);}.core-engine-lib-word-blocks .creative-block__text, .core-engine-lib-word-blocks .creative-block__link{font-size:var(--theme-font-size-base);}.core-engine-lib-word-blocks .creative-block__legal{font-size:0.6875rem;}}', NULL, 'page', 75, 0);
 INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url", "card_type", "parent_id", "sort_order") VALUES (31, 1, '2026-09-20 18:12:01.412009', 'Статья 2', '', '', '<style>* { box-sizing: border-box; } body {margin: 0;}*{box-sizing:border-box;}body{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks{padding-top:8px;padding-right:20px;padding-bottom:8px;padding-left:20px;}.core-engine-lib-word-blocks.compact{padding-top:2px;padding-bottom:2px;}.text{text-align:justify;text-indent:2em;line-height:1.6;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.lead{font-size:1.25em;}</style><body id="ixuw"><div class="core-engine-lib-word-blocks"><p class="text">Это первый абзац тестового текста. Он нужен для того, чтобы наполнить страницу содержимым и проверить, как работает вертикальная прокрутка. Прокрутка появляется тогда, когда высота содержимого превышает высоту окна браузера, поэтому чем больше текста, тем надёжнее результат проверки.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Второй абзац продолжает наполнение страницы. Здесь можно написать что угодно: описание проекта, заметки, черновик статьи или просто набор нейтральных фраз. Главное — чтобы текста было достаточно много и он занимал несколько экранов по высоте.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Третий абзац добавляет ещё немного строк. Если прокрутка работает правильно, в правой части окна появится полоса прокрутки, а колесо мыши и клавиши со стрелками будут плавно перемещать содержимое вверх и вниз без рывков и подёргиваний.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Четвёртый абзац. Проверьте также поведение страницы на мобильном устройстве: там прокрутка должна работать свайпом, а содержимое — не выезжать за пределы экрана и не создавать горизонтального смещения. Это важно для комфортного чтения.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Пятый абзац служит для того, чтобы общая высота страницы стала заметно больше высоты экрана. Обычно достаточно примерно тридцати строк текста, чтобы точно увидеть, что механизм прокрутки включился и работает корректно во всех направлениях.</p></div><div class="core-engine-lib-word-blocks compact"><p class="lead">Шестой, вводный абзац. Крупный текст привлекает внимание к разделу и хорошо заметен при быстрой прокрутке: так удобнее оценивать, насколько плавно движется страница и не пропускает ли она отдельные блоки.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Седьмой абзац. Обратите внимание на отступы между блоками: они не должны схлопываться или, наоборот, становиться слишком большими. Ровные интервалы делают длинный текст аккуратным и удобным для чтения.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Восьмой абзац. Если всё работает как надо, вы легко доберётесь до самого низа страницы и без труда вернётесь обратно наверх. Это и есть основная проверка: длинный текст, свободная прокрутка и отсутствие визуальных дефектов.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Девятый абзац. Здесь можно оставить любую нейтральную фразу: она не несёт смысловой нагрузки и нужна только для объёма. Такой текст удобно использовать как временное наполнение в процессе вёрстки и настройки стилей.</p></div><div class="core-engine-lib-word-blocks"><p class="text">Десятый, последний абзац. Если вы дочитали до этих строк, значит прокрутка действительно работает. Теперь можно заменить этот текст своим содержимым и спокойно продолжать работу над страницей и её оформлением.</p></div></body>', '{"assets":[{"type":"image","src":"/media/default/logo_ec0d8ede.png","unitDim":"px","height":0,"width":0,"name":"logo_ec0d8ede.png"}],"styles":[{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["core-engine-lib-word-blocks"],"style":{"padding-top":"8px","padding-right":"20px","padding-bottom":"8px","padding-left":"20px"}},{"selectors":["core-engine-lib-word-blocks","compact"],"style":{"padding-top":"2px","padding-bottom":"2px"}},{"selectors":["text"],"style":{"text-align":"justify","text-indent":"2em","line-height":"1.6","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":["lead"],"style":{"font-size":"1.25em"}}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"attributes":{"id":"ixuw"},"components":[{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Это первый абзац тестового текста. Он нужен для того, чтобы наполнить страницу содержимым и проверить, как работает вертикальная прокрутка. Прокрутка появляется тогда, когда высота содержимого превышает высоту окна браузера, поэтому чем больше текста, тем надёжнее результат проверки."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Второй абзац продолжает наполнение страницы. Здесь можно написать что угодно: описание проекта, заметки, черновик статьи или просто набор нейтральных фраз. Главное — чтобы текста было достаточно много и он занимал несколько экранов по высоте."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Третий абзац добавляет ещё немного строк. Если прокрутка работает правильно, в правой части окна появится полоса прокрутки, а колесо мыши и клавиши со стрелками будут плавно перемещать содержимое вверх и вниз без рывков и подёргиваний."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Четвёртый абзац. Проверьте также поведение страницы на мобильном устройстве: там прокрутка должна работать свайпом, а содержимое — не выезжать за пределы экрана и не создавать горизонтального смещения. Это важно для комфортного чтения."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Пятый абзац служит для того, чтобы общая высота страницы стала заметно больше высоты экрана. Обычно достаточно примерно тридцати строк текста, чтобы точно увидеть, что механизм прокрутки включился и работает корректно во всех направлениях."}]}]},{"classes":["core-engine-lib-word-blocks","compact"],"components":[{"tagName":"p","type":"text","classes":["lead"],"components":[{"type":"textnode","content":"Шестой, вводный абзац. Крупный текст привлекает внимание к разделу и хорошо заметен при быстрой прокрутке: так удобнее оценивать, насколько плавно движется страница и не пропускает ли она отдельные блоки."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Седьмой абзац. Обратите внимание на отступы между блоками: они не должны схлопываться или, наоборот, становиться слишком большими. Ровные интервалы делают длинный текст аккуратным и удобным для чтения."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Восьмой абзац. Если всё работает как надо, вы легко доберётесь до самого низа страницы и без труда вернётесь обратно наверх. Это и есть основная проверка: длинный текст, свободная прокрутка и отсутствие визуальных дефектов."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Девятый абзац. Здесь можно оставить любую нейтральную фразу: она не несёт смысловой нагрузки и нужна только для объёма. Такой текст удобно использовать как временное наполнение в процессе вёрстки и настройки стилей."}]}]},{"classes":["core-engine-lib-word-blocks"],"components":[{"tagName":"p","type":"text","classes":["text"],"components":[{"type":"textnode","content":"Десятый, последний абзац. Если вы дочитали до этих строк, значит прокрутка действительно работает. Теперь можно заменить этот текст своим содержимым и спокойно продолжать работу над страницей и её оформлением."}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"hStkaZPukY5moCkO"}],"type":"main","id":"vxzvMwBEe4CNnJvf"}],"symbols":[]}', 1, 1, '2026-09-20 18:12:01.412035', '2026-09-21 22:45:48.386163', NULL, 0, 1, NULL, NULL, 'page', NULL, 0);
 INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url", "card_type", "parent_id", "sort_order") VALUES (32, 1, '2026-09-22 15:29:46.229613', 'Статья 1', '', '', '<style>* { box-sizing: border-box; } body {margin: 0;}</style><body id="i0nl"><p></p><h2 class="h2">Заголовок H2</h2><p class="lead">Вводный текст. Расскажите коротко о главном.</p><section class="section gallery"><div class="container"><h2 class="h2 gallery__title">Галерея</h2><div class="grid grid--auto gallery__grid"><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/><img src="/static/core/engine/lib/base/images/placeholder.svg" alt="" class="image gallery__item"/></div></div></section></body>', '{"assets":[{"type":"image","src":"/media/default/logo_ec0d8ede.png","unitDim":"px","height":0,"width":0,"name":"logo_ec0d8ede.png"}],"styles":[],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"attributes":{"id":"i0nl"},"components":[{"tagName":"p"},{"tagName":"h2","type":"text","classes":["h2"],"components":[{"type":"textnode","content":"Заголовок H2"}]},{"tagName":"p","type":"text","classes":["lead"],"components":[{"type":"textnode","content":"Вводный текст. Расскажите коротко о главном."}]},{"tagName":"section","classes":["section","gallery"],"components":[{"classes":["container"],"components":[{"tagName":"h2","type":"text","classes":["h2","gallery__title"],"components":[{"type":"textnode","content":"Галерея"}]},{"classes":["grid","grid--auto","gallery__grid"],"components":[{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}},{"type":"image","resizable":{"ratioDefault":1},"classes":["image","gallery__item"],"attributes":{"src":"/static/core/engine/lib/base/images/placeholder.svg","alt":""}}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"BrwAVxZBme2r2EgE"}],"id":"N2V6ShWYRDJfCivL"}],"symbols":[]}', 1, 1, '2026-09-22 15:29:46.229650', '2026-09-24 09:49:24.763605', NULL, 0, 5, NULL, NULL, 'page', NULL, 0);
 INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url", "card_type", "parent_id", "sort_order") VALUES (64, 8, '2026-10-08 18:26:29.571751', 'Агенты NeuroCad', '', '/static/core/engine/lib/word/editor/images/files/img-c75fa4b8.svg', '<body><div class="doc-article"><section class="doc-section doc-section--intro"><div class="doc-section__inner"><h1 class="doc-title">Агенты NeuroCad</h1><p class="doc-text">Агенты — это ИИ-помощники NeuroCad. Каждый умеет что-то одно, но делает это хорошо. Вы пишете в чат, что хотите — а система решает, какой агент лучше подходит для задачи.</p></div></section><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Что такое агенты</h2><p class="doc-text">Представьте, что вы пришли в мастерскую. В ней работают разные специалисты: один рисует логотипы, второй пишет тексты, третий собирает страницы, четвёртый отвечает на вопросы. Вы не думаете, к кому идти — вы просто объясняете, что нужно, а администратор направляет вас к нужному мастеру.</p><p class="doc-text">В NeuroCad всё устроено так же. <strong>Агент — это специалист</strong>, который умеет что-то одно. А <strong>чат</strong> — это администратор, который слушает вашу задачу и решает, к какому агенту её передать.</p></div></section><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Зачем они нужны</h2><p class="doc-text">Можно было бы сделать одного «универсального» помощника, который умеет всё сразу. Но на практике это плохо работает:</p><ul class="doc-list"><li><strong>Универсал ошибается чаще.</strong> Когда одна модель пытается делать всё — собирать страницы, рисовать картинки, отвечать на вопросы — она путается и делает каждое дело хуже.</li><li><strong>Специалист делает лучше.</strong> Когда агент занимается только одним делом, у него точнее промпт, чище логика, меньше ошибок.</li><li><strong>Проще починить.</strong> Если сломался генератор логотипов — мы чиним только его, остальные агенты продолжают работать.</li><li><strong>Понятнее пользователю.</strong> Вы знаете, что для логотипа есть один агент, для эффекта — другой, для страницы — третий. Не надо гадать, «поймёт ли модель, что я хочу».</li></ul></div></section><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Где вы с ними сталкиваетесь</h2><p class="doc-text">Агенты работают в двух местах:</p><ul class="doc-list"><li><strong>В чате редактора.</strong> Вы пишете запрос — система выбирает агента — агент выполняет задачу. Так работают, например, сборка страницы, добавление эффектов, заполнение выделенного блока.</li><li><strong>Через отдельные кнопки.</strong> Некоторые агенты вызываются не через чат, а напрямую: нажали «Сгенерировать логотип» — запустился генератор логотипов. Нажали «Создать политику» — запустился генератор документов.</li></ul><p class="doc-text">В обоих случаях вы просто описываете, что нужно, — остальное делает система.</p></div></section><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Как они работают</h2><p class="doc-text">В двух словах: вы пишете запрос, система определяет, какой агент подходит, и передаёт задачу ему. Агент обращается к языковой модели, получает ответ и применяет его к вашей странице.</p><p class="doc-text">Некоторые агенты работают <strong>мгновенно</strong>, без обращения к модели — например, если запрос не по теме, отвечает агент «Вежливый отказ». Другие могут «думать» несколько секунд — например, когда собирают целую страницу.</p><p class="doc-text">Вам не нужно знать, какой агент выбран. Просто пишите, что хотите — система разберётся.</p></div></section><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Как выбрать агента</h2><p class="doc-text">Никак. <strong>Вы не выбираете агента — вы описываете задачу.</strong> Система сама решает, кому её передать.</p><p class="doc-text">Но полезно знать, какие агенты вообще бывают — чтобы понимать, что можно попросить. Ниже список. Он будет пополняться по мере выхода новых статей.</p></div></section><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Список агентов</h2><p class="doc-text">Каждый агент — отдельная статья. Готовые отмечены значком <strong>✓</strong>, остальные появятся позже.</p><ul class="doc-list doc-list--check"><li><strong><a href="/page/20261008/175332">Администратор</a></strong> — решает, какому агенту поручить задачу. Уточняет запрос перед запуском. ✓</li><li><strong><a href="/page/20261008/172113">Вежливый отказ</a></strong> — вежливо объясняет, что запрос не по теме. ✓</li><li><strong>Универсальный шаблон</strong> — создаёт базовый шаблон для сайта. <em>Скоро.</em></li><li><strong>Шаблон для статей</strong> — создаёт базовый шаблон для статей. <em>Скоро.</em></li><li><strong>Статья</strong> — генерирует текст статьи. <em>Скоро.</em></li><li><strong>Help</strong> — отвечает на вопросы про редактор и обрабатывает вежливость. <em>Скоро.</em></li><li><strong>Create</strong> — собирает новую страницу из готовых блоков. <em>Скоро.</em></li><li><strong>Create Page</strong> — генерирует страницу с нуля, без готовых блоков. <em>Скоро.</em></li><li><strong>Fill</strong> — заполняет выделенный элемент текстом, alt''ами и ссылками. <em>Скоро.</em></li><li><strong>Effect</strong> — добавляет визуальные эффекты или заменяет картинку на сгенерированную. <em>Скоро.</em></li><li><strong>Create Effect</strong> — придумывает новый эффект с нуля. <em>Скоро.</em></li><li><strong>Edit</strong> — правит CSS существующего эффекта. <em>Скоро.</em></li><li><strong>Rename</strong> — меняет название и иконку эффекта. <em>Скоро.</em></li><li><strong>Generate Logo</strong> — рисует SVG-логотип. <em>Скоро.</em></li><li><strong>Generate Legal</strong> — пишет политику или правила для сайта. <em>Скоро.</em></li></ul></div></section><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Что дальше</h2><p class="doc-text">Начните с агента <strong>«Вежливый отказ»</strong> — он самый простой. Потом можно перейти к <strong>«Администратору»</strong> (он объясняет, как система выбирает агента) и к остальным по мере появления статей.</p><p class="doc-text">Если у вас есть вопрос, на который здесь нет ответа — напишите его в чат NeuroCad. Скорее всего, ответит агент Help.</p></div></section></div></body>', '{"assets":[],"styles":[{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h1","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-4xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.02em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h2","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-3xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.01em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h3","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-2xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--muted","style":{"color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--center","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .lead","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list","style":{"padding-left":"var(--theme-space-6)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li","style":{"margin-bottom":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li::marker","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","padding-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li","style":{"position":"relative","padding-left":"var(--theme-space-6)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li::before","style":{"content":"\"✓\"","position":"absolute","left":"0px","top":"0px","color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-bold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"decimal"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num li::marker","style":{"color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-semibold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn","style":{"display":"inline-flex","align-items":"center","justify-content":"center","border-top-width":"2px","border-right-width":"2px","border-bottom-width":"2px","border-left-width":"2px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-semibold)","line-height":"1.2","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","text-align":"center","white-space-collapse":"collapse","text-wrap":"nowrap","cursor":"pointer","color":"var(--theme-text-invert)","transition-behavior":"normal, normal, normal","transition-duration":"0.15s, 0.15s, 0.1s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"background, border-color, transform"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:hover","style":{"color":"var(--theme-text-invert)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:active","style":{"transform":"translateY(1px)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost","style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"transparent","color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost:hover","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card","style":{"box-shadow":"var(--theme-shadow-sm)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__title","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__text","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .badge","style":{"display":"inline-block","color":"var(--theme-accent)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","font-weight":"var(--theme-font-weight-medium)","line-height":"1.4"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .quote","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-style":"italic","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image","style":{"display":"block","max-width":"100%","height":"auto","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .icon","style":{"display":"inline-block","width":"1.5em","height":"1.5em","vertical-align":"middle","color":"var(--theme-accent)","flex-shrink":"0"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .divider","style":{"border-top-width":"initial","border-right-width":"initial","border-bottom-width":"initial","border-left-width":"initial","border-top-style":"none","border-right-style":"none","border-bottom-style":"none","border-left-style":"none","border-top-color":"initial","border-right-color":"initial","border-bottom-color":"initial","border-left-color":"initial","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","height":"1px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .section","style":{"padding-top":"var(--theme-space-section)","padding-bottom":"var(--theme-space-section)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .container","style":{"width":"100%","max-width":"var(--theme-container-max)","margin-left":"auto","margin-right":"auto","padding-left":"var(--theme-space-gutter)","padding-right":"var(--theme-space-gutter)","box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid","style":{"display":"grid"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2","style":{"grid-template-columns":"repeat(2, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--3","style":{"grid-template-columns":"repeat(3, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"repeat(4, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--auto","style":{"grid-template-columns":"repeat(auto-fit, minmax(15rem, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .col","style":{"min-width":"0px"}},{"selectors":["doc-article"],"style":{"--doc-text":"#2c4a7c","--doc-text-muted":"#5a78a8","--doc-h1":"#8c2a3a","--doc-h2":"#1e6b3a","--doc-h3":"#1e4d8c","--doc-accent":"#2a6db8","--doc-accent-2":"#8ab4e8","--doc-border":"#d6e2f0","font-family":"Inter, \"Golos Text\", system-ui, -apple-system, sans-serif","color":"var(--doc-text)","line-height":"1.7","background-image":"linear-gradient(rgb(255, 255, 255) 0%, rgb(244, 248, 253) 40%, rgb(232, 240, 250) 100%)","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","min-height":"100vh"}},{"selectors":["doc-title"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"24px","margin-left":"0px","font-size":"44px","font-weight":"800","line-height":"1.15","letter-spacing":"-0.02em","color":"var(--doc-h1)"}},{"selectors":["doc-section"],"style":{"padding-top":"12px","padding-right":"24px","padding-bottom":"12px","padding-left":"24px","position":"relative"}},{"selectors":["doc-section--intro"],"style":{"padding-top":"24px"}},{"selectors":["doc-section__inner"],"style":{"max-width":"760px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["doc-section__title"],"style":{"margin-top":"20px","margin-right":"0px","margin-bottom":"12px","margin-left":"0px","font-size":"28px","font-weight":"700","line-height":"1.25","letter-spacing":"-0.01em","color":"var(--doc-h2)"}},{"selectors":["doc-section__title"],"style":{"margin-top":"0px"},"state":"first-child"},{"selectors":[],"selectorsAdd":".doc-section__inner h3","style":{"margin-top":"16px","margin-right":"0px","margin-bottom":"8px","margin-left":"0px","font-size":"20px","font-weight":"700","line-height":"1.3","color":"var(--doc-h3)"}},{"selectors":["doc-section__title"],"style":{"content":"\"\"","display":"block","width":"48px","height":"3px","margin-top":"8px","border-top-left-radius":"3px","border-top-right-radius":"3px","border-bottom-right-radius":"3px","border-bottom-left-radius":"3px","opacity":"0.85"},"state":":after"},{"selectors":["doc-text"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"10px","margin-left":"0px","font-size":"17px","line-height":"1.7","color":"var(--doc-text)"}},{"selectors":["doc-text"],"style":{"margin-bottom":"0px"},"state":"last-child"},{"selectors":["doc-list"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"10px","margin-left":"0px","padding-left":"24px","font-size":"17px","line-height":"1.7","color":"var(--doc-text)"}},{"selectors":[],"selectorsAdd":".doc-list li","style":{"margin-bottom":"6px"}},{"selectors":[],"selectorsAdd":".doc-list li:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".doc-list li::marker","style":{"color":"var(--doc-h2)"}},{"selectors":["doc-list--check"],"style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","padding-left":"0px"}},{"selectors":[],"selectorsAdd":".doc-list--check li","style":{"position":"relative","padding-left":"28px"}},{"selectors":[],"selectorsAdd":".doc-list--check li::before","style":{"content":"\"✓\"","position":"absolute","left":"0px","top":"0px","color":"var(--doc-h2)","font-weight":"700"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"minmax(0px, 1fr)"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-title"],"style":{"font-size":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section"],"style":{"padding-top":"8px","padding-right":"16px","padding-bottom":"8px","padding-left":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section--intro"],"style":{"padding-top":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section__title"],"style":{"font-size":"22px","margin-top":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".doc-section__inner h3","style":{"font-size":"18px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-text"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-list"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"classes":["doc-article"],"components":[{"tagName":"section","classes":["doc-section","doc-section--intro"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h1","type":"text","classes":["doc-title"],"components":[{"type":"textnode","content":"Агенты NeuroCad"}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Агенты — это ИИ-помощники NeuroCad. Каждый умеет что-то одно, но делает это хорошо. Вы пишете в чат, что хотите — а система решает, какой агент лучше подходит для задачи."}]}]}]},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Что такое агенты"}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Представьте, что вы пришли в мастерскую. В ней работают разные специалисты: один рисует логотипы, второй пишет тексты, третий собирает страницы, четвёртый отвечает на вопросы. Вы не думаете, к кому идти — вы просто объясняете, что нужно, а администратор направляет вас к нужному мастеру."}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"В NeuroCad всё устроено так же. "},{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Агент — это специалист"}]},{"type":"textnode","content":", который умеет что-то одно. А "},{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"чат"}]},{"type":"textnode","content":" — это администратор, который слушает вашу задачу и решает, к какому агенту её передать."}]}]}]},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Зачем они нужны"}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Можно было бы сделать одного «универсального» помощника, который умеет всё сразу. Но на практике это плохо работает:"}]},{"tagName":"ul","classes":["doc-list"],"components":[{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Универсал ошибается чаще."}]},{"type":"textnode","content":" Когда одна модель пытается делать всё — собирать страницы, рисовать картинки, отвечать на вопросы — она путается и делает каждое дело хуже."}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Специалист делает лучше."}]},{"type":"textnode","content":" Когда агент занимается только одним делом, у него точнее промпт, чище логика, меньше ошибок."}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Проще починить."}]},{"type":"textnode","content":" Если сломался генератор логотипов — мы чиним только его, остальные агенты продолжают работать."}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Понятнее пользователю."}]},{"type":"textnode","content":" Вы знаете, что для логотипа есть один агент, для эффекта — другой, для страницы — третий. Не надо гадать, «поймёт ли модель, что я хочу»."}]}]}]}]},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Где вы с ними сталкиваетесь"}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Агенты работают в двух местах:"}]},{"tagName":"ul","classes":["doc-list"],"components":[{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"В чате редактора."}]},{"type":"textnode","content":" Вы пишете запрос — система выбирает агента — агент выполняет задачу. Так работают, например, сборка страницы, добавление эффектов, заполнение выделенного блока."}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Через отдельные кнопки."}]},{"type":"textnode","content":" Некоторые агенты вызываются не через чат, а напрямую: нажали «Сгенерировать логотип» — запустился генератор логотипов. Нажали «Создать политику» — запустился генератор документов."}]}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"В обоих случаях вы просто описываете, что нужно, — остальное делает система."}]}]}]},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Как они работают"}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"В двух словах: вы пишете запрос, система определяет, какой агент подходит, и передаёт задачу ему. Агент обращается к языковой модели, получает ответ и применяет его к вашей странице."}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Некоторые агенты работают "},{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"мгновенно"}]},{"type":"textnode","content":", без обращения к модели — например, если запрос не по теме, отвечает агент «Вежливый отказ». Другие могут «думать» несколько секунд — например, когда собирают целую страницу."}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Вам не нужно знать, какой агент выбран. Просто пишите, что хотите — система разберётся."}]}]}]},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Как выбрать агента"}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Никак. "},{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Вы не выбираете агента — вы описываете задачу."}]},{"type":"textnode","content":" Система сама решает, кому её передать."}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Но полезно знать, какие агенты вообще бывают — чтобы понимать, что можно попросить. Ниже список. Он будет пополняться по мере выхода новых статей."}]}]}]},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Список агентов"}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Каждый агент — отдельная статья. Готовые отмечены значком "},{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"✓"}]},{"type":"textnode","content":", остальные появятся позже."}]},{"tagName":"ul","classes":["doc-list","doc-list--check"],"components":[{"tagName":"li","components":[{"tagName":"strong","components":[{"type":"link","attributes":{"href":"/page/20261008/175332"},"components":[{"type":"textnode","content":"Администратор"}]}]},{"type":"textnode","content":" — решает, какому агенту поручить задачу. Уточняет запрос перед запуском. ✓"}]},{"tagName":"li","components":[{"tagName":"strong","components":[{"type":"link","attributes":{"href":"/page/20261008/172113"},"components":[{"type":"textnode","content":"Вежливый отказ"}]}]},{"type":"textnode","content":" — вежливо объясняет, что запрос не по теме. ✓"}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Универсальный шаблон"}]},{"type":"textnode","content":" — создаёт базовый шаблон для сайта. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Шаблон для статей"}]},{"type":"textnode","content":" — создаёт базовый шаблон для статей. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Статья"}]},{"type":"textnode","content":" — генерирует текст статьи. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Help"}]},{"type":"textnode","content":" — отвечает на вопросы про редактор и обрабатывает вежливость. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Create"}]},{"type":"textnode","content":" — собирает новую страницу из готовых блоков. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Create Page"}]},{"type":"textnode","content":" — генерирует страницу с нуля, без готовых блоков. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Fill"}]},{"type":"textnode","content":" — заполняет выделенный элемент текстом, alt''ами и ссылками. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Effect"}]},{"type":"textnode","content":" — добавляет визуальные эффекты или заменяет картинку на сгенерированную. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Create Effect"}]},{"type":"textnode","content":" — придумывает новый эффект с нуля. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Edit"}]},{"type":"textnode","content":" — правит CSS существующего эффекта. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Rename"}]},{"type":"textnode","content":" — меняет название и иконку эффекта. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Generate Logo"}]},{"type":"textnode","content":" — рисует SVG-логотип. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]},{"tagName":"li","type":"text","components":[{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"Generate Legal"}]},{"type":"textnode","content":" — пишет политику или правила для сайта. "},{"tagName":"em","type":"text","components":[{"type":"textnode","content":"Скоро."}]}]}]}]}]},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Что дальше"}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Начните с агента "},{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"«Вежливый отказ»"}]},{"type":"textnode","content":" — он самый простой. Потом можно перейти к "},{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"«Администратору»"}]},{"type":"textnode","content":" (он объясняет, как система выбирает агента) и к остальным по мере появления статей."}]},{"tagName":"p","type":"text","classes":["doc-text"],"components":[{"type":"textnode","content":"Если у вас есть вопрос, на который здесь нет ответа — напишите его в чат NeuroCad. Скорее всего, ответит агент Help."}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"CnHonO6PDEhsRxJN"}],"id":"KCBZfwEntYDLMOok"}],"symbols":[]}', 1, 0, '2026-10-08 18:26:29.571778', '2026-10-16 14:53:31.018590', NULL, 0, 63, '/* app/core/engine/lib/word/editor/css/content.css */
@@ -47469,7 +48693,7 @@ INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo",
 }
 
 * { box-sizing: border-box; } body {margin: 0;}*{box-sizing:border-box;}body{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .h1{font-family:var(--theme-font-family);font-size:var(--theme-font-size-4xl);font-weight:var(--theme-font-weight-bold);line-height:var(--theme-line-height-tight);color:var(--theme-text);letter-spacing:-0.02em;}.core-engine-lib-word-blocks .h2{font-family:var(--theme-font-family);font-size:var(--theme-font-size-3xl);font-weight:var(--theme-font-weight-bold);line-height:var(--theme-line-height-tight);color:var(--theme-text);letter-spacing:-0.01em;}.core-engine-lib-word-blocks .h3{font-family:var(--theme-font-family);font-size:var(--theme-font-size-2xl);font-weight:var(--theme-font-weight-semibold);line-height:var(--theme-line-height-tight);color:var(--theme-text);}.core-engine-lib-word-blocks .text{font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);font-weight:var(--theme-font-weight-regular);line-height:var(--theme-line-height-base);color:var(--theme-text);}.core-engine-lib-word-blocks .text--muted{color:var(--theme-text-muted);}.core-engine-lib-word-blocks .text--center{text-align:center;}.core-engine-lib-word-blocks .text:last-child{margin-bottom:0px;}.core-engine-lib-word-blocks .lead{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-regular);line-height:var(--theme-line-height-loose);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .list{padding-left:var(--theme-space-6);font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);line-height:var(--theme-line-height-base);color:var(--theme-text);}.core-engine-lib-word-blocks .list li{margin-bottom:var(--theme-space-2);}.core-engine-lib-word-blocks .list li:last-child{margin-bottom:0px;}.core-engine-lib-word-blocks .list li::marker{color:var(--theme-accent);}.core-engine-lib-word-blocks .list--check{list-style-position:initial;list-style-image:initial;list-style-type:none;padding-left:0px;}.core-engine-lib-word-blocks .list--check li{position:relative;padding-left:var(--theme-space-6);}.core-engine-lib-word-blocks .list--check li::before{content:"✓";position:absolute;left:0px;top:0px;color:var(--theme-accent);font-weight:var(--theme-font-weight-bold);}.core-engine-lib-word-blocks .list--num{list-style-position:initial;list-style-image:initial;list-style-type:decimal;}.core-engine-lib-word-blocks .list--num li::marker{color:var(--theme-accent);font-weight:var(--theme-font-weight-semibold);}.core-engine-lib-word-blocks .btn{display:inline-flex;align-items:center;justify-content:center;border-top-width:2px;border-right-width:2px;border-bottom-width:2px;border-left-width:2px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);font-weight:var(--theme-font-weight-semibold);line-height:1.2;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:center;white-space-collapse:collapse;text-wrap:nowrap;cursor:pointer;color:var(--theme-text-invert);transition-behavior:normal, normal, normal;transition-duration:0.15s, 0.15s, 0.1s;transition-timing-function:ease, ease, ease;transition-delay:0s, 0s, 0s;transition-property:background, border-color, transform;}.core-engine-lib-word-blocks .btn:hover{color:var(--theme-text-invert);}.core-engine-lib-word-blocks .btn:active{transform:translateY(1px);}.core-engine-lib-word-blocks .btn--ghost{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:transparent;color:var(--theme-accent);}.core-engine-lib-word-blocks .btn--ghost:hover{color:var(--theme-accent);}.core-engine-lib-word-blocks .card{box-shadow:var(--theme-shadow-sm);}.core-engine-lib-word-blocks .card__title{font-family:var(--theme-font-family);font-size:var(--theme-font-size-xl);font-weight:var(--theme-font-weight-semibold);line-height:var(--theme-line-height-tight);color:var(--theme-text);}.core-engine-lib-word-blocks .card__text{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);line-height:var(--theme-line-height-base);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .badge{display:inline-block;color:var(--theme-accent);font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);font-weight:var(--theme-font-weight-medium);line-height:1.4;}.core-engine-lib-word-blocks .quote{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-style:italic;line-height:var(--theme-line-height-loose);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .image{display:block;max-width:100%;height:auto;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .icon{display:inline-block;width:1.5em;height:1.5em;vertical-align:middle;color:var(--theme-accent);flex-shrink:0;}.core-engine-lib-word-blocks .divider{border-top-width:initial;border-right-width:initial;border-bottom-width:initial;border-left-width:initial;border-top-style:none;border-right-style:none;border-bottom-style:none;border-left-style:none;border-top-color:initial;border-right-color:initial;border-bottom-color:initial;border-left-color:initial;border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;height:1px;}.core-engine-lib-word-blocks .section{padding-top:var(--theme-space-section);padding-bottom:var(--theme-space-section);}.core-engine-lib-word-blocks .container{width:100%;max-width:var(--theme-container-max);margin-left:auto;margin-right:auto;padding-left:var(--theme-space-gutter);padding-right:var(--theme-space-gutter);box-sizing:border-box;}.core-engine-lib-word-blocks .grid{display:grid;}.core-engine-lib-word-blocks .grid--2{grid-template-columns:repeat(2, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--3{grid-template-columns:repeat(3, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--4{grid-template-columns:repeat(4, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--auto{grid-template-columns:repeat(auto-fit, minmax(15rem, 1fr));}.core-engine-lib-word-blocks .col{min-width:0px;}.doc-article{--doc-text:#2c4a7c;--doc-text-muted:#5a78a8;--doc-h1:#8c2a3a;--doc-h2:#1e6b3a;--doc-h3:#1e4d8c;--doc-accent:#2a6db8;--doc-accent-2:#8ab4e8;--doc-border:#d6e2f0;font-family:Inter, "Golos Text", system-ui, -apple-system, sans-serif;color:var(--doc-text);line-height:1.7;background-image:linear-gradient(rgb(255, 255, 255) 0%, rgb(244, 248, 253) 40%, rgb(232, 240, 250) 100%);background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;min-height:100vh;}.doc-title{margin-top:0px;margin-right:0px;margin-bottom:24px;margin-left:0px;font-size:44px;font-weight:800;line-height:1.15;letter-spacing:-0.02em;color:var(--doc-h1);}.doc-section{padding-top:32px;padding-right:24px;padding-bottom:32px;padding-left:24px;position:relative;}.doc-section--intro{padding-top:64px;}.doc-section__inner{max-width:760px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;}.doc-section__title{margin-top:32px;margin-right:0px;margin-bottom:16px;margin-left:0px;font-size:28px;font-weight:700;line-height:1.25;letter-spacing:-0.01em;color:var(--doc-h2);}.doc-section__title:first-child{margin-top:0px;}.doc-section__inner h3{margin-top:24px;margin-right:0px;margin-bottom:12px;margin-left:0px;font-size:20px;font-weight:700;line-height:1.3;color:var(--doc-h3);}.doc-section__title::after{content:"";display:block;width:48px;height:3px;margin-top:12px;border-top-left-radius:3px;border-top-right-radius:3px;border-bottom-right-radius:3px;border-bottom-left-radius:3px;opacity:0.85;}.doc-text{margin-top:0px;margin-right:0px;margin-bottom:16px;margin-left:0px;font-size:17px;line-height:1.7;color:var(--doc-text);}.doc-text:last-child{margin-bottom:0px;}.doc-list{margin-top:0px;margin-right:0px;margin-bottom:16px;margin-left:0px;padding-left:24px;font-size:17px;line-height:1.7;color:var(--doc-text);}.doc-list li{margin-bottom:10px;}.doc-list li:last-child{margin-bottom:0px;}.doc-list li::marker{color:var(--doc-h2);}.doc-list--check{list-style-position:initial;list-style-image:initial;list-style-type:none;padding-left:0px;}.doc-list--check li{position:relative;padding-left:28px;}.doc-list--check li::before{content:"✓";position:absolute;left:0px;top:0px;color:var(--doc-h2);font-weight:700;}.doc-quote{margin-top:16px;margin-right:0px;margin-bottom:16px;margin-left:0px;padding-top:14px;padding-right:22px;padding-bottom:14px;padding-left:22px;background-image:linear-gradient(135deg, rgb(244, 248, 253) 0%, rgb(232, 240, 250) 100%);background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;border-top-left-radius:0px;border-top-right-radius:10px;border-bottom-right-radius:10px;border-bottom-left-radius:0px;font-size:17px;font-style:italic;line-height:1.6;color:var(--doc-text-muted);box-shadow:rgba(255, 255, 255, 0.6) 0px 1px 0px inset;}@media (max-width: 768px){.core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4{grid-template-columns:minmax(0px, 1fr);}.doc-title{font-size:32px;}.doc-section{padding-top:24px;padding-right:16px;padding-bottom:24px;padding-left:16px;}.doc-section--intro{padding-top:48px;}.doc-section__title{font-size:22px;margin-top:24px;}.doc-section__inner h3{font-size:18px;}.doc-text{font-size:16px;}.doc-list{font-size:16px;}}', NULL, 'page', NULL, 0);
-INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url", "card_type", "parent_id", "sort_order") VALUES (76, 8, '2026-10-16 15:15:35.011929', 'Первые шаги', 'Начало работы в конструкторе Нейрокад', '/static/core/engine/lib/word/editor/images/files/img-8b1d440b.svg', '<body><div class="doc-article"><!-- ============================================ --><!-- ВВЕДЕНИЕ                                     --><!-- ============================================ --><section class="doc-section doc-section--intro"><div class="doc-section__inner"><h1 class="doc-title">Нейрокад</h1><p class="doc-text" id="im1n7">Нейрокад — это конструктор сайтов, который работает как чат. Вы пишете обычными словами, что хотите получить — «лендинг для кофейни», «страницу с тремя карточками», «логотип с котом» — и система сама собирает страницу: подбирает блоки, пишет текст, рисует картинки, расставляет элементы по местам. Вам не нужно знать HTML, CSS или разбираться в редакторах — вы просто описываете задачу, а Нейрокад превращает её в готовый сайт, который можно сразу открыть и показать.</p></div></section><!-- ============================================ --><!-- ПЕРВЫЕ ШАГИ                                  --><!-- ============================================ --><section class="doc-section" id="i41hc"><div class="doc-section__inner"><h2 class="doc-section__title">Первые шаги</h2><p class="doc-text" id="il0d1">Чтобы начать создавать сайты, откройте <a href="https://admin.neurocad.ru" target="_blank" rel="noopener noreferrer">admin.neurocad.ru</a> и зарегистрируйтесь — это как завести личный кабинет, где будет храниться всё, что вы сделаете. Придумайте логин и пароль не короче 8 символов. Пароль — это ключ от вашего кабинета, поэтому не делайте его слишком простым: пусть в нём будут и буквы, и цифры, и хотя бы один символ вроде «!» или «@». Такой ключ сложнее подобрать, а значит, ваши страницы будут в безопасности.</p><!-- КАРТИНКА: Регистрация --><figure class="doc-figure"><img src="/media/registration.png" alt="Форма регистрации в Нейрокад"/><figcaption class="doc-figure__caption">Форма регистрации</figcaption></figure></div></section><!-- ============================================ --><!-- КАТАЛОГ СТАТЕЙ                               --><!-- ============================================ --><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Каталог статей</h2><p class="doc-text" id="i1jwk">После регистрации вы попадаете в каталог статей — это ваш рабочий стол, где будут лежать все страницы будущего сайта. Чтобы создать первую статью (она станет главной страницей), нажмите кнопку «Добавить статью» на панели сверху. Перед вами откроется пустая страница — как чистый лист бумаги. Чтобы начать её заполнять, нажмите «Редактировать (визуальный редактор)». Откроется редактор и подсказка, которая объяснит, как с ним работать. Подсказку можно прочитать и закрыть — она не помешает.</p><!-- КАРТИНКА: toolbar каталога статей --><figure class="doc-figure"><img src="/media/catalog-toolbar.png" alt="Панель каталога статей"/><figcaption class="doc-figure__caption">Панель каталога статей</figcaption></figure><!-- КАРТИНКА: toolbar предварительного просмотра --><figure class="doc-figure"><img src="/media/preview-toolbar.png" alt="Панель предварительного просмотра"/><figcaption class="doc-figure__caption">Панель предварительного просмотра</figcaption></figure></div></section><!-- ============================================ --><!-- ПЕРВАЯ СТРАНИЦА ЧЕРЕЗ ЧАТ                    --><!-- ============================================ --><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Первая страница через чат</h2><p class="doc-text" id="i2l2m">Представьте, что вы решили сделать личную страницу — портфолио, где будете показывать свои работы. Справа от редактора есть чат: это ваш помощник, с которым вы разговариваете обычными словами. Просто напишите ему, что хотите получить, — и он соберёт страницу за вас.</p><p class="doc-text" id="icc11">Например, начните так: <strong>«Создай страницу-портфолио для фотографа с галереей работ и контактами»</strong>.</p><!-- КАРТИНКА: чат --><figure class="doc-figure"><img src="/media/chat.png" alt="Чат с помощником"/><figcaption class="doc-figure__caption">Чат с помощником</figcaption></figure></div></section></div></body>', '{"assets":[],"styles":[{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h1","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-4xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.02em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h2","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-3xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.01em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h3","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-2xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--muted","style":{"color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--center","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .lead","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list","style":{"padding-left":"var(--theme-space-6)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li","style":{"margin-bottom":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li::marker","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","padding-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li","style":{"position":"relative","padding-left":"var(--theme-space-6)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li::before","style":{"content":"\"✓\"","position":"absolute","left":"0px","top":"0px","color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-bold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"decimal"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num li::marker","style":{"color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-semibold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn","style":{"display":"inline-flex","align-items":"center","justify-content":"center","border-top-width":"2px","border-right-width":"2px","border-bottom-width":"2px","border-left-width":"2px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-semibold)","line-height":"1.2","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","text-align":"center","white-space-collapse":"collapse","text-wrap":"nowrap","cursor":"pointer","color":"var(--theme-text-invert)","transition-behavior":"normal, normal, normal","transition-duration":"0.15s, 0.15s, 0.1s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"background, border-color, transform"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:hover","style":{"color":"var(--theme-text-invert)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:active","style":{"transform":"translateY(1px)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost","style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"transparent","color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost:hover","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card","style":{"box-shadow":"var(--theme-shadow-sm)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__title","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__text","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .badge","style":{"display":"inline-block","color":"var(--theme-accent)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","font-weight":"var(--theme-font-weight-medium)","line-height":"1.4"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .quote","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-style":"italic","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image","style":{"display":"block","max-width":"100%","height":"auto","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .icon","style":{"display":"inline-block","width":"1.5em","height":"1.5em","vertical-align":"middle","color":"var(--theme-accent)","flex-shrink":"0"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .divider","style":{"border-top-width":"initial","border-right-width":"initial","border-bottom-width":"initial","border-left-width":"initial","border-top-style":"none","border-right-style":"none","border-bottom-style":"none","border-left-style":"none","border-top-color":"initial","border-right-color":"initial","border-bottom-color":"initial","border-left-color":"initial","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","height":"1px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .section","style":{"padding-top":"var(--theme-space-section)","padding-bottom":"var(--theme-space-section)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .container","style":{"width":"100%","max-width":"var(--theme-container-max)","margin-left":"auto","margin-right":"auto","padding-left":"var(--theme-space-gutter)","padding-right":"var(--theme-space-gutter)","box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid","style":{"display":"grid"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2","style":{"grid-template-columns":"repeat(2, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--3","style":{"grid-template-columns":"repeat(3, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"repeat(4, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--auto","style":{"grid-template-columns":"repeat(auto-fit, minmax(15rem, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .col","style":{"min-width":"0px"}},{"selectors":["doc-article"],"style":{"--doc-text":"#2c4a7c","--doc-text-muted":"#5a78a8","--doc-h1":"#8c2a3a","--doc-h2":"#1e6b3a","--doc-h3":"#1e4d8c","--doc-accent":"#2a6db8","--doc-accent-2":"#8ab4e8","--doc-border":"#d6e2f0","font-family":"Inter, \"Golos Text\", system-ui, -apple-system, sans-serif","color":"var(--doc-text)","line-height":"1.7","background-image":"linear-gradient(rgb(255, 255, 255) 0%, rgb(244, 248, 253) 40%, rgb(232, 240, 250) 100%)","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","min-height":"100vh"}},{"selectors":["doc-title"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"24px","margin-left":"0px","font-size":"44px","font-weight":"800","line-height":"1.15","letter-spacing":"-0.02em","color":"var(--doc-h1)"}},{"selectors":["doc-section"],"style":{"padding-top":"12px","padding-right":"24px","padding-bottom":"12px","padding-left":"24px","position":"relative"}},{"selectors":["doc-section--intro"],"style":{"padding-top":"24px"}},{"selectors":["doc-section__inner"],"style":{"max-width":"760px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["doc-section__title"],"style":{"margin-top":"20px","margin-right":"0px","margin-bottom":"12px","margin-left":"0px","font-size":"28px","font-weight":"700","line-height":"1.25","letter-spacing":"-0.01em","color":"var(--doc-h2)"}},{"selectors":["doc-section__title"],"style":{"margin-top":"0px"},"state":"first-child"},{"selectors":[],"selectorsAdd":".doc-section__inner h3","style":{"margin-top":"16px","margin-right":"0px","margin-bottom":"8px","margin-left":"0px","font-size":"20px","font-weight":"700","line-height":"1.3","color":"var(--doc-h3)"}},{"selectors":["doc-section__title"],"style":{"content":"\"\"","display":"block","width":"48px","height":"3px","margin-top":"8px","border-top-left-radius":"3px","border-top-right-radius":"3px","border-bottom-right-radius":"3px","border-bottom-left-radius":"3px","opacity":"0.85"},"state":":after"},{"selectors":["doc-text"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"10px","margin-left":"0px","font-size":"17px","line-height":"1.7","color":"var(--doc-text)"}},{"selectors":["doc-text"],"style":{"margin-bottom":"0px"},"state":"last-child"},{"selectors":["doc-list"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"10px","margin-left":"0px","padding-left":"24px","font-size":"17px","line-height":"1.7","color":"var(--doc-text)"}},{"selectors":[],"selectorsAdd":".doc-list li","style":{"margin-bottom":"6px"}},{"selectors":[],"selectorsAdd":".doc-list li:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".doc-list li::marker","style":{"color":"var(--doc-h2)"}},{"selectors":["doc-list--check"],"style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","padding-left":"0px"}},{"selectors":[],"selectorsAdd":".doc-list--check li","style":{"position":"relative","padding-left":"28px"}},{"selectors":[],"selectorsAdd":".doc-list--check li::before","style":{"content":"\"✓\"","position":"absolute","left":"0px","top":"0px","color":"var(--doc-h2)","font-weight":"700"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"minmax(0px, 1fr)"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-title"],"style":{"font-size":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section"],"style":{"padding-top":"8px","padding-right":"16px","padding-bottom":"8px","padding-left":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section--intro"],"style":{"padding-top":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section__title"],"style":{"font-size":"22px","margin-top":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".doc-section__inner h3","style":{"font-size":"18px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-text"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-list"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["#il0d1"],"style":{"text-align":"justify"}},{"selectors":["#im1n7"],"style":{"text-align":"justify"}},{"selectors":["#i1jwk"],"style":{"text-align":"justify"}},{"selectors":["#i2l2m"],"style":{"text-align":"justify"}},{"selectors":["#icc11"],"style":{"text-align":"justify"}}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"classes":["doc-article"],"components":[{"type":"comment","content":" ============================================ "},{"type":"comment","content":" ВВЕДЕНИЕ                                     "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section","doc-section--intro"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h1","type":"text","classes":["doc-title"],"components":[{"type":"textnode","content":"Нейрокад"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"im1n7"},"components":[{"type":"textnode","content":"Нейрокад — это конструктор сайтов, который работает как чат. Вы пишете обычными словами, что хотите получить — «лендинг для кофейни», «страницу с тремя карточками», «логотип с котом» — и система сама собирает страницу: подбирает блоки, пишет текст, рисует картинки, расставляет элементы по местам. Вам не нужно знать HTML, CSS или разбираться в редакторах — вы просто описываете задачу, а Нейрокад превращает её в готовый сайт, который можно сразу открыть и показать."}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" ПЕРВЫЕ ШАГИ                                  "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section"],"attributes":{"id":"i41hc"},"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Первые шаги"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"il0d1"},"components":[{"type":"textnode","content":"Чтобы начать создавать сайты, откройте "},{"type":"link","attributes":{"href":"https://admin.neurocad.ru","target":"_blank","rel":"noopener noreferrer"},"components":[{"type":"textnode","content":"admin.neurocad.ru"}]},{"type":"textnode","content":" и зарегистрируйтесь — это как завести личный кабинет, где будет храниться всё, что вы сделаете. Придумайте логин и пароль не короче 8 символов. Пароль — это ключ от вашего кабинета, поэтому не делайте его слишком простым: пусть в нём будут и буквы, и цифры, и хотя бы один символ вроде «!» или «@». Такой ключ сложнее подобрать, а значит, ваши страницы будут в безопасности."}]},{"type":"comment","content":" КАРТИНКА: Регистрация "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/registration.png","alt":"Форма регистрации в Нейрокад"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Форма регистрации"}]}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" КАТАЛОГ СТАТЕЙ                               "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Каталог статей"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"i1jwk"},"components":[{"type":"textnode","content":"После регистрации вы попадаете в каталог статей — это ваш рабочий стол, где будут лежать все страницы будущего сайта. Чтобы создать первую статью (она станет главной страницей), нажмите кнопку «Добавить статью» на панели сверху. Перед вами откроется пустая страница — как чистый лист бумаги. Чтобы начать её заполнять, нажмите «Редактировать (визуальный редактор)». Откроется редактор и подсказка, которая объяснит, как с ним работать. Подсказку можно прочитать и закрыть — она не помешает."}]},{"type":"comment","content":" КАРТИНКА: toolbar каталога статей "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/catalog-toolbar.png","alt":"Панель каталога статей"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Панель каталога статей"}]}]},{"type":"comment","content":" КАРТИНКА: toolbar предварительного просмотра "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/preview-toolbar.png","alt":"Панель предварительного просмотра"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Панель предварительного просмотра"}]}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" ПЕРВАЯ СТРАНИЦА ЧЕРЕЗ ЧАТ                    "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Первая страница через чат"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"i2l2m"},"components":[{"type":"textnode","content":"Представьте, что вы решили сделать личную страницу — портфолио, где будете показывать свои работы. Справа от редактора есть чат: это ваш помощник, с которым вы разговариваете обычными словами. Просто напишите ему, что хотите получить, — и он соберёт страницу за вас."}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"icc11"},"components":[{"type":"textnode","content":"Например, начните так: "},{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"«Создай страницу-портфолио для фотографа с галереей работ и контактами»"}]},{"type":"textnode","content":"."}]},{"type":"comment","content":" КАРТИНКА: чат "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/chat.png","alt":"Чат с помощником"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Чат с помощником"}]}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"6ccluSpo6FsVd0WR"}],"id":"tZGCCGjKXMbP5uJz"}],"symbols":[]}', 0, 0, '2026-10-16 15:15:35.011969', '2026-10-19 00:15:49.831299', NULL, 0, 84, '/* app/core/engine/lib/word/editor/css/content.css */
+INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url", "card_type", "parent_id", "sort_order") VALUES (76, 8, '2026-10-16 15:15:35.011929', 'Первые шаги', 'Начало работы в конструкторе Нейрокад', '/static/core/engine/lib/word/editor/images/files/img-8b1d440b.svg', '<body><div class="doc-article"><!-- ============================================ --><!-- ВВЕДЕНИЕ                                     --><!-- ============================================ --><section class="doc-section doc-section--intro"><div class="doc-section__inner"><h1 class="doc-title">Нейрокад</h1><p id="im1n7" class="doc-text">Нейрокад — это конструктор сайтов, который работает как чат. Вы пишете обычными словами, что хотите получить — «лендинг для кофейни», «страницу с тремя карточками», «логотип с котом» — и система сама собирает страницу: подбирает блоки, пишет текст, рисует картинки, расставляет элементы по местам. Вам не нужно знать HTML, CSS или разбираться в редакторах — вы просто описываете задачу, а Нейрокад превращает её в готовый сайт, который можно сразу открыть и показать.</p></div></section><!-- ============================================ --><!-- ПЕРВЫЕ ШАГИ                                  --><!-- ============================================ --><section id="i41hc" class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Первые шаги</h2><p id="il0d1" class="doc-text">Чтобы начать создавать сайты, откройте <a href="https://admin.neurocad.ru" target="_blank" rel="noopener noreferrer">admin.neurocad.ru</a> и зарегистрируйтесь — это как завести личный кабинет, где будет храниться всё, что вы сделаете. Придумайте логин и пароль не короче 8 символов. Пароль — это ключ от вашего кабинета, поэтому не делайте его слишком простым: пусть в нём будут и буквы, и цифры, и хотя бы один символ вроде «!» или «@». Такой ключ сложнее подобрать, а значит, ваши страницы будут в безопасности.</p><!-- КАРТИНКА: Регистрация --><figure class="doc-figure"><img src="/media/registration.png" alt="Форма регистрации в Нейрокад"/><figcaption class="doc-figure__caption">Форма регистрации</figcaption></figure></div></section><!-- ============================================ --><!-- КАТАЛОГ СТАТЕЙ                               --><!-- ============================================ --><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Каталог статей</h2><p id="i1jwk" class="doc-text">После регистрации вы попадаете в каталог статей — это ваш рабочий стол, где будут лежать все страницы будущего сайта. Чтобы создать первую статью (она станет главной страницей), нажмите кнопку «Добавить статью» на панели сверху. Перед вами откроется пустая страница — как чистый лист бумаги. Чтобы начать её заполнять, нажмите «Редактировать (визуальный редактор)». Откроется редактор и подсказка, которая объяснит, как с ним работать. Подсказку можно прочитать и закрыть — она не помешает.</p><!-- КАРТИНКА: toolbar каталога статей --><figure class="doc-figure"><img src="/media/catalog-toolbar.png" alt="Панель каталога статей"/><figcaption class="doc-figure__caption">Панель каталога статей</figcaption></figure><!-- КАРТИНКА: toolbar предварительного просмотра --><figure class="doc-figure"><img src="/media/preview-toolbar.png" alt="Панель предварительного просмотра"/><figcaption class="doc-figure__caption">Панель предварительного просмотра</figcaption></figure></div></section><!-- ============================================ --><!-- ПЕРВАЯ СТРАНИЦА ЧЕРЕЗ ЧАТ                    --><!-- ============================================ --><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Первая страница через чат</h2><p id="i2l2m" class="doc-text">Представьте, что вы решили сделать личную страницу — портфолио, где будете показывать свои работы. Справа от редактора есть чат: это ваш помощник, с которым вы разговариваете обычными словами. Просто напишите ему, что хотите получить, — и он соберёт страницу за вас.</p><p id="icc11" class="doc-text">Например, начните так: <strong>«Создай страницу-портфолио для фотографа с галереей работ и контактами»</strong>.</p><!-- КАРТИНКА: чат --><figure class="doc-figure"><img src="/media/chat.png" alt="Чат с помощником"/><figcaption class="doc-figure__caption">Чат с помощником</figcaption></figure></div></section></div></body>', '{"assets":[],"styles":[{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h1","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-4xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.02em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h2","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-3xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.01em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h3","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-2xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--muted","style":{"color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--center","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .lead","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list","style":{"padding-left":"var(--theme-space-6)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li","style":{"margin-bottom":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li::marker","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","padding-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li","style":{"position":"relative","padding-left":"var(--theme-space-6)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li::before","style":{"content":"\"✓\"","position":"absolute","left":"0px","top":"0px","color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-bold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"decimal"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num li::marker","style":{"color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-semibold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn","style":{"display":"inline-flex","align-items":"center","justify-content":"center","border-top-width":"2px","border-right-width":"2px","border-bottom-width":"2px","border-left-width":"2px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-semibold)","line-height":"1.2","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","text-align":"center","white-space-collapse":"collapse","text-wrap":"nowrap","cursor":"pointer","color":"var(--theme-text-invert)","transition-behavior":"normal, normal, normal","transition-duration":"0.15s, 0.15s, 0.1s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"background, border-color, transform"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:hover","style":{"color":"var(--theme-text-invert)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:active","style":{"transform":"translateY(1px)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost","style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"transparent","color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost:hover","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card","style":{"box-shadow":"var(--theme-shadow-sm)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__title","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__text","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .badge","style":{"display":"inline-block","color":"var(--theme-accent)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","font-weight":"var(--theme-font-weight-medium)","line-height":"1.4"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .quote","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-style":"italic","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image","style":{"display":"block","max-width":"100%","height":"auto","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .icon","style":{"display":"inline-block","width":"1.5em","height":"1.5em","vertical-align":"middle","color":"var(--theme-accent)","flex-shrink":"0"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .divider","style":{"border-top-width":"initial","border-right-width":"initial","border-bottom-width":"initial","border-left-width":"initial","border-top-style":"none","border-right-style":"none","border-bottom-style":"none","border-left-style":"none","border-top-color":"initial","border-right-color":"initial","border-bottom-color":"initial","border-left-color":"initial","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","height":"1px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .section","style":{"padding-top":"var(--theme-space-section)","padding-bottom":"var(--theme-space-section)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .container","style":{"width":"100%","max-width":"var(--theme-container-max)","margin-left":"auto","margin-right":"auto","padding-left":"var(--theme-space-gutter)","padding-right":"var(--theme-space-gutter)","box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid","style":{"display":"grid"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2","style":{"grid-template-columns":"repeat(2, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--3","style":{"grid-template-columns":"repeat(3, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"repeat(4, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--auto","style":{"grid-template-columns":"repeat(auto-fit, minmax(15rem, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .col","style":{"min-width":"0px"}},{"selectors":["doc-article"],"style":{"--doc-text":"#2c4a7c","--doc-text-muted":"#5a78a8","--doc-h1":"#8c2a3a","--doc-h2":"#1e6b3a","--doc-h3":"#1e4d8c","--doc-accent":"#2a6db8","--doc-accent-2":"#8ab4e8","--doc-border":"#d6e2f0","font-family":"Inter, \"Golos Text\", system-ui, -apple-system, sans-serif","color":"var(--doc-text)","line-height":"1.7","background-image":"linear-gradient(rgb(255, 255, 255) 0%, rgb(244, 248, 253) 40%, rgb(232, 240, 250) 100%)","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","min-height":"100vh"}},{"selectors":["doc-title"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"24px","margin-left":"0px","font-size":"44px","font-weight":"800","line-height":"1.15","letter-spacing":"-0.02em","color":"var(--doc-h1)"}},{"selectors":["doc-section"],"style":{"padding-top":"12px","padding-right":"24px","padding-bottom":"12px","padding-left":"24px","position":"relative"}},{"selectors":["doc-section--intro"],"style":{"padding-top":"24px"}},{"selectors":["doc-section__inner"],"style":{"max-width":"760px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["doc-section__title"],"style":{"margin-top":"20px","margin-right":"0px","margin-bottom":"12px","margin-left":"0px","font-size":"28px","font-weight":"700","line-height":"1.25","letter-spacing":"-0.01em","color":"var(--doc-h2)"}},{"selectors":["doc-section__title"],"style":{"margin-top":"0px"},"state":"first-child"},{"selectors":[],"selectorsAdd":".doc-section__inner h3","style":{"margin-top":"16px","margin-right":"0px","margin-bottom":"8px","margin-left":"0px","font-size":"20px","font-weight":"700","line-height":"1.3","color":"var(--doc-h3)"}},{"selectors":["doc-section__title"],"style":{"content":"\"\"","display":"block","width":"48px","height":"3px","margin-top":"8px","border-top-left-radius":"3px","border-top-right-radius":"3px","border-bottom-right-radius":"3px","border-bottom-left-radius":"3px","opacity":"0.85"},"state":":after"},{"selectors":["doc-text"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"10px","margin-left":"0px","font-size":"17px","line-height":"1.7","color":"var(--doc-text)"}},{"selectors":["doc-text"],"style":{"margin-bottom":"0px"},"state":"last-child"},{"selectors":["doc-list"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"10px","margin-left":"0px","padding-left":"24px","font-size":"17px","line-height":"1.7","color":"var(--doc-text)"}},{"selectors":[],"selectorsAdd":".doc-list li","style":{"margin-bottom":"6px"}},{"selectors":[],"selectorsAdd":".doc-list li:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".doc-list li::marker","style":{"color":"var(--doc-h2)"}},{"selectors":["doc-list--check"],"style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","padding-left":"0px"}},{"selectors":[],"selectorsAdd":".doc-list--check li","style":{"position":"relative","padding-left":"28px"}},{"selectors":[],"selectorsAdd":".doc-list--check li::before","style":{"content":"\"✓\"","position":"absolute","left":"0px","top":"0px","color":"var(--doc-h2)","font-weight":"700"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"minmax(0px, 1fr)"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-title"],"style":{"font-size":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section"],"style":{"padding-top":"8px","padding-right":"16px","padding-bottom":"8px","padding-left":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section--intro"],"style":{"padding-top":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section__title"],"style":{"font-size":"22px","margin-top":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".doc-section__inner h3","style":{"font-size":"18px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-text"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-list"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["#il0d1"],"style":{"text-align":"justify"}},{"selectors":["#im1n7"],"style":{"text-align":"justify"}},{"selectors":["#i1jwk"],"style":{"text-align":"justify"}},{"selectors":["#i2l2m"],"style":{"text-align":"justify"}},{"selectors":["#icc11"],"style":{"text-align":"justify"}}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"classes":["doc-article"],"components":[{"type":"comment","content":" ============================================ "},{"type":"comment","content":" ВВЕДЕНИЕ                                     "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section","doc-section--intro"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h1","type":"text","classes":["doc-title"],"components":[{"type":"textnode","content":"Нейрокад"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"im1n7"},"components":[{"type":"textnode","content":"Нейрокад — это конструктор сайтов, который работает как чат. Вы пишете обычными словами, что хотите получить — «лендинг для кофейни», «страницу с тремя карточками», «логотип с котом» — и система сама собирает страницу: подбирает блоки, пишет текст, рисует картинки, расставляет элементы по местам. Вам не нужно знать HTML, CSS или разбираться в редакторах — вы просто описываете задачу, а Нейрокад превращает её в готовый сайт, который можно сразу открыть и показать."}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" ПЕРВЫЕ ШАГИ                                  "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section"],"attributes":{"id":"i41hc"},"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Первые шаги"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"il0d1"},"components":[{"type":"textnode","content":"Чтобы начать создавать сайты, откройте "},{"type":"link","attributes":{"href":"https://admin.neurocad.ru","target":"_blank","rel":"noopener noreferrer"},"components":[{"type":"textnode","content":"admin.neurocad.ru"}]},{"type":"textnode","content":" и зарегистрируйтесь — это как завести личный кабинет, где будет храниться всё, что вы сделаете. Придумайте логин и пароль не короче 8 символов. Пароль — это ключ от вашего кабинета, поэтому не делайте его слишком простым: пусть в нём будут и буквы, и цифры, и хотя бы один символ вроде «!» или «@». Такой ключ сложнее подобрать, а значит, ваши страницы будут в безопасности."}]},{"type":"comment","content":" КАРТИНКА: Регистрация "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/registration.png","alt":"Форма регистрации в Нейрокад"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Форма регистрации"}]}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" КАТАЛОГ СТАТЕЙ                               "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Каталог статей"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"i1jwk"},"components":[{"type":"textnode","content":"После регистрации вы попадаете в каталог статей — это ваш рабочий стол, где будут лежать все страницы будущего сайта. Чтобы создать первую статью (она станет главной страницей), нажмите кнопку «Добавить статью» на панели сверху. Перед вами откроется пустая страница — как чистый лист бумаги. Чтобы начать её заполнять, нажмите «Редактировать (визуальный редактор)». Откроется редактор и подсказка, которая объяснит, как с ним работать. Подсказку можно прочитать и закрыть — она не помешает."}]},{"type":"comment","content":" КАРТИНКА: toolbar каталога статей "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/catalog-toolbar.png","alt":"Панель каталога статей"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Панель каталога статей"}]}]},{"type":"comment","content":" КАРТИНКА: toolbar предварительного просмотра "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/preview-toolbar.png","alt":"Панель предварительного просмотра"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Панель предварительного просмотра"}]}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" ПЕРВАЯ СТРАНИЦА ЧЕРЕЗ ЧАТ                    "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Первая страница через чат"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"i2l2m"},"components":[{"type":"textnode","content":"Представьте, что вы решили сделать личную страницу — портфолио, где будете показывать свои работы. Справа от редактора есть чат: это ваш помощник, с которым вы разговариваете обычными словами. Просто напишите ему, что хотите получить, — и он соберёт страницу за вас."}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"icc11"},"components":[{"type":"textnode","content":"Например, начните так: "},{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"«Создай страницу-портфолио для фотографа с галереей работ и контактами»"}]},{"type":"textnode","content":"."}]},{"type":"comment","content":" КАРТИНКА: чат "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/chat.png","alt":"Чат с помощником"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Чат с помощником"}]}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"6ccluSpo6FsVd0WR"}],"id":"tZGCCGjKXMbP5uJz"}],"symbols":[]}', 0, 0, '2026-10-16 15:15:35.011969', '2026-10-19 03:12:25.489025', NULL, 0, 84, '/* app/core/engine/lib/word/editor/css/content.css */
 
 /**
  * Content — theme variables + shared atoms + layout for CONTENT pages.
@@ -47963,5 +49187,499 @@ INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo",
 }
 
 * { box-sizing: border-box; } body {margin: 0;}*{box-sizing:border-box;}body{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .h1{font-family:var(--theme-font-family);font-size:var(--theme-font-size-4xl);font-weight:var(--theme-font-weight-bold);line-height:var(--theme-line-height-tight);color:var(--theme-text);letter-spacing:-0.02em;}.core-engine-lib-word-blocks .h2{font-family:var(--theme-font-family);font-size:var(--theme-font-size-3xl);font-weight:var(--theme-font-weight-bold);line-height:var(--theme-line-height-tight);color:var(--theme-text);letter-spacing:-0.01em;}.core-engine-lib-word-blocks .h3{font-family:var(--theme-font-family);font-size:var(--theme-font-size-2xl);font-weight:var(--theme-font-weight-semibold);line-height:var(--theme-line-height-tight);color:var(--theme-text);}.core-engine-lib-word-blocks .text{font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);font-weight:var(--theme-font-weight-regular);line-height:var(--theme-line-height-base);color:var(--theme-text);}.core-engine-lib-word-blocks .text--muted{color:var(--theme-text-muted);}.core-engine-lib-word-blocks .text--center{text-align:center;}.core-engine-lib-word-blocks .text:last-child{margin-bottom:0px;}.core-engine-lib-word-blocks .lead{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-regular);line-height:var(--theme-line-height-loose);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .list{padding-left:var(--theme-space-6);font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);line-height:var(--theme-line-height-base);color:var(--theme-text);}.core-engine-lib-word-blocks .list li{margin-bottom:var(--theme-space-2);}.core-engine-lib-word-blocks .list li:last-child{margin-bottom:0px;}.core-engine-lib-word-blocks .list li::marker{color:var(--theme-accent);}.core-engine-lib-word-blocks .list--check{list-style-position:initial;list-style-image:initial;list-style-type:none;padding-left:0px;}.core-engine-lib-word-blocks .list--check li{position:relative;padding-left:var(--theme-space-6);}.core-engine-lib-word-blocks .list--check li::before{content:"✓";position:absolute;left:0px;top:0px;color:var(--theme-accent);font-weight:var(--theme-font-weight-bold);}.core-engine-lib-word-blocks .list--num{list-style-position:initial;list-style-image:initial;list-style-type:decimal;}.core-engine-lib-word-blocks .list--num li::marker{color:var(--theme-accent);font-weight:var(--theme-font-weight-semibold);}.core-engine-lib-word-blocks .btn{display:inline-flex;align-items:center;justify-content:center;border-top-width:2px;border-right-width:2px;border-bottom-width:2px;border-left-width:2px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);font-weight:var(--theme-font-weight-semibold);line-height:1.2;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:center;white-space-collapse:collapse;text-wrap:nowrap;cursor:pointer;color:var(--theme-text-invert);transition-behavior:normal, normal, normal;transition-duration:0.15s, 0.15s, 0.1s;transition-timing-function:ease, ease, ease;transition-delay:0s, 0s, 0s;transition-property:background, border-color, transform;}.core-engine-lib-word-blocks .btn:hover{color:var(--theme-text-invert);}.core-engine-lib-word-blocks .btn:active{transform:translateY(1px);}.core-engine-lib-word-blocks .btn--ghost{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:transparent;color:var(--theme-accent);}.core-engine-lib-word-blocks .btn--ghost:hover{color:var(--theme-accent);}.core-engine-lib-word-blocks .card{box-shadow:var(--theme-shadow-sm);}.core-engine-lib-word-blocks .card__title{font-family:var(--theme-font-family);font-size:var(--theme-font-size-xl);font-weight:var(--theme-font-weight-semibold);line-height:var(--theme-line-height-tight);color:var(--theme-text);}.core-engine-lib-word-blocks .card__text{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);line-height:var(--theme-line-height-base);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .badge{display:inline-block;color:var(--theme-accent);font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);font-weight:var(--theme-font-weight-medium);line-height:1.4;}.core-engine-lib-word-blocks .quote{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-style:italic;line-height:var(--theme-line-height-loose);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .image{display:block;max-width:100%;height:auto;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .icon{display:inline-block;width:1.5em;height:1.5em;vertical-align:middle;color:var(--theme-accent);flex-shrink:0;}.core-engine-lib-word-blocks .divider{border-top-width:initial;border-right-width:initial;border-bottom-width:initial;border-left-width:initial;border-top-style:none;border-right-style:none;border-bottom-style:none;border-left-style:none;border-top-color:initial;border-right-color:initial;border-bottom-color:initial;border-left-color:initial;border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;height:1px;}.core-engine-lib-word-blocks .section{padding-top:var(--theme-space-section);padding-bottom:var(--theme-space-section);}.core-engine-lib-word-blocks .container{width:100%;max-width:var(--theme-container-max);margin-left:auto;margin-right:auto;padding-left:var(--theme-space-gutter);padding-right:var(--theme-space-gutter);box-sizing:border-box;}.core-engine-lib-word-blocks .grid{display:grid;}.core-engine-lib-word-blocks .grid--2{grid-template-columns:repeat(2, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--3{grid-template-columns:repeat(3, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--4{grid-template-columns:repeat(4, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--auto{grid-template-columns:repeat(auto-fit, minmax(15rem, 1fr));}.core-engine-lib-word-blocks .col{min-width:0px;}.doc-article{--doc-text:#2c4a7c;--doc-text-muted:#5a78a8;--doc-h1:#8c2a3a;--doc-h2:#1e6b3a;--doc-h3:#1e4d8c;--doc-accent:#2a6db8;--doc-accent-2:#8ab4e8;--doc-border:#d6e2f0;font-family:Inter, "Golos Text", system-ui, -apple-system, sans-serif;color:var(--doc-text);line-height:1.7;background-image:linear-gradient(rgb(255, 255, 255) 0%, rgb(244, 248, 253) 40%, rgb(232, 240, 250) 100%);background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;min-height:100vh;}.doc-title{margin-top:0px;margin-right:0px;margin-bottom:24px;margin-left:0px;font-size:44px;font-weight:800;line-height:1.15;letter-spacing:-0.02em;color:var(--doc-h1);}.doc-section{padding-top:12px;padding-right:24px;padding-bottom:12px;padding-left:24px;position:relative;}.doc-section--intro{padding-top:24px;}.doc-section__inner{max-width:760px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;}.doc-section__title{margin-top:20px;margin-right:0px;margin-bottom:12px;margin-left:0px;font-size:28px;font-weight:700;line-height:1.25;letter-spacing:-0.01em;color:var(--doc-h2);}.doc-section__title:first-child{margin-top:0px;}.doc-section__inner h3{margin-top:16px;margin-right:0px;margin-bottom:8px;margin-left:0px;font-size:20px;font-weight:700;line-height:1.3;color:var(--doc-h3);}.doc-section__title::after{content:"";display:block;width:48px;height:3px;margin-top:8px;border-top-left-radius:3px;border-top-right-radius:3px;border-bottom-right-radius:3px;border-bottom-left-radius:3px;opacity:0.85;}.doc-text{margin-top:0px;margin-right:0px;margin-bottom:10px;margin-left:0px;font-size:17px;line-height:1.7;color:var(--doc-text);}.doc-text:last-child{margin-bottom:0px;}.doc-list li{margin-bottom:6px;}.doc-list li:last-child{margin-bottom:0px;}.doc-list li::marker{color:var(--doc-h2);}.doc-list--check li{position:relative;padding-left:28px;}.doc-list--check li::before{content:"✓";position:absolute;left:0px;top:0px;color:var(--doc-h2);font-weight:700;}#il0d1{text-align:justify;}#im1n7{text-align:justify;}#i1jwk{text-align:justify;}#i2l2m{text-align:justify;}#icc11{text-align:justify;}@media (max-width: 768px){.core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4{grid-template-columns:minmax(0px, 1fr);}.doc-title{font-size:32px;}.doc-section{padding-top:8px;padding-right:16px;padding-bottom:8px;padding-left:16px;}.doc-section--intro{padding-top:16px;}.doc-section__title{font-size:22px;margin-top:16px;}.doc-section__inner h3{font-size:18px;}.doc-text{font-size:16px;}}', NULL, 'page', 75, 0);
+INSERT INTO "pages" ("id", "nav_id", "datetime", "title", "description", "logo", "content", "content_json", "is_active", "is_delete", "created_at", "updated_at", "rss_yandex_id", "is_template", "template_id", "css", "url", "card_type", "parent_id", "sort_order") VALUES (85, 8, '2026-10-19 05:13:51.560128', 'Статья 1', '', '', '<body><div class="doc-article"><!-- ============================================ --><!-- ВВЕДЕНИЕ                                     --><!-- ============================================ --><section class="doc-section doc-section--intro"><div class="doc-section__inner"><h1 class="doc-title">Нейрокад</h1><p id="im1n7" class="doc-text">Нейрокад — это конструктор сайтов, который работает как чат. Вы пишете обычными словами, что хотите получить — «лендинг для кофейни», «страницу с тремя карточками», «логотип с котом» — и система сама собирает страницу: подбирает блоки, пишет текст, рисует картинки, расставляет элементы по местам. Вам не нужно знать HTML, CSS или разбираться в редакторах — вы просто описываете задачу, а Нейрокад превращает её в готовый сайт, который можно сразу открыть и показать.</p></div></section><!-- ============================================ --><!-- ПЕРВЫЕ ШАГИ                                  --><!-- ============================================ --><section id="i41hc" class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Первые шаги</h2><p id="il0d1" class="doc-text">Чтобы начать создавать сайты, откройте <a href="https://admin.neurocad.ru" target="_blank" rel="noopener noreferrer">admin.neurocad.ru</a> и зарегистрируйтесь — это как завести личный кабинет, где будет храниться всё, что вы сделаете. Придумайте логин и пароль не короче 8 символов. Пароль — это ключ от вашего кабинета, поэтому не делайте его слишком простым: пусть в нём будут и буквы, и цифры, и хотя бы один символ вроде «!» или «@». Такой ключ сложнее подобрать, а значит, ваши страницы будут в безопасности.</p><!-- КАРТИНКА: Регистрация --><figure class="doc-figure"><img src="/media/registration.png" alt="Форма регистрации в Нейрокад"/><figcaption class="doc-figure__caption">Форма регистрации</figcaption></figure></div></section><!-- ============================================ --><!-- КАТАЛОГ СТАТЕЙ                               --><!-- ============================================ --><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Каталог статей</h2><p id="i1jwk" class="doc-text">После регистрации вы попадаете в каталог статей — это ваш рабочий стол, где будут лежать все страницы будущего сайта. Чтобы создать первую статью (она станет главной страницей), нажмите кнопку «Добавить статью» на панели сверху. Перед вами откроется пустая страница — как чистый лист бумаги. Чтобы начать её заполнять, нажмите «Редактировать (визуальный редактор)». Откроется редактор и подсказка, которая объяснит, как с ним работать. Подсказку можно прочитать и закрыть — она не помешает.</p><!-- КАРТИНКА: toolbar каталога статей --><figure class="doc-figure"><img src="/media/catalog-toolbar.png" alt="Панель каталога статей"/><figcaption class="doc-figure__caption">Панель каталога статей</figcaption></figure><!-- КАРТИНКА: toolbar предварительного просмотра --><figure class="doc-figure"><img src="/media/preview-toolbar.png" alt="Панель предварительного просмотра"/><figcaption class="doc-figure__caption">Панель предварительного просмотра</figcaption></figure></div></section><!-- ============================================ --><!-- ПЕРВАЯ СТРАНИЦА ЧЕРЕЗ ЧАТ                    --><!-- ============================================ --><section class="doc-section"><div class="doc-section__inner"><h2 class="doc-section__title">Первая страница через чат</h2><p id="i2l2m" class="doc-text">Представьте, что вы решили сделать личную страницу — портфолио, где будете показывать свои работы. Справа от редактора есть чат: это ваш помощник, с которым вы разговариваете обычными словами. Просто напишите ему, что хотите получить, — и он соберёт страницу за вас.</p><p id="icc11" class="doc-text">Например, начните так: <strong>«Создай страницу-портфолио для фотографа с галереей работ и контактами»</strong>.</p><!-- КАРТИНКА: чат --><figure class="doc-figure"><img src="/media/chat.png" alt="Чат с помощником"/><figcaption class="doc-figure__caption">Чат с помощником</figcaption></figure></div></section></div></body>', '{"assets":[],"styles":[{"selectors":[],"selectorsAdd":"*","style":{"box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":"body","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h1","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-4xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.02em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h2","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-3xl)","font-weight":"var(--theme-font-weight-bold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)","letter-spacing":"-0.01em"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .h3","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-2xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--muted","style":{"color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text--center","style":{"text-align":"center"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .text:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .lead","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-weight":"var(--theme-font-weight-regular)","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list","style":{"padding-left":"var(--theme-space-6)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li","style":{"margin-bottom":"var(--theme-space-2)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list li::marker","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"none","padding-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li","style":{"position":"relative","padding-left":"var(--theme-space-6)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--check li::before","style":{"content":"\"✓\"","position":"absolute","left":"0px","top":"0px","color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-bold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num","style":{"list-style-position":"initial","list-style-image":"initial","list-style-type":"decimal"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .list--num li::marker","style":{"color":"var(--theme-accent)","font-weight":"var(--theme-font-weight-semibold)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn","style":{"display":"inline-flex","align-items":"center","justify-content":"center","border-top-width":"2px","border-right-width":"2px","border-bottom-width":"2px","border-left-width":"2px","border-top-style":"solid","border-right-style":"solid","border-bottom-style":"solid","border-left-style":"solid","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","font-weight":"var(--theme-font-weight-semibold)","line-height":"1.2","text-decoration-line":"none","text-decoration-thickness":"initial","text-decoration-style":"initial","text-decoration-color":"initial","text-align":"center","white-space-collapse":"collapse","text-wrap-mode":"nowrap","text-wrap-style":"initial","cursor":"pointer","color":"var(--theme-text-invert)","transition-behavior":"normal, normal, normal","transition-duration":"0.15s, 0.15s, 0.1s","transition-timing-function":"ease, ease, ease","transition-delay":"0s, 0s, 0s","transition-property":"background, border-color, transform"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:hover","style":{"color":"var(--theme-text-invert)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn:active","style":{"transform":"translateY(1px)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost","style":{"background-image":"initial","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"transparent","color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .btn--ghost:hover","style":{"color":"var(--theme-accent)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card","style":{"box-shadow":"var(--theme-shadow-sm)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__title","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-xl)","font-weight":"var(--theme-font-weight-semibold)","line-height":"var(--theme-line-height-tight)","color":"var(--theme-text)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .card__text","style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-base)","line-height":"var(--theme-line-height-base)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .badge","style":{"display":"inline-block","color":"var(--theme-accent)","font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-sm)","font-weight":"var(--theme-font-weight-medium)","line-height":"1.4"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .quote","style":{"font-family":"var(--theme-font-family)","font-size":"var(--theme-font-size-lg)","font-style":"italic","line-height":"var(--theme-line-height-loose)","color":"var(--theme-text-muted)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .image","style":{"display":"block","max-width":"100%","height":"auto","margin-top":"0px","margin-right":"0px","margin-bottom":"0px","margin-left":"0px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .icon","style":{"display":"inline-block","width":"1.5em","height":"1.5em","vertical-align":"middle","color":"var(--theme-accent)","flex-shrink":"0"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .divider","style":{"border-top-width":"initial","border-right-width":"initial","border-bottom-width":"initial","border-left-width":"initial","border-top-style":"none","border-right-style":"none","border-bottom-style":"none","border-left-style":"none","border-top-color":"initial","border-right-color":"initial","border-bottom-color":"initial","border-left-color":"initial","border-image-source":"initial","border-image-slice":"initial","border-image-width":"initial","border-image-outset":"initial","border-image-repeat":"initial","height":"1px"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .section","style":{"padding-top":"var(--theme-space-section)","padding-bottom":"var(--theme-space-section)"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .container","style":{"width":"100%","max-width":"var(--theme-container-max)","margin-left":"auto","margin-right":"auto","padding-left":"var(--theme-space-gutter)","padding-right":"var(--theme-space-gutter)","box-sizing":"border-box"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid","style":{"display":"grid"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2","style":{"grid-template-columns":"repeat(2, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--3","style":{"grid-template-columns":"repeat(3, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"repeat(4, minmax(0px, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--auto","style":{"grid-template-columns":"repeat(auto-fit, minmax(15rem, 1fr))"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .col","style":{"min-width":"0px"}},{"selectors":["doc-article"],"style":{"--doc-text":"#2c4a7c","--doc-text-muted":"#5a78a8","--doc-h1":"#8c2a3a","--doc-h2":"#1e6b3a","--doc-h3":"#1e4d8c","--doc-accent":"#2a6db8","--doc-accent-2":"#8ab4e8","--doc-border":"#d6e2f0","font-family":"Inter, \"Golos Text\", system-ui, -apple-system, sans-serif","color":"var(--doc-text)","line-height":"1.7","background-image":"linear-gradient(rgb(255, 255, 255) 0%, rgb(244, 248, 253) 40%, rgb(232, 240, 250) 100%)","background-position-x":"initial","background-position-y":"initial","background-size":"initial","background-repeat":"initial","background-attachment":"initial","background-origin":"initial","background-clip":"initial","background-color":"initial","min-height":"100vh"}},{"selectors":["doc-title"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"24px","margin-left":"0px","font-size":"44px","font-weight":"800","line-height":"1.15","letter-spacing":"-0.02em","color":"var(--doc-h1)"}},{"selectors":["doc-section"],"style":{"padding-top":"12px","padding-right":"24px","padding-bottom":"12px","padding-left":"24px","position":"relative"}},{"selectors":["doc-section--intro"],"style":{"padding-top":"24px"}},{"selectors":["doc-section__inner"],"style":{"max-width":"760px","margin-top":"0px","margin-right":"auto","margin-bottom":"0px","margin-left":"auto"}},{"selectors":["doc-section__title"],"style":{"margin-top":"20px","margin-right":"0px","margin-bottom":"12px","margin-left":"0px","font-size":"28px","font-weight":"700","line-height":"1.25","letter-spacing":"-0.01em","color":"var(--doc-h2)"}},{"selectors":["doc-section__title"],"style":{"margin-top":"0px"},"state":"first-child"},{"selectors":[],"selectorsAdd":".doc-section__inner h3","style":{"margin-top":"16px","margin-right":"0px","margin-bottom":"8px","margin-left":"0px","font-size":"20px","font-weight":"700","line-height":"1.3","color":"var(--doc-h3)"}},{"selectors":["doc-section__title"],"style":{"content":"\"\"","display":"block","width":"48px","height":"3px","margin-top":"8px","border-top-left-radius":"3px","border-top-right-radius":"3px","border-bottom-right-radius":"3px","border-bottom-left-radius":"3px","opacity":"0.85"},"state":":after"},{"selectors":["doc-text"],"style":{"margin-top":"0px","margin-right":"0px","margin-bottom":"10px","margin-left":"0px","font-size":"17px","line-height":"1.7","color":"var(--doc-text)"}},{"selectors":["doc-text"],"style":{"margin-bottom":"0px"},"state":"last-child"},{"selectors":[],"selectorsAdd":".doc-list li","style":{"margin-bottom":"6px"}},{"selectors":[],"selectorsAdd":".doc-list li:last-child","style":{"margin-bottom":"0px"}},{"selectors":[],"selectorsAdd":".doc-list li::marker","style":{"color":"var(--doc-h2)"}},{"selectors":[],"selectorsAdd":".doc-list--check li","style":{"position":"relative","padding-left":"28px"}},{"selectors":[],"selectorsAdd":".doc-list--check li::before","style":{"content":"\"✓\"","position":"absolute","left":"0px","top":"0px","color":"var(--doc-h2)","font-weight":"700"}},{"selectors":[],"selectorsAdd":".core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4","style":{"grid-template-columns":"minmax(0px, 1fr)"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-title"],"style":{"font-size":"32px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section"],"style":{"padding-top":"8px","padding-right":"16px","padding-bottom":"8px","padding-left":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section--intro"],"style":{"padding-top":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-section__title"],"style":{"font-size":"22px","margin-top":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":[],"selectorsAdd":".doc-section__inner h3","style":{"font-size":"18px"},"mediaText":"(max-width: 768px)","atRuleType":"media"},{"selectors":["doc-text"],"style":{"font-size":"16px"},"mediaText":"(max-width: 768px)","atRuleType":"media"}],"pages":[{"frames":[{"component":{"type":"wrapper","stylable":["background","background-color","background-image","background-repeat","background-attachment","background-position","background-size"],"components":[{"classes":["doc-article"],"components":[{"type":"comment","content":" ============================================ "},{"type":"comment","content":" ВВЕДЕНИЕ                                     "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section","doc-section--intro"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h1","type":"text","classes":["doc-title"],"components":[{"type":"textnode","content":"Нейрокад"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"im1n7"},"components":[{"type":"textnode","content":"Нейрокад — это конструктор сайтов, который работает как чат. Вы пишете обычными словами, что хотите получить — «лендинг для кофейни», «страницу с тремя карточками», «логотип с котом» — и система сама собирает страницу: подбирает блоки, пишет текст, рисует картинки, расставляет элементы по местам. Вам не нужно знать HTML, CSS или разбираться в редакторах — вы просто описываете задачу, а Нейрокад превращает её в готовый сайт, который можно сразу открыть и показать."}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" ПЕРВЫЕ ШАГИ                                  "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section"],"attributes":{"id":"i41hc"},"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Первые шаги"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"il0d1"},"components":[{"type":"textnode","content":"Чтобы начать создавать сайты, откройте "},{"type":"link","attributes":{"href":"https://admin.neurocad.ru","target":"_blank","rel":"noopener noreferrer"},"components":[{"type":"textnode","content":"admin.neurocad.ru"}]},{"type":"textnode","content":" и зарегистрируйтесь — это как завести личный кабинет, где будет храниться всё, что вы сделаете. Придумайте логин и пароль не короче 8 символов. Пароль — это ключ от вашего кабинета, поэтому не делайте его слишком простым: пусть в нём будут и буквы, и цифры, и хотя бы один символ вроде «!» или «@». Такой ключ сложнее подобрать, а значит, ваши страницы будут в безопасности."}]},{"type":"comment","content":" КАРТИНКА: Регистрация "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/registration.png","alt":"Форма регистрации в Нейрокад"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Форма регистрации"}]}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" КАТАЛОГ СТАТЕЙ                               "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Каталог статей"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"i1jwk"},"components":[{"type":"textnode","content":"После регистрации вы попадаете в каталог статей — это ваш рабочий стол, где будут лежать все страницы будущего сайта. Чтобы создать первую статью (она станет главной страницей), нажмите кнопку «Добавить статью» на панели сверху. Перед вами откроется пустая страница — как чистый лист бумаги. Чтобы начать её заполнять, нажмите «Редактировать (визуальный редактор)». Откроется редактор и подсказка, которая объяснит, как с ним работать. Подсказку можно прочитать и закрыть — она не помешает."}]},{"type":"comment","content":" КАРТИНКА: toolbar каталога статей "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/catalog-toolbar.png","alt":"Панель каталога статей"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Панель каталога статей"}]}]},{"type":"comment","content":" КАРТИНКА: toolbar предварительного просмотра "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/preview-toolbar.png","alt":"Панель предварительного просмотра"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Панель предварительного просмотра"}]}]}]}]},{"type":"comment","content":" ============================================ "},{"type":"comment","content":" ПЕРВАЯ СТРАНИЦА ЧЕРЕЗ ЧАТ                    "},{"type":"comment","content":" ============================================ "},{"tagName":"section","classes":["doc-section"],"components":[{"classes":["doc-section__inner"],"components":[{"tagName":"h2","type":"text","classes":["doc-section__title"],"components":[{"type":"textnode","content":"Первая страница через чат"}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"i2l2m"},"components":[{"type":"textnode","content":"Представьте, что вы решили сделать личную страницу — портфолио, где будете показывать свои работы. Справа от редактора есть чат: это ваш помощник, с которым вы разговариваете обычными словами. Просто напишите ему, что хотите получить, — и он соберёт страницу за вас."}]},{"tagName":"p","type":"text","classes":["doc-text"],"attributes":{"id":"icc11"},"components":[{"type":"textnode","content":"Например, начните так: "},{"tagName":"strong","type":"text","components":[{"type":"textnode","content":"«Создай страницу-портфолио для фотографа с галереей работ и контактами»"}]},{"type":"textnode","content":"."}]},{"type":"comment","content":" КАРТИНКА: чат "},{"tagName":"figure","classes":["doc-figure"],"components":[{"type":"image","resizable":{"ratioDefault":1},"attributes":{"src":"/media/chat.png","alt":"Чат с помощником"}},{"tagName":"figcaption","type":"text","classes":["doc-figure__caption"],"components":[{"type":"textnode","content":"Чат с помощником"}]}]}]}]}]}],"head":{"type":"head"},"docEl":{"tagName":"html"}},"id":"8UybXTOE0Vba0bxx"}],"id":"je2ocLZUveRtZsMO"}],"symbols":[]}', 1, 0, '2026-10-19 05:13:51.560158', '2026-10-19 11:12:18.556926', NULL, 0, 84, '/* app/core/engine/lib/word/editor/css/content.css */
+
+/**
+ * Content — theme variables + shared atoms + layout for CONTENT pages.
+ *
+ * Loaded BOTH in editor (GrapesJS canvas) and on public pages.
+ * All selectors are scoped under .core-engine-lib-word-blocks.
+ *
+ * Uses ONLY --theme-* variables, defined at the top of this file.
+ * Completely independent from base/css/00_variables.css (admin UI):
+ * admin theme changes do NOT affect page content.
+ *
+ * Contents:
+ *   THEME VARIABLES
+ *     --theme-*                 all colors, fonts, radii, spacing
+ *
+ *   ATOMS
+ *     .h1, .h2, .h3             headings
+ *     .text, .text--muted, .text--center
+ *     .lead                     intro paragraph
+ *     .list, .list--check, .list--num
+ *     .btn, .btn--ghost         buttons
+ *     .card, .card__title, .card__text
+ *     .badge, .quote, .image, .icon, .divider
+ *
+ *   LAYOUT
+ *     .section                  vertical rhythm wrapper
+ *     .container                centered max-width wrapper
+ *     .grid, .grid--2/3/4/auto  base grids
+ *     .col                      grid cell
+ *
+ * .flex-shell* lives in blocks/layout.css — it is block-specific
+ * (only used by the flex-shell block).
+ *
+ * Rules:
+ *   - Never change existing class rules after release — only add
+ *     new classes. Values come from --theme-* and can be changed
+ *     centrally without breaking pages.
+ */
+
+
+/* ============================================
+   THEME VARIABLES — content
+   ============================================ */
+
+/*
+ * Completely independent from base/css/00_variables.css (admin UI).
+ * Admin theme changes do NOT affect these values.
+ *
+ * Scoped under .core-engine-lib-word-blocks — the same class sits
+ * on the canvas <body> in the editor and on the article wrapper
+ * on the public page.
+ */
+.core-engine-lib-word-blocks {
+
+    /* ===== COLORS ===== */
+
+    --theme-bg:             #ffffff;
+    --theme-bg-subtle:      #f8fafc;
+    --theme-bg-dark:        #0f172a;
+    --theme-bg-hover:       #f1f5f9;
+
+    --theme-text:           #1e293b;
+    --theme-text-muted:     #64748b;
+    --theme-text-invert:    #ffffff;
+
+    --theme-accent:         #246eaa;
+    --theme-accent-hover:   #1e5a8a;
+    --theme-accent-soft:    #e0edf7;
+
+    --theme-border:         #e2e8f0;
+    --theme-border-strong:  #cbd5e1;
+
+    --theme-success:        #16a34a;
+    --theme-warning:        #d97706;
+    --theme-danger:         #dc2626;
+
+    /* ===== SHADOWS ===== */
+
+    --theme-shadow-sm:  0 1px 3px rgba(15, 23, 42, 0.06);
+    --theme-shadow-md:  0 4px 12px rgba(15, 23, 42, 0.08);
+    --theme-shadow-lg:  0 12px 32px rgba(15, 23, 42, 0.12);
+
+    /* ===== FONTS ===== */
+
+    --theme-font-family:    ''Inter'', ''Golos Text'', sans-serif;
+    --theme-font-size-xs:   0.75rem;
+    --theme-font-size-sm:   0.875rem;
+    --theme-font-size-base: 1rem;
+    --theme-font-size-lg:   1.125rem;
+    --theme-font-size-xl:   1.25rem;
+    --theme-font-size-2xl:  1.5rem;
+    --theme-font-size-3xl:  2rem;
+    --theme-font-size-4xl:  2.5rem;
+
+    --theme-font-weight-regular:  400;
+    --theme-font-weight-medium:   500;
+    --theme-font-weight-semibold: 600;
+    --theme-font-weight-bold:     700;
+
+    --theme-line-height-tight:  1.25;
+    --theme-line-height-base:   1.6;
+    --theme-line-height-loose:  1.8;
+
+    /* ===== RADII ===== */
+
+    --theme-radius-sm:   0.25rem;
+    --theme-radius-md:   0.5rem;
+    --theme-radius-lg:   0.75rem;
+    --theme-radius-xl:   1rem;
+    --theme-radius-pill: 9999px;
+
+    /* ===== SPACING ===== */
+
+    --theme-space-1:   0.25rem;
+    --theme-space-2:   0.5rem;
+    --theme-space-3:   0.75rem;
+    --theme-space-4:   1rem;
+    --theme-space-5:   1.25rem;
+    --theme-space-6:   1.5rem;
+    --theme-space-8:   2rem;
+    --theme-space-10:  2.5rem;
+    --theme-space-12:  3rem;
+    --theme-space-16:  4rem;
+    --theme-space-20:  5rem;
+
+    --theme-space-section:  4rem;
+    --theme-space-gutter:   1rem;
+    --theme-space-grid:     1rem;
+
+    /* ===== LAYOUT ===== */
+
+    --theme-container-max:  75rem;
+}
+
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+
+.core-engine-lib-word-blocks .h1 {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-4xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.02em;
+}
+
+.core-engine-lib-word-blocks .h2 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-3xl);
+    font-weight: var(--theme-font-weight-bold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+    letter-spacing: -0.01em;
+}
+
+.core-engine-lib-word-blocks .h3 {
+    margin: 0 0 var(--theme-space-3);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-2xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+
+/* ============================================
+   TEXT
+   ============================================ */
+
+.core-engine-lib-word-blocks .text {
+    margin: 0 0 var(--theme-space-4);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .text--muted {
+    color: var(--theme-text-muted);
+}
+
+.core-engine-lib-word-blocks .text--center {
+    text-align: center;
+}
+
+.core-engine-lib-word-blocks .text:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ============================================
+   LEAD
+   ============================================ */
+
+.core-engine-lib-word-blocks .lead {
+    margin: 0 0 var(--theme-space-5);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-weight: var(--theme-font-weight-regular);
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   LISTS
+   ============================================ */
+
+.core-engine-lib-word-blocks .list {
+    margin: 0 0 var(--theme-space-4);
+    padding-left: var(--theme-space-6);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .list li {
+    margin-bottom: var(--theme-space-2);
+}
+
+.core-engine-lib-word-blocks .list li:last-child {
+    margin-bottom: 0;
+}
+
+.core-engine-lib-word-blocks .list li::marker {
+    color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .list--check {
+    list-style: none;
+    padding-left: 0;
+}
+
+.core-engine-lib-word-blocks .list--check li {
+    position: relative;
+    padding-left: var(--theme-space-6);
+}
+
+.core-engine-lib-word-blocks .list--check li::before {
+    content: ''✓'';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-bold);
+}
+
+.core-engine-lib-word-blocks .list--num {
+    list-style: decimal;
+}
+
+.core-engine-lib-word-blocks .list--num li::marker {
+    color: var(--theme-accent);
+    font-weight: var(--theme-font-weight-semibold);
+}
+
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.core-engine-lib-word-blocks .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--theme-space-2);
+    padding: var(--theme-space-3) var(--theme-space-6);
+    border: 2px solid transparent;
+    border-radius: var(--theme-radius-md);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: 1.2;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--theme-accent);
+    color: var(--theme-text-invert);
+    border-color: var(--theme-accent);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.core-engine-lib-word-blocks .btn:hover {
+    background: var(--theme-accent-hover);
+    border-color: var(--theme-accent-hover);
+    color: var(--theme-text-invert);
+}
+
+.core-engine-lib-word-blocks .btn:active {
+    transform: translateY(1px);
+}
+
+.core-engine-lib-word-blocks .btn--ghost {
+    background: transparent;
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+.core-engine-lib-word-blocks .btn--ghost:hover {
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+
+/* ============================================
+   CARD
+   ============================================ */
+
+.core-engine-lib-word-blocks .card {
+    padding: var(--theme-space-6);
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    border-radius: var(--theme-radius-lg);
+    box-shadow: var(--theme-shadow-sm);
+}
+
+.core-engine-lib-word-blocks .card__title {
+    margin: 0 0 var(--theme-space-2);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-xl);
+    font-weight: var(--theme-font-weight-semibold);
+    line-height: var(--theme-line-height-tight);
+    color: var(--theme-text);
+}
+
+.core-engine-lib-word-blocks .card__text {
+    margin: 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-base);
+    line-height: var(--theme-line-height-base);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   BADGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .badge {
+    display: inline-block;
+    padding: var(--theme-space-1) var(--theme-space-3);
+    border-radius: var(--theme-radius-pill);
+    background: var(--theme-accent-soft);
+    color: var(--theme-accent);
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-sm);
+    font-weight: var(--theme-font-weight-medium);
+    line-height: 1.4;
+}
+
+
+/* ============================================
+   QUOTE
+   ============================================ */
+
+.core-engine-lib-word-blocks .quote {
+    margin: var(--theme-space-6) 0;
+    padding: var(--theme-space-4) var(--theme-space-5);
+    border-left: 4px solid var(--theme-accent);
+    background: var(--theme-bg-subtle);
+    border-radius: 0 var(--theme-radius-md) var(--theme-radius-md) 0;
+    font-family: var(--theme-font-family);
+    font-size: var(--theme-font-size-lg);
+    font-style: italic;
+    line-height: var(--theme-line-height-loose);
+    color: var(--theme-text-muted);
+}
+
+
+/* ============================================
+   IMAGE
+   ============================================ */
+
+.core-engine-lib-word-blocks .image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--theme-radius-md);
+    margin: 0;
+}
+
+
+/* ============================================
+   ICON
+   ============================================ */
+
+.core-engine-lib-word-blocks .icon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    color: var(--theme-accent);
+    flex-shrink: 0;
+}
+
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+
+.core-engine-lib-word-blocks .divider {
+    margin: var(--theme-space-8) 0;
+    border: none;
+    height: 1px;
+    background: var(--theme-border);
+}
+
+
+/* ============================================
+   SECTION — vertical rhythm wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .section {
+    padding-top: var(--theme-space-section);
+    padding-bottom: var(--theme-space-section);
+}
+
+
+/* ============================================
+   CONTAINER — centered max-width wrapper
+   ============================================ */
+
+.core-engine-lib-word-blocks .container {
+    width: 100%;
+    max-width: var(--theme-container-max);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--theme-space-gutter);
+    padding-right: var(--theme-space-gutter);
+    box-sizing: border-box;
+}
+
+
+/* ============================================
+   GRID — base
+   ============================================ */
+
+.core-engine-lib-word-blocks .grid {
+    display: grid;
+    gap: var(--theme-space-grid);
+}
+
+.core-engine-lib-word-blocks .grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.core-engine-lib-word-blocks .grid--auto {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+
+/* ============================================
+   COLUMN — grid cell
+   ============================================ */
+
+/*
+ * Minimal cell: only prevents overflow. Padding, background, border
+ * are set per block (e.g. .card, .col--tile were removed on purpose).
+ */
+.core-engine-lib-word-blocks .col {
+    min-width: 0;
+}
+
+
+/* ============================================
+   GRID — responsive fallback
+   ============================================ */
+
+@media (max-width: 768px) {
+    .core-engine-lib-word-blocks .grid--2,
+    .core-engine-lib-word-blocks .grid--3,
+    .core-engine-lib-word-blocks .grid--4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+* { box-sizing: border-box; } body {margin: 0;}*{box-sizing:border-box;}body{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .h1{font-family:var(--theme-font-family);font-size:var(--theme-font-size-4xl);font-weight:var(--theme-font-weight-bold);line-height:var(--theme-line-height-tight);color:var(--theme-text);letter-spacing:-0.02em;}.core-engine-lib-word-blocks .h2{font-family:var(--theme-font-family);font-size:var(--theme-font-size-3xl);font-weight:var(--theme-font-weight-bold);line-height:var(--theme-line-height-tight);color:var(--theme-text);letter-spacing:-0.01em;}.core-engine-lib-word-blocks .h3{font-family:var(--theme-font-family);font-size:var(--theme-font-size-2xl);font-weight:var(--theme-font-weight-semibold);line-height:var(--theme-line-height-tight);color:var(--theme-text);}.core-engine-lib-word-blocks .text{font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);font-weight:var(--theme-font-weight-regular);line-height:var(--theme-line-height-base);color:var(--theme-text);}.core-engine-lib-word-blocks .text--muted{color:var(--theme-text-muted);}.core-engine-lib-word-blocks .text--center{text-align:center;}.core-engine-lib-word-blocks .text:last-child{margin-bottom:0px;}.core-engine-lib-word-blocks .lead{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-weight:var(--theme-font-weight-regular);line-height:var(--theme-line-height-loose);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .list{padding-left:var(--theme-space-6);font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);line-height:var(--theme-line-height-base);color:var(--theme-text);}.core-engine-lib-word-blocks .list li{margin-bottom:var(--theme-space-2);}.core-engine-lib-word-blocks .list li:last-child{margin-bottom:0px;}.core-engine-lib-word-blocks .list li::marker{color:var(--theme-accent);}.core-engine-lib-word-blocks .list--check{list-style-position:initial;list-style-image:initial;list-style-type:none;padding-left:0px;}.core-engine-lib-word-blocks .list--check li{position:relative;padding-left:var(--theme-space-6);}.core-engine-lib-word-blocks .list--check li::before{content:"✓";position:absolute;left:0px;top:0px;color:var(--theme-accent);font-weight:var(--theme-font-weight-bold);}.core-engine-lib-word-blocks .list--num{list-style-position:initial;list-style-image:initial;list-style-type:decimal;}.core-engine-lib-word-blocks .list--num li::marker{color:var(--theme-accent);font-weight:var(--theme-font-weight-semibold);}.core-engine-lib-word-blocks .btn{display:inline-flex;align-items:center;justify-content:center;border-top-width:2px;border-right-width:2px;border-bottom-width:2px;border-left-width:2px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);font-weight:var(--theme-font-weight-semibold);line-height:1.2;text-decoration-line:none;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:center;white-space-collapse:collapse;text-wrap-mode:nowrap;text-wrap-style:initial;cursor:pointer;color:var(--theme-text-invert);transition-behavior:normal, normal, normal;transition-duration:0.15s, 0.15s, 0.1s;transition-timing-function:ease, ease, ease;transition-delay:0s, 0s, 0s;transition-property:background, border-color, transform;}.core-engine-lib-word-blocks .btn:hover{color:var(--theme-text-invert);}.core-engine-lib-word-blocks .btn:active{transform:translateY(1px);}.core-engine-lib-word-blocks .btn--ghost{background-image:initial;background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:transparent;color:var(--theme-accent);}.core-engine-lib-word-blocks .btn--ghost:hover{color:var(--theme-accent);}.core-engine-lib-word-blocks .card{box-shadow:var(--theme-shadow-sm);}.core-engine-lib-word-blocks .card__title{font-family:var(--theme-font-family);font-size:var(--theme-font-size-xl);font-weight:var(--theme-font-weight-semibold);line-height:var(--theme-line-height-tight);color:var(--theme-text);}.core-engine-lib-word-blocks .card__text{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;font-family:var(--theme-font-family);font-size:var(--theme-font-size-base);line-height:var(--theme-line-height-base);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .badge{display:inline-block;color:var(--theme-accent);font-family:var(--theme-font-family);font-size:var(--theme-font-size-sm);font-weight:var(--theme-font-weight-medium);line-height:1.4;}.core-engine-lib-word-blocks .quote{font-family:var(--theme-font-family);font-size:var(--theme-font-size-lg);font-style:italic;line-height:var(--theme-line-height-loose);color:var(--theme-text-muted);}.core-engine-lib-word-blocks .image{display:block;max-width:100%;height:auto;margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}.core-engine-lib-word-blocks .icon{display:inline-block;width:1.5em;height:1.5em;vertical-align:middle;color:var(--theme-accent);flex-shrink:0;}.core-engine-lib-word-blocks .divider{border-top-width:initial;border-right-width:initial;border-bottom-width:initial;border-left-width:initial;border-top-style:none;border-right-style:none;border-bottom-style:none;border-left-style:none;border-top-color:initial;border-right-color:initial;border-bottom-color:initial;border-left-color:initial;border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;height:1px;}.core-engine-lib-word-blocks .section{padding-top:var(--theme-space-section);padding-bottom:var(--theme-space-section);}.core-engine-lib-word-blocks .container{width:100%;max-width:var(--theme-container-max);margin-left:auto;margin-right:auto;padding-left:var(--theme-space-gutter);padding-right:var(--theme-space-gutter);box-sizing:border-box;}.core-engine-lib-word-blocks .grid{display:grid;}.core-engine-lib-word-blocks .grid--2{grid-template-columns:repeat(2, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--3{grid-template-columns:repeat(3, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--4{grid-template-columns:repeat(4, minmax(0px, 1fr));}.core-engine-lib-word-blocks .grid--auto{grid-template-columns:repeat(auto-fit, minmax(15rem, 1fr));}.core-engine-lib-word-blocks .col{min-width:0px;}.doc-article{--doc-text:#2c4a7c;--doc-text-muted:#5a78a8;--doc-h1:#8c2a3a;--doc-h2:#1e6b3a;--doc-h3:#1e4d8c;--doc-accent:#2a6db8;--doc-accent-2:#8ab4e8;--doc-border:#d6e2f0;font-family:Inter, "Golos Text", system-ui, -apple-system, sans-serif;color:var(--doc-text);line-height:1.7;background-image:linear-gradient(rgb(255, 255, 255) 0%, rgb(244, 248, 253) 40%, rgb(232, 240, 250) 100%);background-position-x:initial;background-position-y:initial;background-size:initial;background-repeat:initial;background-attachment:initial;background-origin:initial;background-clip:initial;background-color:initial;min-height:100vh;}.doc-title{margin-top:0px;margin-right:0px;margin-bottom:24px;margin-left:0px;font-size:44px;font-weight:800;line-height:1.15;letter-spacing:-0.02em;color:var(--doc-h1);}.doc-section{padding-top:12px;padding-right:24px;padding-bottom:12px;padding-left:24px;position:relative;}.doc-section--intro{padding-top:24px;}.doc-section__inner{max-width:760px;margin-top:0px;margin-right:auto;margin-bottom:0px;margin-left:auto;}.doc-section__title{margin-top:20px;margin-right:0px;margin-bottom:12px;margin-left:0px;font-size:28px;font-weight:700;line-height:1.25;letter-spacing:-0.01em;color:var(--doc-h2);}.doc-section__title:first-child{margin-top:0px;}.doc-section__inner h3{margin-top:16px;margin-right:0px;margin-bottom:8px;margin-left:0px;font-size:20px;font-weight:700;line-height:1.3;color:var(--doc-h3);}.doc-section__title::after{content:"";display:block;width:48px;height:3px;margin-top:8px;border-top-left-radius:3px;border-top-right-radius:3px;border-bottom-right-radius:3px;border-bottom-left-radius:3px;opacity:0.85;}.doc-text{margin-top:0px;margin-right:0px;margin-bottom:10px;margin-left:0px;font-size:17px;line-height:1.7;color:var(--doc-text);}.doc-text:last-child{margin-bottom:0px;}.doc-list li{margin-bottom:6px;}.doc-list li:last-child{margin-bottom:0px;}.doc-list li::marker{color:var(--doc-h2);}.doc-list--check li{position:relative;padding-left:28px;}.doc-list--check li::before{content:"✓";position:absolute;left:0px;top:0px;color:var(--doc-h2);font-weight:700;}@media (max-width: 768px){.core-engine-lib-word-blocks .grid--2, .core-engine-lib-word-blocks .grid--3, .core-engine-lib-word-blocks .grid--4{grid-template-columns:minmax(0px, 1fr);}.doc-title{font-size:32px;}.doc-section{padding-top:8px;padding-right:16px;padding-bottom:8px;padding-left:16px;}.doc-section--intro{padding-top:16px;}.doc-section__title{font-size:22px;margin-top:16px;}.doc-section__inner h3{font-size:18px;}.doc-text{font-size:16px;}}', NULL, 'page', 75, 0);
 
 PRAGMA foreign_keys = ON;

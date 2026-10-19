@@ -404,6 +404,8 @@ export class Editor {
         await this._modals.openHtmlCssModal({
             editor: this.editor,
             createModal: this._createModal,
+            dataLoader: this._dataLoader,      // <-- ДОБАВЛЕНО
+            templateMgr: this._templateMgr,    // <-- ДОБАВЛЕНО
         });
     }
 

@@ -295,9 +295,26 @@ export class Importer {
             return;
         }
 
+        let rawHtml = (data.html || '').trim();
+        rawHtml = rawHtml.replace(/<\/?html[^>]*>/gi, '');
+        rawHtml = rawHtml.replace(/<head[\s\S]*?<\/head>/gi, '');
+        rawHtml = rawHtml.replace(/<\/?body[^>]*>/gi, '');
+
+        const styleMatches = [...(data.html || '').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];
+        let extractedCss = styleMatches.map(m => m[1]).join('\n').trim();
+        rawHtml = rawHtml.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+
+        const html = rawHtml.trim();
+        const css = ((data.css || '') + '\n' + extractedCss).trim();
+
+        if (!html && !css) {
+            console.warn('[Importer] nothing to import');
+            return;
+        }
+
         let applied = false;
 
-        // Preferred: full project JSON.
+        // 1. Вызываем setComponents (это пересоздаст iframe, но сохранит все стили GrapesJS)
         if (data.project_json) {
             try {
                 const proj = JSON.parse(data.project_json);
@@ -309,25 +326,39 @@ export class Importer {
             }
         }
 
-        // Fallback: HTML + CSS.
         if (!applied) {
-            const html = (data.html || '').trim();
-            const css = (data.css || '').trim();
-
-            if (!html && !css) {
-                console.warn('[Importer] nothing to import');
-                return;
-            }
-
             try {
                 if (html) gjs.setComponents(html);
                 if (css) gjs.setStyle(css);
+                applied = true;
                 console.log('[Importer] applied via setComponents + setStyle');
             } catch (e) {
                 console.error('[Importer] setComponents/setStyle failed:', e);
                 return;
             }
         }
+
+        // 2. СРАЗУ ПОСЛЕ ЭТОГО возвращаем iframe на место в slotEl
+        setTimeout(() => {
+            const ed = this.editor;
+            if (ed.templateEl && ed.canvasEl && ed.slotEl) {
+                // GrapesJS создает новый iframe. Ищем его.
+                const iframe = document.querySelector('.gjs-frame') || document.querySelector('iframe');
+                
+                if (iframe && !ed.slotEl.contains(iframe)) {
+                    // Очищаем слот и вставляем iframe туда
+                    ed.slotEl.innerHTML = '';
+                    ed.slotEl.appendChild(iframe);
+                    
+                    // Переприменяем стили
+                    const dl = ed._dataLoader;
+                    if (dl) {
+                        try { dl._reapplyPostLoad?.(); } catch (e) { console.warn(e); }
+                    }
+                    console.log('[Importer] iframe moved back to slotEl');
+                }
+            }
+        }, 50); // Задержка, чтобы GrapesJS успел создать iframe
 
         if (data.assets && Object.keys(data.assets).length) {
             console.log(
@@ -341,7 +372,6 @@ export class Importer {
 
         const dl = this.editor?._dataLoader;
         if (dl) {
-            try { dl._reapplyPostLoad?.(); } catch (e) { console.warn(e); }
             try { dl._scheduleRemoveEmptyPlaceholder?.(); } catch (e) { console.warn(e); }
             try { dl._clearUndoHistory?.(); } catch (e) { console.warn(e); }
         }

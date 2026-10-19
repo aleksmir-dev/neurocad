@@ -27,8 +27,10 @@
  * @param {Object} opts
  * @param {Object} opts.editor        — GrapesJS instance
  * @param {Function} opts.createModal — modal factory
+ * @param {Object} [opts.dataLoader]  — DataLoader instance (for post-load hooks)
+ * @param {Object} [opts.templateMgr] — TemplateManager instance (for slot resize)
  */
-export async function openHtmlCssModal({ editor, createModal }) {
+export async function openHtmlCssModal({ editor, createModal, dataLoader, templateMgr }) {
     if (!createModal) {
         console.warn('[Modals] createModal not provided');
         return;
@@ -135,6 +137,43 @@ export async function openHtmlCssModal({ editor, createModal }) {
             if (htmlChanged) {
                 editor.setComponents(newHtml);
                 console.log('[Modals] HTML applied (was changed)');
+
+                // ========================================================
+                // ВАЖНО: Возвращаем iframe на место после пересоздания
+                // (та же логика, что и в import.js)
+                // ========================================================
+                setTimeout(() => {
+                    const ed = editor.editor; // parent Editor instance
+                    // Проверяем, есть ли доступ к templateEl и slotEl
+                    if (ed && ed.templateEl && ed.canvasEl && ed.slotEl) {
+                        const iframe = document.querySelector('.gjs-frame') || document.querySelector('iframe');
+                        
+                        if (iframe && !ed.slotEl.contains(iframe)) {
+                            ed.slotEl.innerHTML = '';
+                            ed.slotEl.appendChild(iframe);
+                            
+                            const dl = ed._dataLoader;
+                            if (dl) {
+                                try { dl._reapplyPostLoad?.(); } catch (e) { console.warn(e); }
+                            }
+                            console.log('[Modals] iframe moved back to slotEl');
+                        }
+                    }
+                }, 50);
+
+                // Пост-обработка (если dataLoader передан)
+                if (dataLoader) {
+                    try { dataLoader._reapplyPostLoad?.(); } catch (e) { console.warn(e); }
+                    try { dataLoader._scheduleRemoveEmptyPlaceholder?.(); } catch (e) { console.warn(e); }
+                    try { dataLoader._clearUndoHistory?.(); } catch (e) { console.warn(e); }
+                }
+
+                // Синхронизация высоты слота (если templateMgr передан)
+                if (templateMgr && templateMgr.syncSlotHeight) {
+                    setTimeout(() => {
+                        try { templateMgr.syncSlotHeight(); } catch (e) { console.warn(e); }
+                    }, 100);
+                }
             } else {
                 console.log('[Modals] HTML unchanged — skipped setComponents');
             }

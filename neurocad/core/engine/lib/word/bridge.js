@@ -171,6 +171,10 @@ export async function openEditor(word) {
 
         templateHtml: templateHtml,
 
+        // Передаем ссылку на word, чтобы из import.js можно было
+        // пересоздать редактор при импорте (см. import.js → _applyImport).
+        word: word,
+
         onSave: async (data) => {
             await word._saveContent(data);
         },
