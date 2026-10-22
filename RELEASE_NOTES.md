@@ -1,6 +1,6 @@
 # RELEASE-NOTES.md
 
-## neurocad 1.0.37
+## neurocad 1.0.38
 
 Release date: 2026-10-22
 
@@ -8,8 +8,10 @@ Release date: 2026-10-22
 
 ### English
 
-- **Catalog pages are now sorted by date (newest first), not alphabetically.** The client-side sort in `base/cards/render.js` was reordering pages by title, overriding the backend order. Page sorting is now delegated to the backend (`pages/service.py` → `get_list`), which already returns pages by `datetime DESC`. Folders keep their own order (`sort_order` → `title`) and stay above pages, as before.
+- **Fixed logo generation from the article card form.** The "Генерировать" button in the logo media field was POSTing to a stale URL (`/_01_generate_logo/generate`) that no longer existed, so the server returned 405 Method Not Allowed. The endpoint is now the correct `/_01_logo/generate`.
+- **Fixed HTML import on regular (non-template) pages.** The 1.0.36 fix that moves the GrapesJS iframe back into the template slot was running for every page. On a regular page the canvas *is* the slot, so `slotEl.innerHTML = ''` wiped the page — the imported HTML only appeared after saving and reloading. The iframe re-attach is now guarded by `template_id`: it runs only for template children, exactly as before. Regular pages render the imported HTML immediately.
 
 ### Русский
 
-- **Страницы каталога теперь сортируются по дате (новые сверху), а не по алфавиту.** Клиентская сортировка в `base/cards/render.js` переупорядочивала страницы по заголовку, перебивая порядок с бэкенда. Сортировка страниц передана бэкенду (`pages/service.py` → `get_list`), который и так отдаёт страницы по `datetime DESC`. Папки сохраняют свой порядок (`sort_order` → `title`) и по-прежнему идут выше страниц.
+- **Исправлена генерация логотипа из формы карточки статьи.** Кнопка «Генерировать» в поле «Логотип» отправляла POST на устаревший URL (`/_01_generate_logo/generate`), которого больше нет, — сервер отвечал 405 Method Not Allowed. Теперь используется правильный эндпоинт `/_01_logo/generate`.
+- **Исправлен импорт HTML на обычных (не шаблонных) страницах.** Фикс из 1.0.36, возвращавший iframe GrapesJS в слот шаблона, выполнялся для всех страниц. На обычной странице canvas *и есть* слот, поэтому `slotEl.innerHTML = ''` стирал страницу — импортированный HTML появлялся только после сохранения и перезагрузки. Теперь перенос iframe выполняется только при наличии `template_id` (дочерние страницы шаблона), как и было задумано. Обычные страницы показывают импортированный HTML сразу.

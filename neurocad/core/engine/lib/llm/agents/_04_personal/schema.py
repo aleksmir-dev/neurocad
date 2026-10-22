@@ -1,75 +1,74 @@
 # core/engine/lib/llm/agents/_04_personal/schema.py
 
+"""Request / response schemas for the _04_personal agent."""
+
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 
 
 class CoreEngineLibLlmAgentsPersonalRequest(BaseModel):
-    prompt: str
+    """Single request for any stage: brief / base / effects."""
+
+    prompt: str = ""
     stage: Optional[str] = Field(
         default="base",
         description='"brief" | "base" | "effects"',
     )
     target_section: Optional[str] = Field(
         default=None,
-        description='Имя секции для stage="effects": "hero" | "projects" | "footer".',
+        description='Секция для stage="effects": "hero" | "projects" | "footer".',
     )
-    current_html: Optional[str] = Field(
+
+    # New stateless state (preferred). If both state and run_id are
+    # missing, the service starts from a fresh PageState.
+    state: Optional[Dict[str, Any]] = Field(
         default=None,
-        description=(
-            "HTML целевой секции. Используется только на stage='effects' "
-            "как контекст для модели. На stage='base' игнорируется."
-        ),
+        description="PageState.to_dict(): html + css_by_section + color_hint + history.",
     )
-    current_css: Optional[str] = Field(
+    run_id: Optional[int] = Field(
         default=None,
-        description=(
-            "[deprecated] Единая строка CSS секции. Оставлено для совместимости. "
-            "Используйте css_by_section."
-        ),
+        description="Load state from Run by id when `state` is not provided.",
     )
-    css_by_section: Optional[Dict[str, str]] = Field(
+
+    # Effects tuning.
+    effects_mode: Optional[str] = Field(
         default=None,
-        description=(
-            'CSS по секциям: {"hero": "...", "projects": "...", "footer": "..."}. '
-            "На stage='effects' сервис берёт из этого словаря CSS целевой секции."
-        ),
+        description='"replace" | "append"; defaults to constants.DEFAULT_EFFECTS_MODE.',
     )
-    history: Optional[List[Dict[str, Any]]] = None
+    n_effects: Optional[int] = Field(
+        default=None,
+        description="How many effects to sample; defaults to constants.DEFAULT_N_EFFECTS.",
+    )
+    seed: Optional[int] = Field(
+        default=None,
+        description="Deterministic effects sampling when set.",
+    )
+
+    # Deprecated: kept for backward compatibility with the old notebook.
+    current_html: Optional[str] = Field(default=None, description="[deprecated] Use state.")
+    current_css: Optional[str] = Field(default=None, description="[deprecated] Use state.")
+    css_by_section: Optional[Dict[str, str]] = Field(default=None, description="[deprecated] Use state.")
+    history: Optional[List[Dict[str, Any]]] = Field(default=None, description="[deprecated] Use state.")
 
 
 class CoreEngineLibLlmAgentsPersonalData(BaseModel):
-    # base: HTML секций по ключам; effects: HTML одной (целевой) секции
-    html: Optional[str] = None
+    """Stage payload (subset is filled depending on stage)."""
 
-    # base: CSS одной строкой (склейка css_by_section)
-    # effects: CSS только для целевой секции
-    css: Optional[str] = None
+    html: Optional[str] = Field(default=None, description="base: full page; effects: target section.")
+    css: Optional[str] = Field(default=None, description="Joined CSS (base: all sections).")
+    css_by_section: Optional[Dict[str, str]] = Field(default=None, description="Per-section CSS.")
+    section: Optional[str] = Field(default=None, description='Echo of target_section on effects.')
+    question: Optional[str] = Field(default=None, description="brief: next question.")
+    ready: Optional[bool] = Field(default=None, description="brief: dialog finished.")
+    warning: Optional[str] = Field(default=None, description="brief: model returned non-JSON.")
 
-    # base: CSS по секциям (предпочтительный формат)
-    css_by_section: Optional[Dict[str, str]] = Field(
-        default=None,
-        description='CSS по секциям. Заполняется на stage="base".',
-    )
-
-    # effects: какая секция обновлена (эхо target_section)
-    section: Optional[str] = Field(
-        default=None,
-        description='Заполняется на stage="effects".',
-    )
-
-    # brief
-    question: Optional[str] = None
-    ready: Optional[bool] = None
-
-    # brief: предупреждение, если модель ответила не-JSON (fallback)
-    warning: Optional[str] = Field(
-        default=None,
-        description='Заполняется на stage="brief", если модель вернула не-JSON.',
-    )
+    # New: full state after the operation — client passes it back next call.
+    state: Optional[Dict[str, Any]] = Field(default=None, description="PageState.to_dict() after the op.")
 
 
 class CoreEngineLibLlmAgentsPersonalResponse(BaseModel):
+    """Envelope returned by POST /_04_personal/generate."""
+
     success: bool
     data: Optional[CoreEngineLibLlmAgentsPersonalData] = None
     error: Optional[str] = None

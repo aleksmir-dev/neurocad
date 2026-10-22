@@ -1400,6 +1400,22 @@
       "source": "logo",
       "builtin": false,
       "order": 1770
+    },
+    {
+      "id": "img-e122fef3",
+      "alt": "Статья 1",
+      "file": "files/img-e122fef3.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1780
+    },
+    {
+      "id": "img-9059bb5c",
+      "alt": "Интернет-магазин",
+      "file": "files/img-9059bb5c.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1790
     }
   ]
 }

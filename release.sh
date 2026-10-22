@@ -9,9 +9,8 @@
 # Ничего не удаляется автоматически.
 
 set -e  # stop on any error
-trap '' PIPE
 
-VERSION="1.0.37"
+VERSION="1.0.38"
 TAG="v${VERSION}"
 
 # Папки, которые не должны лежать в корне проекта.
@@ -125,19 +124,19 @@ if [ -n "${WHEEL}" ]; then
     echo "Wheel: ${WHEEL}"
     echo ""
     echo "Looking for .env.example ..."
-    python -m zipfile -l "${WHEEL}" | grep "env\.example" || \
+    python -m zipfile -l "${WHEEL}" | grep -m 1 "env\.example" || \
         echo "  (MISSING .env.example — check force-include)"
     echo ""
     echo "Looking for neurocad/base/demo/ ..."
-    python -m zipfile -l "${WHEEL}" | grep "neurocad/base/demo/" | head -n 10 || \
+    python -m zipfile -l "${WHEEL}" | grep -m 10 "neurocad/base/demo/" || \
         echo "  (MISSING neurocad/base/demo/ — check force-include)"
     echo ""
     echo "Looking for editor/images/files/*.svg ..."
-    python -m zipfile -l "${WHEEL}" | grep "editor/images/files/.*\.svg" | head -n 5 || \
+    python -m zipfile -l "${WHEEL}" | grep -m 5 "editor/images/files/.*\.svg" || \
         echo "  (no SVG found — check exclude/force-include)"
     echo ""
     echo "Looking for the demo_import module ..."
-    python -m zipfile -l "${WHEEL}" | grep "dbsqlite/demo_import" || \
+    python -m zipfile -l "${WHEEL}" | grep -m 1 "dbsqlite/demo_import" || \
         echo "  (MISSING dbsqlite/demo_import — check package tree)"
 fi
 

@@ -11,7 +11,7 @@
  * The button:
  *   1. reads the current "title" and "description" from the form
  *      (through getAllValues);
- *   2. POSTs to /core/engine/lib/llm/agents/_01_generate_logo/generate;
+ *   2. POSTs to /core/engine/lib/llm/agents/_01_logo/generate;
  *   3. on success — writes the returned URL into the media field
  *      (setValue) so the hidden input and the preview update;
  *   4. on failure — shows the error under the field (showError).
@@ -21,6 +21,8 @@
  *
  * No global state, no imports — the module is pure.
  */
+
+const LOGO_GENERATE_URL = '/core/engine/lib/llm/agents/_01_logo/generate';
 
 export function makeLogoGeneratorButton() {
     return {
@@ -40,26 +42,20 @@ export function makeLogoGeneratorButton() {
                 ? `${title}. ${description}`
                 : title;
 
-            // ---- Busy state ----
-            // Only the disabled flag changes. The text stays as-is
-            // so the button does not "jump" during the request.
             button.disabled = true;
             clearError();
 
             try {
-                const res = await fetch(
-                    '/core/engine/lib/llm/agents/_01_generate_logo/generate',
-                    {
-                        method: 'POST',
-                        credentials: 'same-origin',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            prompt,
-                            alt: title,
-                            source: 'logo',
-                        }),
-                    },
-                );
+                const res = await fetch(LOGO_GENERATE_URL, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt,
+                        alt: title,
+                        source: 'logo',
+                    }),
+                });
 
                 const data = await res.json().catch(() => null);
 

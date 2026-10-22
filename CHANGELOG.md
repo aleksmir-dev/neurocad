@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.38] - 2026-10-22
+- Fixed logo generation from the article card form (correct endpoint `/_01_logo/generate`) and HTML import on regular pages (iframe re-attach now only for template children).
+
 ## [1.0.37] - 2026-10-22
 - Article catalog: pages are now sorted by date (newest first), not alphabetically.
 
@@ -149,6 +152,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.18] - 2026-09-22
 - Initial public release.
 
+[1.0.38]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.37...v1.0.38
+[1.0.37]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.36...v1.0.37
 [1.0.36]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.35...v1.0.36
 [1.0.35]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.34...v1.0.35
 [1.0.34]: https://github.com/aleksmir-dev/neurocad/compare/v1.0.33...v1.0.34

@@ -1,43 +1,57 @@
 # core/engine/lib/llm/agents/_04_personal/service.py
 
+"""Orchestrator for the _04_personal agent."""
+
 import json
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
+from .constants import (
+    DEFAULT_EFFECTS_MODE,
+    DEFAULT_JSON_RETRIES,
+    DEFAULT_N_EFFECTS,
+    VALID_EFFECTS_MODES,
+    SECTION_NAMES,
+)
+from .css_ops import collect_css, strip_effects, upsert_effects
+from .effects import sample_effects
+from .html_ops import replace_section
 from .prompt import CoreEngineLibLlmAgentsPersonalPrompt
+from .schema import CoreEngineLibLlmAgentsPersonalRequest
+from .state import PageState
 
 logger = logging.getLogger(__name__)
 
 DEBUG_DIR = os.path.join(os.path.dirname(__file__), "debug")
 
-MAX_CSS_RETRIES = 3
-
 
 class CoreEngineLibLlmAgentsPersonalService:
+    """Single entry point: brief / base / effects."""
 
     # ------------------------------------------------------------------ #
     # debug
     # ------------------------------------------------------------------ #
     @classmethod
     def _dump_debug(cls, stage: str, content: str) -> None:
-        """Сохраняет сырой ответ LLM в файл для анализа."""
+        """Save raw LLM response to a file for analysis."""
         try:
             os.makedirs(DEBUG_DIR, exist_ok=True)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            filename = os.path.join(DEBUG_DIR, f"{timestamp}_{stage}.txt")
-            with open(filename, "w", encoding="utf-8") as f:
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            path = os.path.join(DEBUG_DIR, f"{ts}_{stage}.txt")
+            with open(path, "w", encoding="utf-8") as f:
                 f.write(content)
-            logger.debug("[DEBUG] Raw response saved to: %s", filename)
+            logger.debug("[DEBUG] Raw response saved to: %s", path)
         except Exception as e:  # pragma: no cover
             logger.warning("[DEBUG] Failed to save raw response: %s", e)
 
     # ------------------------------------------------------------------ #
-    # helpers
+    # json helpers
     # ------------------------------------------------------------------ #
     @classmethod
     def _strip_markdown_fences(cls, content: str) -> str:
+        """Remove ```json ... ``` fences around the payload."""
         content = content.strip()
         if content.startswith("```json"):
             content = content[7:]
@@ -49,6 +63,7 @@ class CoreEngineLibLlmAgentsPersonalService:
 
     @classmethod
     def _extract_json_object(cls, content: str) -> str:
+        """Return the outermost {...} block; raise ValueError if none."""
         start = content.find("{")
         end = content.rfind("}")
         if start == -1 or end == -1 or end <= start:
@@ -56,8 +71,21 @@ class CoreEngineLibLlmAgentsPersonalService:
         return content[start:end + 1]
 
     @classmethod
+    def _parse_json(cls, content: str) -> dict:
+        """Strip fences, extract {...}, json.loads; raise ValueError on failure."""
+        cleaned = cls._strip_markdown_fences(content)
+        json_str = cls._extract_json_object(cleaned)
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON: {e}")
+
+    # ------------------------------------------------------------------ #
+    # provider helpers
+    # ------------------------------------------------------------------ #
+    @classmethod
     def _check_finish_reason(cls, raw: Any) -> None:
-        """Если провайдер вернул finish_reason == 'length' — бросаем ошибку."""
+        """Raise if the provider truncated the response by max_tokens."""
         reason = None
         if isinstance(raw, dict):
             reason = raw.get("finish_reason")
@@ -70,15 +98,8 @@ class CoreEngineLibLlmAgentsPersonalService:
             )
 
     @classmethod
-    def _call_provider(
-        cls, provider: Any, messages: List[Dict[str, Any]]
-    ) -> str:
-        """Синхронный вызов вынесен в async-метод ниже, здесь только тип."""
-        raise NotImplementedError  # pragma: no cover
-
-    @classmethod
     async def _chat(cls, provider: Any, messages: List[Dict[str, Any]]) -> str:
-        """Один вызов модели. Возвращает очищенный текст ответа."""
+        """One model call; return cleaned text content."""
         raw = await provider.generate_completion(messages, max_tokens=8192)
         cls._check_finish_reason(raw)
 
@@ -92,15 +113,269 @@ class CoreEngineLibLlmAgentsPersonalService:
         return cls._strip_markdown_fences(content)
 
     @classmethod
-    def _messages_for_base_retry(
+    async def _chat_json_with_retry(
+        cls,
+        provider: Any,
+        messages: List[Dict[str, Any]],
+        stage: str,
+        retries: int = DEFAULT_JSON_RETRIES,
+    ) -> dict:
+        """Call LLM and parse JSON; retry up to `retries` times on failure."""
+        last_content = await cls._chat(provider, messages)
+        cls._dump_debug(stage, last_content)
+
+        for attempt in range(1, retries + 1):
+            try:
+                return cls._parse_json(last_content)
+            except ValueError as e:
+                cls._dump_debug(f"{stage}_broken_json_attempt{attempt}", last_content)
+                if attempt == retries:
+                    raise ValueError(
+                        f"LLM не вернула валидный JSON за {retries} попыток: {e}"
+                    )
+                messages = [
+                    *messages,
+                    {"role": "assistant", "content": last_content},
+                    {
+                        "role": "user",
+                        "content": (
+                            "Твой предыдущий ответ не является валидным JSON. "
+                            "Верни ТОЛЬКО валидный JSON-объект, начни с { и "
+                            "закончи }. Без markdown, без текста вне JSON."
+                        ),
+                    },
+                ]
+                last_content = await cls._chat(provider, messages)
+                cls._dump_debug(f"{stage}_retry{attempt}", last_content)
+
+        raise ValueError("Unreachable")  # pragma: no cover
+
+    # ------------------------------------------------------------------ #
+    # state helpers
+    # ------------------------------------------------------------------ #
+    @classmethod
+    def _load_state(
+        cls,
+        request: CoreEngineLibLlmAgentsPersonalRequest,
+    ) -> PageState:
+        """Build PageState from request.state (fallback to fresh)."""
+        if request.state:
+            state = PageState.from_dict(request.state)
+        else:
+            state = PageState()
+        state.ensure_sections()
+        return state
+
+    @classmethod
+    def _request_messages(
+        cls,
+        state: PageState,
+        system_prompt: str,
+        user_content: str,
+    ) -> List[Dict[str, Any]]:
+        """Assemble system + history + user messages."""
+        messages: List[Dict[str, Any]] = [
+            {"role": "system", "content": system_prompt},
+        ]
+        for msg in state.history:
+            role = msg.get("role")
+            content = msg.get("content")
+            if role in ("user", "assistant") and content:
+                messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": user_content})
+        return messages
+
+    # ------------------------------------------------------------------ #
+    # stages
+    # ------------------------------------------------------------------ #
+    @classmethod
+    async def _stage_brief(
+        cls,
+        provider: Any,
+        request: CoreEngineLibLlmAgentsPersonalRequest,
+        state: PageState,
+    ) -> Dict[str, Any]:
+        """Dialog stage: ask one question at a time until ready."""
+        system_prompt = CoreEngineLibLlmAgentsPersonalPrompt.build_brief()
+        messages = cls._request_messages(state, system_prompt, request.prompt)
+
+        content = await cls._chat(provider, messages)
+        cls._dump_debug("brief", content)
+
+        try:
+            data = cls._parse_json(content)
+        except ValueError:
+            logger.warning("Brief: JSON broken, fallback to text analysis.")
+            question = content.strip() if "?" in content else None
+            state.history.append({"role": "user", "content": request.prompt})
+            state.history.append({"role": "assistant", "content": content})
+            return {
+                "question": question,
+                "ready": False,
+                "warning": "LLM вернула не-JSON." if not question else None,
+                "state": state.to_dict(),
+            }
+
+        ready = bool(data.get("ready", False))
+        color_hint = (data.get("color_hint") or "").strip() or None
+
+        state.history.append({"role": "user", "content": request.prompt})
+        state.history.append({"role": "assistant", "content": content})
+        if ready and color_hint:
+            state.color_hint = color_hint
+
+        return {
+            "question": data.get("question"),
+            "ready": ready,
+            "state": state.to_dict(),
+        }
+
+    @classmethod
+    async def _stage_base(
+        cls,
+        provider: Any,
+        request: CoreEngineLibLlmAgentsPersonalRequest,
+        state: PageState,
+    ) -> Dict[str, Any]:
+        """Base stage: full layout HTML + per-section CSS."""
+        system_prompt = CoreEngineLibLlmAgentsPersonalPrompt.build_base(
+            color_hint=state.color_hint,
+        )
+        messages = cls._request_messages(state, system_prompt, request.prompt)
+
+        # Up to DEFAULT_JSON_RETRIES attempts: JSON must be valid AND
+        # `css` must be an object (not a string).
+        last_content = await cls._chat(provider, messages)
+        cls._dump_debug("base", last_content)
+
+        data: Optional[dict] = None
+        for attempt in range(1, DEFAULT_JSON_RETRIES + 1):
+            try:
+                data = cls._parse_json(last_content)
+            except ValueError as e:
+                cls._dump_debug(f"base_broken_json_attempt{attempt}", last_content)
+                if attempt == DEFAULT_JSON_RETRIES:
+                    raise ValueError(
+                        f"LLM не вернула валидный JSON за {DEFAULT_JSON_RETRIES} попыток: {e}"
+                    )
+                messages = cls._messages_for_css_object_retry(messages, last_content)
+                last_content = await cls._chat(provider, messages)
+                cls._dump_debug(f"base_retry{attempt}", last_content)
+                continue
+
+            css_field = data.get("css", {})
+            if isinstance(css_field, dict):
+                break
+
+            if attempt == DEFAULT_JSON_RETRIES:
+                raise ValueError(
+                    f"LLM {DEFAULT_JSON_RETRIES} раз вернула 'css' не объектом "
+                    f"(тип: {type(css_field).__name__}). Ожидается dict."
+                )
+            logger.warning(
+                "base: 'css' is %s, asking model to reformat (attempt %d/%d).",
+                type(css_field).__name__, attempt, DEFAULT_JSON_RETRIES,
+            )
+            messages = cls._messages_for_css_object_retry(messages, last_content)
+            last_content = await cls._chat(provider, messages)
+            cls._dump_debug(f"base_retry{attempt}", last_content)
+
+        # Reached only with data and data["css"] is dict.
+        css_by_section = {str(k): str(v) for k, v in (data.get("css") or {}).items() if v}
+        html_parts = [
+            (data.get("hero") or "").strip(),
+            (data.get("projects") or "").strip(),
+            (data.get("footer") or "").strip(),
+        ]
+        full_html = "\n".join(p for p in html_parts if p)
+        if not full_html:
+            raise ValueError("LLM вернула пустой макет")
+
+        state.html = full_html
+        state.css_by_section = {**state.css_by_section, **css_by_section}
+        state.ensure_sections()
+
+        return {
+            "html": state.html,
+            "css": collect_css(state.css_by_section),
+            "css_by_section": dict(state.css_by_section),
+            "state": state.to_dict(),
+        }
+
+    @classmethod
+    async def _stage_effects(
+        cls,
+        provider: Any,
+        request: CoreEngineLibLlmAgentsPersonalRequest,
+        state: PageState,
+    ) -> Dict[str, Any]:
+        """Effects stage: update exactly one section."""
+        target = request.target_section
+        if not target:
+            raise ValueError("target_section обязателен для stage='effects'")
+        if target not in SECTION_NAMES:
+            raise ValueError(f"Неизвестная секция: {target}")
+
+        mode = request.effects_mode or DEFAULT_EFFECTS_MODE
+        if mode not in VALID_EFFECTS_MODES:
+            raise ValueError(f"Неверный effects_mode: {mode}")
+
+        n_effects = request.n_effects if request.n_effects is not None else DEFAULT_N_EFFECTS
+        picked = sample_effects(n=n_effects, seed=request.seed)
+
+        # Model sees only the BASE CSS of the section — no old effects.
+        base_css = strip_effects(state.css_by_section.get(target, ""))
+
+        system_prompt = CoreEngineLibLlmAgentsPersonalPrompt.build_effects(
+            target_section=target,
+            current_html=state.html,
+            base_css=base_css,
+            color_hint=state.color_hint,
+            effects=picked,
+            seed=request.seed,
+        )
+        user_content = (
+            f"Задача: {request.prompt or 'Добавь эффекты'}\n"
+            f"Верни обновлённый HTML секции «{target}» и только новые CSS-правила для неё."
+        )
+        messages = cls._request_messages(state, system_prompt, user_content)
+
+        data = await cls._chat_json_with_retry(provider, messages, stage="effects")
+
+        new_section_html = (data.get("html") or "").strip()
+        new_section_css = data.get("css") or ""
+
+        if not new_section_html:
+            raise ValueError("LLM вернула пустой HTML для секции")
+        if not isinstance(new_section_css, str):
+            raise ValueError(
+                f"LLM вернула 'css' не строкой (тип: {type(new_section_css).__name__})"
+            )
+
+        # Apply: HTML replace + CSS upsert. Both inside the agent.
+        state.html = replace_section(state.html, target, new_section_html)
+        state.css_by_section[target] = upsert_effects(
+            state.css_by_section.get(target, ""),
+            target,
+            new_section_css,
+            mode=mode,
+        )
+
+        return {
+            "html": new_section_html,
+            "css": collect_css(state.css_by_section),
+            "css_by_section": dict(state.css_by_section),
+            "section": target,
+            "state": state.to_dict(),
+        }
+
+    @classmethod
+    def _messages_for_css_object_retry(
         cls,
         messages: List[Dict[str, Any]],
         broken_content: str,
     ) -> List[Dict[str, Any]]:
-        """
-        Готовит сообщения для ретрая: добавляет ответ модели и просьбу
-        переформатировать 'css' в объект по секциям. Никакого парсинга.
-        """
+        """Append a reformat request when `css` came back as a string."""
         return [
             *messages,
             {"role": "assistant", "content": broken_content},
@@ -110,11 +385,8 @@ class CoreEngineLibLlmAgentsPersonalService:
                     "Твой предыдущий ответ не соответствует формату: поле "
                     "'css' должно быть объектом с ключами 'hero', 'projects', "
                     "'footer', где каждое значение — строка CSS только для "
-                    "этой секции. Ты вернул 'css' строкой (или невалидный "
-                    "JSON). Переформатируй ответ: верни ТОЛЬКО валидный JSON, "
-                    "где 'css' — объект {hero, projects, footer}. Содержимое "
-                    "CSS не меняй, только разложи по ключам. Без markdown, "
-                    "без текста вне JSON."
+                    "этой секции. Верни ТОЛЬКО валидный JSON, где 'css' — "
+                    "объект {hero, projects, footer}. Содержимое CSS не меняй."
                 ),
             },
         ]
@@ -127,180 +399,23 @@ class CoreEngineLibLlmAgentsPersonalService:
         cls,
         *,
         provider: Any,
-        user_message: str,
-        stage: str = "base",
-        target_section: Optional[str] = None,
-        current_html: Optional[str] = None,
-        current_css: Optional[str] = None,
-        css_by_section: Optional[Dict[str, str]] = None,
-        history: Optional[List[Dict[str, Any]]] = None,
+        request: CoreEngineLibLlmAgentsPersonalRequest,
+        user: Optional[dict] = None,
     ) -> Dict[str, Any]:
+        """
+        Dispatch by request.stage. Returns a plain dict for the route.
 
-        # 1. Промпт и user_content
-        if stage == "brief":
-            system_prompt = CoreEngineLibLlmAgentsPersonalPrompt.build_brief()
-            user_content = user_message
+        Raises:
+            ValueError — unknown stage, bad section, bad mode, LLM format.
+            Exception  — provider / network errors (route maps to 500).
+        """
+        state = cls._load_state(request)
 
-        elif stage == "effects":
-            if not target_section:
-                return {"error": "target_section is required for stage='effects'"}
+        if request.stage == "brief":
+            return await cls._stage_brief(provider, request, state)
+        if request.stage == "base":
+            return await cls._stage_base(provider, request, state)
+        if request.stage == "effects":
+            return await cls._stage_effects(provider, request, state)
 
-            section_css = ""
-            if css_by_section and target_section in css_by_section:
-                section_css = css_by_section[target_section] or ""
-            elif current_css:
-                section_css = current_css
-
-            system_prompt = CoreEngineLibLlmAgentsPersonalPrompt.build_effects(
-                target_section=target_section,
-                current_html=current_html or "",
-                current_css=section_css,
-            )
-            user_content = (
-                f"Задача: {user_message}\n"
-                f"Верни обновлённый HTML секции «{target_section}» и только новые "
-                f"CSS-правила для неё."
-            )
-
-        else:  # base
-            system_prompt = CoreEngineLibLlmAgentsPersonalPrompt.build_base()
-            user_content = user_message
-
-        # 2. messages
-        messages: List[Dict[str, Any]] = [
-            {"role": "system", "content": system_prompt}
-        ]
-        if history:
-            for msg in history:
-                role = msg.get("role")
-                content = msg.get("content")
-                if role in ("user", "assistant") and content:
-                    messages.append({"role": role, "content": content})
-        messages.append({"role": "user", "content": user_content})
-
-        # 3. вызов
-        try:
-            content = await cls._chat(provider, messages)
-            cls._dump_debug(stage, content)
-
-            # --- brief ---
-            if stage == "brief":
-                try:
-                    json_str = cls._extract_json_object(content)
-                    data = json.loads(json_str)
-                    return {
-                        "question": data.get("question"),
-                        "ready": bool(data.get("ready", False)),
-                    }
-                except (ValueError, json.JSONDecodeError):
-                    logger.warning("Brief: JSON broken, fallback to text analysis.")
-                    if "?" in content:
-                        return {"question": content.strip(), "ready": False}
-                    # Не ставим ready=True автоматически — это преждевременно
-                    # завершало брифинг. Клиент решит, что делать.
-                    return {
-                        "question": None,
-                        "ready": False,
-                        "warning": "LLM вернула не-JSON и без вопроса.",
-                    }
-
-            # --- base / effects ---
-            if stage == "base":
-                # Для base требуем, чтобы 'css' был dict. Если строка —
-                # просим модель переформатировать. До MAX_CSS_RETRIES попыток.
-                attempt_messages = messages
-                last_content = content
-
-                for attempt in range(1, MAX_CSS_RETRIES + 1):
-                    try:
-                        json_str = cls._extract_json_object(last_content)
-                        data = json.loads(json_str)
-                    except (ValueError, json.JSONDecodeError) as e:
-                        cls._dump_debug(f"base_BROKEN_JSON_attempt{attempt}", last_content)
-                        if attempt == MAX_CSS_RETRIES:
-                            raise ValueError(
-                                f"LLM не вернула валидный JSON за {MAX_CSS_RETRIES} попыток: {e}"
-                            )
-                        attempt_messages = cls._messages_for_base_retry(
-                            attempt_messages, last_content
-                        )
-                        last_content = await cls._chat(provider, attempt_messages)
-                        cls._dump_debug(f"base_retry{attempt}", last_content)
-                        continue
-
-                    css_field = data.get("css", {})
-
-                    # Если css — dict, всё хорошо
-                    if isinstance(css_field, dict):
-                        break
-
-                    # Если css — строка (или что-то ещё) — просим модель
-                    # переформатировать. Никаких парсеров.
-                    if attempt == MAX_CSS_RETRIES:
-                        raise ValueError(
-                            f"LLM {MAX_CSS_RETRIES} раз вернула 'css' не объектом "
-                            f"(тип: {type(css_field).__name__}). "
-                            f"Ожидается dict {{hero, projects, footer}}."
-                        )
-                    logger.warning(
-                        "base: 'css' пришёл как %s, просим модель переформатировать "
-                        "(попытка %d/%d).",
-                        type(css_field).__name__, attempt, MAX_CSS_RETRIES,
-                    )
-                    attempt_messages = cls._messages_for_base_retry(
-                        attempt_messages, last_content
-                    )
-                    last_content = await cls._chat(provider, attempt_messages)
-                    cls._dump_debug(f"base_retry{attempt}", last_content)
-
-                # Сюда попадаем только если css_field — dict
-                css_by_section = {
-                    str(k): str(v) for k, v in css_field.items() if v
-                }
-
-                hero_html = data.get("hero", "") or ""
-                projects_html = data.get("projects", "") or ""
-                footer_html = data.get("footer", "") or ""
-                full_html = "\n".join(
-                    x for x in (hero_html, projects_html, footer_html) if x.strip()
-                )
-                if not full_html.strip():
-                    raise ValueError("LLM returned empty layout")
-
-                return {
-                    "html": full_html,
-                    "css": "\n".join(v for v in css_by_section.values() if v),
-                    "css_by_section": css_by_section,
-                }
-
-            # --- effects ---
-            if stage == "effects" and target_section:
-                json_str = cls._extract_json_object(content)
-                try:
-                    data = json.loads(json_str)
-                except json.JSONDecodeError as e:
-                    cls._dump_debug(f"effects_BROKEN_JSON", json_str)
-                    raise ValueError(f"Invalid JSON: {e}")
-
-                new_section_html = data.get("html", "") or ""
-                new_section_css = data.get("css", "") or ""
-
-                if not new_section_html.strip():
-                    raise ValueError("LLM returned empty HTML for section")
-                if not isinstance(new_section_css, str):
-                    raise ValueError(
-                        "LLM returned non-string CSS for effects "
-                        f"(type: {type(new_section_css).__name__})"
-                    )
-
-                return {
-                    "html": new_section_html,
-                    "css": new_section_css,
-                    "section": target_section,
-                }
-
-            return {"error": f"Unknown stage: {stage}"}
-
-        except Exception as e:
-            logger.error("Generation failed: %s", e)
-            return {"error": str(e)}
+        raise ValueError(f"Неизвестный stage: {request.stage}")

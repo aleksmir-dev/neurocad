@@ -288,6 +288,30 @@ export class Importer {
     // INTERNAL — APPLY
     // ============================================
 
+    /**
+     * Return true if the page currently opened in the editor is a
+     * CHILD of a base template (i.e. has template_id). Only then the
+     * "move iframe back to slot" fix is needed — the template's iframe
+     * is rendered into the slot element, and GrapesJS detaches it on
+     * setComponents.
+     *
+     * For a regular (non-template) page the canvas IS the slot, and
+     * moving the iframe into slotEl with innerHTML='' wipes the
+     * canvas — the page becomes invisible until the next full reload.
+     */
+    _isTemplateChild() {
+        const ed = this.editor;
+        const page = ed?.pageData || ed?._pageData || null;
+        if (!page) return false;
+
+        // template_id may be number, string or null — normalise.
+        const tid = page.template_id ?? page.templateId ?? null;
+        if (tid === null || tid === undefined || tid === '' || tid === 0) {
+            return false;
+        }
+        return true;
+    }
+
     _applyImport(data) {
         const gjs = this.editor?.editor;
         if (!gjs) {
@@ -314,7 +338,7 @@ export class Importer {
 
         let applied = false;
 
-        // 1. Вызываем setComponents (это пересоздаст iframe, но сохранит все стили GrapesJS)
+        // 1. Apply content
         if (data.project_json) {
             try {
                 const proj = JSON.parse(data.project_json);
@@ -338,27 +362,30 @@ export class Importer {
             }
         }
 
-        // 2. СРАЗУ ПОСЛЕ ЭТОГО возвращаем iframe на место в slotEl
-        setTimeout(() => {
-            const ed = this.editor;
-            if (ed.templateEl && ed.canvasEl && ed.slotEl) {
-                // GrapesJS создает новый iframe. Ищем его.
-                const iframe = document.querySelector('.gjs-frame') || document.querySelector('iframe');
-                
-                if (iframe && !ed.slotEl.contains(iframe)) {
-                    // Очищаем слот и вставляем iframe туда
-                    ed.slotEl.innerHTML = '';
-                    ed.slotEl.appendChild(iframe);
-                    
-                    // Переприменяем стили
-                    const dl = ed._dataLoader;
-                    if (dl) {
-                        try { dl._reapplyPostLoad?.(); } catch (e) { console.warn(e); }
-                    }
-                    console.log('[Importer] iframe moved back to slotEl');
+        // 2. Template-child only: GrapesJS detaches the rendered iframe
+        //    from the template slot on setComponents. Move it back.
+        //
+        //    For a regular page the canvas IS the slot — touching it
+        //    here wipes the page and it stays invisible until reload.
+        if (this._isTemplateChild()) {
+            setTimeout(() => {
+                const ed = this.editor;
+                if (!ed.templateEl || !ed.canvasEl || !ed.slotEl) return;
+
+                const iframe = document.querySelector('.gjs-frame')
+                    || document.querySelector('iframe');
+                if (!iframe || ed.slotEl.contains(iframe)) return;
+
+                ed.slotEl.innerHTML = '';
+                ed.slotEl.appendChild(iframe);
+
+                const dl = ed._dataLoader;
+                if (dl) {
+                    try { dl._reapplyPostLoad?.(); } catch (e) { console.warn(e); }
                 }
-            }
-        }, 50); // Задержка, чтобы GrapesJS успел создать iframe
+                console.log('[Importer] iframe moved back to slotEl (template child)');
+            }, 50);
+        }
 
         if (data.assets && Object.keys(data.assets).length) {
             console.log(
@@ -370,8 +397,11 @@ export class Importer {
             console.warn('[Importer] warnings:', data.warnings);
         }
 
+        // Post-load state (scope class, body traits) — both for
+        // regular pages and template children. Safe for both.
         const dl = this.editor?._dataLoader;
         if (dl) {
+            try { dl._reapplyPostLoad?.(); } catch (e) { console.warn(e); }
             try { dl._scheduleRemoveEmptyPlaceholder?.(); } catch (e) { console.warn(e); }
             try { dl._clearUndoHistory?.(); } catch (e) { console.warn(e); }
         }
