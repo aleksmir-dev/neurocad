@@ -15,7 +15,9 @@ Structure:
 from fastapi import APIRouter
 
 from .agents.route import router as agents_router
+from .disp.route import router as disp_router
 
 router = APIRouter(prefix="/llm", tags=["core/engine/lib/llm"])
 
 router.include_router(agents_router)
+router.include_router(disp_router)

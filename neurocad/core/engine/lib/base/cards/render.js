@@ -204,7 +204,7 @@ export function buildItemsWithFolders(cards) {
     }
 
     sortByOrderAndName(folders);
-    sortByOrderAndName(rest);
+    // sortByOrderAndName(rest);
 
     const result = [];
 

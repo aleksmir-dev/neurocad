@@ -21,8 +21,14 @@ To add a new agent with an HTTP endpoint:
 
 from fastapi import APIRouter
 
-from ._01_generate_logo.route import router as generate_logo_router
+from ._01_logo.route import router as generate_logo_router
+from ._02_router.route import router as router_router
+from ._03_none.route import router as none_router
+from ._04_personal.route import router as personal_page_router
 
 router = APIRouter(prefix="/agents", tags=["core/engine/lib/llm/agents"])
 
 router.include_router(generate_logo_router)
+router.include_router(router_router)
+router.include_router(none_router)
+router.include_router(personal_page_router)

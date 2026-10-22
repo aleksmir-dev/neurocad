@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.37] - 2026-10-22
+- Article catalog: pages are now sorted by date (newest first), not alphabetically.
+
 ## [1.0.36] - 2026-10-19
 - Fixed HTML import and code injection in template mode: the base template (iframe) no longer detaches from its slot when applying HTML via the import dialog or the `<>` modal.
 

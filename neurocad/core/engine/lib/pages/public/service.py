@@ -261,7 +261,7 @@ class CoreEngineLibPagesPublicService:
                 .order_by(
                     # Folders first (True sorts after False → DESC)
                     (Page.card_type == CARD_TYPE_FOLDER).desc(),
-                    Page.sort_order.asc(),
+                    # Page.sort_order.asc(),
                     Page.datetime.desc(),
                     Page.id.desc(),
                 )

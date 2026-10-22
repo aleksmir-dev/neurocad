@@ -1392,6 +1392,14 @@
       "source": "logo",
       "builtin": false,
       "order": 1760
+    },
+    {
+      "id": "img-432f7568",
+      "alt": "Логотип кофейни",
+      "file": "files/img-432f7568.svg",
+      "source": "logo",
+      "builtin": false,
+      "order": 1770
     }
   ]
 }

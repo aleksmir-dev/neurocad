@@ -98,7 +98,7 @@ class Settings(BaseSettings):
     PANEL_TOKEN: Optional[str] = None
 
     # ============================================
-    # SUPERADMIN
+    # SUPERADMIN & TEST USER
     # ============================================
 
     # Default superadmin login.
@@ -106,6 +106,12 @@ class Settings(BaseSettings):
 
     # Default superadmin password.
     SUPERADMIN_PASSWORD: str = ""
+
+    # Test user login (created on first run).
+    TEST_LOGIN: str = "test"
+
+    # Test user password (created on first run).
+    TEST_PASSWORD: str = "test"
 
     # ============================================
     # USERS

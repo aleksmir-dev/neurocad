@@ -11,7 +11,7 @@
 set -e  # stop on any error
 trap '' PIPE
 
-VERSION="1.0.36"
+VERSION="1.0.37"
 TAG="v${VERSION}"
 
 # Папки, которые не должны лежать в корне проекта.

@@ -4,6 +4,7 @@
 
 import json
 import shutil
+import site
 from pathlib import Path
 from importlib.resources import files
 
@@ -110,6 +111,44 @@ def user_demo_dir() -> Path:
 # ENSURE WORKDIRS
 # ============================================
 
+def ensure_pth_file():
+    """
+    Ensure a .pth file exists in site-packages so that the project root
+    is always in sys.path. This fixes imports for Jupyter Notebooks and
+    other tools that don't inherit the current working directory.
+    """
+    # We only do this if the package is installed in editable mode
+    # (i.e., it's not inside site-packages itself).
+    pkg_dir = package_dir()
+    if "site-packages" in str(pkg_dir) or "dist-packages" in str(pkg_dir):
+        return
+
+    project_root = str(pkg_dir.parent)
+    
+    try:
+        # Get all possible site-packages directories
+        site_dirs = site.getsitepackages()
+        if hasattr(site, "getusersitepackages"):
+            site_dirs.append(site.getusersitepackages())
+            
+        for sp_dir in site_dirs:
+            pth_path = Path(sp_dir) / "neurocad.pth"
+            if pth_path.exists():
+                content = pth_path.read_text(encoding="utf-8").strip()
+                if content == project_root:
+                    continue  # Already correct
+            
+            # Write the path to the .pth file
+            try:
+                pth_path.write_text(project_root + "\n", encoding="utf-8")
+                print(f"[neurocad] created .pth file: {pth_path} -> {project_root}")
+            except PermissionError:
+                # Ignore permission errors (should not happen in user venv)
+                pass
+    except Exception as e:
+        print(f"[neurocad] failed to create .pth file: {e}")
+
+
 def ensure_workdirs():
     """
     Create working directories and files in cwd if missing.
@@ -124,6 +163,7 @@ def ensure_workdirs():
       - main.py — entry point (if missing)
       - .env — settings (if missing, copied from package .env.example)
       - .gitignore — project gitignore (created or synced)
+      - .pth file in site-packages (for Jupyter/editable mode)
 
     Demo copy rule (see `_copy_demo_if_needed`):
       Copy package demo (neurocad/base/demo) to cwd/base/demo only when
@@ -135,6 +175,9 @@ def ensure_workdirs():
       Any of those being false → no copy.
     """
     from ..config import settings
+
+    # ===== 0. Ensure .pth file for Jupyter =====
+    ensure_pth_file()
 
     # ===== 1. Working dirs =====
     for p in [

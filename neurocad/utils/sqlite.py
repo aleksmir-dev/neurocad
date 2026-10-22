@@ -135,10 +135,10 @@ async def init_sqlite(log=None):
       3. apply migrations,
       4. import demo data — only if the DB is fresh (no users yet)
          AND `base/demo/` exists in the working directory,
-      5. create superadmin,
+      5. create default users (admin, test),
       6. register modules from mod/,
       7. ensure the admin has a default Nav row (owns demo pages),
-      8. ensure the admin has a Balance row.
+      8. ensure the admin and test have a Balance row.
 
     log — app.state.log from lifespan. If None — silent.
     """
@@ -183,8 +183,10 @@ async def init_sqlite(log=None):
         except Exception as e:
             _log_sync(log, "warning", f"demo import failed: {e}")
 
-        # 5. Superadmin (auth bootstrap)
-        await ensure_superadmin(log=log)
+        # 5. Default users (admin + test)
+        from .dbsqlite.users import ensure_default_users
+        async with AsyncSessionLocal() as session:
+            await ensure_default_users(session, log=log)
 
         # 6. Modules (engine bootstrap).
         # NOTE: temporary for 0.1.x — will be replaced by web UI in 0.2.x.
@@ -197,9 +199,10 @@ async def init_sqlite(log=None):
         # Idempotent: does nothing if the row already exists.
         await ensure_default_nav(log=log)
 
-        # 8. Balance row for admin (user_id = 1, created by step 5).
-        # Idempotent: does nothing if the row already exists.
+        # 8. Balance rows for admin (user_id = 1) and test (user_id = 2).
+        # Idempotent: does nothing if the rows already exist.
         await ensure_user_balance(user_id=1, log=log)
+        await ensure_user_balance(user_id=2, log=log)
 
     except Exception as e:
         error_msg = f"SQLite connection error: {e}"
@@ -217,59 +220,6 @@ async def close_sqlite(log=None):
     except Exception as e:
         if log is not None:
             await log.log_error(target="sqlite", message=f"close error: {e}")
-
-
-# ============================================
-# SUPERADMIN
-# ============================================
-
-async def ensure_superadmin(log=None):
-    """
-    Check for a specific superadmin (by login from .env).
-    If missing — create from SUPERADMIN_LOGIN and SUPERADMIN_PASSWORD.
-
-    Does not fail if there are multiple superadmins — checks only the specific one.
-
-    log — app.state.log from init_sqlite. If None — silent.
-    """
-    from ..config import settings
-    from ..core.models.base import User
-    from ..utils.hash import get_hash_string
-
-    login = getattr(settings, "SUPERADMIN_LOGIN", "admin")
-    password = getattr(settings, "SUPERADMIN_PASSWORD", "admin")
-
-    async with AsyncSessionLocal() as session:
-        # Check the specific user by login (not "any superadmin")
-        stmt = select(User).where(User.login == login)
-        result = await session.execute(stmt)
-        existing_admin = result.scalar_one_or_none()
-
-        if existing_admin:
-            # If user exists but is not superadmin — promote
-            if not existing_admin.is_superadmin:
-                existing_admin.is_superadmin = True
-                await session.commit()
-                _log_sync(log, "info", f"User '{login}' promoted to superadmin")
-            else:
-                _log_sync(log, "info", f"Superadmin already exists: {existing_admin.login}")
-            return
-
-        # If user does not exist — create
-        hashed_password = get_hash_string(password)
-
-        new_admin = User(
-            login=login,
-            password=hashed_password,
-            name="Админ",
-            is_superadmin=True,
-            is_active=True,
-            is_delete=False,
-        )
-        session.add(new_admin)
-        await session.commit()
-
-        _log_sync(log, "info", f"Superadmin created: {login}")
 
 
 # ============================================

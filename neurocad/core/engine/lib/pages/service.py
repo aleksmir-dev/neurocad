@@ -117,7 +117,7 @@ class CoreEngineLibPagesService:
                     # Folders first
                     (Page.card_type == CARD_TYPE_FOLDER).desc(),
                     # Manual sort order ascending
-                    Page.sort_order.asc(),
+                    # Page.sort_order.asc(),
                     # Then by datetime DESC (only meaningful for pages)
                     Page.datetime.desc(),
                     Page.id.asc(),

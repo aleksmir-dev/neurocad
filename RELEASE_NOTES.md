@@ -1,15 +1,15 @@
 # RELEASE-NOTES.md
 
-## neurocad 1.0.36
+## neurocad 1.0.37
 
-Release date: 2026-10-19
+Release date: 2026-10-22
 
 ---
 
 ### English
 
-- **Fixed HTML import and code injection in template mode.** Resolved an issue where importing a page or applying HTML via the `<>` modal would break the base template (the iframe would detach from its slot). The editor now correctly repositions the rendered content back into the template's slot, preserving the layout.
+- **Catalog pages are now sorted by date (newest first), not alphabetically.** The client-side sort in `base/cards/render.js` was reordering pages by title, overriding the backend order. Page sorting is now delegated to the backend (`pages/service.py` → `get_list`), which already returns pages by `datetime DESC`. Folders keep their own order (`sort_order` → `title`) and stay above pages, as before.
 
 ### Русский
 
-- **Исправлен импорт HTML и вставка кода в режиме шаблона.** Устранена проблема, из-за которой при импорте страницы или применении HTML через модалку `<>` ломался базовый шаблон (iframe «отвязывался» от своего слота). Теперь редактор корректно возвращает отрендеренный контент на место в слот шаблона, сохраняя вёрстку.
+- **Страницы каталога теперь сортируются по дате (новые сверху), а не по алфавиту.** Клиентская сортировка в `base/cards/render.js` переупорядочивала страницы по заголовку, перебивая порядок с бэкенда. Сортировка страниц передана бэкенду (`pages/service.py` → `get_list`), который и так отдаёт страницы по `datetime DESC`. Папки сохраняют свой порядок (`sort_order` → `title`) и по-прежнему идут выше страниц.
